@@ -50,8 +50,7 @@
  *
  * The shader has three passes, chained together as follows:
  *
- *                           |input|------------------�
- *                              v                     |
+ *                           |input|------------------? *                              v                     |
  *                    [ SMAA*EdgeDetection ]          |
  *                              v                     |
  *                          |edgesTex|                |
@@ -60,8 +59,7 @@
  *                              v                     |
  *                          |blendTex|                |
  *                              v                     |
- *                [ SMAANeighborhoodBlending ] <------�
- *                              v
+ *                [ SMAANeighborhoodBlending ] <------? *                              v
  *                           |output|
  *
  * Note that each [pass] has its own vertex and pixel shader. Remember to use
@@ -686,7 +684,14 @@ void SMAANeighborhoodBlendingVS(float2 texcoord,
  * IMPORTANT NOTICE: luma edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float2 SMAALumaRawEdgeDetectionPS(float2 texcoord,
+
+// 1. MRT 출력을 위한 구조체 정의
+struct EdgeOutput {
+    float2 edge : SV_Target0; // RG8_UNORM (기존 엣지)
+    float meta  : SV_Target1; // R8_UNORM (새로운 메타데이터)
+};
+
+EdgeOutput SMAALumaRawEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
                                SMAATexture2D(colorTex)
                                #if SMAA_PREDICATION
@@ -743,7 +748,19 @@ float2 SMAALumaRawEdgeDetectionPS(float2 texcoord,
     // Local contrast adaptation:
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
-    return edges;
+    EdgeOutput output;
+    output.edge = edges.xy; // 기존처럼 RG 채널만 저장
+
+    // 3. Contrast 기반 Search Tier 분류 (R8_UNORM에 맞게 0.0 ~ 1.0 매핑)
+    if (finalDelta < 0.1) {
+        output.meta = 0.0; // Tier 0 (Short Search)
+    } else if (finalDelta < 0.333333) {
+        output.meta = 0.5; // Tier 1 (Medium Search)
+    } else {
+        output.meta = 1.0; // Tier 2 (Long Search)
+    }
+
+    return output;
 }
 
 /**
@@ -752,7 +769,7 @@ float2 SMAALumaRawEdgeDetectionPS(float2 texcoord,
  * IMPORTANT NOTICE: luma edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float2 SMAALumaEdgeDetectionPS(float2 texcoord,
+EdgeOutput SMAALumaEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
                                SMAATexture2D(colorTex)
                                #if SMAA_PREDICATION
@@ -802,7 +819,19 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
     // Local contrast adaptation:
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
-    return edges;
+    EdgeOutput output;
+    output.edge = edges.xy; // 기존처럼 RG 채널만 저장
+
+    // 3. Contrast 기반 Search Tier 분류 (R8_UNORM에 맞게 0.0 ~ 1.0 매핑)
+    if (finalDelta < 0.1) {
+        output.meta = 0.0; // Tier 0 (Short Search)
+    } else if (finalDelta < 0.333333) {
+        output.meta = 0.5; // Tier 1 (Medium Search)
+    } else {
+        output.meta = 1.0; // Tier 2 (Long Search)
+    }
+
+    return output;
 }
 
 /**
@@ -811,7 +840,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
  * IMPORTANT NOTICE: color edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float2 SMAAColorEdgeDetectionPS(float2 texcoord,
+EdgeOutput SMAAColorEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
                                 SMAATexture2D(colorTex)
                                 #if SMAA_PREDICATION
@@ -872,13 +901,24 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
     // Local contrast adaptation:
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
-    return edges;
+    EdgeOutput output;
+    output.edge = edges.xy;
+
+    if (finalDelta < 0.1) {
+        output.meta = 0.0;
+    } else if (finalDelta < 0.333333) {
+        output.meta = 0.5;
+    } else {
+        output.meta = 1.0;
+    }
+
+    return output;
 }
 
 /**
  * Depth Edge Detection
  */
-float2 SMAADepthEdgeDetectionPS(float2 texcoord,
+EdgeOutput SMAADepthEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
                                 SMAATexture2D(depthTex)) {
     float3 neighbours = SMAAGatherNeighbours(texcoord, offset, SMAATexturePass2D(depthTex));
@@ -888,7 +928,12 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord,
     if (dot(edges, float2(1.0, 1.0)) == 0.0)
         discard;
 
-    return edges;
+    EdgeOutput output;
+    output.edge = edges;
+    // Depth 기반 엣지는 형태학적 패턴이 뚜렷하므로 최대 탐색 스텝(Long Search) 보장
+    output.meta = 1.0; 
+
+    return output;
 }
 
 //-----------------------------------------------------------------------------
@@ -925,10 +970,10 @@ float4 SMAADecodeDiagBilinearAccess(float4 e) {
 /**
  * These functions allows to perform diagonal pattern searches.
  */
-float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e) {
+float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e, int maxSteps) {
     float4 coord = float4(texcoord, -1.0, 1.0);
     float3 t = float3(SMAA_RT_METRICS.xy, 1.0);
-    while (coord.z < float(SMAA_MAX_SEARCH_STEPS_DIAG - 1) &&
+    while (coord.z < float(maxSteps - 1) && // ← 고정값에서 파라미터로
            coord.w > 0.9) {
         coord.xyz = mad(t, float3(dir, 1.0), coord.xyz);
         e = SMAASampleLevelZero(edgesTex, coord.xy).rg;
@@ -937,23 +982,15 @@ float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out
     return coord.zw;
 }
 
-float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e) {
+float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e, int maxSteps) {
     float4 coord = float4(texcoord, -1.0, 1.0);
-    coord.x += 0.25 * SMAA_RT_METRICS.x; // See @SearchDiag2Optimization
+    coord.x += 0.25 * SMAA_RT_METRICS.x;
     float3 t = float3(SMAA_RT_METRICS.xy, 1.0);
-    while (coord.z < float(SMAA_MAX_SEARCH_STEPS_DIAG - 1) &&
+    while (coord.z < float(maxSteps - 1) && // ← 동일하게
            coord.w > 0.9) {
         coord.xyz = mad(t, float3(dir, 1.0), coord.xyz);
-
-        // @SearchDiag2Optimization
-        // Fetch both edges at once using bilinear filtering:
         e = SMAASampleLevelZero(edgesTex, coord.xy).rg;
         e = SMAADecodeDiagBilinearAccess(e);
-
-        // Non-optimized version:
-        // e.g = SMAASampleLevelZero(edgesTex, coord.xy).g;
-        // e.r = SMAASampleLevelZeroOffset(edgesTex, coord.xy, int2(1, 0)).r;
-
         coord.w = dot(e, float2(0.5, 0.5));
     }
     return coord.zw;
@@ -982,18 +1019,18 @@ float2 SMAAAreaDiag(SMAATexture2D(areaTex), float2 dist, float2 e, float offset)
 /**
  * This searches for diagonal patterns and returns the corresponding weights.
  */
-float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex), SMAATexture2D(areaTex), float2 texcoord, float2 e, float4 subsampleIndices) {
+float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex), SMAATexture2D(areaTex), float2 texcoord, float2 e, float4 subsampleIndices, int diagSteps) {
     float2 weights = float2(0.0, 0.0);
 
     // Search for the line ends:
     float4 d;
     float2 end;
     if (e.r > 0.0) {
-        d.xz = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0,  1.0), end);
+        d.xz = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0, 1.0), end, diagSteps);
         d.x += float(end.y > 0.9);
     } else
         d.xz = float2(0.0, 0.0);
-    d.yw = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(1.0, -1.0), end);
+    d.yw = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(1.0, -1.0), end, diagSteps);
 
     SMAA_BRANCH
     if (d.x + d.y > 2.0) { // d.x + d.y + 1 > 3
@@ -1023,9 +1060,9 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex), SMAATexture2D(areaTex),
     }
 
     // Search for the line ends:
-    d.xz = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0, -1.0), end);
+    d.xz = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0, -1.0), end, diagSteps);
     if (SMAASampleLevelZeroOffset(edgesTex, texcoord, int2(1, 0)).r > 0.0) {
-        d.yw = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(1.0, 1.0), end);
+        d.yw = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(1.0, 1.0), end, diagSteps);
         d.y += float(end.y > 0.9);
     } else
         d.yw = float2(0.0, 0.0);
@@ -1212,19 +1249,49 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
                                        float2 pixcoord,
                                        float4 offset[3],
                                        SMAATexture2D(edgesTex),
+                                       SMAATexture2D(metaTex),
                                        SMAATexture2D(areaTex),
                                        SMAATexture2D(searchTex),
                                        float4 subsampleIndices) { // Just pass zero for SMAA 1x, see @SUBSAMPLE_INDICES.
     float4 weights = float4(0.0, 0.0, 0.0, 0.0);
 
-    float2 e = SMAASample(edgesTex, texcoord).rg;
+    // 2. 텍스처 샘플링 분리 (Edge는 Bilinear/Point 섞어서 씀, Meta는 무조건 Point)
+    float2 e = SMAASamplePoint(edgesTex, texcoord).rg;
+    float meta = SMAASamplePoint(metaTex, texcoord).r;
+
+    // 3. Meta 값을 읽어 Tier 복원
+    int tier;
+    if (meta < 0.25) {
+        tier = 0;
+    } else if (meta < 0.75) {
+        tier = 1;
+    } else {
+        tier = 2;
+    }
+    
+    // 4. Tier에 따른 Step 수 매핑 (LUT 방식이 브랜칭보다 GPU 친화적)
+    int steps;
+    if      (tier == 0) steps = 4;
+    else if (tier == 1) steps = 8;
+    else                steps = SMAA_MAX_SEARCH_STEPS;
+
+    // tier → diagSteps 매핑
+    int diagSteps;
+    if      (tier == 0) diagSteps = 3;  // 최소 탐색
+    else if (tier == 1) diagSteps = SMAA_MAX_SEARCH_STEPS_DIAG / 2;  // 절반
+    else                diagSteps = SMAA_MAX_SEARCH_STEPS_DIAG;       // 풀 탐색
+    
 
     SMAA_BRANCH
     if (e.g > 0.0) { // Edge at north
         #if !defined(SMAA_DISABLE_DIAG_DETECTION)
         // Diagonals have both north and west edges, so searching for them in
         // one of the boundaries is enough.
-        weights.rg = SMAACalculateDiagWeights(SMAATexturePass2D(edgesTex), SMAATexturePass2D(areaTex), texcoord, e, subsampleIndices);
+        // 대각선 탐색 최적화 파트
+        
+        // 0.25 부터는 대각선 탐색을 진행
+        weights.rg = SMAACalculateDiagWeights(SMAATexturePass2D(edgesTex), SMAATexturePass2D(areaTex), texcoord, e, subsampleIndices, diagSteps);
+     
 
         // We give priority to diagonals, so if we find a diagonal we skip 
         // horizontal/vertical processing.
@@ -1235,8 +1302,11 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         float2 d;
 
         // Find the distance to the left:
+        // offset[2].x (고정값) 대신 계산된 endXLeft (가변값) 사용
+        float endXLeft  = texcoord.x - 2.0 * float(steps) * SMAA_RT_METRICS.x;
+
         float3 coords;
-        coords.x = SMAASearchXLeft(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].xy, offset[2].x);
+        coords.x = SMAASearchXLeft(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].xy, endXLeft);
         coords.y = offset[1].y; // offset[1].y = texcoord.y - 0.25 * SMAA_RT_METRICS.y (@CROSSING_OFFSET)
         d.x = coords.x;
 
@@ -1246,7 +1316,10 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         float e1 = SMAASampleLevelZero(edgesTex, coords.xy).r;
 
         // Find the distance to the right:
-        coords.z = SMAASearchXRight(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].zw, offset[2].y);
+        // 고정값에서 가변값으로 변경
+        float endXRight = texcoord.x + 2.0 * float(steps) * SMAA_RT_METRICS.x;
+
+        coords.z = SMAASearchXRight(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].zw, endXRight);
         d.y = coords.z;
 
         // We want the distances to be in pixel units (doing this here allow to
@@ -1268,6 +1341,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         coords.y = texcoord.y;
         SMAADetectHorizontalCornerPattern(SMAATexturePass2D(edgesTex), weights.rg, coords.xyzy, d);
 
+
         #if !defined(SMAA_DISABLE_DIAG_DETECTION)
         } else
             e.r = 0.0; // Skip vertical processing.
@@ -1279,8 +1353,11 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         float2 d;
 
         // Find the distance to the top:
+        // 고정값 대신 가변값 사용
+        float endYUp = texcoord.y - 2.0 * float(steps) * SMAA_RT_METRICS.y;
+
         float3 coords;
-        coords.y = SMAASearchYUp(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].xy, offset[2].z);
+        coords.y = SMAASearchYUp(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].xy, endYUp);
         coords.x = offset[0].x; // offset[1].x = texcoord.x - 0.25 * SMAA_RT_METRICS.x;
         d.x = coords.y;
 
@@ -1288,7 +1365,9 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         float e1 = SMAASampleLevelZero(edgesTex, coords.xy).g;
 
         // Find the distance to the bottom:
-        coords.z = SMAASearchYDown(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].zw, offset[2].w);
+        // 가변 step 이용
+        float endYDown = texcoord.y + 2.0 * float(steps) * SMAA_RT_METRICS.y;
+        coords.z = SMAASearchYDown(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].zw, endYDown);
         d.y = coords.z;
 
         // We want the distances to be in pixel units:
@@ -1307,6 +1386,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         // Fix corners:
         coords.x = texcoord.x;
         SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), weights.ba, coords.xyxz, d);
+        
     }
 
     return weights;

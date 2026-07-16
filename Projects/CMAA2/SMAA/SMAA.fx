@@ -127,6 +127,7 @@ Texture2D velocityTex;
  */
 Texture2D edgesTex;
 Texture2D blendTex;
+Texture2D metaTex; // 새로 추가된 메타데이터 텍스처
 
 /**
  * Pre-computed area and search textures
@@ -175,9 +176,9 @@ void DX10_SMAASeparateVS(float4 position : POSITION,
     svPosition = position;
 }
 
-float2 DX10_SMAALumaEdgeDetectionPS(float4 position : SV_POSITION,
-                                    float2 texcoord : TEXCOORD0,
-                                    float4 offset[3] : TEXCOORD1) : SV_TARGET {
+EdgeOutput DX10_SMAALumaEdgeDetectionPS(float4 position : SV_POSITION,
+                                        float2 texcoord : TEXCOORD0,
+                                        float4 offset[3] : TEXCOORD1) {
     #if SMAA_PREDICATION
     return SMAALumaEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
@@ -185,9 +186,9 @@ float2 DX10_SMAALumaEdgeDetectionPS(float4 position : SV_POSITION,
     #endif
 }
 
-float2 DX10_SMAAColorEdgeDetectionPS(float4 position : SV_POSITION,
-                                     float2 texcoord : TEXCOORD0,
-                                     float4 offset[3] : TEXCOORD1) : SV_TARGET {
+EdgeOutput DX10_SMAAColorEdgeDetectionPS(float4 position : SV_POSITION,
+                                         float2 texcoord : TEXCOORD0,
+                                         float4 offset[3] : TEXCOORD1) {
     #if SMAA_PREDICATION
     return SMAAColorEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
@@ -195,9 +196,9 @@ float2 DX10_SMAAColorEdgeDetectionPS(float4 position : SV_POSITION,
     #endif
 }
 
-float2 DX10_SMAADepthEdgeDetectionPS(float4 position : SV_POSITION,
-                                     float2 texcoord : TEXCOORD0,
-                                     float4 offset[3] : TEXCOORD1) : SV_TARGET {
+EdgeOutput DX10_SMAADepthEdgeDetectionPS(float4 position : SV_POSITION,
+                                         float2 texcoord : TEXCOORD0,
+                                         float4 offset[3] : TEXCOORD1) {
     return SMAADepthEdgeDetectionPS(texcoord, offset, depthTex);
 }
 
@@ -205,7 +206,8 @@ float4 DX10_SMAABlendingWeightCalculationPS(float4 position : SV_POSITION,
                                             float2 texcoord : TEXCOORD0,
                                             float2 pixcoord : TEXCOORD1,
                                             float4 offset[3] : TEXCOORD2) : SV_TARGET {
-    return SMAABlendingWeightCalculationPS(texcoord, pixcoord, offset, edgesTex, areaTex, searchTex, subsampleIndices);
+    // 인자에 metaTex 추가 (edgesTex 다음)
+    return SMAABlendingWeightCalculationPS(texcoord, pixcoord, offset, edgesTex, metaTex, areaTex, searchTex, subsampleIndices);
 }
 
 float4 DX10_SMAANeighborhoodBlendingPS(float4 position : SV_POSITION,
