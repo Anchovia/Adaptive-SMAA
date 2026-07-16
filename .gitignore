@@ -1,0 +1,53 @@
+# Visual Studio and local IDE state
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.aps
+
+# Project build directories
+_Intermediate/
+_Lib/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+packages/
+
+# Compiler and linker outputs
+*.dll
+*.exe
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.ipdb
+*.iobj
+*.pch
+*.obj
+*.tlog
+*.lastbuildstate
+
+# The repository ships this build-time embedding tool.
+!Tools/Binaries/BinaryToCppEmbedder.exe
+!Tools/Binaries/BinaryToCppEmbedder.pdb
+
+# Generated embedded rendering resources
+Modules/Rendering/EmbeddedRenderingMedia.cpp
+
+# CMAA2 runtime state and shader caches
+Projects/CMAA2/cache/
+Projects/CMAA2/ApplicationSettings.xml
+Projects/CMAA2/imgui.ini
+Projects/CMAA2/*.camerastate
+Projects/CMAA2/log.txt
+*.log
+
+# Generated benchmark and capture output
+Projects/CMAA2/AutoBench/
+Projects/CMAA2/Captures/
+
