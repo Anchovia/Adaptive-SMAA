@@ -68,7 +68,6 @@ public:
     virtual void                        SetResource_velocityTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) = 0;
     virtual void                        SetResource_edgesTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) = 0;
     virtual void                        SetResource_blendTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) = 0;
-    virtual void                        SetResource_metaTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) = 0;
 };
 
 class SMAATechniqueInterface
@@ -236,7 +235,8 @@ public:
      * ExternalStorage object. You may pass one or the two, depending on
      * what you have available.
      *
-     * A non-sRGB RG buffer (at least) is expected for storing edges.
+     * A non-sRGB RGBA buffer is expected for storing edges and search tier
+     * metadata in the R, G and B channels respectively.
      * A non-sRGB RGBA buffer is expected for the blending weights.
      */
     class ExternalStorage {
@@ -244,21 +244,17 @@ public:
         ExternalStorage(ID3D11ShaderResourceView* edgesSRV = nullptr,
             ID3D11RenderTargetView* edgesRTV = nullptr,
             ID3D11ShaderResourceView* weightsSRV = nullptr,
-            ID3D11RenderTargetView* weightsRTV = nullptr,
-            ID3D11ShaderResourceView* metaSRV = nullptr,
-            ID3D11RenderTargetView* metaRTV = nullptr)
+            ID3D11RenderTargetView* weightsRTV = nullptr)
             : edgesSRV(edgesSRV),
             edgesRTV(edgesRTV),
             weightsSRV(weightsSRV),
-            weightsRTV(weightsRTV),
-            metaSRV(metaSRV),
-            metaRTV(metaRTV) {
+            weightsRTV(weightsRTV) {
         }
 
 
 
-        ID3D11ShaderResourceView* edgesSRV, * weightsSRV, * metaSRV;
-        ID3D11RenderTargetView* edgesRTV, * weightsRTV, * metaRTV;
+        ID3D11ShaderResourceView* edgesSRV, * weightsSRV;
+        ID3D11RenderTargetView* edgesRTV, * weightsRTV;
     };
 
 private:
@@ -287,7 +283,6 @@ private:
 
     RenderTarget* edgesRT;
     RenderTarget* blendRT;
-    RenderTarget* metaRT;
 
     ID3D11Texture2D* areaTex;
     ID3D11ShaderResourceView* areaTexSRV;

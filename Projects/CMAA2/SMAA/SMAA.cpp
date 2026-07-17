@@ -183,34 +183,15 @@ SMAA::SMAA(ID3D11Device* device, SMAAShaderConstantsInterface* shaderConstantsIn
      // V(effect->GetTechniqueByName("NeighborhoodBlending")->GetPassByIndex(0)->GetDesc(&desc));
     triangle = new FullscreenTriangle(device);
 
-    // In NVIDIA cards R8G8 is slower, avoid it:
-    bool isNVIDIACard = adapterDesc ? adapterDesc->VendorId == 0x10DE : false;
+    (void)adapterDesc;
 
-    /*
+    // Pack horizontal/vertical edges in RG and the adaptive search tier in B.
     DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-    // If storage for the edges is not specified we will create it:
     if (storage.edgesRTV != nullptr && storage.edgesSRV != nullptr)
         edgesRT = new RenderTarget(device, storage.edgesRTV, storage.edgesSRV);
     else
         edgesRT = new RenderTarget(device, width, height, format);
-    */
-
-    DXGI_FORMAT format = DXGI_FORMAT_R8G8_UNORM; // RGBA8 -> RG8 �� �ٿ��� �޸� ���̾�Ʈ!
-
-    if (storage.edgesRTV != nullptr && storage.edgesSRV != nullptr &&
-        storage.metaRTV != nullptr && storage.metaSRV != nullptr)
-    {
-        // �ܺ� �޸𸮸� �����ؼ� ��� (�������� ���� �޸𸮸� �����ϴ� ���)
-        edgesRT = new RenderTarget(device, storage.edgesRTV, storage.edgesSRV);
-        metaRT = new RenderTarget(device, storage.metaRTV, storage.metaSRV);
-    }
-    else
-    {
-        // �ܺ� �޸𸮰� �������� �ʾҴٸ� SMAA ���ο��� ��ü������ �Ҵ�
-        edgesRT = new RenderTarget(device, width, height, format);
-        metaRT = new RenderTarget(device, width, height, DXGI_FORMAT_R8_UNORM);
-    }
 
     // Same for blending weights:
     if (storage.weightsRTV != nullptr && storage.weightsSRV != nullptr)
@@ -269,7 +250,6 @@ SMAA::~SMAA() {
     SAFE_DELETE(triangle);
     SAFE_DELETE(edgesRT);
     SAFE_DELETE(blendRT);
-    SAFE_DELETE(metaRT);
     SAFE_RELEASE(areaTex);
     SAFE_RELEASE(areaTexSRV);
     SAFE_RELEASE(searchTex);
@@ -321,7 +301,6 @@ void SMAA::go(ID3D11DeviceContext* context,
     // Clear render targets:
     float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     context->ClearRenderTargetView(*edgesRT, clearColor);
-    context->ClearRenderTargetView(*metaRT, clearColor);
     context->ClearRenderTargetView(*blendRT, clearColor);
 
     // Get the subsample index:
@@ -360,7 +339,6 @@ void SMAA::go(ID3D11DeviceContext* context,
     // And here we go!
     edgesDetectionPass(context, dsv, input);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
-    texturesInterface->SetResource_metaTex(context, *metaRT); // ���� �߰�!
 
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
     texturesInterface->SetResource_blendTex(context, *blendRT);
@@ -379,7 +357,6 @@ void SMAA::go(ID3D11DeviceContext* context,
     texturesInterface->SetResource_depthTex(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
     texturesInterface->SetResource_edgesTex(context, nullptr);
-    texturesInterface->SetResource_metaTex(context, nullptr);
     texturesInterface->SetResource_blendTex(context, nullptr);
 
     // V(resolveTechnique->GetPassByIndex(0)->Apply(0));
@@ -565,11 +542,8 @@ void SMAA::edgesDetectionPass(ID3D11DeviceContext* context, ID3D11DepthStencilVi
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
     edgeDetectionTechniques[int(input)]->ApplyStates(context);
 
-    // Do it!
-    //context->OMSetRenderTargets(1, *edgesRT, dsv);
-
-    ID3D11RenderTargetView* rtvs[2] = { *edgesRT, *metaRT };
-    context->OMSetRenderTargets(2, rtvs, dsv);
+    // Edge and search-tier metadata are packed into a single RGBA8 target.
+    context->OMSetRenderTargets(1, *edgesRT, dsv);
 
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
@@ -814,4 +788,3 @@ int SMAA::getSubsampleIndex(Mode mode, int pass) const {
         throw logic_error("unexpected problem");
     }
 }
-

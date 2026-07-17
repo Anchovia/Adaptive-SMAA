@@ -133,7 +133,6 @@ namespace VertexAsylum
         virtual void                    SetResource_velocityTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) override;
         virtual void                    SetResource_edgesTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) override;
         virtual void                    SetResource_blendTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) override;
-        virtual void                    SetResource_metaTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource) override;
         // SMAATechniqueManagerInterface impl
         virtual SMAATechniqueInterface* CreateTechnique(const char* name, const std::vector<D3D_SHADER_MACRO>& defines) override;
         virtual void                    DestroyAllTechniques() override;
@@ -430,10 +429,6 @@ void vaSMAAWrapperDX11::SetResource_edgesTex(ID3D11DeviceContext* context, ID3D1
 void vaSMAAWrapperDX11::SetResource_blendTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource)
 {
     context->PSSetShaderResources(9, 1, &pResource);
-}
-void vaSMAAWrapperDX11::SetResource_metaTex(ID3D11DeviceContext* context, ID3D11ShaderResourceView* pResource)
-{
-    context->PSSetShaderResources(10, 1, &pResource);
 }
 
 // SMAATechniqueManagerInterface impl

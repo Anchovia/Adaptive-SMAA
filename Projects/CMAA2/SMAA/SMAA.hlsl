@@ -685,11 +685,15 @@ void SMAANeighborhoodBlendingVS(float2 texcoord,
  * thus 'colorTex' should be a non-sRGB texture.
  */
 
-// 1. MRT 출력을 위한 구조체 정의
+// Logical edge-detection result. The wrapper packs this into one RGBA8 target.
 struct EdgeOutput {
-    float2 edge : SV_Target0; // RG8_UNORM (기존 엣지)
-    float meta  : SV_Target1; // R8_UNORM (새로운 메타데이터)
+    float2 edge;
+    float meta;
 };
+
+float4 SMAAPackEdgeOutput(EdgeOutput output) {
+    return float4(output.edge, output.meta, 0.0);
+}
 
 EdgeOutput SMAALumaRawEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
@@ -1249,15 +1253,15 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
                                        float2 pixcoord,
                                        float4 offset[3],
                                        SMAATexture2D(edgesTex),
-                                       SMAATexture2D(metaTex),
                                        SMAATexture2D(areaTex),
                                        SMAATexture2D(searchTex),
                                        float4 subsampleIndices) { // Just pass zero for SMAA 1x, see @SUBSAMPLE_INDICES.
     float4 weights = float4(0.0, 0.0, 0.0, 0.0);
 
-    // 2. 텍스처 샘플링 분리 (Edge는 Bilinear/Point 섞어서 씀, Meta는 무조건 Point)
-    float2 e = SMAASamplePoint(edgesTex, texcoord).rg;
-    float meta = SMAASamplePoint(metaTex, texcoord).r;
+    // RG stores the two edge flags; B stores the normalized search tier.
+    float3 edgeData = SMAASamplePoint(edgesTex, texcoord).rgb;
+    float2 e = edgeData.rg;
+    float meta = edgeData.b;
 
     // 3. Meta 값을 읽어 Tier 복원
     int tier;
