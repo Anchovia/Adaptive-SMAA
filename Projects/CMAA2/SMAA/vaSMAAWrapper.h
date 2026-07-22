@@ -29,6 +29,8 @@
 
 namespace VertexAsylum
 {
+    class vaCameraBase;
+
     class vaSMAAWrapper : public VertexAsylum::vaRenderingModule, public vaUIPanel
     {
     public:
@@ -53,6 +55,7 @@ namespace VertexAsylum
                                     m_constantsBuffer;
 
         bool                        m_temporalModeEnabled               = false;
+        bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
 
         //bool                        m_debugShowEdges;
@@ -72,6 +75,15 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalModeEnabled( ) const      { return m_temporalModeEnabled; }
+        void                        SetTemporalReprojectionEnabled( bool enabled )
+        {
+            if( m_temporalReprojectionEnabled != enabled )
+            {
+                m_temporalReprojectionEnabled = enabled;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
@@ -84,7 +96,8 @@ namespace VertexAsylum
         virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; }
 
         // Applies SMAA to currently selected render target using provided inputs
-        virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr )  = 0;
+        virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr )  = 0;
 
         // if SMAA is no longer used make sure it's not reserving any memory
         virtual void                CleanupTemporaryResources( )                                                            = 0;

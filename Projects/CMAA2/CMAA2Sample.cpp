@@ -240,6 +240,7 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
 
     case CMAA2Sample::AAType::SMAA:                 return "SMAA";
     case CMAA2Sample::AAType::SMAA_T2x:             return "SMAA_T2x (Naive)";
+    case CMAA2Sample::AAType::SMAA_T2x_Reprojected: return "SMAA_T2x (Reprojected)";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -271,6 +272,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SuperSampleReference: return m_SSMSAASampleCount;
     case CMAA2Sample::AAType::SMAA:                 return 1;
     case CMAA2Sample::AAType::SMAA_T2x:             return 1;
+    case CMAA2Sample::AAType::SMAA_T2x_Reprojected: return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return 4;   // at the moment use to test 4xMSAA + CMAA but applied after
@@ -691,7 +693,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                 }
                 VA_SCOPE_MAKE_LAST_SELECTED();
             }
-            else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x)
+            else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected)
             {
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
@@ -699,7 +701,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     mainContext.SetRenderTarget(gbufferColorScratch, nullptr, true);
                     colorScratchContainsFinal = true;
                     //m_SMAA->Draw( mainContext, mainColorRT ); //, m_exportedLuma );
-                    drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma);
+                    drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
                 }
                 VA_SCOPE_MAKE_LAST_SELECTED();
             }
@@ -877,15 +879,15 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     ppAAApplied = true;
                     mainContext.SetOutputs(backupOutputs);
                 }
-                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
+                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
                     assert(!colorScratchContainsFinal);
                     mainContext.SetRenderTarget(gbufferColorScratch, nullptr, true);
                     colorScratchContainsFinal = true;
-                    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x)
+                    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected)
                         //m_SMAA->Draw( mainContext, mainColorRT ); 
-                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma);
+                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
                         drawResults |= m_SMAA->Draw(mainContext, m_MSTonemappedColor);
                     ppAAApplied = true;
@@ -934,8 +936,10 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
 
     m_camera->SetViewportSize(mainViewport.Width, mainViewport.Height);
 
-    const bool temporalSMAAEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x;
+    const bool temporalSMAAEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+    const bool temporalSMAAReprojectionEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected;
     m_SMAA->SetTemporalModeEnabled( temporalSMAAEnabled );
+    m_SMAA->SetTemporalReprojectionEnabled( temporalSMAAReprojectionEnabled );
 
     vaCameraBase temporalCamera = *m_camera;
     vaCameraBase * sceneCamera = m_camera.get();
@@ -1235,6 +1239,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'3'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::CMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'4'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'T'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x;
+                if (keyboard->IsKeyClicked((vaKeyboardKeys)'R'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x_Reprojected;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'5'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2x;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'6'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2xPlusCMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'7'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_S2x;
@@ -1684,7 +1689,7 @@ class BenchItemRecordSMAATemporalComparison : public AutoBenchToolWorkItem
     int                 m_currentFrame;
     bool                m_started;
     bool                m_isDone;
-    wstring             m_outputDirs[2];
+    wstring             m_outputDirs[3];
 
 public:
     BenchItemRecordSMAATemporalComparison(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
@@ -1719,10 +1724,12 @@ protected:
             abTool.ReportStart();
             m_outputDirs[0] = abTool.ReportGetDir() + L"V0_SMAA1X\\";
             m_outputDirs[1] = abTool.ReportGetDir() + L"V1_NaiveT2X\\";
+            m_outputDirs[2] = abTool.ReportGetDir() + L"V2_ReprojectedT2X\\";
             vaFileTools::EnsureDirectoryExists(m_outputDirs[0]);
             vaFileTools::EnsureDirectoryExists(m_outputDirs[1]);
+            vaFileTools::EnsureDirectoryExists(m_outputDirs[2]);
 
-            abTool.ReportAddText("SMAA 1X vs Naive T2X temporal quality capture\r\n\r\n");
+            abTool.ReportAddText("SMAA V0/V1/V2 temporal quality capture\r\n\r\n");
             abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
             abTool.ReportAddText(vaStringTools::Format("Start time:    %.3f s\r\n", m_captureStartTime));
             abTool.ReportAddText(vaStringTools::Format("Warm-up:       %d frames\r\n", m_warmupFrameCount));
@@ -1736,7 +1743,7 @@ protected:
         if (m_currentFrame >= m_captureFrameCount)
         {
             m_currentMode++;
-            if (m_currentMode >= 2)
+            if (m_currentMode >= 3)
             {
                 m_isDone = true;
                 abTool.ReportFinish();
@@ -1745,7 +1752,7 @@ protected:
             m_currentFrame = -m_warmupFrameCount;
         }
 
-        const CMAA2Sample::AAType modes[2] = { CMAA2Sample::AAType::SMAA, CMAA2Sample::AAType::SMAA_T2x };
+        const CMAA2Sample::AAType modes[3] = { CMAA2Sample::AAType::SMAA, CMAA2Sample::AAType::SMAA_T2x, CMAA2Sample::AAType::SMAA_T2x_Reprojected };
         m_parent.Settings().CurrentAAOption = modes[m_currentMode];
 
         const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
@@ -1758,9 +1765,10 @@ protected:
         const shared_ptr<vaTexture>& colorInOut, shared_ptr<vaPostProcess>& postProcess) override
     {
         abTool; imageCompareTool; postProcess;
-        if (m_currentMode < 2 && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
+        if (m_currentMode < 3 && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
         {
-            const char* modeName = (m_currentMode == 0) ? "V0_SMAA1X" : "V1_NaiveT2X";
+            const char* modeNames[3] = { "V0_SMAA1X", "V1_NaiveT2X", "V2_ReprojectedT2X" };
+            const char* modeName = modeNames[m_currentMode];
             const wstring fileName = m_outputDirs[m_currentMode] + vaStringTools::SimpleWiden(
                 vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
             if (!colorInOut->SaveToPNGFile(renderContext, fileName))
@@ -1774,7 +1782,7 @@ protected:
     {
         const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
         const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
-        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * 2), 0.0f, 1.0f);
+        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * 3), 0.0f, 1.0f);
     }
 };
 
@@ -2038,6 +2046,7 @@ void CMAA2Sample::UIPanelDraw()
         aaTypeApplicable[(int)AAType::SuperSampleReference] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA] = true;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x_Reprojected] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_S2x] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::FXAA] = true;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot1]    = false;
@@ -2097,7 +2106,7 @@ void CMAA2Sample::UIPanelDraw()
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::CMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA2xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA4xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA8xPlusCMAA2)
         m_CMAA2->UIPanelDrawCollapsable(false, true, true);
 
-    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
+    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
         m_SMAA->UIPanelDrawCollapsable(false, true, true);
 
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::FXAA)
@@ -2194,9 +2203,9 @@ void CMAA2Sample::UIPanelDraw()
                     ImGui::TextColored(ImVec4(1.0f, 0.65f, 0.0f, 1.0f), "Formal capture requires 1920 x 1080 (current: %d x %d)", temporalCaptureResolution.x, temporalCaptureResolution.y);
                 if (m_application.GetSettings().Vsync)
                     ImGui::TextColored(ImVec4(1.0f, 0.25f, 0.25f, 1.0f), "Disable VSync before formal capture");
-                ImGui::TextDisabled("300 frames per mode uses approximately 1 GB at 1080p");
+                ImGui::TextDisabled("300 frames per mode uses approximately 1.5 GB at 1080p");
 
-                if (ImGui::Button("Capture SMAA 1X vs Naive T2X"))
+                if (ImGui::Button("Capture SMAA V0 vs V1 vs V2"))
                 {
                     m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalComparison>(*this,
                         m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));

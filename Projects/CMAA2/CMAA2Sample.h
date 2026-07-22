@@ -88,6 +88,7 @@ namespace VertexAsylum
             SuperSampleReference,   // also used as the max value for automatic comparisons & benchmarking - options below will be ignored by the autobench
 
             SMAA_T2x,               // naive temporal baseline; intentionally excluded from the legacy still-image autobench
+            SMAA_T2x_Reprojected,   // camera-motion reprojection baseline; also excluded from the legacy still-image autobench
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
