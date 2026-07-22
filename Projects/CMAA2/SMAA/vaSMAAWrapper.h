@@ -52,6 +52,9 @@ namespace VertexAsylum
         vaTypedConstantBufferWrapper<SMAAShaderConstants>
                                     m_constantsBuffer;
 
+        bool                        m_temporalModeEnabled               = false;
+        int                         m_temporalFrameIndex                = 0;
+
         //bool                        m_debugShowEdges;
 
     protected:
@@ -60,6 +63,26 @@ namespace VertexAsylum
         ~vaSMAAWrapper( );
 
     public:
+        void                        SetTemporalModeEnabled( bool enabled )
+        {
+            if( m_temporalModeEnabled != enabled )
+            {
+                m_temporalModeEnabled = enabled;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTemporalModeEnabled( ) const      { return m_temporalModeEnabled; }
+
+        // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
+        // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
+        // Y while applying it to the projection matrix.
+        vaVector2                   GetTemporalJitterOffset( ) const
+        {
+            return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
+        }
+
+        virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; }
+
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr )  = 0;
 
@@ -67,6 +90,9 @@ namespace VertexAsylum
         virtual void                CleanupTemporaryResources( )                                                            = 0;
 
     protected:
+        int                         GetTemporalFrameIndex( ) const       { return m_temporalFrameIndex; }
+        void                        AdvanceTemporalFrame( )              { m_temporalFrameIndex = (m_temporalFrameIndex + 1) % 2; }
+
         // virtual void                UpdateConstants( vaRenderDeviceContext & renderContext );
 
     private:

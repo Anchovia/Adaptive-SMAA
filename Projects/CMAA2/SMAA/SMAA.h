@@ -225,6 +225,7 @@ class SMAA {
          * Increases the subpixel counter.
          */
         void nextFrame();
+        void resetFrame() { frameIndex = 0; }
         int getFrameIndex() const { return frameIndex; }
 
         /**

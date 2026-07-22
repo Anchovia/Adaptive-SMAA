@@ -365,44 +365,32 @@ void SMAA::reproject(ID3D11DeviceContext * context,
                      ID3D11ShaderResourceView *previousSRV,
                      ID3D11ShaderResourceView *velocitySRV,
                      ID3D11RenderTargetView *dstRTV) {
-    assert( false ); // not ported yet
-    context; currentSRV; previousSRV; velocitySRV; dstRTV;
-                         
-#if 0
-    HRESULT hr;
-
-    PerfEventScope perfEvent(L"SMAA: Temporal Antialiasing");
-
     // Save the state:
-    SaveViewportsScope saveViewport(device);
-    SaveRenderTargetsScope saveRenderTargets(device);
-    SaveInputLayoutScope saveInputLayout(device);
-    SaveBlendStateScope saveBlendState(device);
-    SaveDepthStencilScope saveDepthStencil(device);
+    SaveViewportsScope saveViewport(context);
+    SaveRenderTargetsScope saveRenderTargets(context);
+    SaveInputLayoutScope saveInputLayout(context);
+    SaveBlendStateScope saveBlendState(context);
+    SaveDepthStencilScope saveDepthStencil(context);
 
-    // Setup the viewport and the vertex layout:
-    edgesRT->setViewport();
-    triangle->setInputLayout();
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    edgesRT->setViewport(context);
 
     // Setup variables:
-    V(colorTexVariable->SetResource(currentSRV));
-    V(colorTexPrevVariable->SetResource(previousSRV));
-    V(velocityTexVariable->SetResource(velocitySRV));
+    texturesInterface->SetResource_colorTex(context, currentSRV);
+    texturesInterface->SetResource_colorTexPrev(context, previousSRV);
+    texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
-    // Select the technique accordingly:
-    V(resolveTechnique->GetPassByIndex(0)->Apply(0));
+    resolveTechnique->ApplyStates(context);
 
     // Do it!
-    device->OMSetRenderTargets(1, &dstRTV, nullptr);
-    triangle->draw();
-    device->OMSetRenderTargets(0, nullptr, nullptr);
+    context->OMSetRenderTargets(1, &dstRTV, nullptr);
+    triangle->draw(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
 
     // Reset external inputs, to avoid warnings:
-    V(colorTexVariable->SetResource(nullptr));
-    V(colorTexPrevVariable->SetResource(nullptr));
-    V(velocityTexVariable->SetResource(nullptr));
-    V(resolveTechnique->GetPassByIndex(0)->Apply(0));
-#endif
+    texturesInterface->SetResource_colorTex(context, nullptr);
+    texturesInterface->SetResource_colorTexPrev(context, nullptr);
+    texturesInterface->SetResource_velocityTex(context, nullptr);
 }
 
 

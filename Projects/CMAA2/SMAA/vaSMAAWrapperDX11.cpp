@@ -98,6 +98,9 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_viewColorIgnoreSRGB0          = nullptr;
         shared_ptr<vaTexture>       m_viewColorIgnoreSRGB1          = nullptr;
 
+        shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
+        bool                        m_temporalHistoryValid           = false;
+
 
         // m_scratchPostProcessColorIgnoreSRGBConvView = vaTexture::CreateView( *m_scratchPostProcessColor, m_scratchPostProcessColor->GetBindSupportFlags(), 
         //     vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetSRVFormat() ), vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetRTVFormat() ), vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetDSVFormat() ), vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetUAVFormat() ) );
@@ -110,6 +113,7 @@ namespace VertexAsylum
     private:
         virtual vaDrawResultFlags       Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
+        virtual void                    ResetTemporalHistory( ) override;
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
@@ -250,6 +254,23 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_viewColor1 = nullptr;
     m_viewColorIgnoreSRGB0 = nullptr;
     m_viewColorIgnoreSRGB1 = nullptr;
+    m_temporalHistory[0] = nullptr;
+    m_temporalHistory[1] = nullptr;
+    ResetTemporalHistory( );
+}
+
+void vaSMAAWrapperDX11::ResetTemporalHistory( )
+{
+    vaSMAAWrapper::ResetTemporalHistory( );
+    m_temporalHistoryValid = false;
+    if( m_smaa != nullptr )
+        m_smaa->resetFrame( );
+
+    if( !GetTemporalModeEnabled( ) )
+    {
+        m_temporalHistory[0] = nullptr;
+        m_temporalHistory[1] = nullptr;
+    }
 }
 
 bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor )
@@ -259,7 +280,8 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaProjection = false;    // 
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
-    if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor )
+    if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
+        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr)) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
@@ -289,6 +311,20 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaTextureFlags::None, 0, 1, 1, 1 );
             m_viewColorIgnoreSRGB1 = vaTexture::CreateView( inputColor, /*inputColor->GetBindSupportFlags()*/vaResourceBindSupportFlags::ShaderResource, vaResourceFormatHelpers::StripSRGB( inputColor->GetSRVFormat( ) ),
                 vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaTextureFlags::None, 0, 1, 1, 1 );
+        }
+
+        if( GetTemporalModeEnabled( ) )
+        {
+            assert( m_sampleCount == 1 );
+            const vaResourceBindSupportFlags historyBindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource;
+            for( int i = 0; i < 2; i++ )
+            {
+                m_temporalHistory[i] = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
+                    vaTextureFlags::None, inputColor->GetContentsType() );
+            }
+            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr )
+                return false;
         }
     }
     
@@ -320,16 +356,38 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     if( inputColor->GetArrayCount() == 1 )
     {
-        if( optionalInLuma == nullptr )
+        ID3D11ShaderResourceView * colorGammaSRV = (optionalInLuma == nullptr)? m_viewColorIgnoreSRGB0->SafeCast<vaTextureDX11*>( )->GetSRV( ) : optionalInLuma->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        SMAA::Input inputMode = (optionalInLuma == nullptr)? SMAA::INPUT_LUMA : SMAA::INPUT_LUMA_RAW;
+
+        if( GetTemporalModeEnabled( ) )
         {
-            m_smaa->go( dx11Context, m_viewColorIgnoreSRGB0->SafeCast<vaTextureDX11*>( )->GetSRV( ), m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, nullptr, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV(), 
-            SMAA::INPUT_LUMA, SMAA::MODE_SMAA_1X );
+            assert( m_temporalHistory[0] != nullptr && m_temporalHistory[1] != nullptr );
+            assert( m_smaa->getFrameIndex( ) == GetTemporalFrameIndex( ) );
+
+            const int currentIndex = GetTemporalFrameIndex( );
+            const int previousIndex = 1 - currentIndex;
+            shared_ptr<vaTexture> & currentHistory = m_temporalHistory[currentIndex];
+            shared_ptr<vaTexture> & previousHistory = m_temporalHistory[previousIndex];
+
+            vaTextureDX11 * currentHistoryDX11 = currentHistory->SafeCast<vaTextureDX11*>( );
+            ID3D11RenderTargetView * currentHistoryRTV = currentHistoryDX11->GetRTV( );
+            ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
+            ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
+
+            m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, nullptr, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+
+            ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
+            ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
+            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, nullptr, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+
+            m_temporalHistoryValid = true;
+            m_smaa->nextFrame( );
+            AdvanceTemporalFrame( );
         }
         else
         {
-            // this is the luma-raw path that uses the R8 luma input (instead of R8G8B8A8 and luma in .a) to reduce BW in the first pass
-            m_smaa->go( dx11Context, optionalInLuma->SafeCast<vaTextureDX11*>( )->GetSRV( ), m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, nullptr, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV(), 
-                SMAA::INPUT_LUMA_RAW, SMAA::MODE_SMAA_1X );
+            m_smaa->go( dx11Context, colorGammaSRV, m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, nullptr,
+                dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV(), inputMode, SMAA::MODE_SMAA_1X );
         }
     }
     else
