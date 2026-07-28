@@ -400,8 +400,12 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
         m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
         const vaVector2 currentJitterPixels = GetTemporalJitterOffset( );
+        const vaVector2 previousJitterPixels = m_temporalHistoryValid?
+            vaVector2( -currentJitterPixels.x, -currentJitterPixels.y ) : currentJitterPixels;
         m_reprojectionConstants.CurrentJitterUV = vaVector4( currentJitterPixels.x / (float)inputColor->GetSizeX( ),
-            currentJitterPixels.y / (float)inputColor->GetSizeY( ), 0.0f, 0.0f );
+            currentJitterPixels.y / (float)inputColor->GetSizeY( ),
+            previousJitterPixels.x / (float)inputColor->GetSizeX( ),
+            previousJitterPixels.y / (float)inputColor->GetSizeY( ) );
         m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
 
         deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );

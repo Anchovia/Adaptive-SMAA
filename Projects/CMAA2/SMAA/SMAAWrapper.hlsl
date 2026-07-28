@@ -235,8 +235,23 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
                 currentEdgeSupport = max(currentEdgeSupport, max(currentEdges.r, currentEdges.g));
             }
         }
+        float4 currentDeJittered = colorTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0);
         if (currentEdgeSupport <= 0.0)
-            return colorTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0);
+            return currentDeJittered;
+
+        #if SMAA_REPROJECTION
+        // Keep edge and non-edge output in the same unjittered coordinate
+        // system. The previous spatial SMAA buffer contains the opposite T2X
+        // jitter, so reproject in unjittered space and then add its jitter.
+        float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0));
+        float2 previousJitteredUV = texcoord + velocity + g_SMAAReprojection.CurrentJitterUV.zw;
+        float4 previousDeJittered = colorTexPrev.SampleLevel(LinearSampler, previousJitteredUV, 0.0);
+        float delta = abs(currentDeJittered.a * currentDeJittered.a - previousDeJittered.a * previousDeJittered.a) / 5.0;
+        float weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+        return lerp(currentDeJittered, previousDeJittered, weight);
+        #else
+        return currentDeJittered;
+        #endif
         #else
         float2 currentEdges = edgesTex.SampleLevel(PointSampler, texcoord, 0.0).rg;
         if (max(currentEdges.r, currentEdges.g) <= 0.0)
