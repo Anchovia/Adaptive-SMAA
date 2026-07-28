@@ -77,6 +77,10 @@ cbuffer SMAAReprojectionGlobals : register( b1 )
 #define SMAA_HLSL_4
 #endif
 
+#ifndef SMAA_EDGE_GUIDED_TEMPORAL
+#define SMAA_EDGE_GUIDED_TEMPORAL 0
+#endif
+
 // Set preset defines:
 #ifdef SMAA_PRESET_CUSTOM
 #define SMAA_THRESHOLD              g_SMAA.threshld
@@ -207,6 +211,14 @@ float4 DX10_SMAANeighborhoodBlendingPS(float4 position : SV_POSITION,
 
 float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
                           float2 texcoord : TEXCOORD0) : SV_TARGET {
+    #if SMAA_EDGE_GUIDED_TEMPORAL
+    // V3 hypothesis: use temporal history only at current-frame SMAA edges.
+    // Non-edge pixels retain the current spatial SMAA result.
+    float2 currentEdges = edgesTex.SampleLevel(PointSampler, texcoord, 0.0).rg;
+    if (max(currentEdges.r, currentEdges.g) <= 0.0)
+        return colorTex.SampleLevel(PointSampler, texcoord, 0.0);
+    #endif
+
     #if SMAA_REPROJECTION
     return SMAAResolvePS(texcoord, colorTex, colorTexPrev, velocityTex);
     #else

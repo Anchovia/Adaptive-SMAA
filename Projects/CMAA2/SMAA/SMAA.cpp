@@ -102,7 +102,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -153,6 +153,12 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     if (reprojection) {
         D3D_SHADER_MACRO reprojectionMacro = { "SMAA_REPROJECTION", "1" };
         defines.push_back(reprojectionMacro);
+    }
+
+    // Restrict temporal history to current-frame SMAA edge candidates (V3).
+    if (edgeGuidedTemporal) {
+        D3D_SHADER_MACRO edgeGuidedTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL", "1" };
+        defines.push_back(edgeGuidedTemporalMacro);
     }
 
     // Setup the target macro:
@@ -379,6 +385,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTex(context, currentSRV);
     texturesInterface->SetResource_colorTexPrev(context, previousSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
+    texturesInterface->SetResource_edgesTex(context, *edgesRT);
 
     resolveTechnique->ApplyStates(context);
 
@@ -391,6 +398,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTex(context, nullptr);
     texturesInterface->SetResource_colorTexPrev(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
+    texturesInterface->SetResource_edgesTex(context, nullptr);
 }
 
 
