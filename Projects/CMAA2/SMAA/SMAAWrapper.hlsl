@@ -40,10 +40,14 @@ struct SMAAReprojectionConstants
     float4x4 CurrentViewProjInv;
     float4x4 CurrentUnjitteredViewProj;
     float4x4 PreviousViewProj;
+    float4 TemporalResolution;
+    float4 TSCMAAParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
     VertexAsylum::vaMatrix4x4 PreviousViewProj;
+    VertexAsylum::vaVector4 TemporalResolution;
+    VertexAsylum::vaVector4 TSCMAAParams;
 #endif
 };
 
@@ -237,6 +241,243 @@ float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
     // UV, so store currentUV - previousUV (the motion-blur convention).
     return currentUnjitteredUV - previousUV;
 }
+
+#if defined(SMAA_TSCMAA_COMPUTE)
+
+// TSCMAA-inspired selective temporal resolve resources. The public Intel
+// material specifies the pipeline, but not the exact candidate-selection
+// shader. The documented adaptation is described in
+// Docs/SMAA-TSCMAA-Implementation-Plan-ko.md.
+Texture2D<float4>                    tscmaaCurrentColor                  : register( t10 );
+Texture2D<float4>                    tscmaaHistoryColor                  : register( t11 );
+Texture2D<float>                     tscmaaLuma                          : register( t12 );
+
+RWTexture2D<float4>                  tscmaaOutput                        : register( u0 );
+RWStructuredBuffer<uint>             tscmaaCandidates                    : register( u1 );
+RWByteAddressBuffer                  tscmaaControl                       : register( u2 );
+RWByteAddressBuffer                  tscmaaDispatchArgs                  : register( u3 );
+
+#define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
+#define TSCMAA_PROCESS_COUNT_OFFSET           4
+#define TSCMAA_EDGE_COUNTER_OFFSET            8
+#define TSCMAA_RESOLVE_NUM_THREADS            64
+
+int2 TSCMAAClampPixel(int2 pixel, int2 dimensions) {
+    return clamp(pixel, int2(0, 0), dimensions - 1);
+}
+
+float TSCMAAEdgeStrength(int2 pixel, int2 dimensions) {
+    pixel = TSCMAAClampPixel(pixel, dimensions);
+    float2 edge = edgesTex.Load(int3(pixel, 0)).rg;
+    if (max(edge.x, edge.y) <= 0.0)
+        return 0.0;
+
+    float center = tscmaaLuma.Load(int3(pixel, 0));
+    float left = tscmaaLuma.Load(int3(TSCMAAClampPixel(pixel + int2(-1, 0), dimensions), 0));
+    float top = tscmaaLuma.Load(int3(TSCMAAClampPixel(pixel + int2(0, -1), dimensions), 0));
+    return max(edge.x * abs(center - left), edge.y * abs(center - top));
+}
+
+bool TSCMAAIsLocallyDominantCandidate(int2 pixel, int2 dimensions, float strength) {
+    float localSum = 0.0;
+    float localMaximum = 0.0;
+
+    [unroll]
+    for (int y = -1; y <= 1; y++) {
+        [unroll]
+        for (int x = -1; x <= 1; x++) {
+            float neighbourStrength = TSCMAAEdgeStrength(pixel + int2(x, y), dimensions);
+            localSum += neighbourStrength;
+            localMaximum = max(localMaximum, neighbourStrength);
+        }
+    }
+
+    float localAverage = localSum / 9.0;
+    float nonDominantRemovalAmount = g_SMAAReprojection.TSCMAAParams.y;
+    float localThreshold = lerp(localAverage, localMaximum, nonDominantRemovalAmount);
+    return strength > 0.0 && strength >= localThreshold;
+}
+
+[numthreads(8, 8, 1)]
+void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaLuma.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    int2 pixel = int2(dispatchThreadID.xy);
+    int2 dimensions = int2(width, height);
+    float strength = TSCMAAEdgeStrength(pixel, dimensions);
+    if (strength <= 0.0)
+        return;
+
+    uint ignoredEdgeIndex;
+    tscmaaControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
+    if (!TSCMAAIsLocallyDominantCandidate(pixel, dimensions, strength))
+        return;
+
+    uint candidateIndex;
+    tscmaaControl.InterlockedAdd(TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
+
+    uint candidateCapacity;
+    uint candidateStride;
+    tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
+    if (candidateIndex < candidateCapacity)
+        tscmaaCandidates[candidateIndex] = (dispatchThreadID.x << 16) | dispatchThreadID.y;
+}
+
+[numthreads(1, 1, 1)]
+void TSCMAAComputeDispatchArgsCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint candidateCount = tscmaaControl.Load(TSCMAA_CANDIDATE_COUNTER_OFFSET);
+    uint candidateCapacity;
+    uint candidateStride;
+    tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
+    candidateCount = min(candidateCount, candidateCapacity);
+
+    tscmaaControl.Store(TSCMAA_PROCESS_COUNT_OFFSET, candidateCount);
+    tscmaaDispatchArgs.Store(0, (candidateCount + TSCMAA_RESOLVE_NUM_THREADS - 1) / TSCMAA_RESOLVE_NUM_THREADS);
+    tscmaaDispatchArgs.Store(4, 1);
+    tscmaaDispatchArgs.Store(8, 1);
+}
+
+float4 TSCMAASampleHistoryCatmullRom5Tap(float2 uv, float2 textureSize) {
+    float2 samplePosition = uv * textureSize;
+    float2 texelPosition1 = floor(samplePosition - 0.5) + 0.5;
+    float2 fraction = samplePosition - texelPosition1;
+
+    float2 weight0 = fraction * (-0.5 + fraction * (1.0 - 0.5 * fraction));
+    float2 weight1 = 1.0 + fraction * fraction * (-2.5 + 1.5 * fraction);
+    float2 weight2 = fraction * (0.5 + fraction * (2.0 - 1.5 * fraction));
+    float2 weight3 = fraction * fraction * (-0.5 + 0.5 * fraction);
+
+    float2 weight12 = weight1 + weight2;
+    float2 offset12 = weight2 / max(weight12, float2(1.0e-6, 1.0e-6));
+
+    float2 texelPosition0 = texelPosition1 - 1.0;
+    float2 texelPosition3 = texelPosition1 + 2.0;
+    float2 texelPosition12 = texelPosition1 + offset12;
+    texelPosition0 /= textureSize;
+    texelPosition3 /= textureSize;
+    texelPosition12 /= textureSize;
+
+    float topWeight = weight12.x * weight0.y;
+    float leftWeight = weight0.x * weight12.y;
+    float centerWeight = weight12.x * weight12.y;
+    float rightWeight = weight3.x * weight12.y;
+    float bottomWeight = weight12.x * weight3.y;
+
+    float4 result = 0.0;
+    result += tscmaaHistoryColor.SampleLevel(LinearSampler, float2(texelPosition12.x, texelPosition0.y), 0.0) * topWeight;
+    result += tscmaaHistoryColor.SampleLevel(LinearSampler, float2(texelPosition0.x, texelPosition12.y), 0.0) * leftWeight;
+    result += tscmaaHistoryColor.SampleLevel(LinearSampler, texelPosition12, 0.0) * centerWeight;
+    result += tscmaaHistoryColor.SampleLevel(LinearSampler, float2(texelPosition3.x, texelPosition12.y), 0.0) * rightWeight;
+    result += tscmaaHistoryColor.SampleLevel(LinearSampler, float2(texelPosition12.x, texelPosition3.y), 0.0) * bottomWeight;
+
+    float totalWeight = topWeight + leftWeight + centerWeight + rightWeight + bottomWeight;
+    return result / ((abs(totalWeight) > 1.0e-6) ? totalWeight : 1.0);
+}
+
+float3 TSCMAARGBToYCoCg(float3 color) {
+    float chromaOrange = color.r - color.b;
+    float temporary = color.b + chromaOrange * 0.5;
+    float chromaGreen = color.g - temporary;
+    float luma = temporary + chromaGreen * 0.5;
+    return float3(luma, chromaOrange, chromaGreen);
+}
+
+float3 TSCMAAYCoCgToRGB(float3 color) {
+    float temporary = color.x - color.z * 0.5;
+    float green = color.z + temporary;
+    float blue = temporary - color.y * 0.5;
+    float red = blue + color.y;
+    return float3(red, green, blue);
+}
+
+float3 TSCMAAClipHistorySegment(float3 currentColor, float3 historyColor, float3 boxMinimum, float3 boxMaximum) {
+    float3 direction = historyColor - currentColor;
+    float clipAmount = 1.0;
+
+    [unroll]
+    for (int component = 0; component < 3; component++) {
+        if (direction[component] > 1.0e-6)
+            clipAmount = min(clipAmount, (boxMaximum[component] - currentColor[component]) / direction[component]);
+        else if (direction[component] < -1.0e-6)
+            clipAmount = min(clipAmount, (boxMinimum[component] - currentColor[component]) / direction[component]);
+    }
+
+    return currentColor + direction * saturate(clipAmount);
+}
+
+float3 TSCMAAVarianceClip(int2 pixel, int2 dimensions, float3 currentColor, float3 historyColor) {
+    float3 firstMoment = 0.0;
+    float3 secondMoment = 0.0;
+    float3 neighbourhoodMinimum = float3(1.0e20, 1.0e20, 1.0e20);
+    float3 neighbourhoodMaximum = float3(-1.0e20, -1.0e20, -1.0e20);
+
+    [unroll]
+    for (int y = -1; y <= 1; y++) {
+        [unroll]
+        for (int x = -1; x <= 1; x++) {
+            int2 samplePixel = TSCMAAClampPixel(pixel + int2(x, y), dimensions);
+            float3 sampleColor = TSCMAARGBToYCoCg(tscmaaCurrentColor.Load(int3(samplePixel, 0)).rgb);
+            firstMoment += sampleColor;
+            secondMoment += sampleColor * sampleColor;
+            neighbourhoodMinimum = min(neighbourhoodMinimum, sampleColor);
+            neighbourhoodMaximum = max(neighbourhoodMaximum, sampleColor);
+        }
+    }
+
+    float3 mean = firstMoment / 9.0;
+    float3 variance = max(secondMoment / 9.0 - mean * mean, 0.0);
+    float3 standardDeviation = sqrt(variance);
+    float3 varianceMinimum = max(mean - standardDeviation, neighbourhoodMinimum);
+    float3 varianceMaximum = min(mean + standardDeviation, neighbourhoodMaximum);
+
+    float3 currentYCoCg = TSCMAARGBToYCoCg(currentColor);
+    float3 historyYCoCg = TSCMAARGBToYCoCg(historyColor);
+    float3 clippedHistory = TSCMAAClipHistorySegment(currentYCoCg, historyYCoCg, varianceMinimum, varianceMaximum);
+    return TSCMAAYCoCgToRGB(clippedHistory);
+}
+
+float3 TSCMAALinearToSRGB(float3 color) {
+    color = max(color, 0.0);
+    float3 lower = color * 12.92;
+    float3 upper = 1.055 * pow(color, 1.0 / 2.4) - 0.055;
+    return lerp(lower, upper, step(0.0031308, color));
+}
+
+[numthreads(TSCMAA_RESOLVE_NUM_THREADS, 1, 1)]
+void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint candidateCount = tscmaaControl.Load(TSCMAA_PROCESS_COUNT_OFFSET);
+    if (dispatchThreadID.x >= candidateCount)
+        return;
+
+    uint packedPixel = tscmaaCandidates[dispatchThreadID.x];
+    int2 pixel = int2(packedPixel >> 16, packedPixel & 0xffff);
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    float2 inverseDimensions = g_SMAAReprojection.TemporalResolution.zw;
+
+    float4 currentColor = tscmaaCurrentColor.Load(int3(pixel, 0));
+    float2 currentUV = (float2(pixel) + 0.5) * inverseDimensions;
+    float2 velocity = velocityTex.Load(int3(pixel, 0)).xy;
+    float2 historyUV = currentUV - velocity;
+
+    if (any(historyUV <= 0.0) || any(historyUV >= 1.0))
+        return;
+
+    float4 historyColor = TSCMAASampleHistoryCatmullRom5Tap(historyUV, float2(dimensions));
+    historyColor.rgb = TSCMAAVarianceClip(pixel, dimensions, currentColor.rgb, historyColor.rgb);
+
+    float historyWeight = g_SMAAReprojection.TSCMAAParams.x;
+    float4 resolvedColor = float4(lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);
+    if (g_SMAAReprojection.TSCMAAParams.w > 0.5)
+        resolvedColor.rgb = TSCMAALinearToSRGB(resolvedColor.rgb);
+
+    tscmaaOutput[pixel] = resolvedColor;
+}
+
+#endif // SMAA_TSCMAA_COMPUTE
 
 void DX10_SMAASeparatePS(float4 position : SV_POSITION,
                          float2 texcoord : TEXCOORD0,

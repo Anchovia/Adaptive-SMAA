@@ -99,16 +99,27 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_viewColorIgnoreSRGB1          = nullptr;
 
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
+        shared_ptr<vaTexture>       m_temporalSpatialCurrent        = nullptr;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
+        bool                        m_smaaTSCMAAInspiredEnabled      = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
 
         SMAAReprojectionConstants   m_reprojectionConstants;
         vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
                                     m_reprojectionConstantsBuffer;
         vaAutoRMI<vaPixelShader>    m_generateCameraVelocityPS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
+
+        ID3D11UnorderedAccessView * m_tscmaaCandidatesUAV           = nullptr;
+        ID3D11Buffer *              m_tscmaaControlBuffer           = nullptr;
+        ID3D11UnorderedAccessView * m_tscmaaControlBufferUAV        = nullptr;
+        ID3D11Buffer *              m_tscmaaDispatchArgsBuffer      = nullptr;
+        ID3D11UnorderedAccessView * m_tscmaaDispatchArgsBufferUAV   = nullptr;
 
 
         // m_scratchPostProcessColorIgnoreSRGBConvView = vaTexture::CreateView( *m_scratchPostProcessColor, m_scratchPostProcessColor->GetBindSupportFlags(), 
@@ -127,6 +138,9 @@ namespace VertexAsylum
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
+        vaDrawResultFlags               ExecuteTSCMAAInspiredResolve( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & currentSpatial,
+                                                const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
+                                                const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination );
         //void                            Reset( );
 
         void                            SetGlobalStates( vaRenderDeviceContext & deviceContext );
@@ -182,13 +196,43 @@ using namespace VertexAsylum;
 
 static const bool c_useTypedUAVStores = false;
 
+static HRESULT CreateSMAATemporalBufferAndUAV( ID3D11Device * device, const D3D11_BUFFER_DESC & bufferDesc,
+    ID3D11Buffer ** buffer, ID3D11UnorderedAccessView ** uav, UINT uavFlags )
+{
+    HRESULT hr;
+    ID3D11Buffer * temporaryBuffer = nullptr;
+    ID3D11Buffer ** outputBuffer = (buffer != nullptr)? buffer : &temporaryBuffer;
+    V_RETURN( device->CreateBuffer( &bufferDesc, nullptr, outputBuffer ) );
+
+    D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+    ZeroMemory( &uavDesc, sizeof( uavDesc ) );
+    uavDesc.Format = (bufferDesc.MiscFlags & D3D11_RESOURCE_MISC_BUFFER_STRUCTURED)? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_R32_UINT;
+    if( (uavFlags & D3D11_BUFFER_UAV_FLAG_RAW) != 0 )
+        uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+    uavDesc.Buffer.FirstElement = 0;
+    const UINT elementStride = (bufferDesc.MiscFlags & D3D11_RESOURCE_MISC_BUFFER_STRUCTURED)? bufferDesc.StructureByteStride : sizeof( UINT );
+    uavDesc.Buffer.NumElements = bufferDesc.ByteWidth / elementStride;
+    uavDesc.Buffer.Flags = uavFlags;
+    V_RETURN( device->CreateUnorderedAccessView( *outputBuffer, &uavDesc, uav ) );
+
+    SAFE_RELEASE( temporaryBuffer );
+    return S_OK;
+}
+
 vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
-    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice )
+    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ),
+    m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
+    m_tscmaaResolveCandidatesCS( params.RenderDevice )
 {
     params; // unreferenced
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
     m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
+    const vector<pair<string, string>> tscmaaShaderMacros = { { "SMAA_TSCMAA_COMPUTE", "1" } };
+    m_tscmaaExtractCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAExtractCandidatesCS", tscmaaShaderMacros, true );
+    m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
+    m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
     HRESULT hr;
     {
         CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
@@ -269,8 +313,15 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_viewColorIgnoreSRGB1 = nullptr;
     m_temporalHistory[0] = nullptr;
     m_temporalHistory[1] = nullptr;
+    m_temporalSpatialCurrent = nullptr;
     m_temporalVelocity = nullptr;
     m_smaaReprojectionEnabled = false;
+    m_smaaTSCMAAInspiredEnabled = false;
+    SAFE_RELEASE( m_tscmaaCandidatesUAV );
+    SAFE_RELEASE( m_tscmaaControlBufferUAV );
+    SAFE_RELEASE( m_tscmaaControlBuffer );
+    SAFE_RELEASE( m_tscmaaDispatchArgsBufferUAV );
+    SAFE_RELEASE( m_tscmaaDispatchArgsBuffer );
     ResetTemporalHistory( );
 }
 
@@ -286,6 +337,7 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     {
         m_temporalHistory[0] = nullptr;
         m_temporalHistory[1] = nullptr;
+        m_temporalSpatialCurrent = nullptr;
     }
 }
 
@@ -294,11 +346,14 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     // this should go to UpdateResources
     bool smaaPredication = false;   // search for SMAA_PREDICATION - this is for additional edge detection (depth-based, or etc.)
     bool smaaProjection = GetTemporalReprojectionEnabled( );
+    bool tscmaaInspired = GetTSCMAAInspiredEnabled( );
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
-        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr))) )
+        || m_smaaTSCMAAInspiredEnabled != tscmaaInspired
+        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
+            || (tscmaaInspired && (m_temporalSpatialCurrent == nullptr || m_tscmaaCandidatesUAV == nullptr || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr)))) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
@@ -306,6 +361,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
             ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection );
         m_smaaReprojectionEnabled = smaaProjection;
+        m_smaaTSCMAAInspiredEnabled = tscmaaInspired;
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -334,17 +390,49 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         if( GetTemporalModeEnabled( ) )
         {
             assert( m_sampleCount == 1 );
-            const vaResourceBindSupportFlags historyBindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource;
+            const vaResourceBindSupportFlags historyBindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource
+                | (tscmaaInspired? vaResourceBindSupportFlags::UnorderedAccess : vaResourceBindSupportFlags::None);
+            const vaResourceFormat historyUAVFormat = tscmaaInspired? vaResourceFormatHelpers::StripSRGB( inputColor->GetSRVFormat( ) ) : vaResourceFormat::Unknown;
             for( int i = 0; i < 2; i++ )
             {
                 m_temporalHistory[i] = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
-                    historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
+                    historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, historyUAVFormat,
                     vaTextureFlags::None, inputColor->GetContentsType() );
             }
             if( smaaProjection )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
-            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr) )
+
+            if( tscmaaInspired )
+            {
+                const vaResourceBindSupportFlags spatialBindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource;
+                m_temporalSpatialCurrent = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    spatialBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
+                    vaTextureFlags::None, inputColor->GetContentsType() );
+
+                ID3D11Device * d3d11Device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
+                HRESULT hr;
+                const UINT candidateCapacity = inputColor->GetSizeX() * inputColor->GetSizeY();
+                {
+                    CD3D11_BUFFER_DESC bufferDesc( candidateCapacity * sizeof( UINT ), D3D11_BIND_UNORDERED_ACCESS, D3D11_USAGE_DEFAULT, 0,
+                        D3D11_RESOURCE_MISC_BUFFER_STRUCTURED, sizeof( UINT ) );
+                    V( CreateSMAATemporalBufferAndUAV( d3d11Device, bufferDesc, nullptr, &m_tscmaaCandidatesUAV, 0 ) );
+                }
+                {
+                    CD3D11_BUFFER_DESC bufferDesc( 4 * sizeof( UINT ), D3D11_BIND_UNORDERED_ACCESS, D3D11_USAGE_DEFAULT, 0,
+                        D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS, 0 );
+                    V( CreateSMAATemporalBufferAndUAV( d3d11Device, bufferDesc, &m_tscmaaControlBuffer, &m_tscmaaControlBufferUAV, D3D11_BUFFER_UAV_FLAG_RAW ) );
+                }
+                {
+                    CD3D11_BUFFER_DESC bufferDesc( 4 * sizeof( UINT ), D3D11_BIND_UNORDERED_ACCESS, D3D11_USAGE_DEFAULT, 0,
+                        D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS | D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS, 0 );
+                    V( CreateSMAATemporalBufferAndUAV( d3d11Device, bufferDesc, &m_tscmaaDispatchArgsBuffer, &m_tscmaaDispatchArgsBufferUAV, D3D11_BUFFER_UAV_FLAG_RAW ) );
+                }
+            }
+
+            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
+                || (tscmaaInspired && (m_temporalSpatialCurrent == nullptr || m_tscmaaCandidatesUAV == nullptr || m_tscmaaControlBufferUAV == nullptr
+                    || m_tscmaaDispatchArgsBufferUAV == nullptr || m_tscmaaDispatchArgsBuffer == nullptr)) )
                 return false;
         }
     }
@@ -373,6 +461,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         if( !technique->PS->IsCreated( ) || !technique->VS->IsCreated( ) )
             { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return vaDrawResultFlags::ShadersStillCompiling; }
     }
+    if( GetTSCMAAInspiredEnabled( ) && (!m_tscmaaExtractCandidatesCS->IsCreated( ) || !m_tscmaaComputeDispatchArgsCS->IsCreated( )
+        || !m_tscmaaResolveCandidatesCS->IsCreated( )) )
+        return vaDrawResultFlags::ShadersStillCompiling;
 
     if( GetTemporalReprojectionEnabled( ) )
     {
@@ -389,6 +480,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.CurrentViewProjInv = currentJitteredViewProj.Inverse( );
         m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
         m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
+        m_reprojectionConstants.TemporalResolution = vaVector4( (float)inputColor->GetSizeX( ), (float)inputColor->GetSizeY( ),
+            1.0f / (float)inputColor->GetSizeX( ), 1.0f / (float)inputColor->GetSizeY( ) );
+        m_reprojectionConstants.TSCMAAParams = vaVector4( 0.8f, 0.5f, m_temporalHistoryValid? 1.0f : 0.0f,
+            vaResourceFormatHelpers::IsSRGB( inputColor->GetSRVFormat( ) )? 1.0f : 0.0f );
         m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
 
         deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
@@ -423,17 +518,42 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             shared_ptr<vaTexture> & currentHistory = m_temporalHistory[currentIndex];
             shared_ptr<vaTexture> & previousHistory = m_temporalHistory[previousIndex];
 
-            vaTextureDX11 * currentHistoryDX11 = currentHistory->SafeCast<vaTextureDX11*>( );
-            ID3D11RenderTargetView * currentHistoryRTV = currentHistoryDX11->GetRTV( );
             ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
-            m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+            if( GetTSCMAAInspiredEnabled( ) )
+            {
+                assert( m_temporalSpatialCurrent != nullptr );
+                assert( GetTemporalReprojectionEnabled( ) );
+                assert( optionalInLuma != nullptr );
 
-            ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
-            ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+                ID3D11RenderTargetView * currentSpatialRTV = m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetRTV( );
+                // Intel's public TSCMAA material does not prescribe deliberate
+                // subpixel projection jitter. Non-candidates use the current
+                // spatial result directly, so a full-frame T2X jitter would
+                // otherwise remain visible as a two-frame oscillation.
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, SMAA::MODE_SMAA_1X );
+
+                const vaDrawResultFlags tscmaaResult = ExecuteTSCMAAInspiredResolve( deviceContext, m_temporalSpatialCurrent,
+                    m_temporalHistoryValid? previousHistory : m_temporalSpatialCurrent, currentHistory, optionalInLuma, dstRT );
+                if( tscmaaResult != vaDrawResultFlags::None )
+                {
+                    UnsetGlobalStates( deviceContext );
+                    deviceContext.SetOutputs( rtState );
+                    return tscmaaResult;
+                }
+            }
+            else
+            {
+                vaTextureDX11 * currentHistoryDX11 = currentHistory->SafeCast<vaTextureDX11*>( );
+                ID3D11RenderTargetView * currentHistoryRTV = currentHistoryDX11->GetRTV( );
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+
+                ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
+                ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
+                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            }
 
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
@@ -457,6 +577,109 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     // restore previous RTs
     deviceContext.SetOutputs( rtState );
+
+    return vaDrawResultFlags::None;
+}
+
+vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDeviceContext & deviceContext,
+    const shared_ptr<vaTexture> & currentSpatial, const shared_ptr<vaTexture> & previousHistory,
+    const shared_ptr<vaTexture> & outputHistory, const shared_ptr<vaTexture> & luma,
+    const shared_ptr<vaTexture> & destination )
+{
+    assert( currentSpatial != nullptr && previousHistory != nullptr && outputHistory != nullptr && luma != nullptr && destination != nullptr );
+    assert( m_temporalVelocity != nullptr && m_smaa != nullptr );
+
+    ID3D11DeviceContext * dx11Context = deviceContext.SafeCast<vaRenderDeviceContextDX11*>( )->GetDXContext( );
+    vaTextureDX11 * currentSpatialDX11 = currentSpatial->SafeCast<vaTextureDX11*>( );
+    vaTextureDX11 * previousHistoryDX11 = previousHistory->SafeCast<vaTextureDX11*>( );
+    vaTextureDX11 * outputHistoryDX11 = outputHistory->SafeCast<vaTextureDX11*>( );
+    vaTextureDX11 * destinationDX11 = destination->SafeCast<vaTextureDX11*>( );
+
+    // Non-candidate pixels keep the current spatial SMAA value. Candidate
+    // threads overwrite only their own pixels below.
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAInitializeHistory, deviceContext );
+        dx11Context->CopyResource( outputHistoryDX11->GetResource( ), currentSpatialDX11->GetResource( ) );
+    }
+
+    // The first valid frame seeds history without reading stale data.
+    if( !m_temporalHistoryValid )
+    {
+        dx11Context->CopyResource( destinationDX11->GetResource( ), outputHistoryDX11->GetResource( ) );
+        return vaDrawResultFlags::None;
+    }
+
+    ID3D11ComputeShader * extractCandidatesShader = m_tscmaaExtractCandidatesCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    ID3D11ComputeShader * computeDispatchArgsShader = m_tscmaaComputeDispatchArgsCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    ID3D11ComputeShader * resolveCandidatesShader = m_tscmaaResolveCandidatesCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    if( extractCandidatesShader == nullptr || computeDispatchArgsShader == nullptr || resolveCandidatesShader == nullptr )
+        return vaDrawResultFlags::ShadersStillCompiling;
+
+    ID3D11UnorderedAccessView * UAVs[4] =
+    {
+        outputHistoryDX11->GetUAV( ),
+        m_tscmaaCandidatesUAV,
+        m_tscmaaControlBufferUAV,
+        m_tscmaaDispatchArgsBufferUAV
+    };
+    ID3D11UnorderedAccessView * nullUAVs[4] = { nullptr, nullptr, nullptr, nullptr };
+    if( UAVs[0] == nullptr )
+        return vaDrawResultFlags::UnspecifiedError;
+
+    ID3D11ShaderResourceView * SRVs[6] =
+    {
+        m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ),
+        *m_smaa->getEdgesRenderTarget( ),
+        nullptr,
+        currentSpatialDX11->GetSRV( ),
+        previousHistoryDX11->GetSRV( ),
+        luma->SafeCast<vaTextureDX11*>( )->GetSRV( )
+    };
+    ID3D11ShaderResourceView * nullSRVs[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+
+    const UINT zeroes[4] = { 0, 0, 0, 0 };
+    dx11Context->ClearUnorderedAccessViewUint( m_tscmaaControlBufferUAV, zeroes );
+    dx11Context->ClearUnorderedAccessViewUint( m_tscmaaDispatchArgsBufferUAV, zeroes );
+
+    ID3D11SamplerState * samplers[2] = { m_LinearSampler, m_PointSampler };
+    dx11Context->CSSetSamplers( 0, 2, samplers );
+
+    ID3D11Buffer * reprojectionConstants = m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>( )->GetBuffer( );
+    dx11Context->CSSetConstantBuffers( 1, 1, &reprojectionConstants );
+    dx11Context->CSSetUnorderedAccessViews( 0, _countof( UAVs ), UAVs, nullptr );
+    dx11Context->CSSetShaderResources( 7, _countof( SRVs ), SRVs );
+
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAExtractCandidates, deviceContext );
+        dx11Context->CSSetShader( extractCandidatesShader, nullptr, 0 );
+        dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8, (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
+    }
+
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAComputeDispatchArgs, deviceContext );
+        dx11Context->CSSetShader( computeDispatchArgsShader, nullptr, 0 );
+        dx11Context->Dispatch( 1, 1, 1 );
+    }
+
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAResolveCandidates, deviceContext );
+        dx11Context->CSSetShader( resolveCandidatesShader, nullptr, 0 );
+        dx11Context->DispatchIndirect( m_tscmaaDispatchArgsBuffer, 0 );
+    }
+
+    dx11Context->CSSetShader( nullptr, nullptr, 0 );
+    dx11Context->CSSetUnorderedAccessViews( 0, _countof( nullUAVs ), nullUAVs, nullptr );
+    dx11Context->CSSetShaderResources( 7, _countof( nullSRVs ), nullSRVs );
+
+    ID3D11Buffer * nullConstantBuffer = nullptr;
+    dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
+    ID3D11SamplerState * nullSamplers[2] = { nullptr, nullptr };
+    dx11Context->CSSetSamplers( 0, 2, nullSamplers );
+
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAOutputCopy, deviceContext );
+        dx11Context->CopyResource( destinationDX11->GetResource( ), outputHistoryDX11->GetResource( ) );
+    }
 
     return vaDrawResultFlags::None;
 }

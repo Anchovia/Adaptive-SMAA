@@ -89,6 +89,7 @@ namespace VertexAsylum
 
             SMAA_T2x,               // naive temporal baseline; intentionally excluded from the legacy still-image autobench
             SMAA_T2x_Reprojected,   // camera-motion reprojection baseline; also excluded from the legacy still-image autobench
+            SMAA_T2x_TSCMAAInspired,// Intel TSCMAA public pipeline adapted to SMAA; excluded from still-image autobench
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
@@ -124,6 +125,8 @@ namespace VertexAsylum
                 serializer.Serialize( "ShowWireframe"               , ShowWireframe                );
                 serializer.Serialize( "CameraYFov"                  , CameraYFov                   );
                 serializer.Serialize( "CurrentAAOption"             , (int&)CurrentAAOption        );
+                if( serializer.IsReading( ) && ((int)CurrentAAOption < (int)AAType::None || (int)CurrentAAOption >= (int)AAType::MaxValue) )
+                    CurrentAAOption = AAType::SMAA;
                 serializer.Serialize( "CurrentStaticImageChoice", CurrentStaticImageChoice );
                 //serializer.SerializeValue( "MSAAOption"                  , MSAAOption                   );
                 serializer.Serialize( "MSAADebugSampleIndex"        , MSAADebugSampleIndex         );

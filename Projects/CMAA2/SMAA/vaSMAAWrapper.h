@@ -56,6 +56,7 @@ namespace VertexAsylum
 
         bool                        m_temporalModeEnabled               = false;
         bool                        m_temporalReprojectionEnabled       = false;
+        bool                        m_tscmaaInspiredEnabled             = false;
         int                         m_temporalFrameIndex                = 0;
 
         //bool                        m_debugShowEdges;
@@ -84,6 +85,15 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
+        void                        SetTSCMAAInspiredEnabled( bool enabled )
+        {
+            if( m_tscmaaInspiredEnabled != enabled )
+            {
+                m_tscmaaInspiredEnabled = enabled;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTSCMAAInspiredEnabled( ) const    { return m_tscmaaInspiredEnabled; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
