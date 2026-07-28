@@ -92,6 +92,8 @@ namespace VertexAsylum
             SMAA_T2x_EdgeGuided,    // strict V3: camera reprojection with history restricted to exact current SMAA edge pixels
             SMAA_T2x_EdgeGuidedStable, // V3b: de-jittered non-edge current color with one-pixel current-edge support
             SMAA_T2x_EdgeGuidedHistory, // V3c: V3b with current or reprojected previous edge support
+            SMAA_T2x_EdgeIntersection,  // V4: exact current and reprojected previous edge intersection
+            SMAA_T2x_EdgeIntersectionExpanded, // V4b: one-pixel expanded current/previous edge intersection
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
@@ -220,8 +222,10 @@ namespace VertexAsylum
         float                                   m_temporalComparisonStartTime   = 1.0f;
         int                                     m_temporalComparisonFrameCount  = 300;
         int                                     m_temporalComparisonWarmupFrames= 60;
+        int                                     m_temporalComparisonScenario    = 0;
         bool                                    m_unattendedEdgeCaptureRequested= false;
         bool                                    m_unattendedEdgeCaptureStarted  = false;
+        bool                                    m_temporalStatsCaptureEnabled   = false;
 
         bool                                    m_requireDeterminism            = false;
         float                                   m_fixedDeltaTime                 = 0.0f;
@@ -256,6 +260,9 @@ namespace VertexAsylum
                                                 GetFlythroughCameraController()     { return m_flythroughCameraController; }
         bool                                    GetFlythroughCameraEnabled() const  { return m_flythroughPlay; }
         void                                    SetFlythroughCameraEnabled( bool enabled ) { m_flythroughPlay = enabled; }
+        void                                    ConfigureTemporalTestFrame( int scenario, float sequenceTime );
+        void                                    SetTemporalStatsCaptureEnabled( bool enabled ) { m_temporalStatsCaptureEnabled = enabled; }
+        const vaSMAATemporalEdgeStats &         GetTemporalEdgeStats( ) const { return m_SMAA->GetTemporalEdgeStats( ); }
 
     public:
         // events/callbacks:

@@ -31,6 +31,24 @@ namespace VertexAsylum
 {
     class vaCameraBase;
 
+    enum class vaSMAATemporalEdgeHistoryMode : int32
+    {
+        None = 0,
+        Union = 1,
+        Intersection = 2
+    };
+
+    struct vaSMAATemporalEdgeStats
+    {
+        uint32                      CurrentEdgePixels       = 0;
+        uint32                      PreviousEdgePixels      = 0;
+        uint32                      UnionPixels             = 0;
+        uint32                      IntersectionPixels      = 0;
+        uint32                      HistoryAppliedPixels    = 0;
+        uint32                      TotalPixels             = 0;
+        bool                        Valid                   = false;
+    };
+
     class vaSMAAWrapper : public VertexAsylum::vaRenderingModule, public vaUIPanel
     {
     public:
@@ -58,7 +76,11 @@ namespace VertexAsylum
         bool                        m_temporalReprojectionEnabled       = false;
         bool                        m_temporalEdgeGuidedEnabled         = false;
         bool                        m_temporalEdgeGuidedStabilized      = false;
-        bool                        m_temporalEdgeHistoryEnabled        = false;
+        vaSMAATemporalEdgeHistoryMode
+                                    m_temporalEdgeHistoryMode           = vaSMAATemporalEdgeHistoryMode::None;
+        int                         m_temporalEdgeSupportRadius         = 1;
+        bool                        m_temporalStatsEnabled              = false;
+        vaSMAATemporalEdgeStats     m_temporalEdgeStats;
         int                         m_temporalFrameIndex                = 0;
 
         //bool                        m_debugShowEdges;
@@ -105,15 +127,38 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalEdgeGuidedStabilized( ) const { return m_temporalEdgeGuidedStabilized; }
-        void                        SetTemporalEdgeHistoryEnabled( bool enabled )
+        void                        SetTemporalEdgeHistoryMode( vaSMAATemporalEdgeHistoryMode mode )
         {
-            if( m_temporalEdgeHistoryEnabled != enabled )
+            if( m_temporalEdgeHistoryMode != mode )
             {
-                m_temporalEdgeHistoryEnabled = enabled;
+                m_temporalEdgeHistoryMode = mode;
                 ResetTemporalHistory( );
             }
         }
-        bool                        GetTemporalEdgeHistoryEnabled( ) const { return m_temporalEdgeHistoryEnabled; }
+        vaSMAATemporalEdgeHistoryMode
+                                    GetTemporalEdgeHistoryMode( ) const { return m_temporalEdgeHistoryMode; }
+        void                        SetTemporalEdgeSupportRadius( int radius )
+        {
+            radius = vaMath::Clamp( radius, 0, 1 );
+            if( m_temporalEdgeSupportRadius != radius )
+            {
+                m_temporalEdgeSupportRadius = radius;
+                ResetTemporalHistory( );
+            }
+        }
+        int                         GetTemporalEdgeSupportRadius( ) const { return m_temporalEdgeSupportRadius; }
+        void                        SetTemporalStatsEnabled( bool enabled )
+        {
+            if( m_temporalStatsEnabled != enabled )
+            {
+                m_temporalStatsEnabled = enabled;
+                m_temporalEdgeStats = vaSMAATemporalEdgeStats();
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTemporalStatsEnabled( ) const { return m_temporalStatsEnabled; }
+        const vaSMAATemporalEdgeStats &
+                                    GetTemporalEdgeStats( ) const { return m_temporalEdgeStats; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
@@ -123,7 +168,7 @@ namespace VertexAsylum
             return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
         }
 
-        virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; }
+        virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; m_temporalEdgeStats = vaSMAATemporalEdgeStats(); }
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,

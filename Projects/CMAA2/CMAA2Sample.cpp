@@ -33,7 +33,7 @@
 
 using namespace VertexAsylum;
 
-static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount);
+static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, int scenario);
 
 void CMAA2StartStopCallback(vaApplicationBase& application, bool starting)
 {
@@ -95,11 +95,12 @@ vaUIPanel(vaStringTools::SimpleNarrow(vaSaferStaticCast< const CMAA2SampleConstr
             if (!parameter.second.empty())
             {
                 std::wstringstream values(parameter.second);
-                values >> m_temporalComparisonStartTime >> m_temporalComparisonFrameCount >> m_temporalComparisonWarmupFrames;
+                values >> m_temporalComparisonStartTime >> m_temporalComparisonFrameCount >> m_temporalComparisonWarmupFrames >> m_temporalComparisonScenario;
             }
             m_temporalComparisonStartTime = vaMath::Max(0.0f, m_temporalComparisonStartTime);
             m_temporalComparisonFrameCount = vaMath::Clamp(m_temporalComparisonFrameCount, 1, 600);
             m_temporalComparisonWarmupFrames = vaMath::Clamp(m_temporalComparisonWarmupFrames, 0, 300);
+            m_temporalComparisonScenario = vaMath::Clamp(m_temporalComparisonScenario, 0, 3);
         }
     }
 
@@ -262,6 +263,8 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
     case CMAA2Sample::AAType::SMAA_T2x_EdgeGuided:       return "SMAA_T2x (V3 Strict Current Edge)";
     case CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable:  return "SMAA_T2x (V3b Stabilized Current Edge)";
     case CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory: return "SMAA_T2x (V3c Stable Edge Union)";
+    case CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection: return "SMAA_T2x (V4 Edge Intersection)";
+    case CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded: return "SMAA_T2x (V4b Expanded Intersection)";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -297,6 +300,8 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_T2x_EdgeGuided:       return 1;
     case CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable:  return 1;
     case CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory: return 1;
+    case CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection: return 1;
+    case CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded: return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return 4;   // at the moment use to test 4xMSAA + CMAA but applied after
@@ -328,6 +333,28 @@ void CMAA2Sample::SaveCamera(int index)
     {
         m_camera->Save(fileOut);
     }
+}
+
+void CMAA2Sample::ConfigureTemporalTestFrame(int scenario, float sequenceTime)
+{
+    m_settings.SceneChoice = SceneSelectionType::LumberyardBistro;
+    m_flythroughPlay = false;
+
+    sequenceTime = vaMath::Max(0.0f, sequenceTime);
+    const float motion = vaMath::Saturate(sequenceTime);
+    float cameraX = 6.0f;
+    float cameraY = -7.0f;
+    vaVector3 lookAt(6.0f, -2.5f, 1.7f);
+    if (scenario == 2)
+        cameraX = 5.4f + 1.2f * motion;
+    else if (scenario == 3)
+    {
+        cameraY = -7.0f + 2.2f * motion;
+        lookAt = vaVector3(6.0f, -1.5f, 1.7f);
+    }
+
+    m_camera->SetPosition(vaVector3(cameraX, cameraY, 1.8f));
+    m_camera->SetOrientationLookAt(lookAt);
 }
 
 void CMAA2Sample::LoadAssetsAndScenes()
@@ -402,7 +429,9 @@ void CMAA2Sample::LoadAssetsAndScenes()
 
         m_scenes[(int32)SceneSelectionType::LumberyardBistro]->SetEnvmap(GetRenderDevice(), "Media\\Bistro_Interior_cube.dds", mat, 0.04f);
         m_scenes[(int32)SceneSelectionType::LumberyardBistro]->SetSkybox(GetRenderDevice(), "Media\\Bistro_Exterior_Dark_cube.dds", mat, 0.01f);
+
     }
+
 
 #ifdef ENABLE_TEXTURE_REDUCTION_TOOL
     vaTextureReductionTestTool::SetSupportedByApp();
@@ -429,7 +458,7 @@ void CMAA2Sample::OnTick(float deltaTime)
 {
     if (m_unattendedEdgeCaptureRequested && !m_unattendedEdgeCaptureStarted)
     {
-        m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this, m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));
+        m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this, m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames, m_temporalComparisonScenario));
         m_unattendedEdgeCaptureStarted = true;
     }
 
@@ -729,7 +758,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                 }
                 VA_SCOPE_MAKE_LAST_SELECTED();
             }
-            else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory)
+            else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded)
             {
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
@@ -915,13 +944,13 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     ppAAApplied = true;
                     mainContext.SetOutputs(backupOutputs);
                 }
-                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
+                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
                     assert(!colorScratchContainsFinal);
                     mainContext.SetRenderTarget(gbufferColorScratch, nullptr, true);
                     colorScratchContainsFinal = true;
-                    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory)
+                    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded)
                         //m_SMAA->Draw( mainContext, mainColorRT ); 
                         drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
@@ -972,16 +1001,23 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
 
     m_camera->SetViewportSize(mainViewport.Width, mainViewport.Height);
 
-    const bool temporalSMAAEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory;
-    const bool temporalSMAAReprojectionEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory;
+    const bool temporalSMAAEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded;
+    const bool temporalSMAAReprojectionEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded;
     m_SMAA->SetTemporalModeEnabled( temporalSMAAEnabled );
     m_SMAA->SetTemporalReprojectionEnabled( temporalSMAAReprojectionEnabled );
-    const bool temporalSMAAEdgeGuidedEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory;
+    const bool temporalSMAAEdgeGuidedEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded;
     m_SMAA->SetTemporalEdgeGuidedEnabled( temporalSMAAEdgeGuidedEnabled );
-    const bool temporalSMAAEdgeGuidedStabilized = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory;
+    const bool temporalSMAAEdgeGuidedStabilized = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded;
     m_SMAA->SetTemporalEdgeGuidedStabilized( temporalSMAAEdgeGuidedStabilized );
-    const bool temporalSMAAEdgeHistoryEnabled = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory;
-    m_SMAA->SetTemporalEdgeHistoryEnabled( temporalSMAAEdgeHistoryEnabled );
+    vaSMAATemporalEdgeHistoryMode temporalEdgeHistoryMode = vaSMAATemporalEdgeHistoryMode::None;
+    if( m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory )
+        temporalEdgeHistoryMode = vaSMAATemporalEdgeHistoryMode::Union;
+    else if( m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded )
+        temporalEdgeHistoryMode = vaSMAATemporalEdgeHistoryMode::Intersection;
+    m_SMAA->SetTemporalEdgeHistoryMode( temporalEdgeHistoryMode );
+    const int temporalEdgeSupportRadius = (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection)? 0 : 1;
+    m_SMAA->SetTemporalEdgeSupportRadius( temporalEdgeSupportRadius );
+    m_SMAA->SetTemporalStatsEnabled( m_temporalStatsCaptureEnabled && temporalSMAAEdgeGuidedStabilized );
 
     vaCameraBase temporalCamera = *m_camera;
     vaCameraBase * sceneCamera = m_camera.get();
@@ -1285,6 +1321,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'G'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x_EdgeGuided;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'H'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'U'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory;
+                if (keyboard->IsKeyClicked((vaKeyboardKeys)'J'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection;
+                if (keyboard->IsKeyClicked((vaKeyboardKeys)'K'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'5'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2x;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'6'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2xPlusCMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'7'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_S2x;
@@ -1834,31 +1872,87 @@ protected:
 class BenchItemRecordEdgeGuidedTemporalComparison : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 6;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
+    const int           m_scenario;
     float               m_captureStartTime;
     int                 m_currentMode;
     int                 m_currentFrame;
     bool                m_started;
     bool                m_isDone;
-    wstring             m_outputDirs[4];
+    wstring             m_outputDirs[c_modeCount];
+    vector<string>      m_statsRows;
+
+    static const char* ScenarioName(int scenario)
+    {
+        const char* names[4] = { "BistroFlythrough", "StaticJitter", "CameraPan", "CameraDollyDisocclusion" };
+        return names[vaMath::Clamp(scenario, 0, 3)];
+    }
+
+    static CMAA2Sample::AAType Mode(int index)
+    {
+        const CMAA2Sample::AAType modes[c_modeCount] =
+        {
+            CMAA2Sample::AAType::SMAA_T2x_Reprojected,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeGuided,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded
+        };
+        return modes[index];
+    }
+
+    static const char* ModeName(int index)
+    {
+        const char* names[c_modeCount] =
+        {
+            "V2_ReprojectedT2X",
+            "V3_StrictCurrentEdge",
+            "V3b_StabilizedCurrentEdge",
+            "V3c_StableEdgeUnion",
+            "V4_EdgeIntersection",
+            "V4b_ExpandedIntersection"
+        };
+        return names[index];
+    }
+
+    void WriteStats(AutoBenchTool& abTool)
+    {
+        vaFileStream outFile;
+        if (outFile.Open(abTool.ReportGetDir() + L"temporal_edge_stats.csv", FileCreationMode::Create))
+        {
+            outFile.WriteTXT("scenario,mode,frame,current_edge_pixels,previous_edge_pixels,union_pixels,intersection_pixels,history_applied_pixels,total_pixels\r\n");
+            for (const string& row : m_statsRows)
+                outFile.WriteTXT(row + "\r\n");
+        }
+    }
 
 public:
-    BenchItemRecordEdgeGuidedTemporalComparison(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
+    BenchItemRecordEdgeGuidedTemporalComparison(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, int scenario)
         : AutoBenchToolWorkItem(parent),
         m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
         m_warmupFrameCount(vaMath::Max(0, warmupFrameCount)),
+        m_scenario(vaMath::Clamp(scenario, 0, 3)),
         m_captureStartTime(startTime),
         m_currentMode(0),
         m_currentFrame(0),
         m_started(false),
         m_isDone(false)
     {
-        const float minimumStartTime = m_warmupFrameCount * c_frameDeltaTime;
-        const float maximumStartTime = vaMath::Max(minimumStartTime,
-            parent.GetFlythroughCameraController()->GetTotalTime() - (m_captureFrameCount - 1) * c_frameDeltaTime);
-        m_captureStartTime = vaMath::Clamp(m_captureStartTime, minimumStartTime, maximumStartTime);
+        if (m_scenario == 0)
+        {
+            const float minimumStartTime = m_warmupFrameCount * c_frameDeltaTime;
+            const float maximumStartTime = vaMath::Max(minimumStartTime,
+                parent.GetFlythroughCameraController()->GetTotalTime() - (m_captureFrameCount - 1) * c_frameDeltaTime);
+            m_captureStartTime = vaMath::Clamp(m_captureStartTime, minimumStartTime, maximumStartTime);
+        }
+        else
+        {
+            m_captureStartTime = 0.0f;
+        }
     }
 
 protected:
@@ -1872,17 +1966,18 @@ protected:
             m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
             m_parent.SetRequireDeterminism(true);
             m_parent.SetFixedDeltaTime(c_frameDeltaTime);
+            m_parent.SetTemporalStatsCaptureEnabled(true);
             m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity();
 
             abTool.ReportStart();
-            m_outputDirs[0] = abTool.ReportGetDir() + L"V2_ReprojectedT2X\\";
-            m_outputDirs[1] = abTool.ReportGetDir() + L"V3_StrictCurrentEdge\\";
-            m_outputDirs[2] = abTool.ReportGetDir() + L"V3b_StabilizedCurrentEdge\\";
-            m_outputDirs[3] = abTool.ReportGetDir() + L"V3c_StableEdgeUnion\\";
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < c_modeCount; i++)
+            {
+                m_outputDirs[i] = abTool.ReportGetDir() + vaStringTools::SimpleWiden(ModeName(i)) + L"\\";
                 vaFileTools::EnsureDirectoryExists(m_outputDirs[i]);
+            }
 
-            abTool.ReportAddText("SMAA V2/V3/V3b/V3c edge-guided temporal quality capture\r\n\r\n");
+            abTool.ReportAddText("SMAA V2/V3/V3b/V3c/V4/V4b edge-guided temporal quality capture\r\n\r\n");
+            abTool.ReportAddText(vaStringTools::Format("Scenario:      %s\r\n", ScenarioName(m_scenario)));
             abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
             abTool.ReportAddText(vaStringTools::Format("Start time:    %.3f s\r\n", m_captureStartTime));
             abTool.ReportAddText(vaStringTools::Format("Warm-up:       %d frames\r\n", m_warmupFrameCount));
@@ -1890,9 +1985,6 @@ protected:
 
             m_currentMode = 0;
             m_currentFrame = -m_warmupFrameCount - 1;
-
-            // Render one non-temporal frame before V2 so every unattended run
-            // starts with an invalidated history and the same T2X jitter phase.
             m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::None;
             return;
         }
@@ -1901,8 +1993,10 @@ protected:
         if (m_currentFrame >= m_captureFrameCount)
         {
             m_currentMode++;
-            if (m_currentMode >= 4)
+            if (m_currentMode >= c_modeCount)
             {
+                WriteStats(abTool);
+                m_parent.SetTemporalStatsCaptureEnabled(false);
                 m_isDone = true;
                 abTool.ReportFinish();
                 return;
@@ -1910,17 +2004,18 @@ protected:
             m_currentFrame = -m_warmupFrameCount;
         }
 
-        const CMAA2Sample::AAType modes[4] =
-        {
-            CMAA2Sample::AAType::SMAA_T2x_Reprojected,
-            CMAA2Sample::AAType::SMAA_T2x_EdgeGuided,
-            CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable,
-            CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory
-        };
-        m_parent.Settings().CurrentAAOption = modes[m_currentMode];
+        m_parent.Settings().CurrentAAOption = Mode(m_currentMode);
 
-        const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
-        m_parent.GetFlythroughCameraController()->SetPlayTime(vaMath::Max(0.0f, playTime));
+        if (m_scenario == 0)
+        {
+            const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
+            m_parent.GetFlythroughCameraController()->SetPlayTime(vaMath::Max(0.0f, playTime));
+        }
+        else
+        {
+            const float sequenceTime = vaMath::Max(0, m_currentFrame) * c_frameDeltaTime;
+            m_parent.ConfigureTemporalTestFrame(m_scenario, sequenceTime);
+        }
     }
 
     virtual void OnRender(AutoBenchTool&) override {}
@@ -1929,14 +2024,22 @@ protected:
         const shared_ptr<vaTexture>& colorInOut, shared_ptr<vaPostProcess>& postProcess) override
     {
         abTool; imageCompareTool; postProcess;
-        if (m_currentMode < 4 && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
+        if (m_currentMode < c_modeCount && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
         {
-            const char* modeNames[4] = { "V2_ReprojectedT2X", "V3_StrictCurrentEdge", "V3b_StabilizedCurrentEdge", "V3c_StableEdgeUnion" };
-            const char* modeName = modeNames[m_currentMode];
+            const char* modeName = ModeName(m_currentMode);
             const wstring fileName = m_outputDirs[m_currentMode] + vaStringTools::SimpleWiden(
                 vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
             if (!colorInOut->SaveToPNGFile(renderContext, fileName))
                 VA_LOG_ERROR(L"Failed to save edge-guided temporal comparison frame '%s'", fileName.c_str());
+
+            const vaSMAATemporalEdgeStats& stats = m_parent.GetTemporalEdgeStats();
+            if (stats.Valid)
+            {
+                m_statsRows.push_back(vaStringTools::Format("%s,%s,%d,%u,%u,%u,%u,%u,%u",
+                    ScenarioName(m_scenario), modeName, m_currentFrame,
+                    stats.CurrentEdgePixels, stats.PreviousEdgePixels, stats.UnionPixels,
+                    stats.IntersectionPixels, stats.HistoryAppliedPixels, stats.TotalPixels));
+            }
         }
     }
 
@@ -1946,13 +2049,13 @@ protected:
     {
         const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
         const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
-        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * 4), 0.0f, 1.0f);
+        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f);
     }
 };
 
-static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
+static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, int scenario)
 {
-    return std::make_shared<BenchItemRecordEdgeGuidedTemporalComparison>(parent, startTime, captureFrameCount, warmupFrameCount);
+    return std::make_shared<BenchItemRecordEdgeGuidedTemporalComparison>(parent, startTime, captureFrameCount, warmupFrameCount, scenario);
 }
 // for conversion to mpeg one option is to download ffmpeg and then do 'ffmpeg -r 60 -f image2 -s 1920x1080 -i SuperSampleReference_frame_%05d.png -vcodec libx264 -crf 13  -pix_fmt yuv420p outputvideo.mp4'
 class BenchItemRecordSSReference : public AutoBenchToolWorkItem
@@ -2218,6 +2321,8 @@ void CMAA2Sample::UIPanelDraw()
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x_EdgeGuided] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_S2x] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::FXAA] = true;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot1]    = false;
@@ -2277,7 +2382,7 @@ void CMAA2Sample::UIPanelDraw()
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::CMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA2xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA4xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA8xPlusCMAA2)
         m_CMAA2->UIPanelDrawCollapsable(false, true, true);
 
-    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
+    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuided || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersection || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
         m_SMAA->UIPanelDrawCollapsable(false, true, true);
 
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::FXAA)
@@ -2383,10 +2488,12 @@ void CMAA2Sample::UIPanelDraw()
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("PNG sequences are saved under AutoBench");
-                if (ImGui::Button("Capture SMAA V2 vs V3 vs V3b vs V3c"))
+                ImGuiEx_Combo("Temporal scenario", m_temporalComparisonScenario,
+                    vector<string>({ "Bistro flythrough", "Static jitter", "Camera pan", "Camera dolly / disocclusion" }));
+                if (ImGui::Button("Capture SMAA V2/V3/V3b/V3c/V4/V4b"))
                 {
                     m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this,
-                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));
+                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames, m_temporalComparisonScenario));
                 }
                 ImGui::Separator();
 #endif

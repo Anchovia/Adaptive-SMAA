@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze deterministic SMAA V2/V3/V3b/V3c PNG sequences."""
+"""Analyze deterministic SMAA V2 through V4b PNG sequences."""
 
 from __future__ import annotations
 
@@ -11,11 +11,13 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-MODES = (
+MODE_DEFS = (
     ("V2", "V2_ReprojectedT2X", "V2 Reprojected T2X"),
     ("V3", "V3_StrictCurrentEdge", "V3 Strict Current Edge"),
     ("V3b", "V3b_StabilizedCurrentEdge", "V3b Stabilized Current Edge"),
     ("V3c", "V3c_StableEdgeUnion", "V3c Stable Edge Union"),
+    ("V4", "V4_EdgeIntersection", "V4 Edge Intersection"),
+    ("V4b", "V4b_ExpandedIntersection", "V4b Expanded Intersection"),
 )
 
 
@@ -187,11 +189,13 @@ def save_comparison_frame(
     frame_paths: dict[str, list[Path]],
     output_path: Path,
     index: int,
+    modes: tuple[tuple[str, str, str], ...],
 ) -> None:
     panels = []
-    for key, _, label in MODES:
+    panel_width = max(240, 2400 // len(modes))
+    for key, _, label in modes:
         with Image.open(frame_paths[key][index]) as image:
-            panels.append(labeled_panel(image.convert("RGB"), label, 600))
+            panels.append(labeled_panel(image.convert("RGB"), label, panel_width))
     canvas = Image.new("RGB", (sum(panel.width for panel in panels), panels[0].height), "black")
     x = 0
     for panel in panels:
@@ -203,13 +207,16 @@ def save_comparison_frame(
 def save_comparison_gif(
     frame_paths: dict[str, list[Path]],
     output_path: Path,
+    modes: tuple[tuple[str, str, str], ...],
+    stride: int,
 ) -> None:
     frames: list[Image.Image] = []
-    for index in range(len(frame_paths["V2"])):
+    panel_width = max(180, 1440 // len(modes))
+    for index in range(0, len(frame_paths["V2"]), stride):
         panels = []
-        for key, _, label in MODES:
+        for key, _, label in modes:
             with Image.open(frame_paths[key][index]) as image:
-                panels.append(labeled_panel(image.convert("RGB"), label, 360))
+                panels.append(labeled_panel(image.convert("RGB"), label, panel_width))
         canvas = Image.new("RGB", (sum(panel.width for panel in panels), panels[0].height), "black")
         x = 0
         for panel in panels:
@@ -220,7 +227,7 @@ def save_comparison_gif(
         output_path,
         save_all=True,
         append_images=frames[1:],
-        duration=50,
+        duration=50 * stride,
         loop=0,
         optimize=False,
     )
@@ -240,28 +247,96 @@ def write_summary_csv(path: Path, summaries: dict[str, dict[str, float]]) -> Non
 
 
 def write_per_frame_csv(path: Path, rows: list[dict[str, float | str]]) -> None:
+    if not rows:
+        return
     with path.open("w", newline="", encoding="utf-8-sig") as file:
         writer = csv.DictWriter(file, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
 
 
+def load_temporal_edge_stats(
+    path: Path,
+) -> tuple[dict[str, dict[str, float]], list[dict[str, str]]]:
+    if not path.exists():
+        return {}, []
+
+    with path.open("r", newline="", encoding="utf-8-sig") as file:
+        rows = list(csv.DictReader(file))
+
+    pixel_fields = (
+        "current_edge_pixels",
+        "previous_edge_pixels",
+        "union_pixels",
+        "intersection_pixels",
+        "history_applied_pixels",
+    )
+    grouped: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        grouped.setdefault(row["mode"], []).append(row)
+
+    summaries: dict[str, dict[str, float]] = {}
+    for mode, mode_rows in grouped.items():
+        total_pixels = sum(int(row["total_pixels"]) for row in mode_rows)
+        summary: dict[str, float] = {"candidate_frames": float(len(mode_rows))}
+        for field in pixel_fields:
+            total = sum(int(row[field]) for row in mode_rows)
+            summary[f"{field}_mean"] = total / len(mode_rows)
+            summary[f"{field}_percent"] = 100.0 * total / max(total_pixels, 1)
+        summaries[mode] = summary
+    return summaries, rows
+
+
+def write_temporal_edge_stats_summary(
+    path: Path,
+    summaries: dict[str, dict[str, float]],
+) -> None:
+    if not summaries:
+        return
+    fieldnames = ["mode"]
+    for summary in summaries.values():
+        for key in summary:
+            if key not in fieldnames:
+                fieldnames.append(key)
+    with path.open("w", newline="", encoding="utf-8-sig") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for mode, summary in summaries.items():
+            writer.writerow({"mode": mode, **summary})
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("capture_root", type=Path)
+    parser.add_argument(
+        "--gif-stride",
+        type=int,
+        default=1,
+        help="Use every Nth captured frame in the comparison GIF.",
+    )
     args = parser.parse_args()
+    if args.gif_stride < 1:
+        parser.error("--gif-stride must be at least 1")
 
     capture_root = args.capture_root.resolve()
     analysis_dir = capture_root / "Analysis"
     analysis_dir.mkdir(parents=True, exist_ok=True)
 
     frame_paths: dict[str, list[Path]] = {}
+    available_modes = tuple(
+        mode_def
+        for mode_def in MODE_DEFS
+        if list_frames(capture_root / mode_def[1])
+    )
+    if not available_modes or available_modes[0][0] != "V2":
+        raise RuntimeError("V2 reference frames are required")
+    if len(available_modes) < 2:
+        raise RuntimeError("At least one candidate mode is required")
+
     expected_count: int | None = None
     expected_size: tuple[int, int] | None = None
-    for key, directory_name, _ in MODES:
+    for key, directory_name, _ in available_modes:
         frames = list_frames(capture_root / directory_name)
-        if not frames:
-            raise RuntimeError(f"No PNG frames found for {key}")
         if expected_count is None:
             expected_count = len(frames)
         elif len(frames) != expected_count:
@@ -274,25 +349,42 @@ def main() -> None:
         frame_paths[key] = frames
 
     summaries: dict[str, dict[str, float]] = {}
-    for key, _, _ in MODES:
+    for key, _, _ in available_modes:
         summaries[key] = temporal_metrics(frame_paths[key])
 
     per_frame_rows: list[dict[str, float | str]] = []
-    for key in ("V3", "V3b", "V3c"):
+    for key, _, _ in available_modes[1:]:
         comparison_summary, per_frame = comparison_metrics(frame_paths["V2"], frame_paths[key])
         summaries[key].update(comparison_summary)
         for row in per_frame:
             per_frame_rows.append({"mode": key, **row})
 
+    stats_summaries, _ = load_temporal_edge_stats(capture_root / "temporal_edge_stats.csv")
+    mode_key_by_directory = {directory: key for key, directory, _ in available_modes}
+    for directory, stats_summary in stats_summaries.items():
+        key = mode_key_by_directory.get(directory)
+        if key is not None:
+            summaries[key].update(stats_summary)
+
     write_summary_csv(analysis_dir / "edge_guided_metrics_summary.csv", summaries)
     write_per_frame_csv(analysis_dir / "edge_guided_per_frame_metrics.csv", per_frame_rows)
+    write_temporal_edge_stats_summary(
+        analysis_dir / "temporal_edge_stats_summary.csv",
+        stats_summaries,
+    )
     representative_index = min(30, expected_count - 1)
     save_comparison_frame(
         frame_paths,
         analysis_dir / f"edge_guided_comparison_frame_{representative_index:05d}.png",
         representative_index,
+        available_modes,
     )
-    save_comparison_gif(frame_paths, analysis_dir / "edge_guided_comparison_sequence.gif")
+    save_comparison_gif(
+        frame_paths,
+        analysis_dir / "edge_guided_comparison_sequence.gif",
+        available_modes,
+        args.gif_stride,
+    )
 
     print(f"capture_root={capture_root}")
     print(f"frames_per_mode={expected_count}")

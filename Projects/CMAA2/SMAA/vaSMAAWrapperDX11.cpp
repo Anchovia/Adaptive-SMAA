@@ -43,7 +43,6 @@
 
 namespace VertexAsylum
 {
-
     struct TechniqueThingieDX11 : public SMAATechniqueInterface
     {
         // TechniqueThingieDX11( ) { }
@@ -101,18 +100,24 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_temporalEdges[2]              = { nullptr, nullptr };
+        shared_ptr<vaTexture>       m_temporalStatsGPU              = nullptr;
+        shared_ptr<vaTexture>       m_temporalStatsCPU              = nullptr;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeGuidedTemporalEnabled  = false;
         bool                        m_smaaEdgeGuidedTemporalStabilized = false;
-        bool                        m_smaaEdgeHistoryTemporalEnabled = false;
+        int                         m_smaaEdgeHistoryMode            = -1;
+        int                         m_smaaEdgeSupportRadius          = -1;
+        bool                        m_smaaTemporalStatsEnabled       = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
 
         SMAAReprojectionConstants   m_reprojectionConstants;
         vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
                                     m_reprojectionConstantsBuffer;
         vaAutoRMI<vaPixelShader>    m_generateCameraVelocityPS;
+        vaAutoRMI<vaPixelShader>    m_temporalStatsPSExact;
+        vaAutoRMI<vaPixelShader>    m_temporalStatsPSExpanded;
 
 
         // m_scratchPostProcessColorIgnoreSRGBConvView = vaTexture::CreateView( *m_scratchPostProcessColor, m_scratchPostProcessColor->GetBindSupportFlags(), 
@@ -188,12 +193,17 @@ using namespace VertexAsylum;
 static const bool c_useTypedUAVStores = false;
 
 vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
-    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice )
+    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ),
+    m_temporalStatsPSExact( params.RenderDevice ), m_temporalStatsPSExpanded( params.RenderDevice )
 {
     params; // unreferenced
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
     m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
+    m_temporalStatsPSExact->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAATemporalEdgeStatsPS",
+        { pair<string, string>( "SMAA_REPROJECTION", "1" ), pair<string, string>( "SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS", "0" ) }, true );
+    m_temporalStatsPSExpanded->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAATemporalEdgeStatsPS",
+        { pair<string, string>( "SMAA_REPROJECTION", "1" ), pair<string, string>( "SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS", "1" ) }, true );
     HRESULT hr;
     {
         CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
@@ -277,10 +287,14 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalVelocity = nullptr;
     m_temporalEdges[0] = nullptr;
     m_temporalEdges[1] = nullptr;
+    m_temporalStatsGPU = nullptr;
+    m_temporalStatsCPU = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeGuidedTemporalEnabled = false;
     m_smaaEdgeGuidedTemporalStabilized = false;
-    m_smaaEdgeHistoryTemporalEnabled = false;
+    m_smaaEdgeHistoryMode = -1;
+    m_smaaEdgeSupportRadius = -1;
+    m_smaaTemporalStatsEnabled = false;
     ResetTemporalHistory( );
 }
 
@@ -306,26 +320,35 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaProjection = GetTemporalReprojectionEnabled( );
     bool smaaEdgeGuidedTemporal = GetTemporalEdgeGuidedEnabled( );
     bool smaaEdgeGuidedTemporalStabilized = GetTemporalEdgeGuidedStabilized( );
-    bool smaaEdgeHistoryTemporal = GetTemporalEdgeHistoryEnabled( );
+    int smaaEdgeHistoryMode = (int)GetTemporalEdgeHistoryMode( );
+    int smaaEdgeSupportRadius = GetTemporalEdgeSupportRadius( );
+    bool smaaTemporalStats = GetTemporalStatsEnabled( );
+    bool smaaPreviousEdgesRequired = smaaEdgeHistoryMode != 0 || smaaTemporalStats;
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeGuidedTemporalEnabled != smaaEdgeGuidedTemporal
         || m_smaaEdgeGuidedTemporalStabilized != smaaEdgeGuidedTemporalStabilized
-        || m_smaaEdgeHistoryTemporalEnabled != smaaEdgeHistoryTemporal
+        || m_smaaEdgeHistoryMode != smaaEdgeHistoryMode
+        || m_smaaEdgeSupportRadius != smaaEdgeSupportRadius
+        || m_smaaTemporalStatsEnabled != smaaTemporalStats
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
-            || (smaaEdgeHistoryTemporal && (m_temporalEdges[0] == nullptr || m_temporalEdges[1] == nullptr)))) )
+            || (smaaPreviousEdgesRequired && (m_temporalEdges[0] == nullptr || m_temporalEdges[1] == nullptr))
+            || (smaaTemporalStats && (m_temporalStatsGPU == nullptr || m_temporalStatsCPU == nullptr)))) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
         SetGlobalStates( deviceContext );
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
-            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, smaaEdgeGuidedTemporal, smaaEdgeGuidedTemporalStabilized, smaaEdgeHistoryTemporal );
+            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, smaaEdgeGuidedTemporal, smaaEdgeGuidedTemporalStabilized,
+            smaaEdgeHistoryMode, smaaEdgeSupportRadius );
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeGuidedTemporalEnabled = smaaEdgeGuidedTemporal;
         m_smaaEdgeGuidedTemporalStabilized = smaaEdgeGuidedTemporalStabilized;
-        m_smaaEdgeHistoryTemporalEnabled = smaaEdgeHistoryTemporal;
+        m_smaaEdgeHistoryMode = smaaEdgeHistoryMode;
+        m_smaaEdgeSupportRadius = smaaEdgeSupportRadius;
+        m_smaaTemporalStatsEnabled = smaaTemporalStats;
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -364,7 +387,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             if( smaaProjection )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
-            if( smaaEdgeHistoryTemporal )
+            if( smaaPreviousEdgesRequired )
             {
                 ID3D11Texture2D * sourceEdgesTexture = *m_smaa->getEdgesRenderTarget( );
                 D3D11_TEXTURE2D_DESC edgesDesc;
@@ -383,8 +406,16 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                     }
                 }
             }
+            if( smaaTemporalStats )
+            {
+                m_temporalStatsGPU = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R8G8_UNORM, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    vaResourceBindSupportFlags::RenderTarget, vaResourceAccessFlags::Default );
+                m_temporalStatsCPU = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R8G8_UNORM, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    vaResourceBindSupportFlags::None, vaResourceAccessFlags::CPURead );
+            }
             if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
-                || (smaaEdgeHistoryTemporal && (m_temporalEdges[0] == nullptr || m_temporalEdges[1] == nullptr)) )
+                || (smaaPreviousEdgesRequired && (m_temporalEdges[0] == nullptr || m_temporalEdges[1] == nullptr))
+                || (smaaTemporalStats && (m_temporalStatsGPU == nullptr || m_temporalStatsCPU == nullptr)) )
                 return false;
         }
     }
@@ -413,6 +444,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         if( !technique->PS->IsCreated( ) || !technique->VS->IsCreated( ) )
             { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return vaDrawResultFlags::ShadersStillCompiling; }
     }
+    if( GetTemporalStatsEnabled( ) &&
+        (!m_temporalStatsPSExact->IsCreated( ) || !m_temporalStatsPSExpanded->IsCreated( )) )
+        return vaDrawResultFlags::ShadersStillCompiling;
 
     if( GetTemporalReprojectionEnabled( ) )
     {
@@ -479,7 +513,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
 
             ID3D11ShaderResourceView * previousEdgesSRV = nullptr;
-            if( GetTemporalEdgeHistoryEnabled( ) )
+            const bool previousEdgesRequired = GetTemporalEdgeHistoryMode( ) != vaSMAATemporalEdgeHistoryMode::None || GetTemporalStatsEnabled( );
+            if( previousEdgesRequired )
             {
                 vaTextureDX11 * currentEdgesDX11 = m_temporalEdges[currentIndex]->SafeCast<vaTextureDX11*>( );
                 dx11Context->CopyResource( currentEdgesDX11->GetResource( ), *m_smaa->getEdgesRenderTarget( ) );
@@ -489,7 +524,72 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, previousEdgesSRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, previousEdgesSRV,
+                dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+
+            m_temporalEdgeStats = vaSMAATemporalEdgeStats();
+            if( GetTemporalStatsEnabled( ) )
+            {
+                UnsetGlobalStates( deviceContext );
+                deviceContext.SetRenderTarget( m_temporalStatsGPU, nullptr, true );
+                vaGraphicsItem statsRenderItem;
+                deviceContext.FillFullscreenPassRenderItem( statsRenderItem );
+                statsRenderItem.ConstantBuffers[1] = m_reprojectionConstantsBuffer;
+                statsRenderItem.ShaderResourceViews[7] = m_temporalVelocity;
+                statsRenderItem.ShaderResourceViews[8] = m_temporalEdges[currentIndex];
+                statsRenderItem.ShaderResourceViews[10] = m_temporalHistoryValid? m_temporalEdges[previousIndex] : m_temporalEdges[currentIndex];
+                statsRenderItem.PixelShader = GetTemporalEdgeSupportRadius( ) == 0? m_temporalStatsPSExact : m_temporalStatsPSExpanded;
+                statsRenderItem.PreDrawHook = [this]( const vaGraphicsItem &, vaRenderDeviceContext & renderContext )
+                {
+                    ID3D11DeviceContext * statsContext = renderContext.SafeCast<vaRenderDeviceContextDX11*>( )->GetDXContext();
+                    ID3D11SamplerState * samplerStates[2] = { m_LinearSampler, m_PointSampler };
+                    statsContext->PSSetSamplers( 0, 2, samplerStates );
+                    return true;
+                };
+                statsRenderItem.PostDrawHook = []( const vaGraphicsItem &, vaRenderDeviceContext & renderContext )
+                {
+                    ID3D11DeviceContext * statsContext = renderContext.SafeCast<vaRenderDeviceContextDX11*>( )->GetDXContext();
+                    ID3D11SamplerState * nullSamplerStates[2] = { nullptr, nullptr };
+                    statsContext->PSSetSamplers( 0, 2, nullSamplerStates );
+                };
+                const vaDrawResultFlags statsDrawResult = deviceContext.ExecuteSingleItem( statsRenderItem );
+                deviceContext.SetRenderTarget( nullptr, nullptr, false );
+                SetGlobalStates( deviceContext );
+                if( statsDrawResult != vaDrawResultFlags::None )
+                {
+                    UnsetGlobalStates( deviceContext );
+                    deviceContext.SetOutputs( rtState );
+                    return statsDrawResult;
+                }
+
+                m_temporalStatsCPU->CopyFrom( deviceContext, m_temporalStatsGPU );
+                if( m_temporalStatsCPU->TryMap( deviceContext, vaResourceMapType::Read, false ) )
+                {
+                    const vaTextureMappedSubresource & mappedStats = m_temporalStatsCPU->GetMappedData()[0];
+                    const vaSMAATemporalEdgeHistoryMode historyMode = GetTemporalEdgeHistoryMode( );
+                    for( int y = 0; y < inputColor->GetSizeY(); y++ )
+                    {
+                        const uint8 * statsRow = reinterpret_cast<const uint8 *>( mappedStats.Buffer + y * mappedStats.RowPitch );
+                        for( int x = 0; x < inputColor->GetSizeX(); x++ )
+                        {
+                            const bool currentEdge = statsRow[x * 2 + 0] != 0u;
+                            const bool previousEdge = statsRow[x * 2 + 1] != 0u;
+                            const bool unionEdge = currentEdge || previousEdge;
+                            const bool intersectionEdge = currentEdge && previousEdge;
+                            m_temporalEdgeStats.CurrentEdgePixels += currentEdge;
+                            m_temporalEdgeStats.PreviousEdgePixels += previousEdge;
+                            m_temporalEdgeStats.UnionPixels += unionEdge;
+                            m_temporalEdgeStats.IntersectionPixels += intersectionEdge;
+                            m_temporalEdgeStats.HistoryAppliedPixels +=
+                                historyMode == vaSMAATemporalEdgeHistoryMode::Union? unionEdge :
+                                historyMode == vaSMAATemporalEdgeHistoryMode::Intersection? intersectionEdge : currentEdge;
+                        }
+                    }
+                    m_temporalEdgeStats.TotalPixels = inputColor->GetSizeX() * inputColor->GetSizeY();
+                    m_temporalEdgeStats.Valid = true;
+                    m_temporalStatsCPU->Unmap( deviceContext );
+                }
+            }
 
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );

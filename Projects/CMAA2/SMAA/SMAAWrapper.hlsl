@@ -87,8 +87,16 @@ cbuffer SMAAReprojectionGlobals : register( b1 )
 #define SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED 0
 #endif
 
-#ifndef SMAA_EDGE_GUIDED_TEMPORAL_HISTORY
-#define SMAA_EDGE_GUIDED_TEMPORAL_HISTORY 0
+#ifndef SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE
+#define SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE 0
+#endif
+
+#ifndef SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS
+#define SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS 1
+#endif
+
+#ifndef SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS
+#define SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS 1
 #endif
 
 // Set preset defines:
@@ -233,35 +241,44 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
         float2 pixelSize = SMAA_RT_METRICS.xy;
         float currentEdgeSupport = 0.0;
         [unroll]
-        for (int y = -1; y <= 1; y++) {
+        for (int y = -SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; y <= SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; y++) {
             [unroll]
-            for (int x = -1; x <= 1; x++) {
+            for (int x = -SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; x <= SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; x++) {
                 float2 currentEdges = edgesTex.SampleLevel(PointSampler, currentJitteredUV + float2(x, y) * pixelSize, 0.0).rg;
                 currentEdgeSupport = max(currentEdgeSupport, max(currentEdges.r, currentEdges.g));
             }
         }
 
+        float previousEdgeSupport = 0.0;
         #if SMAA_REPROJECTION
         float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0));
         float2 previousJitteredUV = texcoord + velocity + g_SMAAReprojection.CurrentJitterUV.zw;
-            #if SMAA_EDGE_GUIDED_TEMPORAL_HISTORY
-            float previousEdgeSupport = 0.0;
+            #if SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE != 0
+            bool previousInBounds = all(previousJitteredUV >= 0.0) && all(previousJitteredUV <= 1.0);
+            if (previousInBounds) {
             [unroll]
-            for (int previousY = -1; previousY <= 1; previousY++) {
+            for (int previousY = -SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; previousY <= SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; previousY++) {
                 [unroll]
-                for (int previousX = -1; previousX <= 1; previousX++) {
+                for (int previousX = -SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; previousX <= SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS; previousX++) {
                     float2 previousEdges = edgesTexPrev.SampleLevel(PointSampler, previousJitteredUV + float2(previousX, previousY) * pixelSize, 0.0).rg;
                     previousEdgeSupport = max(previousEdgeSupport, max(previousEdges.r, previousEdges.g));
                 }
             }
-            // One-frame edge hysteresis: retain temporal history when either
-            // the current edge or its reprojected previous edge is present.
-            currentEdgeSupport = max(currentEdgeSupport, previousEdgeSupport);
+            }
             #endif
         #endif
 
+        float historySupport = currentEdgeSupport;
+        #if SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE == 1
+        // V3c: one-frame edge hysteresis.
+        historySupport = max(currentEdgeSupport, previousEdgeSupport);
+        #elif SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE == 2
+        // V4/V4b: require the current and reprojected previous edge.
+        historySupport = min(currentEdgeSupport, previousEdgeSupport);
+        #endif
+
         float4 currentDeJittered = colorTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0);
-        if (currentEdgeSupport <= 0.0)
+        if (historySupport <= 0.0)
             return currentDeJittered;
 
         #if SMAA_REPROJECTION
@@ -287,6 +304,43 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
     #else
     return SMAAResolvePS(texcoord, colorTex, colorTexPrev);
     #endif
+}
+
+float2 DX10_SMAATemporalEdgeStatsPS(float4 position : SV_POSITION,
+                                    float2 texcoord : TEXCOORD0) : SV_TARGET {
+    uint statsWidth;
+    uint statsHeight;
+    edgesTex.GetDimensions(statsWidth, statsHeight);
+    float2 pixelSize = 1.0 / float2(statsWidth, statsHeight);
+    float2 currentJitteredUV = texcoord + g_SMAAReprojection.CurrentJitterUV.xy;
+
+    float currentEdgeSupport = 0.0;
+    [unroll]
+    for (int y = -SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; y <= SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; y++) {
+        [unroll]
+        for (int x = -SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; x <= SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; x++) {
+            float2 currentEdges = edgesTex.SampleLevel(PointSampler, currentJitteredUV + float2(x, y) * pixelSize, 0.0).rg;
+            currentEdgeSupport = max(currentEdgeSupport, max(currentEdges.r, currentEdges.g));
+        }
+    }
+
+    float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0));
+    float2 previousJitteredUV = texcoord + velocity + g_SMAAReprojection.CurrentJitterUV.zw;
+    float previousEdgeSupport = 0.0;
+    bool previousInBounds = all(previousJitteredUV >= 0.0) && all(previousJitteredUV <= 1.0);
+    if (previousInBounds) {
+        [unroll]
+        for (int previousY = -SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; previousY <= SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; previousY++) {
+            [unroll]
+            for (int previousX = -SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; previousX <= SMAA_TEMPORAL_EDGE_STATS_SUPPORT_RADIUS; previousX++) {
+                float2 previousEdges = edgesTexPrev.SampleLevel(PointSampler, previousJitteredUV + float2(previousX, previousY) * pixelSize, 0.0).rg;
+                previousEdgeSupport = max(previousEdgeSupport, max(previousEdges.r, previousEdges.g));
+            }
+        }
+    }
+
+    return float2(currentEdgeSupport > 0.0 ? 1.0 : 0.0,
+                  previousEdgeSupport > 0.0 ? 1.0 : 0.0);
 }
 
 float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,

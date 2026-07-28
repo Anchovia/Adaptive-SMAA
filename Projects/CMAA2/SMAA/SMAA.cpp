@@ -102,7 +102,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, bool stabilizeEdgeGuidedTemporal, bool edgeHistoryTemporal, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, bool stabilizeEdgeGuidedTemporal, int edgeHistoryMode, int edgeSupportRadius, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -164,11 +164,19 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
         D3D_SHADER_MACRO stabilizedEdgeGuidedTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED", "1" };
         defines.push_back(stabilizedEdgeGuidedTemporalMacro);
     }
-    if (edgeHistoryTemporal) {
-        D3D_SHADER_MACRO edgeHistoryTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL_HISTORY", "1" };
-        defines.push_back(edgeHistoryTemporalMacro);
-    }
-
+    assert(edgeHistoryMode >= 0 && edgeHistoryMode <= 2);
+    assert(edgeSupportRadius >= 0 && edgeSupportRadius <= 1);
+    D3D_SHADER_MACRO edgeHistoryModeMacros[] = {
+        { "SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE", "0" },
+        { "SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE", "1" },
+        { "SMAA_EDGE_GUIDED_TEMPORAL_HISTORY_MODE", "2" }
+    };
+    defines.push_back(edgeHistoryModeMacros[edgeHistoryMode]);
+    D3D_SHADER_MACRO edgeSupportRadiusMacros[] = {
+        { "SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS", "0" },
+        { "SMAA_EDGE_GUIDED_TEMPORAL_SUPPORT_RADIUS", "1" }
+    };
+    defines.push_back(edgeSupportRadiusMacros[edgeSupportRadius]);
     // Setup the target macro:
     //if (dx10_1) {
         D3D_SHADER_MACRO dx101Macro = { "SMAA_HLSL_4_1", "1" };

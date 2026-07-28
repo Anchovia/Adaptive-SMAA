@@ -106,7 +106,7 @@ class SMAA {
          */
         SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, 
              Preset preset=PRESET_HIGH, bool predication=false, bool reprojection=false, bool edgeGuidedTemporal=false, bool stabilizeEdgeGuidedTemporal=false,
-             bool edgeHistoryTemporal=false,
+             int edgeHistoryMode=0, int edgeSupportRadius=1,
              const DXGI_ADAPTER_DESC *adapterDesc=NULL,
              const ExternalStorage &storage=ExternalStorage());
         ~SMAA();
