@@ -67,6 +67,7 @@ public:
     virtual void                        SetResource_depthTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_velocityTex    ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_edgesTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
+    virtual void                        SetResource_edgesTexPrev   ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
 };
 
@@ -105,6 +106,7 @@ class SMAA {
          */
         SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, 
              Preset preset=PRESET_HIGH, bool predication=false, bool reprojection=false, bool edgeGuidedTemporal=false, bool stabilizeEdgeGuidedTemporal=false,
+             bool edgeHistoryTemporal=false,
              const DXGI_ADAPTER_DESC *adapterDesc=NULL,
              const ExternalStorage &storage=ExternalStorage());
         ~SMAA();
@@ -152,6 +154,7 @@ class SMAA {
                        ID3D11ShaderResourceView *currentSRV,
                        ID3D11ShaderResourceView *previousSRV,
                        ID3D11ShaderResourceView *velocitySRV,
+                       ID3D11ShaderResourceView *previousEdgesSRV,
                        ID3D11RenderTargetView *dstRTV);
 
         /**

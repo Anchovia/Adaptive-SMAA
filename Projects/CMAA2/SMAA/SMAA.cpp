@@ -102,7 +102,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, bool stabilizeEdgeGuidedTemporal, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, bool stabilizeEdgeGuidedTemporal, bool edgeHistoryTemporal, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -163,6 +163,10 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     if (stabilizeEdgeGuidedTemporal) {
         D3D_SHADER_MACRO stabilizedEdgeGuidedTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED", "1" };
         defines.push_back(stabilizedEdgeGuidedTemporalMacro);
+    }
+    if (edgeHistoryTemporal) {
+        D3D_SHADER_MACRO edgeHistoryTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL_HISTORY", "1" };
+        defines.push_back(edgeHistoryTemporalMacro);
     }
 
     // Setup the target macro:
@@ -374,6 +378,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
                      ID3D11ShaderResourceView *currentSRV,
                      ID3D11ShaderResourceView *previousSRV,
                      ID3D11ShaderResourceView *velocitySRV,
+                     ID3D11ShaderResourceView *previousEdgesSRV,
                      ID3D11RenderTargetView *dstRTV) {
     // Save the state:
     SaveViewportsScope saveViewport(context);
@@ -390,6 +395,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexPrev(context, previousSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
+    texturesInterface->SetResource_edgesTexPrev(context, previousEdgesSRV);
 
     resolveTechnique->ApplyStates(context);
 
@@ -403,6 +409,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexPrev(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
     texturesInterface->SetResource_edgesTex(context, nullptr);
+    texturesInterface->SetResource_edgesTexPrev(context, nullptr);
 }
 
 

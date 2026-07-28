@@ -100,11 +100,13 @@ namespace VertexAsylum
 
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_temporalEdges[2]              = { nullptr, nullptr };
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeGuidedTemporalEnabled  = false;
         bool                        m_smaaEdgeGuidedTemporalStabilized = false;
+        bool                        m_smaaEdgeHistoryTemporalEnabled = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
 
         SMAAReprojectionConstants   m_reprojectionConstants;
@@ -148,6 +150,7 @@ namespace VertexAsylum
         virtual void                    SetResource_depthTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         virtual void                    SetResource_velocityTex    ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         virtual void                    SetResource_edgesTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
+        virtual void                    SetResource_edgesTexPrev   ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         virtual void                    SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         // SMAATechniqueManagerInterface impl
         virtual SMAATechniqueInterface* CreateTechnique( const char * name, const std::vector<D3D_SHADER_MACRO> & defines ) override;
@@ -272,9 +275,12 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[0] = nullptr;
     m_temporalHistory[1] = nullptr;
     m_temporalVelocity = nullptr;
+    m_temporalEdges[0] = nullptr;
+    m_temporalEdges[1] = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeGuidedTemporalEnabled = false;
     m_smaaEdgeGuidedTemporalStabilized = false;
+    m_smaaEdgeHistoryTemporalEnabled = false;
     ResetTemporalHistory( );
 }
 
@@ -300,22 +306,26 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaProjection = GetTemporalReprojectionEnabled( );
     bool smaaEdgeGuidedTemporal = GetTemporalEdgeGuidedEnabled( );
     bool smaaEdgeGuidedTemporalStabilized = GetTemporalEdgeGuidedStabilized( );
+    bool smaaEdgeHistoryTemporal = GetTemporalEdgeHistoryEnabled( );
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeGuidedTemporalEnabled != smaaEdgeGuidedTemporal
         || m_smaaEdgeGuidedTemporalStabilized != smaaEdgeGuidedTemporalStabilized
-        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr))) )
+        || m_smaaEdgeHistoryTemporalEnabled != smaaEdgeHistoryTemporal
+        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
+            || (smaaEdgeHistoryTemporal && (m_temporalEdges[0] == nullptr || m_temporalEdges[1] == nullptr)))) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
         SetGlobalStates( deviceContext );
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
-            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, smaaEdgeGuidedTemporal, smaaEdgeGuidedTemporalStabilized );
+            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, smaaEdgeGuidedTemporal, smaaEdgeGuidedTemporalStabilized, smaaEdgeHistoryTemporal );
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeGuidedTemporalEnabled = smaaEdgeGuidedTemporal;
         m_smaaEdgeGuidedTemporalStabilized = smaaEdgeGuidedTemporalStabilized;
+        m_smaaEdgeHistoryTemporalEnabled = smaaEdgeHistoryTemporal;
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -354,7 +364,27 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             if( smaaProjection )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
-            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr) )
+            if( smaaEdgeHistoryTemporal )
+            {
+                ID3D11Texture2D * sourceEdgesTexture = *m_smaa->getEdgesRenderTarget( );
+                D3D11_TEXTURE2D_DESC edgesDesc;
+                sourceEdgesTexture->GetDesc( &edgesDesc );
+                edgesDesc.Usage = D3D11_USAGE_DEFAULT;
+                edgesDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+                edgesDesc.CPUAccessFlags = 0;
+                for( int i = 0; i < 2; i++ )
+                {
+                    ID3D11Texture2D * edgeHistoryTexture = nullptr;
+                    const HRESULT edgeHistoryResult = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice()->CreateTexture2D( &edgesDesc, nullptr, &edgeHistoryTexture );
+                    if( SUCCEEDED( edgeHistoryResult ) )
+                    {
+                        m_temporalEdges[i] = vaTextureDX11::CreateWrap( inputColor->GetRenderDevice(), edgeHistoryTexture, VAFormatFromDXGI( edgesDesc.Format ) );
+                        SAFE_RELEASE( edgeHistoryTexture );
+                    }
+                }
+            }
+            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
+                || (smaaEdgeHistoryTemporal && (m_temporalEdges[0] == nullptr || m_temporalEdges[1] == nullptr)) )
                 return false;
         }
     }
@@ -448,9 +478,18 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
             m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
 
+            ID3D11ShaderResourceView * previousEdgesSRV = nullptr;
+            if( GetTemporalEdgeHistoryEnabled( ) )
+            {
+                vaTextureDX11 * currentEdgesDX11 = m_temporalEdges[currentIndex]->SafeCast<vaTextureDX11*>( );
+                dx11Context->CopyResource( currentEdgesDX11->GetResource( ), *m_smaa->getEdgesRenderTarget( ) );
+                previousEdgesSRV = m_temporalHistoryValid?
+                    m_temporalEdges[previousIndex]->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentEdgesDX11->GetSRV( );
+            }
+
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, previousEdgesSRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
 
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
@@ -491,8 +530,8 @@ void vaSMAAWrapperDX11::UnsetGlobalStates( vaRenderDeviceContext & deviceContext
     ID3D11SamplerState * samplerState[2] = { nullptr, nullptr };
     dx11Context->PSSetSamplers( 0, 2, samplerState );
     m_constantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->UnsetFromAPISlot( deviceContext, 0 );
-    ID3D11ShaderResourceView * nullSRVs[10] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-    dx11Context->PSSetShaderResources( 0, 10, nullSRVs );
+    ID3D11ShaderResourceView * nullSRVs[11] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    dx11Context->PSSetShaderResources( 0, 11, nullSRVs );
     dx11Context->OMSetBlendState( nullptr, nullptr, 0 );
     dx11Context->OMSetDepthStencilState( nullptr, 0 );
     dx11Context->IASetInputLayout( nullptr );
@@ -552,6 +591,10 @@ void vaSMAAWrapperDX11::SetResource_velocityTex    ( ID3D11DeviceContext * conte
 void vaSMAAWrapperDX11::SetResource_edgesTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) 
 {
     context->PSSetShaderResources( 8, 1, &pResource );
+}
+void vaSMAAWrapperDX11::SetResource_edgesTexPrev   ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource )
+{
+    context->PSSetShaderResources( 10, 1, &pResource );
 }
 void vaSMAAWrapperDX11::SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) 
 {

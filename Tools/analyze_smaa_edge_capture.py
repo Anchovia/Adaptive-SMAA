@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze deterministic SMAA V2/V3/V3b PNG sequences."""
+"""Analyze deterministic SMAA V2/V3/V3b/V3c PNG sequences."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ MODES = (
     ("V2", "V2_ReprojectedT2X", "V2 Reprojected T2X"),
     ("V3", "V3_StrictCurrentEdge", "V3 Strict Current Edge"),
     ("V3b", "V3b_StabilizedCurrentEdge", "V3b Stabilized Current Edge"),
+    ("V3c", "V3c_StableEdgeUnion", "V3c Stable Edge Union"),
 )
 
 
@@ -277,7 +278,7 @@ def main() -> None:
         summaries[key] = temporal_metrics(frame_paths[key])
 
     per_frame_rows: list[dict[str, float | str]] = []
-    for key in ("V3", "V3b"):
+    for key in ("V3", "V3b", "V3c"):
         comparison_summary, per_frame = comparison_metrics(frame_paths["V2"], frame_paths[key])
         summaries[key].update(comparison_summary)
         for row in per_frame:

@@ -87,6 +87,10 @@ cbuffer SMAAReprojectionGlobals : register( b1 )
 #define SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED 0
 #endif
 
+#ifndef SMAA_EDGE_GUIDED_TEMPORAL_HISTORY
+#define SMAA_EDGE_GUIDED_TEMPORAL_HISTORY 0
+#endif
+
 // Set preset defines:
 #ifdef SMAA_PRESET_CUSTOM
 #define SMAA_THRESHOLD              g_SMAA.threshld
@@ -121,6 +125,7 @@ SamplerState                        PointSampler                        : regist
   */                                                                    
  Texture2D                          edgesTex                            : register( t8 );
  Texture2D                          blendTex                            : register( t9 );
+ Texture2D                          edgesTexPrev                        : register( t10 );
                                                                         
  /**
  * Function wrappers
@@ -235,6 +240,26 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
                 currentEdgeSupport = max(currentEdgeSupport, max(currentEdges.r, currentEdges.g));
             }
         }
+
+        #if SMAA_REPROJECTION
+        float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0));
+        float2 previousJitteredUV = texcoord + velocity + g_SMAAReprojection.CurrentJitterUV.zw;
+            #if SMAA_EDGE_GUIDED_TEMPORAL_HISTORY
+            float previousEdgeSupport = 0.0;
+            [unroll]
+            for (int previousY = -1; previousY <= 1; previousY++) {
+                [unroll]
+                for (int previousX = -1; previousX <= 1; previousX++) {
+                    float2 previousEdges = edgesTexPrev.SampleLevel(PointSampler, previousJitteredUV + float2(previousX, previousY) * pixelSize, 0.0).rg;
+                    previousEdgeSupport = max(previousEdgeSupport, max(previousEdges.r, previousEdges.g));
+                }
+            }
+            // One-frame edge hysteresis: retain temporal history when either
+            // the current edge or its reprojected previous edge is present.
+            currentEdgeSupport = max(currentEdgeSupport, previousEdgeSupport);
+            #endif
+        #endif
+
         float4 currentDeJittered = colorTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0);
         if (currentEdgeSupport <= 0.0)
             return currentDeJittered;
@@ -243,8 +268,6 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
         // Keep edge and non-edge output in the same unjittered coordinate
         // system. The previous spatial SMAA buffer contains the opposite T2X
         // jitter, so reproject in unjittered space and then add its jitter.
-        float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0));
-        float2 previousJitteredUV = texcoord + velocity + g_SMAAReprojection.CurrentJitterUV.zw;
         float4 previousDeJittered = colorTexPrev.SampleLevel(LinearSampler, previousJitteredUV, 0.0);
         float delta = abs(currentDeJittered.a * currentDeJittered.a - previousDeJittered.a * previousDeJittered.a) / 5.0;
         float weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
