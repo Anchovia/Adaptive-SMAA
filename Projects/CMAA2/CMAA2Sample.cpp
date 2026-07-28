@@ -33,6 +33,8 @@
 
 using namespace VertexAsylum;
 
+static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount);
+
 void CMAA2StartStopCallback(vaApplicationBase& application, bool starting)
 {
     static shared_ptr<CMAA2Sample> cmaa2Sample;
@@ -85,6 +87,22 @@ CMAA2Sample::CMAA2Sample(const vaRenderingModuleParams& params) : vaRenderingMod
 m_application(vaSaferStaticCast< const CMAA2SampleConstructorParams&, const vaRenderingModuleParams&>(params).Application),
 vaUIPanel(vaStringTools::SimpleNarrow(vaSaferStaticCast< const CMAA2SampleConstructorParams&, const vaRenderingModuleParams&>(params).Application.GetSettings().AppName), 0, true, vaUIPanel::DockLocation::DockedLeft, "", vaVector2(500, 750))
 {
+    for (const pair<wstring, wstring>& parameter : m_application.GetCommandLineParameters())
+    {
+        if (parameter.first == L"smaaEdgeGuidedCapture")
+        {
+            m_unattendedEdgeCaptureRequested = true;
+            if (!parameter.second.empty())
+            {
+                std::wstringstream values(parameter.second);
+                values >> m_temporalComparisonStartTime >> m_temporalComparisonFrameCount >> m_temporalComparisonWarmupFrames;
+            }
+            m_temporalComparisonStartTime = vaMath::Max(0.0f, m_temporalComparisonStartTime);
+            m_temporalComparisonFrameCount = vaMath::Clamp(m_temporalComparisonFrameCount, 1, 600);
+            m_temporalComparisonWarmupFrames = vaMath::Clamp(m_temporalComparisonWarmupFrames, 0, 300);
+        }
+    }
+
     m_camera = std::shared_ptr<vaCameraBase>(new vaCameraBase(true));
 
     m_camera->SetPosition(vaVector3(4.3f, 29.2f, 14.2f));
@@ -407,6 +425,12 @@ void CMAA2Sample::OnBeforeStopped()
 
 void CMAA2Sample::OnTick(float deltaTime)
 {
+    if (m_unattendedEdgeCaptureRequested && !m_unattendedEdgeCaptureStarted)
+    {
+        m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this, m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));
+        m_unattendedEdgeCaptureStarted = true;
+    }
+
     vaDrawResultFlags prevDrawResultFlags = m_currentDrawResults;
     m_currentDrawResults = vaDrawResultFlags::None;
 
@@ -417,6 +441,12 @@ void CMAA2Sample::OnTick(float deltaTime)
     // if everything was OK with the last tick we can continue with the autobench, otherwise skip the frame until everything is loaded / compiled
     if (prevDrawResultFlags == vaDrawResultFlags::None)
         m_autoBench->Tick(deltaTime);
+
+    if (m_unattendedEdgeCaptureStarted && !m_autoBench->IsActive())
+    {
+        m_application.Quit();
+        return;
+    }
 
     if (m_fixedDeltaTime > 0.0f)
         deltaTime = m_fixedDeltaTime;
@@ -1796,6 +1826,122 @@ protected:
     }
 };
 
+class BenchItemRecordEdgeGuidedTemporalComparison : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    float               m_captureStartTime;
+    int                 m_currentMode;
+    int                 m_currentFrame;
+    bool                m_started;
+    bool                m_isDone;
+    wstring             m_outputDirs[3];
+
+public:
+    BenchItemRecordEdgeGuidedTemporalComparison(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
+        : AutoBenchToolWorkItem(parent),
+        m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
+        m_warmupFrameCount(vaMath::Max(0, warmupFrameCount)),
+        m_captureStartTime(startTime),
+        m_currentMode(0),
+        m_currentFrame(0),
+        m_started(false),
+        m_isDone(false)
+    {
+        const float minimumStartTime = m_warmupFrameCount * c_frameDeltaTime;
+        const float maximumStartTime = vaMath::Max(minimumStartTime,
+            parent.GetFlythroughCameraController()->GetTotalTime() - (m_captureFrameCount - 1) * c_frameDeltaTime);
+        m_captureStartTime = vaMath::Clamp(m_captureStartTime, minimumStartTime, maximumStartTime);
+    }
+
+protected:
+    virtual void Tick(AutoBenchTool& abTool, float deltaTime) override
+    {
+        deltaTime;
+
+        if (!m_started)
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.SetRequireDeterminism(true);
+            m_parent.SetFixedDeltaTime(c_frameDeltaTime);
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity();
+
+            abTool.ReportStart();
+            m_outputDirs[0] = abTool.ReportGetDir() + L"V2_ReprojectedT2X\\";
+            m_outputDirs[1] = abTool.ReportGetDir() + L"V3_StrictCurrentEdge\\";
+            m_outputDirs[2] = abTool.ReportGetDir() + L"V3b_StabilizedCurrentEdge\\";
+            for (int i = 0; i < 3; i++)
+                vaFileTools::EnsureDirectoryExists(m_outputDirs[i]);
+
+            abTool.ReportAddText("SMAA V2/V3/V3b edge-guided temporal quality capture\r\n\r\n");
+            abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
+            abTool.ReportAddText(vaStringTools::Format("Start time:    %.3f s\r\n", m_captureStartTime));
+            abTool.ReportAddText(vaStringTools::Format("Warm-up:       %d frames\r\n", m_warmupFrameCount));
+            abTool.ReportAddText(vaStringTools::Format("Capture:       %d frames per mode\r\n\r\n", m_captureFrameCount));
+
+            m_currentMode = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if (m_currentFrame >= m_captureFrameCount)
+        {
+            m_currentMode++;
+            if (m_currentMode >= 3)
+            {
+                m_isDone = true;
+                abTool.ReportFinish();
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        const CMAA2Sample::AAType modes[3] =
+        {
+            CMAA2Sample::AAType::SMAA_T2x_Reprojected,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeGuided,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedStable
+        };
+        m_parent.Settings().CurrentAAOption = modes[m_currentMode];
+
+        const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
+        m_parent.GetFlythroughCameraController()->SetPlayTime(vaMath::Max(0.0f, playTime));
+    }
+
+    virtual void OnRender(AutoBenchTool&) override {}
+
+    virtual void OnRenderComparePoint(AutoBenchTool& abTool, vaImageCompareTool& imageCompareTool, vaRenderDeviceContext& renderContext,
+        const shared_ptr<vaTexture>& colorInOut, shared_ptr<vaPostProcess>& postProcess) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if (m_currentMode < 3 && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
+        {
+            const char* modeNames[3] = { "V2_ReprojectedT2X", "V3_StrictCurrentEdge", "V3b_StabilizedCurrentEdge" };
+            const char* modeName = modeNames[m_currentMode];
+            const wstring fileName = m_outputDirs[m_currentMode] + vaStringTools::SimpleWiden(
+                vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
+            if (!colorInOut->SaveToPNGFile(renderContext, fileName))
+                VA_LOG_ERROR(L"Failed to save edge-guided temporal comparison frame '%s'", fileName.c_str());
+        }
+    }
+
+    virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
+
+    virtual float GetProgress() const override
+    {
+        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * 3), 0.0f, 1.0f);
+    }
+};
+
+static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
+{
+    return std::make_shared<BenchItemRecordEdgeGuidedTemporalComparison>(parent, startTime, captureFrameCount, warmupFrameCount);
+}
 // for conversion to mpeg one option is to download ffmpeg and then do 'ffmpeg -r 60 -f image2 -s 1920x1080 -i SuperSampleReference_frame_%05d.png -vcodec libx264 -crf 13  -pix_fmt yuv420p outputvideo.mp4'
 class BenchItemRecordSSReference : public AutoBenchToolWorkItem
 {
@@ -2224,6 +2370,11 @@ void CMAA2Sample::UIPanelDraw()
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("PNG sequences are saved under AutoBench");
+                if (ImGui::Button("Capture SMAA V2 vs V3 vs V3b"))
+                {
+                    m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this,
+                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));
+                }
                 ImGui::Separator();
 #endif
                 const char* dx11 = "Run performance benchmarks (DX11)";

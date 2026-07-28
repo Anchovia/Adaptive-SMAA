@@ -219,6 +219,8 @@ namespace VertexAsylum
         float                                   m_temporalComparisonStartTime   = 1.0f;
         int                                     m_temporalComparisonFrameCount  = 300;
         int                                     m_temporalComparisonWarmupFrames= 60;
+        bool                                    m_unattendedEdgeCaptureRequested= false;
+        bool                                    m_unattendedEdgeCaptureStarted  = false;
 
         bool                                    m_requireDeterminism            = false;
         float                                   m_fixedDeltaTime                 = 0.0f;
