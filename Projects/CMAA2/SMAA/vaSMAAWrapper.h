@@ -67,6 +67,16 @@ namespace VertexAsylum
         ~vaSMAAWrapper( );
 
     public:
+        void                        SetPreset( Preset preset )
+        {
+            if( m_settings.Preset != preset )
+            {
+                m_settings.Preset = preset;
+                ResetTemporalHistory( );
+            }
+        }
+        Preset                      GetPreset( ) const                    { return m_settings.Preset; }
+
         void                        SetTemporalModeEnabled( bool enabled )
         {
             if( m_temporalModeEnabled != enabled )

@@ -220,6 +220,8 @@ namespace VertexAsylum
         float                                   m_temporalComparisonStartTime   = 1.0f;
         int                                     m_temporalComparisonFrameCount  = 300;
         int                                     m_temporalComparisonWarmupFrames= 60;
+        bool                                    m_commandLineCaptureProcessed   = false;
+        bool                                    m_quitAfterCommandLineCapture   = false;
 
         bool                                    m_requireDeterminism            = false;
         float                                   m_fixedDeltaTime                 = 0.0f;
@@ -241,9 +243,12 @@ namespace VertexAsylum
         shared_ptr<vaCameraBase> &              Camera( )                           { return m_camera; }
         CMAA2SampleSettings &                   Settings( )                         { return m_settings; }
         shared_ptr<vaPostProcessTonemap>  &     PostProcessTonemap( )               { return m_postProcessTonemap; }
+        void                                    SetSMAAPreset( vaSMAAWrapper::Preset preset ) { m_SMAA->SetPreset( preset ); }
+        vaSMAAWrapper::Preset                   GetSMAAPreset( ) const               { return m_SMAA->GetPreset( ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }
         void                                    SetFixedDeltaTime( float deltaTime ) { m_fixedDeltaTime = deltaTime; }
+        bool                                    HasPendingShadowmapUpdates( ) const   { return m_lighting != nullptr && m_lighting->GetNextHighestPriorityShadowmapForRendering() != nullptr; }
 
         const char *                            GetAAName( AAType aaType );
         int                                     GetSSResScale( ) const              { return m_SSResScale; }
@@ -265,6 +270,7 @@ namespace VertexAsylum
         vaDrawResultFlags                       RenderTick( );
         void                                    LoadAssetsAndScenes( );
         int                                     GetMSAACountForAAType( CMAA2Sample::AAType aaType );
+        void                                    ProcessCommandLineCaptureRequest( );
 
 
         bool                                    LoadCamera( int index = -1 );
@@ -293,6 +299,7 @@ namespace VertexAsylum
         virtual void                            OnRender( AutoBenchTool & abTool )                      = 0;
         virtual void                            OnRenderComparePoint( AutoBenchTool & , vaImageCompareTool & , vaRenderDeviceContext & , const shared_ptr<vaTexture> & , shared_ptr<vaPostProcess> &  ) { }
         virtual bool                            IsDone( AutoBenchTool & abTool ) const                  = 0;
+        virtual bool                            IsCapturingFrame( ) const                              { return true; }
         virtual float                           GetProgress( ) const                                    = 0;
     };
 
@@ -306,6 +313,7 @@ namespace VertexAsylum
         vaPostProcessTonemap::TMSettings        m_backupTonemapSettings;
         vaCameraBase                            m_backupCamera;
         CMAA2Sample::CMAA2SampleSettings        m_backupSettings;
+        vaSMAAWrapper::Preset                   m_backupSMAAPreset;
 
         float                                   m_backupFlythroughCameraTime;
         float                                   m_backupFlythroughCameraSpeed;
@@ -325,6 +333,7 @@ namespace VertexAsylum
         void                                    OnRender( );
         void                                    OnRenderComparePoint( vaImageCompareTool & imageCompareTool, vaRenderDeviceContext & renderContext, const shared_ptr<vaTexture> & colorInOut, shared_ptr<vaPostProcess> & postProcess );
         bool                                    IsActive( ) const                                   { return m_currentTask != nullptr || m_tasks.size() > 0; }
+        bool                                    IsCapturingFrame( ) const                           { return m_currentTask != nullptr && m_currentTask->IsCapturingFrame(); }
         float                                   GetProgress( ) const                                { if( IsActive() && m_currentTask != nullptr ) return m_currentTask->GetProgress(); else return 0.5f; }
         int                                     GetQueuedTaskCount( ) const                         { return (int)m_tasks.size(); }
 
