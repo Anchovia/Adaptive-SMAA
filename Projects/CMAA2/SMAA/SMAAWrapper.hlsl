@@ -40,10 +40,12 @@ struct SMAAReprojectionConstants
     float4x4 CurrentViewProjInv;
     float4x4 CurrentUnjitteredViewProj;
     float4x4 PreviousViewProj;
+    float4 CurrentJitterUV;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
     VertexAsylum::vaMatrix4x4 PreviousViewProj;
+    VertexAsylum::vaVector4 CurrentJitterUV;
 #endif
 };
 
@@ -79,6 +81,10 @@ cbuffer SMAAReprojectionGlobals : register( b1 )
 
 #ifndef SMAA_EDGE_GUIDED_TEMPORAL
 #define SMAA_EDGE_GUIDED_TEMPORAL 0
+#endif
+
+#ifndef SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED
+#define SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED 0
 #endif
 
 // Set preset defines:
@@ -214,9 +220,28 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
     #if SMAA_EDGE_GUIDED_TEMPORAL
     // V3 hypothesis: use temporal history only at current-frame SMAA edges.
     // Non-edge pixels retain the current spatial SMAA result.
-    float2 currentEdges = edgesTex.SampleLevel(PointSampler, texcoord, 0.0).rg;
-    if (max(currentEdges.r, currentEdges.g) <= 0.0)
-        return colorTex.SampleLevel(PointSampler, texcoord, 0.0);
+        #if SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED
+        // T2X projection jitter moves the current image in screen space. Sample
+        // the current edge support at its jittered location, and de-jitter
+        // non-edge pixels before bypassing temporal history.
+        float2 currentJitteredUV = texcoord + g_SMAAReprojection.CurrentJitterUV.xy;
+        float2 pixelSize = SMAA_RT_METRICS.xy;
+        float currentEdgeSupport = 0.0;
+        [unroll]
+        for (int y = -1; y <= 1; y++) {
+            [unroll]
+            for (int x = -1; x <= 1; x++) {
+                float2 currentEdges = edgesTex.SampleLevel(PointSampler, currentJitteredUV + float2(x, y) * pixelSize, 0.0).rg;
+                currentEdgeSupport = max(currentEdgeSupport, max(currentEdges.r, currentEdges.g));
+            }
+        }
+        if (currentEdgeSupport <= 0.0)
+            return colorTex.SampleLevel(LinearSampler, currentJitteredUV, 0.0);
+        #else
+        float2 currentEdges = edgesTex.SampleLevel(PointSampler, texcoord, 0.0).rg;
+        if (max(currentEdges.r, currentEdges.g) <= 0.0)
+            return colorTex.SampleLevel(PointSampler, texcoord, 0.0);
+        #endif
     #endif
 
     #if SMAA_REPROJECTION

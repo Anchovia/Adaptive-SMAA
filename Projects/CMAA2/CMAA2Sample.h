@@ -89,7 +89,8 @@ namespace VertexAsylum
 
             SMAA_T2x,               // naive temporal baseline; intentionally excluded from the legacy still-image autobench
             SMAA_T2x_Reprojected,   // camera-motion reprojection baseline; also excluded from the legacy still-image autobench
-            SMAA_T2x_EdgeGuided,    // V3: camera reprojection with history restricted to current SMAA edges
+            SMAA_T2x_EdgeGuided,    // strict V3: camera reprojection with history restricted to exact current SMAA edge pixels
+            SMAA_T2x_EdgeGuidedStable, // V3b: de-jittered non-edge current color with one-pixel current-edge support
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,

@@ -102,7 +102,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, bool edgeGuidedTemporal, bool stabilizeEdgeGuidedTemporal, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -159,6 +159,10 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     if (edgeGuidedTemporal) {
         D3D_SHADER_MACRO edgeGuidedTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL", "1" };
         defines.push_back(edgeGuidedTemporalMacro);
+    }
+    if (stabilizeEdgeGuidedTemporal) {
+        D3D_SHADER_MACRO stabilizedEdgeGuidedTemporalMacro = { "SMAA_EDGE_GUIDED_TEMPORAL_STABILIZED", "1" };
+        defines.push_back(stabilizedEdgeGuidedTemporalMacro);
     }
 
     // Setup the target macro:

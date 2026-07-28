@@ -104,6 +104,7 @@ namespace VertexAsylum
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeGuidedTemporalEnabled  = false;
+        bool                        m_smaaEdgeGuidedTemporalStabilized = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
 
         SMAAReprojectionConstants   m_reprojectionConstants;
@@ -273,6 +274,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalVelocity = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeGuidedTemporalEnabled = false;
+    m_smaaEdgeGuidedTemporalStabilized = false;
     ResetTemporalHistory( );
 }
 
@@ -297,20 +299,23 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaPredication = false;   // search for SMAA_PREDICATION - this is for additional edge detection (depth-based, or etc.)
     bool smaaProjection = GetTemporalReprojectionEnabled( );
     bool smaaEdgeGuidedTemporal = GetTemporalEdgeGuidedEnabled( );
+    bool smaaEdgeGuidedTemporalStabilized = GetTemporalEdgeGuidedStabilized( );
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeGuidedTemporalEnabled != smaaEdgeGuidedTemporal
+        || m_smaaEdgeGuidedTemporalStabilized != smaaEdgeGuidedTemporalStabilized
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr))) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
         SetGlobalStates( deviceContext );
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
-            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, smaaEdgeGuidedTemporal );
+            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, smaaEdgeGuidedTemporal, smaaEdgeGuidedTemporalStabilized );
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeGuidedTemporalEnabled = smaaEdgeGuidedTemporal;
+        m_smaaEdgeGuidedTemporalStabilized = smaaEdgeGuidedTemporalStabilized;
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -394,6 +399,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.CurrentViewProjInv = currentJitteredViewProj.Inverse( );
         m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
         m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
+        const vaVector2 currentJitterPixels = GetTemporalJitterOffset( );
+        m_reprojectionConstants.CurrentJitterUV = vaVector4( currentJitterPixels.x / (float)inputColor->GetSizeX( ),
+            currentJitterPixels.y / (float)inputColor->GetSizeY( ), 0.0f, 0.0f );
         m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
 
         deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
