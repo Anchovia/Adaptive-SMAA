@@ -524,8 +524,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, previousEdgesSRV,
-                dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            {
+                VA_SCOPE_CPUGPU_TIMER( SMAA_TemporalResolve, deviceContext );
+                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, previousEdgesSRV,
+                    dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            }
 
             m_temporalEdgeStats = vaSMAATemporalEdgeStats();
             if( GetTemporalStatsEnabled( ) )

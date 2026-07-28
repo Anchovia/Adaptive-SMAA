@@ -225,6 +225,13 @@ namespace VertexAsylum
         int                                     m_temporalComparisonScenario    = 0;
         bool                                    m_unattendedEdgeCaptureRequested= false;
         bool                                    m_unattendedEdgeCaptureStarted  = false;
+        float                                   m_temporalPerformanceStartTime  = 10.0f;
+        int                                     m_temporalPerformanceFrameCount = 4800;
+        int                                     m_temporalPerformanceWarmupFrames= 600;
+        int                                     m_temporalPerformanceRepeatCount= 3;
+        int                                     m_temporalPerformanceScenario   = 0;
+        bool                                    m_unattendedTemporalPerformanceRequested = false;
+        bool                                    m_unattendedTemporalPerformanceStarted = false;
         bool                                    m_temporalStatsCaptureEnabled   = false;
 
         bool                                    m_requireDeterminism            = false;
@@ -241,6 +248,7 @@ namespace VertexAsylum
     public:
         virtual ~CMAA2Sample( );
 
+        vaApplicationBase &                     GetApplication( )                   { return m_application; }
         const vaApplicationBase &               GetApplication( ) const             { return m_application; }
 
     public:
@@ -262,6 +270,7 @@ namespace VertexAsylum
         void                                    SetFlythroughCameraEnabled( bool enabled ) { m_flythroughPlay = enabled; }
         void                                    ConfigureTemporalTestFrame( int scenario, float sequenceTime );
         void                                    SetTemporalStatsCaptureEnabled( bool enabled ) { m_temporalStatsCaptureEnabled = enabled; }
+        bool                                    GetTemporalStatsCaptureEnabled( ) const { return m_temporalStatsCaptureEnabled; }
         const vaSMAATemporalEdgeStats &         GetTemporalEdgeStats( ) const { return m_SMAA->GetTemporalEdgeStats( ); }
 
     public:

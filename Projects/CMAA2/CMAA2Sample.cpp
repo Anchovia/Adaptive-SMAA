@@ -34,6 +34,7 @@
 using namespace VertexAsylum;
 
 static shared_ptr<AutoBenchToolWorkItem> CreateEdgeGuidedTemporalCapture(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, int scenario);
+static shared_ptr<AutoBenchToolWorkItem> CreateSMAATemporalPerformanceBenchmark(CMAA2Sample& parent, float startTime, int measureFrameCount, int warmupFrameCount, int repeatCount, int scenario);
 
 void CMAA2StartStopCallback(vaApplicationBase& application, bool starting)
 {
@@ -101,6 +102,22 @@ vaUIPanel(vaStringTools::SimpleNarrow(vaSaferStaticCast< const CMAA2SampleConstr
             m_temporalComparisonFrameCount = vaMath::Clamp(m_temporalComparisonFrameCount, 1, 600);
             m_temporalComparisonWarmupFrames = vaMath::Clamp(m_temporalComparisonWarmupFrames, 0, 300);
             m_temporalComparisonScenario = vaMath::Clamp(m_temporalComparisonScenario, 0, 3);
+        }
+        else if (parameter.first == L"smaaTemporalPerformance")
+        {
+            m_unattendedTemporalPerformanceRequested = true;
+            if (!parameter.second.empty())
+            {
+                std::wstringstream values(parameter.second);
+                values >> m_temporalPerformanceStartTime >> m_temporalPerformanceFrameCount
+                    >> m_temporalPerformanceWarmupFrames >> m_temporalPerformanceRepeatCount
+                    >> m_temporalPerformanceScenario;
+            }
+            m_temporalPerformanceStartTime = vaMath::Max(0.0f, m_temporalPerformanceStartTime);
+            m_temporalPerformanceFrameCount = vaMath::Clamp(m_temporalPerformanceFrameCount, 60, 20000);
+            m_temporalPerformanceWarmupFrames = vaMath::Clamp(m_temporalPerformanceWarmupFrames, 8, 5000);
+            m_temporalPerformanceRepeatCount = vaMath::Clamp(m_temporalPerformanceRepeatCount, 1, 10);
+            m_temporalPerformanceScenario = vaMath::Clamp(m_temporalPerformanceScenario, 0, 3);
         }
     }
 
@@ -461,6 +478,13 @@ void CMAA2Sample::OnTick(float deltaTime)
         m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this, m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames, m_temporalComparisonScenario));
         m_unattendedEdgeCaptureStarted = true;
     }
+    if (m_unattendedTemporalPerformanceRequested && !m_unattendedTemporalPerformanceStarted)
+    {
+        m_autoBench->AddTask(CreateSMAATemporalPerformanceBenchmark(*this, m_temporalPerformanceStartTime,
+            m_temporalPerformanceFrameCount, m_temporalPerformanceWarmupFrames,
+            m_temporalPerformanceRepeatCount, m_temporalPerformanceScenario));
+        m_unattendedTemporalPerformanceStarted = true;
+    }
 
     vaDrawResultFlags prevDrawResultFlags = m_currentDrawResults;
     m_currentDrawResults = vaDrawResultFlags::None;
@@ -473,7 +497,7 @@ void CMAA2Sample::OnTick(float deltaTime)
     if (prevDrawResultFlags == vaDrawResultFlags::None)
         m_autoBench->Tick(deltaTime);
 
-    if (m_unattendedEdgeCaptureStarted && !m_autoBench->IsActive())
+    if ((m_unattendedEdgeCaptureStarted || m_unattendedTemporalPerformanceStarted) && !m_autoBench->IsActive())
     {
         m_application.Quit();
         return;
@@ -666,7 +690,10 @@ void CMAA2Sample::OnTick(float deltaTime)
     {
         GetRenderDevice().BeginFrame(deltaTime);
 
-        m_currentDrawResults |= RenderTick();
+        {
+            VA_SCOPE_CPUGPU_TIMER(FrameRender, *GetRenderDevice().GetMainContext());
+            m_currentDrawResults |= RenderTick();
+        }
 
         // 스크린샷 기능 추가
         if (m_application.HasFocus() && !ImGui::GetIO().WantCaptureKeyboard)
@@ -1761,6 +1788,205 @@ protected:
     virtual float   GetProgress() const override { return 0.5f; }
 };
 
+class BenchItemSMAATemporalPerformance : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 3;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const float         m_startTime;
+    const int           m_measureFrameCount;
+    const int           m_warmupFrameCount;
+    const int           m_repeatCount;
+    const int           m_scenario;
+
+    int                 m_currentRun;
+    int                 m_currentSlot;
+    int                 m_currentFrame;
+    bool                m_started;
+    bool                m_isDone;
+    vector<string>      m_rows;
+
+    static int OrderedModeIndex(int run, int slot)
+    {
+        return (run + slot) % c_modeCount;
+    }
+
+    static CMAA2Sample::AAType Mode(int index)
+    {
+        const CMAA2Sample::AAType modes[c_modeCount] =
+        {
+            CMAA2Sample::AAType::SMAA_T2x_Reprojected,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeGuidedHistory,
+            CMAA2Sample::AAType::SMAA_T2x_EdgeIntersectionExpanded
+        };
+        return modes[index];
+    }
+
+    static const char* ModeName(int index)
+    {
+        const char* names[c_modeCount] =
+        {
+            "V2_ReprojectedT2X",
+            "V3c_StableEdgeUnion",
+            "V4b_ExpandedIntersection"
+        };
+        return names[index];
+    }
+
+    static const char* ScenarioName(int scenario)
+    {
+        const char* names[4] = { "BistroFlythrough", "StaticJitter", "CameraPan", "CameraDollyDisocclusion" };
+        return names[vaMath::Clamp(scenario, 0, 3)];
+    }
+
+    static float GPUTimeMS(const char* nodeName)
+    {
+        vaProfiler* profiler = vaProfiler::GetInstancePtr();
+        if (profiler == nullptr)
+            return 0.0f;
+        const vaNestedProfilerNode* node = profiler->FindNode(nodeName);
+        return node == nullptr ? 0.0f : (float)node->GetFrameLastTotalTimeGPU() * 1000.0f;
+    }
+
+    void ConfigureFrame()
+    {
+        const int modeIndex = OrderedModeIndex(m_currentRun, m_currentSlot);
+        m_parent.Settings().CurrentAAOption = Mode(modeIndex);
+        m_parent.SetTemporalStatsCaptureEnabled(false);
+
+        if (m_scenario == 0)
+        {
+            const float playTime = m_startTime + m_currentFrame * c_frameDeltaTime;
+            m_parent.GetFlythroughCameraController()->SetPlayTime(vaMath::Max(0.0f, playTime));
+        }
+        else
+        {
+            const float sequenceTime = vaMath::Max(0, m_currentFrame) * c_frameDeltaTime;
+            m_parent.ConfigureTemporalTestFrame(m_scenario, sequenceTime);
+        }
+    }
+
+    void CollectFrame(float deltaTime)
+    {
+        if (m_currentFrame < 0 || m_currentFrame >= m_measureFrameCount)
+            return;
+
+        const int modeIndex = OrderedModeIndex(m_currentRun, m_currentSlot);
+        const float frameDeltaMS = deltaTime * 1000.0f;
+        const float frameRenderMS = GPUTimeMS("FrameRender");
+        const float smaaMS = GPUTimeMS("SMAA");
+        const float temporalResolveMS = GPUTimeMS("SMAA_TemporalResolve");
+        m_rows.push_back(vaStringTools::Format("%s,%d,%d,%s,%d,%.6f,%.6f,%.6f,%.6f,%d",
+            ScenarioName(m_scenario), m_currentRun + 1, m_currentSlot + 1, ModeName(modeIndex),
+            m_currentFrame, frameDeltaMS, frameRenderMS, smaaMS, temporalResolveMS,
+            m_parent.GetTemporalStatsCaptureEnabled() ? 1 : 0));
+    }
+
+    void WriteRawCSV(AutoBenchTool& abTool)
+    {
+        vaFileStream outFile;
+        if (outFile.Open(abTool.ReportGetDir() + L"smaa_temporal_performance_raw.csv", FileCreationMode::Create))
+        {
+            outFile.WriteTXT("scenario,run,order,mode,frame,frame_delta_ms,frame_render_gpu_ms,smaa_gpu_ms,temporal_resolve_gpu_ms,temporal_stats_enabled\r\n");
+            for (const string& row : m_rows)
+                outFile.WriteTXT(row + "\r\n");
+        }
+    }
+
+public:
+    BenchItemSMAATemporalPerformance(CMAA2Sample& parent, float startTime, int measureFrameCount,
+        int warmupFrameCount, int repeatCount, int scenario)
+        : AutoBenchToolWorkItem(parent),
+        m_startTime(startTime),
+        m_measureFrameCount(vaMath::Max(60, measureFrameCount)),
+        m_warmupFrameCount(vaMath::Max(8, warmupFrameCount)),
+        m_repeatCount(vaMath::Max(1, repeatCount)),
+        m_scenario(vaMath::Clamp(scenario, 0, 3)),
+        m_currentRun(0),
+        m_currentSlot(0),
+        m_currentFrame(0),
+        m_started(false),
+        m_isDone(false)
+    {
+        m_rows.reserve((size_t)m_measureFrameCount * m_repeatCount * c_modeCount);
+    }
+
+protected:
+    virtual void Tick(AutoBenchTool& abTool, float deltaTime) override
+    {
+        if (!m_started)
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.GetApplication().SetWindowClientAreaSize(vaVector2i(1920, 1080));
+            m_parent.SetRequireDeterminism(true);
+            m_parent.SetFixedDeltaTime(c_frameDeltaTime);
+            m_parent.SetTemporalStatsCaptureEnabled(false);
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity();
+
+            abTool.ReportStart();
+            abTool.ReportAddText("SMAA V2/V3c/V4b temporal performance benchmark\r\n\r\n");
+            const vaVector2i benchmarkResolution = m_parent.GetApplication().GetWindowClientAreaSize();
+            abTool.ReportAddText(vaStringTools::Format("Scenario:       %s\r\n", ScenarioName(m_scenario)));
+            abTool.ReportAddText(vaStringTools::Format("Resolution:     %d x %d\r\n", benchmarkResolution.x, benchmarkResolution.y));
+            abTool.ReportAddText(vaStringTools::Format("Sequence FPS:   %d\r\n", c_framePerSecond));
+            abTool.ReportAddText(vaStringTools::Format("Start time:     %.3f s\r\n", m_startTime));
+            abTool.ReportAddText(vaStringTools::Format("Warm-up:        %d frames per mode\r\n", m_warmupFrameCount));
+            abTool.ReportAddText(vaStringTools::Format("Measurement:    %d frames per mode\r\n", m_measureFrameCount));
+            abTool.ReportAddText(vaStringTools::Format("Repeats:        %d\r\n", m_repeatCount));
+            abTool.ReportAddText("Temporal stats: disabled\r\n");
+            abTool.ReportAddText("Run order uses a cyclic Latin square to balance mode-order bias.\r\n\r\n");
+
+            m_currentFrame = -m_warmupFrameCount;
+            ConfigureFrame();
+            return;
+        }
+
+        CollectFrame(deltaTime);
+        m_currentFrame++;
+
+        if (m_currentFrame >= m_measureFrameCount)
+        {
+            m_currentSlot++;
+            if (m_currentSlot >= c_modeCount)
+            {
+                m_currentSlot = 0;
+                m_currentRun++;
+            }
+
+            if (m_currentRun >= m_repeatCount)
+            {
+                WriteRawCSV(abTool);
+                abTool.ReportAddRowValues({ "Raw samples", vaStringTools::Format("%d", (int)m_rows.size()) });
+                abTool.ReportAddRowValues({ "Expected samples", vaStringTools::Format("%d", m_measureFrameCount * m_repeatCount * c_modeCount) });
+                abTool.ReportFinish();
+                m_isDone = true;
+                return;
+            }
+
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        ConfigureFrame();
+    }
+
+    virtual void OnRender(AutoBenchTool&) override {}
+    virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
+    virtual float GetProgress() const override
+    {
+        const int framesPerSlot = m_warmupFrameCount + m_measureFrameCount;
+        const int completedSlots = m_currentRun * c_modeCount + m_currentSlot;
+        const int completedFrames = completedSlots * framesPerSlot + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp((float)completedFrames / (float)(framesPerSlot * c_modeCount * m_repeatCount), 0.0f, 1.0f);
+    }
+};
+
+static shared_ptr<AutoBenchToolWorkItem> CreateSMAATemporalPerformanceBenchmark(CMAA2Sample& parent, float startTime,
+    int measureFrameCount, int warmupFrameCount, int repeatCount, int scenario)
+{
+    return std::make_shared<BenchItemSMAATemporalPerformance>(parent, startTime, measureFrameCount,
+        warmupFrameCount, repeatCount, scenario);
+}
 class BenchItemRecordSMAATemporalComparison : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
@@ -2494,6 +2720,22 @@ void CMAA2Sample::UIPanelDraw()
                 {
                     m_autoBench->AddTask(CreateEdgeGuidedTemporalCapture(*this,
                         m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames, m_temporalComparisonScenario));
+                }
+                ImGui::Separator();
+
+                ImGui::Text("SMAA temporal performance (stats disabled)");
+                ImGui::InputInt("Performance frames per mode", &m_temporalPerformanceFrameCount);
+                ImGui::InputInt("Performance warm-up frames", &m_temporalPerformanceWarmupFrames);
+                ImGui::InputInt("Performance repeat count", &m_temporalPerformanceRepeatCount);
+                m_temporalPerformanceFrameCount = vaMath::Clamp(m_temporalPerformanceFrameCount, 60, 20000);
+                m_temporalPerformanceWarmupFrames = vaMath::Clamp(m_temporalPerformanceWarmupFrames, 8, 5000);
+                m_temporalPerformanceRepeatCount = vaMath::Clamp(m_temporalPerformanceRepeatCount, 1, 10);
+                if (ImGui::Button("Benchmark SMAA V2 vs V3c vs V4b"))
+                {
+                    m_autoBench->AddTask(CreateSMAATemporalPerformanceBenchmark(*this,
+                        m_temporalPerformanceStartTime, m_temporalPerformanceFrameCount,
+                        m_temporalPerformanceWarmupFrames, m_temporalPerformanceRepeatCount,
+                        m_temporalPerformanceScenario));
                 }
                 ImGui::Separator();
 #endif
