@@ -1,197 +1,412 @@
-# TSCMAA 문서 기반 SMAA temporal 연구 설계
+# Intel 공개 자료 기반 TSCMAA-inspired SMAA 구현 계획
 
-## 1. 목적과 명칭
+## 1. 문서 목적
 
-이 브랜치의 목표는 V2 `SMAA_T2x (Reprojected)`를 기준으로 Intel TSCMAA가 공개한
-temporal 처리 구조를 SMAA에 적용하고 품질과 성능을 검증하는 것이다.
+이 문서는 Intel TSCMAA 공개 문서와 특허, 공식 SMAA 자료로 확인할 수 있는 범위 안에서
+TSCMAA의 temporal 구조를 SMAA에 적용하기 위한 확정 계획이다.
 
-Intel TSCMAA는 본래 `CMAA + selective TAA`이므로, 이 구현을 공식 TSCMAA의 완전한
-재현이라고 부르지 않는다. 연구 및 UI에서의 명칭은 다음과 같이 제한한다.
+Intel TSCMAA는 본래 `CMAA + edge-selective TAA`이고 공개 sample source는 확보하지
+못했다. 따라서 이 연구의 구현은 다음과 같이 부른다.
 
-> TSCMAA-inspired edge-selective temporal SMAA
+> Intel TSCMAA 공개 문서에 부합하는 SMAA adaptation
 
-기존 `research/edge-guided-t2x`의 V3/V4 실험은 아이디어 탐색 기록으로만 보존하며,
-이 문서 기반 구현의 결과나 논문 본문 결과에는 포함하지 않는다.
+`공식 TSCMAA 포팅`, `완전한 TSCMAA 재현`, `Intel 원본 코드와 동일한 구현`이라고
+표현하지 않는다.
 
-## 2. 기준선
+이 문서는 기존의 복합 `SMAA_T2x_TSCMAAInspired` 구현을 최종안으로 승인하는 문서가
+아니다. 현재 구현을 직교 설정으로 분해하고, 출처가 있는 동작과 연구 가정을 구분해
+다시 검증하기 위한 작업 기준이다.
 
-- 기준 커밋: `88893da` (`Implement camera-reprojected SMAA T2X baseline`)
-- V0: SMAA 1X
-- V1: Naive SMAA T2X
-- V2: camera-reprojected SMAA T2X
-- 새 구현: TSCMAA-inspired edge-selective temporal SMAA
+## 2. 출처와 증거 등급
 
-V2가 이미 제공하는 기능은 다음과 같다.
+### 2.1 우선 출처
 
-- 공식 SMAA T2X의 2개 jitter 위치와 subsample index
-- 현재 depth와 현재/이전 view-projection을 이용한 camera reprojection
-- 2개의 temporal texture
-- 첫 프레임, 모드 전환, 해상도 변경 시 history reset
-
-V2의 reprojection은 카메라 움직임만 처리한다. 움직이는 물체의 object motion vector는
-현재 렌더러에 연결되어 있지 않다.
-
-## 3. 출처 우선순위
-
-1. Intel TSCMAA 공식 문서
+1. Intel, *Temporal & Spatial Concurrent Morphological Anti-Aliasing*
    - <https://www.intel.com/content/dam/develop/external/us/en/documents/tscmaa-codesample-v1.pdf>
 2. Intel TSCMAA 특허
    - <https://patents.google.com/patent/US20190236758A1/en>
-3. Intel CMAA2 공식 설명 및 현재 저장소의 CMAA2 구현
+3. Intel, *Conservative Morphological Anti-Aliasing 2.0*
    - <https://www.intel.com/content/www/us/en/developer/articles/technical/conservative-morphological-anti-aliasing-20.html>
-4. 공식 SMAA 논문과 공식 HLSL
+   - 저장소의 `Projects/CMAA2/CMAA2/CMAA2.hlsl`
+4. 공식 SMAA 논문과 저장소
    - <https://www.iryoku.com/smaa/downloads/SMAA-Enhanced-Subpixel-Morphological-Antialiasing.pdf>
-   - <https://github.com/iryoku/smaa/blob/master/SMAA.hlsl>
-5. 공개된 temporal filtering 1차 자료
-   - Marco Salvi, *An Excursion in Temporal Supersampling*
-     <https://developer.download.nvidia.com/gameworks/events/GDC2016/msalvi_temporal_supersampling.pdf>
-   - Jorge Jimenez, *Filmic SMAA: Sharp Morphological and Temporal Antialiasing*
-     <https://advances.realtimerendering.com/s2016/>
+   - <https://github.com/iryoku/smaa>
 
-## 4. 공식 문서에서 확인되는 동작
+블로그나 제3자 구현은 아이디어 탐색에만 사용할 수 있으며, 문서 기반 core의 동작을
+확정하는 근거로 사용하지 않는다.
 
-| 항목 | 공개된 내용 |
+### 2.2 증거 등급
+
+| 등급 | 의미 | 결과 보고 시 표현 |
+|---|---|---|
+| `D` | Intel TSCMAA 문서 또는 특허에 직접 명시 | 문서로 확인된 TSCMAA 구조 |
+| `S` | Intel CMAA 계열 또는 공식 SMAA에 구현·명시 | 공식 계열 자료에서 차용 |
+| `A` | 공개 자료의 빈 부분을 채우는 SMAA adaptation 결정 | 본 연구의 명시적 구현 결정 |
+| `X` | 품질·원인 분석용 실험 설정 | ablation 또는 진단 설정 |
+
+코드 상수, shader 함수, UI 설정과 결과 로그에는 가능한 한 이 구분을 주석 또는 이름으로
+남긴다.
+
+## 3. 공개 자료로 확정된 TSCMAA core
+
+| 항목 | 확정 동작 | 등급 |
+|---|---|---|
+| 처리 범위 | edge detection 결과 중 일부만 temporal 후보로 처리 | `D` |
+| 후보 실행 | 후보 좌표를 GPU buffer로 compact | `D` |
+| dispatch | 후보 수를 이용한 indirect shader dispatch | `D` |
+| 재투영 | 현재 depth와 현재·이전 view/projection으로 history 좌표 계산 | `D` |
+| history sampling | 5-tap Hermite/Catmull–Rom bicubic approximation | `D` |
+| history 제한 | 현재 이웃을 이용한 YCoCg variance clipping | `D` |
+| 후보 blend | history weight `0.8` | `D` |
+| 비후보 blend | history weight `0.0`, 즉 현재 spatial AA 결과 유지 | `D` |
+| feedback | 최종 resolve 결과를 다음 프레임 history로 사용 | `D` |
+| edge threshold | 기본값 `1/22` | `D` |
+| non-dominant removal | 기본값 `0.5` | `D` |
+| 후보 비율 | CMAA edge 후보의 약 50%를 기본 목표로 하며 조절 가능 | `D` |
+
+50%는 모든 장면에서 강제로 맞춰야 하는 quota가 아니다. 장면별 실제 후보 비율을
+측정하고 그대로 기록한다.
+
+## 4. 공개 자료만으로 확정할 수 없는 세부
+
+다음 항목의 완전한 shader 식이나 sample code는 공개 문서와 특허에 없다.
+
+- temporal 후보를 고르는 non-dominant edge kernel의 정확한 식과 이웃 범위
+- 5-tap Catmull–Rom의 정확한 sample 좌표와 결합식
+- YCoCg 변환식, 이웃 window, variance gamma와 clip 함수
+- projection jitter의 사용 여부와 sample sequence
+- 움직이는 물체의 object motion vector 입력 및 처리
+- disocclusion을 위한 이전 depth 비교 규칙
+
+이 항목은 추정한 구현 하나를 곧바로 “공식 방식”으로 고정하지 않는다. 독립 설정으로
+격리하고, 출처·수식·기본값·검증 결과를 함께 기록한다.
+
+## 5. 기존 계획에서 바로잡는 사항
+
+1. 기존의 번호형 버전 이름만으로 구현을 부르지 않는다. 8개 semantic ID를 사용한다.
+2. 기존 3x3 평균/최댓값 기반 후보식은 Intel 문서로 확인되지 않았다. 최종 기본 후보식이
+   아니라 `ExperimentalLocalMeanMax3x3` ablation으로만 보존한다.
+3. `projection jitter를 사용하지 않는다`는 내용도 Intel 문서가 직접 확정한 사실이
+   아니다. selective temporal 처리와 SMAA T2X의 차이를 해결하기 위한 adaptation
+   결정으로 명시한다.
+4. 현재 `SMAA_T2x_TSCMAAInspired`는 후보 선택, jitter, reprojection, history sampler,
+   clipping과 weight를 동시에 바꾼 복합 버전이다. 최종 `O-ET2X-R`로 간주하지 않는다.
+5. 기존 복합 구현의 캡처는 디버깅 자료로만 보존하고 최종 8-case 결론에 사용하지 않는다.
+
+## 6. 최종 8-case 의미
+
+### 6.1 Original SMAA
+
+| ID | 전체 이름 | Temporal 범위 | Reprojection |
+|---|---|---|---|
+| `O-T2X` | Original SMAA Standard T2X | full-screen | Off |
+| `O-T2X-R` | Original SMAA Standard T2X with camera reprojection | full-screen | On |
+| `O-ET2X` | Original SMAA edge-selective temporal, no-reprojection ablation | edge candidates | Off |
+| `O-ET2X-R` | Original SMAA TSCMAA document-based adaptation | edge candidates | On |
+
+`O-ET2X-R`이 Intel 문서 기반 adaptation의 중심 case다. `O-ET2X`는 reprojection 효과를
+분리하기 위한 연구용 ablation이며 공식 TSCMAA 동작이라고 부르지 않는다.
+
+### 6.2 Adaptive SMAA
+
+| ID | 전체 이름 | Temporal 범위 | Reprojection |
+|---|---|---|---|
+| `A-T2X` | Adaptive SMAA Standard T2X | full-screen | Off |
+| `A-T2X-R` | Adaptive SMAA Standard T2X with camera reprojection | full-screen | On |
+| `A-ET2X` | Adaptive SMAA edge-selective temporal, no-reprojection ablation | edge candidates | Off |
+| `A-ET2X-R` | Adaptive SMAA TSCMAA document-based adaptation | edge candidates | On |
+
+Adaptive 4개는 Original 4개와 TSCMAA-inspired core 검증이 끝난 뒤에만 구현한다.
+
+## 7. 설정 구조
+
+AA mode 하나에 여러 동작을 숨기지 않고 다음 축을 독립 설정으로 만든다.
+
+| 설정 | 값 |
 |---|---|
-| 처리 대상 | edge detection이 만든 후보에만 CMAA와 TAA를 수행 |
-| TAA 후보량 | CMAA edge 후보의 50%를 기본값으로 사용하며 조절 가능 |
-| 실행 구조 | 후보 목록과 indirect shader dispatch 사용 |
-| 재투영 | 현재 depth와 view/projection을 사용해 이전 texture coordinate 계산 |
-| history sampling | Hermite/Catmull–Rom bicubic의 5-tap 근사 |
-| history validation | YCoCg 공간에서 variance clipping |
-| blend | TAA 후보는 history weight `0.8`, 비후보는 `0.0` |
-| feedback | 최종 temporal resolve 결과가 다음 프레임 history가 됨 |
-| 기본 edge threshold | `1/22` |
-| 기본 non-dominant removal | `0.5` |
+| `SpatialMethod` | `Original`, `Adaptive` |
+| `TemporalCoverage` | `FullScreen`, `EdgeSelective` |
+| `ReprojectionMode` | `Off`, `CameraDepthMatrices` |
+| `JitterPolicy` | `SMAAT2X`, `None` |
+| `HistorySampler` | `Bilinear`, `CatmullRom5Tap` |
+| `HistoryClipping` | `Off`, `YCoCgVariance` |
+| `HistoryWeight` | 실수 값; document profile은 `0.8` |
+| `CandidatePolicy` | `AllBaseEdges`, `IntelFamilyNonDominant`, `ExperimentalLocalMeanMax3x3` |
 
-## 5. 공식 자료만으로 확정할 수 없는 내용
+일반 UI에서는 8개 semantic case만 노출하고, 개발용 ablation UI에서 세부 설정을
+변경한다. 실행 로그와 결과 폴더에는 semantic ID뿐 아니라 위 설정값 전체를 기록한다.
 
-Intel 문서와 특허는 다음 세부 구현을 공개하지 않는다.
+## 8. projection jitter에 대한 확정 방침
 
-- CMAA 후보 중 TAA 후보 50%를 고르는 정확한 코드와 순서
-- 5-tap Catmull–Rom의 정확한 좌표/가중치 구현
-- YCoCg 변환식, variance window 크기, gamma, AABB clip 함수
-- 움직이는 물체의 motion vector 처리 방식
-- 의도적인 subpixel projection jitter 사용 여부
+공식 SMAA T2X는 두 subpixel jitter 위치와 대응하는 subsample index를 사용한다. 반면
+Intel TSCMAA 문서는 비후보의 history weight를 `0.0`으로 두어 현재 spatial 결과를
+그대로 출력한다고 설명하며, 별도 projection jitter 정책은 공개하지 않는다.
 
-과거 Intel 페이지에 76.6 MB 코드 샘플이 첨부되어 있었으나 현재 링크는 제거되었고,
-공식 PDF에도 소스 attachment가 포함되어 있지 않다. 따라서 위 항목을 공식 코드와
-동일하다고 주장해서는 안 된다.
+전체 화면을 SMAA T2X 방식으로 jitter한 상태에서 비후보가 현재 프레임만 출력되면,
+비후보 픽셀이 두 jitter 위치를 번갈아 보여 정지 화면도 떨릴 수 있다. 실제 기존 복합
+구현에서 이 2-frame 진동을 확인했다.
 
-## 6. 이 프로젝트에서 사용하는 명시적 구현 가정
+따라서 기본 profile은 다음과 같이 고정한다.
 
-### 6.1 TAA 후보 선정
+- Standard `O-T2X`, `O-T2X-R`: 공식 SMAA T2X jitter와 subsample index 사용 (`S`)
+- Edge-selective `O-ET2X`, `O-ET2X-R`: deliberate T2X projection jitter를 사용하지 않고
+  현재 SMAA spatial 결과에 selective temporal filtering 적용 (`A`)
 
-SMAA edge texture에서 현재 edge를 찾고, 현재 luma 차이로 edge strength를 계산한다.
-3x3 이웃의 평균과 최댓값 사이를 `nonDominantEdgeRemovalAmount = 0.5`로 보간한
-threshold보다 강한 edge만 temporal 후보로 사용한다.
+두 계열의 최종 비교는 서로 다른 원 알고리즘 profile의 비교다. 그러므로 그 결과를
+`edge 후보 선택 하나만의 효과`라고 표현하지 않는다.
 
-이 규칙을 선택한 이유는 다음과 같다.
+edge 선택의 독립 효과는 최종 8-case 밖의 matched ablation으로 별도 확인한다. 이때
+full-screen과 edge-selective 양쪽 모두 `JitterPolicy=None` 및 동일 sampler, clipping,
+weight를 사용한다. jitter를 유지한 edge-selective 방식은 떨림 진단용 `X` 설정으로만
+남기며, 문서에 없는 unjitter/reconstruction pass를 임의로 추가하지 않는다.
 
-- Intel 문서가 50%를 장면 기반 기본값이라고 표현한다.
-- 공개된 Figure 2는 규칙적인 checkerboard가 아니라 약한 세부 edge가 제거된 형태다.
-- Intel API가 `nonDominantEdgeRemovalAmount = 0.5`를 edge 수 조절값으로 노출한다.
+## 9. temporal 후보 선정 방침
 
-단, 이 규칙이 유실된 Intel 코드와 동일하다는 근거는 없다. 실제 후보 비율은 장면마다
-측정하며, 50%와 다르면 그대로 기록한다.
+### 9.1 base edge
 
-### 6.2 5-tap Catmull–Rom
+document profile의 후보 검출은 SMAA spatial pass와 별도인 full-resolution compute
+단계에서 수행한다.
 
-4x4 Catmull–Rom을 9개의 bilinear sample로 계산하는 공개식에서 네 모서리 sample을
-제외하고 center, left, right, top, bottom의 5개 sample만 사용한다. 이는 Filmic SMAA
-발표에서 제안된 5-tap 형태다. 제외된 모서리 때문에 남은 가중치 합으로 결과를
-정규화한다.
+- 현재 SMAA luma edge shader와 동일한 luma 계수 `(0.2126, 0.7152, 0.0722)` 사용 (`S`)
+- gamma-corrected color에서 인접 픽셀 luma 차이 계산 (`S`)
+- base edge threshold 기본값 `1/22` 적용 (`D`)
+- base edge 수를 별도 counter에 기록
 
-### 6.3 Variance clipping
+별도 검출 비용이 생기므로 candidate extraction GPU 시간을 독립 측정한다. SMAA edge
+texture만 재사용하면 SMAA Ultra threshold `0.05`를 이미 통과한 edge만 남아 Intel
+기본값 `1/22`를 정확히 적용할 수 없으므로 document profile의 기본 경로로 사용하지
+않는다.
 
-- 현재 spatial SMAA 결과의 3x3 이웃을 RGB에서 YCoCg로 변환
-- 1차/2차 moment에서 평균과 표준편차 계산
-- `gamma = 1.0`
-- `mean ± gamma * sigma`를 이웃 min/max AABB로 제한
-- 현재 color에서 history color로 향하는 선분을 AABB에 clip
-- 결과를 RGB로 역변환
+### 9.2 non-dominant edge 제거
 
-이는 Salvi의 variance clipping 설명을 구현한 것이며 Intel의 유실된 세부 코드와
-byte-for-byte 동일하다는 의미는 아니다.
+Intel TSCMAA는 기본 조절값 `0.5`를 공개하지만 정확한 kernel은 공개하지 않았다. 기본
+`IntelFamilyNonDominant` 정책은 다음 근거로 제한해 구현한다.
 
-### 6.4 색 공간
+- Intel CMAA2 공식 source의 방향별 local-contrast 구조를 출발점으로 사용 (`S`)
+- 중심 edge strength에서 같은 방향의 인접 edge 최댓값에 removal amount를 곱한 값을
+  빼고 base threshold와 비교하는 형태로 격리 (`A`)
+- 기본 removal amount는 `0.5` (`D`)
+- kernel 좌표, 경계 처리와 식을 shader 주석 및 실험 로그에 그대로 기록
 
-temporal blend와 variance clipping은 linear color에서 수행한다. history UAV가 sRGB
-view와 같은 typeless resource를 사용할 경우, compute shader의 UNORM UAV store 전에
-linear-to-sRGB 변환을 명시적으로 수행한다.
+이 식은 유실된 TSCMAA sample과 동일하다고 주장하지 않는다. 공개된 Intel 계열 구조와
+TSCMAA API 의미를 결합한 adaptation이다.
 
-### 6.5 Spatial 입력과 projection jitter
+검증용 정책은 다음과 같이 유지한다.
 
-TSCMAA-inspired 모드는 현재 프레임의 spatial 입력으로 SMAA 1X를 사용하며, 의도적인
-SMAA T2X projection jitter를 적용하지 않는다. Intel 공개 문서는 head pose 및 프레임
-간 motion에 대한 temporal accumulation은 설명하지만 별도의 subpixel render jitter는
-명시하지 않는다.
+- `AllBaseEdges`: non-dominant 제거 전 모든 base edge를 temporal 후보로 사용
+- `IntelFamilyNonDominant`: document profile 기본 후보 정책
+- `ExperimentalLocalMeanMax3x3`: 기존 구현 보존용 ablation
 
-초기 구현에서 화면 전체에 SMAA T2X jitter를 적용하고 비후보 픽셀의 history weight를
-공식 설명대로 `0.0`으로 두자, 정지 장면의 비후보 픽셀이 두 jitter 위치를 그대로
-번갈아 출력했다. 이는 selective TAA와 맞지 않으므로 제거한다. V2의 jittered
-reprojected SMAA T2X는 비교 기준선으로 그대로 유지한다.
+후보 정책 승인 조건은 다음과 같다.
 
-## 7. 구현 파이프라인
+1. `removal=0`에서 후보 수가 base edge 수와 일치
+2. removal amount 증가 시 후보 수가 증가하지 않음
+3. 후보 buffer에 중복 좌표·범위 밖 좌표·overflow가 없음
+4. 정지 및 동적 대표 장면에서 base edge/후보 mask를 육안 확인
+5. 후보/base-edge 비율을 기록하고 Intel 문서의 약 50%와 비교
 
-1. SMAA 1X spatial pass를 실행해 현재 spatial SMAA 결과와 SMAA edge texture 생성
-2. 현재 spatial 결과를 새 history texture의 초기값으로 복사
-3. full-resolution compute shader에서 locally dominant SMAA edge 후보를 compact buffer에 기록
-4. 후보 수로 `DispatchIndirect` argument 생성
-5. 후보에 대해서만 다음 작업 수행
-   - camera velocity로 history UV 계산
-   - 화면 밖 history 거부
+50%에 맞추려고 프레임별 상위 N개를 강제로 고르거나 threshold를 자동 보정하지 않는다.
+
+## 10. history sampling과 clipping 방침
+
+### 10.1 Catmull–Rom 5-tap
+
+5-tap 사용 자체는 문서 확정 사항이지만 정확한 좌표·가중치는 미공개다. 구현은 독립
+함수와 toggle로 격리하고 다음 검증을 통과해야 한다.
+
+- 상수 texture에서 정확히 같은 값을 반환
+- 모든 유효 fractional UV에서 weight 합이 1
+- 좌우·상하 대칭성 확인
+- clamp sampler를 사용해 화면 경계에서 범위 밖 접근 방지
+- CPU 16-tap Catmull–Rom reference와 UV grid 비교 후 max error와 RMSE 기록
+
+검증 전에는 `CatmullRom5Tap`을 document core 완료 항목으로 표시하지 않는다.
+
+### 10.2 YCoCg variance clipping
+
+YCoCg variance clipping 사용은 문서 확정 사항이지만 세부식은 adaptation이다.
+
+- 현재 spatial 결과의 3x3 이웃 사용 (`A`)
+- YCoCg 변환식, 평균·분산 계산식과 `gamma`를 코드 및 로그에 명시
+- 기본 `gamma=1.0`은 adaptation 기본값이며 ablation 가능
+- history가 variance box 내부이면 유지
+- outlier는 유한한 값으로 box 안에 제한
+- 상수 이웃에서는 NaN/Inf 없이 상수 결과 유지
+
+clipping 전후 history와 clip delta를 debug view로 확인할 수 있게 한다.
+
+## 11. reprojection 범위
+
+`CameraDepthMatrices`는 현재 depth와 현재·이전 unjittered view-projection matrix로
+camera-motion history UV를 계산한다.
+
+- 화면 밖 history 좌표는 거부
+- 첫 프레임, mode 변경, scene 변경, camera teleport와 resize 시 history reset
+- camera matrix와 history는 같은 프레임 순서로 갱신
+- jittered matrix와 unjittered matrix를 혼용하지 않음
+- static camera에서 velocity가 0에 가까운지 확인
+- 알려진 카메라 이동에서 history UV 방향을 debug view로 확인
+
+현재 renderer의 object motion vector는 연결되어 있지 않다. 따라서 움직이는 물체의
+재투영을 처리한다고 표현하지 않는다. 이전 depth 비교나 object motion vector를 나중에
+추가하면 별도 ablation으로 기록한다.
+
+## 12. 확정 pipeline
+
+`O-ET2X-R` document profile의 frame pipeline은 다음과 같다.
+
+1. Original SMAA Ultra spatial pass 실행
+2. 현재 spatial 결과를 새 history/output texture의 초기값으로 복사
+3. full-resolution base luma edge detection 실행
+4. `IntelFamilyNonDominant` 정책으로 temporal 후보 선정
+5. 후보 좌표를 structured buffer에 compact하고 counter 기록
+6. 후보 수로 `ceil(candidateCount / resolveGroupSize)` indirect argument 생성
+7. `DispatchIndirect`로 후보만 resolve
+   - 현재 depth와 camera matrix로 history UV reprojection
+   - 유효하지 않거나 화면 밖인 history 거부
    - 5-tap Catmull–Rom history sampling
-   - 현재 3x3 YCoCg variance clipping
-   - current 0.2 / history 0.8 blend
-6. 최종 결과를 현재 history에 저장
-7. 현재 history를 화면 출력으로 복사
-8. 현재/이전 history를 ping-pong하고 최종 결과를 다음 프레임에 사용
+   - 현재 3x3 이웃의 YCoCg variance clipping
+   - current `0.2` / clipped history `0.8` blend
+8. 비후보는 2단계의 현재 spatial 결과 유지
+9. 완성된 output을 화면에 복사하고 다음 프레임 history로 feedback
+10. history ping-pong index 교체
 
-비후보 픽셀은 2단계에서 복사된 현재 spatial SMAA 값이 그대로 유지된다.
+`O-ET2X`는 위 pipeline에서 history UV를 동일 좌표로 사용한다. 이는 no-reprojection
+ablation이다.
 
-## 8. 성능 해석의 제한
+## 13. 계측과 debug view
 
-후보 추출은 full-resolution pass이므로 그 비용은 해상도에 비례한다. temporal resolve는
-후보 목록에 대해서만 indirect dispatch하지만, 현재 spatial 결과를 history/output으로
-복사하는 bandwidth 비용은 남는다.
+성능을 왜곡하지 않는 비동기 readback 경로로 다음 값을 기록한다.
 
-따라서 다음을 분리해 측정한다.
-
+- 전체 픽셀 수
+- base edge 수
+- temporal 후보 수
+- 후보/base-edge 비율
+- reprojection 성공 수
+- 화면 밖 또는 무효 history 거부 수
+- temporal resolve 실행 수
 - candidate extraction GPU time
-- indirect temporal resolve GPU time
-- spatial-to-history copy를 포함한 전체 SMAA time
-- SMAA edge 수와 temporal 후보 수
+- indirect argument 생성 GPU time
+- selective resolve GPU time
+- spatial-to-history copy GPU time
+- 전체 SMAA 및 전체 frame GPU time
 
-후보 수 감소만으로 성능 향상을 주장하지 않는다.
+필수 debug view는 base edge mask, temporal candidate mask, reprojection validity,
+history UV/velocity, variance clip delta다.
 
-## 9. 검증 순서
+## 14. 구현 단계와 커밋 경계
 
-1. Release x64 빌드 및 shader compilation 확인
-2. 첫 프레임, 모드 전환, resize에서 검은 화면/깨짐/종료가 없는지 확인
-3. 정지 카메라에서 jitter 떨림이 없는지 확인
-4. 동일 flythrough에서 V2와 새 구현을 연속 프레임/GIF로 비교
-5. 움직이는 물체, disocclusion, 얇은 선에서 ghosting, flicker, blur 비교
-6. GPU profiler로 pass별 시간과 후보 수 반복 측정
+각 단계는 Release x64 build와 최소 smoke test를 통과한 뒤 별도 커밋한다.
 
-## 10. 결과 표기 원칙
+### 단계 0: 계획 고정
 
-- `공식 TSCMAA`라고 표기하지 않는다.
-- `Intel TSCMAA 공개 구조를 SMAA에 적용한 edge-selective temporal 구현`이라고 표기한다.
-- 공개 문서에 없는 후보 선정 규칙과 filter 세부식은 연구 가정으로 명시한다.
-- V2보다 품질 또는 성능이 나쁘더라도 결과를 제외하지 않는다.
-- 기존 V3/V4 탐색 결과는 이 구현의 근거 또는 최종 결과로 사용하지 않는다.
+- 이 문서와 `AGENTS.md`의 용어·8-case·완료 기준 일치 확인
+- 코드 변경 없음
 
-## 11. 구현 검증 기록
+### 단계 1: mode와 설정 직교화
 
-다음 값은 정식 품질·성능 결과가 아니라 projection jitter 오류를 찾기 위한 엔지니어링
-검증이다. 1920x1017, 정지된 Lumberyard Bistro 카메라에서 연속 16프레임을 저장했다.
+- 기존 세 boolean과 복합 mode를 명시적 설정 구조로 교체
+- Original 네 semantic mode를 UI와 로그에 연결
+- 기존 `O-T2X`, `O-T2X-R` 출력이 바뀌지 않는 회귀 확인
+- 아직 TSCMAA 품질 결론을 내리지 않음
 
-| 상태 | 인접 프레임 평균 MAE | 변경 픽셀 비율 | 2프레임 간격 MAE |
-|---|---:|---:|---:|
-| full-frame T2X jitter + selective TAA | 3.7014 | 75.7% | 약 0 |
-| SMAA 1X spatial + selective TAA | 0.000004 | 약 0.00039% | 약 0 |
+### 단계 2: 후보 추출과 계측
 
-첫 구현은 홀수·짝수 프레임이 두 상태로 정확히 반복되어 정지 장면에서도 심한 떨림이
-발생했다. 의도적인 T2X projection jitter를 제거한 뒤 4번째 캡처부터 모든 프레임이
-완전히 동일했다. 이 검증은 떨림 오류가 제거됐다는 뜻이며, 움직이는 장면의 ghosting,
-flicker 및 성능 개선을 입증하는 결과는 아니다.
+- base luma edge, 세 candidate policy, compact buffer, counter 구현
+- indirect argument의 0개·1개·group 경계값 검증
+- debug mask와 비동기 통계 readback 구현
+- temporal resolve는 아직 기존 출력에 영향을 주지 않는 진단 모드로 확인
+
+### 단계 3: selective resolve 골격
+
+- `O-ET2X`, `O-ET2X-R` history ping-pong과 lifecycle 구현
+- 우선 bilinear/no-clipping 설정으로 coverage와 reprojection만 검증
+- 비후보가 현재 spatial 결과와 정확히 일치하는지 이미지 diff 확인
+- matched full-screen/selective ablation으로 후보 선택 효과 분리
+
+### 단계 4: 5-tap sampler
+
+- `CatmullRom5Tap` 독립 구현
+- CPU 16-tap reference test와 GPU 불변 조건 검증
+- sampler 변경만 비교하는 ablation 캡처
+
+### 단계 5: variance clipping
+
+- YCoCg 변환과 variance clipping 독립 구현
+- 상수·유효 history·outlier test와 debug view 검증
+- clipping 변경만 비교하는 ablation 캡처
+
+### 단계 6: Intel document profile 조립
+
+- threshold `1/22`, non-dominant `0.5`
+- candidate compaction + indirect dispatch
+- depth/matrix reprojection
+- 5-tap history sampling
+- YCoCg variance clipping
+- 후보 history weight `0.8`, 비후보 `0.0`
+- 최종 output history feedback
+
+이 단계까지 모든 검증표가 통과해야 `O-ET2X-R core 구현 완료`로 표시한다.
+
+### 단계 7: lifecycle·성능 smoke
+
+- 첫 프레임, mode/scene/resize/teleport reset
+- 0 candidate와 최대 candidate stress
+- 동일 장면 반복 실행 및 GPU 오류 확인
+- 각 pass timer와 candidate counter가 성능 캡처를 과도하게 방해하지 않는지 확인
+
+### 단계 8: Original 네 case 본 측정
+
+- `O-T2X`
+- `O-T2X-R`
+- `O-ET2X`
+- `O-ET2X-R`
+
+동일 장면·경로·해상도·fixed timestep에서 품질과 성능을 측정한다. PNG 저장은 품질
+캡처에서만 사용하고 성능 측정에서는 끈다.
+
+### 단계 9: Adaptive 통합
+
+Original 네 case 검증 이후 `main`의 Adaptive SMAA를 결합해 `A-*` 네 case를 만든다.
+Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
+
+## 15. 완료 판정표
+
+다음 항목이 모두 통과하기 전에는 `TSCMAA-inspired core 완료`라고 표현하지 않는다.
+
+- [ ] edge threshold `1/22` 적용 및 로그 기록
+- [ ] non-dominant removal `0.5` 적용 및 후보 정책 출처/식 기록
+- [ ] base edge 수와 temporal 후보 수 측정
+- [ ] 후보 compact buffer 중복·overflow 검증
+- [ ] indirect dispatch count 검증
+- [ ] depth 및 현재·이전 matrix reprojection 검증
+- [ ] 5-tap Catmull–Rom reference 검증
+- [ ] YCoCg variance clipping 불변 조건 검증
+- [ ] 후보 history weight `0.8`
+- [ ] 비후보 history weight `0.0`
+- [ ] 최종 output의 history feedback
+- [ ] 첫 프레임·mode·scene·teleport·resize reset
+- [ ] static camera 떨림 없음
+- [ ] object motion 미지원 사실 명시
+- [ ] 각 pass GPU time과 후보 비율 기록 가능
+- [ ] Release x64 build 및 동적 장면 smoke test
+
+## 16. 결과 해석 원칙
+
+- 최종 8-case 비교와 원인 분리용 ablation을 구분한다.
+- Standard T2X와 edge-selective document profile의 차이를 모두 `edge 선택 효과`로
+  단정하지 않는다.
+- 후보 수 감소만으로 성능 향상이라고 결론내리지 않고 실제 pass 및 frame GPU time을 본다.
+- 정지 스크린샷만으로 temporal 품질을 판단하지 않고 연속 프레임·영상으로 ghosting,
+  shimmer, crawling, flicker, blur와 disocclusion을 확인한다.
+- camera-motion reprojection을 object-motion reprojection이라고 부르지 않는다.
+- 공개되지 않은 식은 adaptation 또는 ablation이라고 표시한다.
+- 예상과 다른 결과도 제외하지 않는다.
+
+## 17. 현재 시점의 다음 작업
+
+다음 작업은 본 측정이 아니라 **단계 1: mode와 설정 직교화**다.
+
+기존 `O-T2X`와 `O-T2X-R`의 화면 및 동작을 유지하면서 `TemporalCoverage`와
+`ReprojectionMode`를 분리하고, 아직 없는 `O-ET2X`를 표현할 수 있는 구조를 먼저 만든다.
+그 다음 후보 추출을 temporal output과 분리된 진단 단계로 구현한다.

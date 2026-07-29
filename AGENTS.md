@@ -48,6 +48,34 @@ TSCMAA-inspired SMAA core를 구현하고 검증**한다.
   clipping 세부식은 구현 가정과 출처를 기록하고 ablation 가능하게 만든다.
 - 이 core의 기능 검증이 끝나기 전에는 8-case 최종 품질·성능 측정을 시작하지 않는다.
 
+## 1.2 현재 구현을 다루는 방향
+
+지금까지의 T2X/TSCMAA-inspired 작업은 폐기 대상이 아니라 **document-based controlled
+implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 기준 문서로 사용한다.
+
+- `Docs/SMAA-TSCMAA-Implementation-Plan-ko.md`
+
+기존 구현은 다음 원칙으로 다룬다.
+
+- 구현된 `O-T2X`와 `O-T2X-R`은 기준선으로 보존하고 회귀가 생기지 않게 한다.
+- history texture, ping-pong, reset lifecycle, camera reprojection, candidate buffer,
+  indirect dispatch, 자동 캡처·분석 도구는 가능한 한 재사용한다.
+- 기존 Catmull-Rom 5-tap과 YCoCg variance clipping 코드는 초기 구현으로 재사용할 수
+  있지만, 공식 자료로 확인되지 않은 세부식은 독립 toggle로 분리하고 reference test를
+  통과해야 한다.
+- 현재 복합 `SMAA_T2x_TSCMAAInspired`는 구현 가능성을 확인한 prototype이지 최종
+  `O-ET2X-R`이 아니다. 코드를 삭제하기보다 후보 선택, reprojection, jitter, sampling,
+  clipping과 history weight를 직교 설정으로 분해한다.
+- 기존 3x3 local mean/max 후보식은 공식 TSCMAA 후보식으로 사용하지 않고
+  `ExperimentalLocalMeanMax3x3` ablation으로만 보존한다.
+- 기존 복합 구현의 캡처와 측정은 디버깅·도구 검증 자료로 보존하되 최종 8-case 결론에는
+  사용하지 않는다.
+- 리팩터링 전후를 별도 커밋으로 남겨 기존 동작과 새 controlled 구현을 언제든 비교할 수
+  있게 한다.
+
+즉, 다음 작업은 처음부터 다시 작성하는 것이 아니라 현재 기초 틀을 보존하면서 공식
+자료로 확인된 동작과 SMAA adaptation 가정을 분리·검증하는 작업이다.
+
 ## 2. SMAA T2X와 motion reprojection의 관계
 
 - 이전 프레임과 현재 프레임을 결합하는 Standard SMAA T2X가 기본 방식이다.
