@@ -60,6 +60,16 @@ void vaSMAAWrapper::UIPanelDraw( )
                 SetCandidatePolicyOverride( true, (CandidatePolicy)policy );
         }
 
+        bool forcedCountEnabled = m_forcedCandidateCountEnabled;
+        if( ImGui::Checkbox( "Force exact candidate count", &forcedCountEnabled ) )
+            SetForcedCandidateCountForDiagnostics( forcedCountEnabled, m_forcedCandidateCount );
+        if( forcedCountEnabled )
+        {
+            int forcedCount = (int)m_forcedCandidateCount;
+            if( ImGui::InputInt( "Forced count", &forcedCount ) )
+                SetForcedCandidateCountForDiagnostics( true, (uint32)vaMath::Max( forcedCount, 0 ) );
+        }
+
         int debugView = (int)m_temporalDebugView;
         if( ImGuiEx_Combo( "Debug view", debugView, { string("Off"), string("Base edges"), string("Selected candidates") } ) )
             SetTemporalDebugView( (TemporalDebugView)debugView );
@@ -73,10 +83,28 @@ void vaSMAAWrapper::UIPanelDraw( )
                 100.0f * statistics.GetCandidateToPixelRatio( ) );
             ImGui::Text( "Candidate/base: %.3f%%", 100.0f * statistics.GetCandidateToBaseRatio( ) );
             ImGui::Text( "Indirect processed: %u", statistics.ProcessCount );
+            ImGui::Text( "Indirect groups: %u", statistics.DispatchGroupCount );
         }
         else
         {
             ImGui::TextDisabled( "Candidate counters are waiting for GPU readback." );
+        }
+
+        if( m_forcedCandidateCountEnabled )
+        {
+            const TemporalCandidateValidation & validation = GetTemporalCandidateValidation( );
+            if( validation.Valid )
+            {
+                ImGui::TextColored( validation.Passed? ImVec4( 0.3f, 1.0f, 0.3f, 1.0f ) : ImVec4( 1.0f, 0.3f, 0.3f, 1.0f ),
+                    "Boundary validation: %s", validation.Passed? "PASS" : "FAIL" );
+                ImGui::Text( "Expected/read: %u / %u", validation.ExpectedCount, validation.ReadbackCount );
+                ImGui::Text( "Duplicate/out-of-range/overflow: %u / %u / %u",
+                    validation.DuplicateCount, validation.OutOfRangeCount, validation.CapacityOverflowCount );
+            }
+            else
+            {
+                ImGui::TextDisabled( "Candidate-list validation is waiting for GPU readback." );
+            }
         }
     }
 

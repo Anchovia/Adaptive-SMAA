@@ -118,7 +118,12 @@ namespace VertexAsylum
 
         shared_ptr<vaTexture>       m_tscmaaBaseEdgeMask             = nullptr;
         shared_ptr<vaTexture>       m_tscmaaCandidateMask            = nullptr;
+        ID3D11Buffer *              m_tscmaaCandidatesBuffer        = nullptr;
         ID3D11UnorderedAccessView * m_tscmaaCandidatesUAV           = nullptr;
+        ID3D11Buffer *              m_tscmaaCandidatesReadback      = nullptr;
+        bool                        m_tscmaaCandidatesReadbackPending = false;
+        uint32                      m_tscmaaCandidatesReadbackGeneration = 0;
+        uint32                      m_tscmaaCandidateCapacity        = 0;
         ID3D11Buffer *              m_tscmaaControlBuffer           = nullptr;
         ID3D11UnorderedAccessView * m_tscmaaControlBufferUAV        = nullptr;
         ID3D11Buffer *              m_tscmaaDispatchArgsBuffer      = nullptr;
@@ -151,7 +156,7 @@ namespace VertexAsylum
         vaDrawResultFlags               ExecuteTSCMAAInspiredResolve( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & currentSpatial,
                                                 const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination );
-        void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 pixelCount );
+        void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
         vaDrawResultFlags               DrawTSCMAADebugMask( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
         //void                            Reset( );
 
@@ -333,6 +338,11 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
     SAFE_RELEASE( m_tscmaaCandidatesUAV );
+    SAFE_RELEASE( m_tscmaaCandidatesBuffer );
+    SAFE_RELEASE( m_tscmaaCandidatesReadback );
+    m_tscmaaCandidatesReadbackPending = false;
+    m_tscmaaCandidatesReadbackGeneration = 0;
+    m_tscmaaCandidateCapacity = 0;
     SAFE_RELEASE( m_tscmaaControlBufferUAV );
     SAFE_RELEASE( m_tscmaaControlBuffer );
     SAFE_RELEASE( m_tscmaaDispatchArgsBufferUAV );
@@ -353,8 +363,11 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     m_temporalHistoryValid = false;
     m_previousViewProjValid = false;
     m_temporalCandidateStatistics = TemporalCandidateStatistics( );
+    m_temporalCandidateValidation = TemporalCandidateValidation( );
     m_tscmaaStatisticsGeneration++;
     m_tscmaaStatisticsLogged = false;
+    m_tscmaaCandidatesReadbackPending = false;
+    m_tscmaaCandidatesReadbackGeneration = 0;
     for( int i = 0; i < c_tscmaaReadbackBufferCount; i++ )
     {
         m_tscmaaReadbackPending[i] = false;
@@ -384,7 +397,9 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         || m_smaaEdgeSelectiveEnabled != edgeSelective
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
-                || m_tscmaaCandidatesUAV == nullptr || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr)))) )
+                || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
+                || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
+                || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr)))) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
@@ -449,10 +464,16 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 ID3D11Device * d3d11Device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
                 HRESULT hr;
                 const UINT candidateCapacity = inputColor->GetSizeX() * inputColor->GetSizeY();
+                m_tscmaaCandidateCapacity = candidateCapacity;
                 {
                     CD3D11_BUFFER_DESC bufferDesc( candidateCapacity * sizeof( UINT ), D3D11_BIND_UNORDERED_ACCESS, D3D11_USAGE_DEFAULT, 0,
                         D3D11_RESOURCE_MISC_BUFFER_STRUCTURED, sizeof( UINT ) );
-                    V( CreateSMAATemporalBufferAndUAV( d3d11Device, bufferDesc, nullptr, &m_tscmaaCandidatesUAV, 0 ) );
+                    V( CreateSMAATemporalBufferAndUAV( d3d11Device, bufferDesc, &m_tscmaaCandidatesBuffer, &m_tscmaaCandidatesUAV, 0 ) );
+                    if( GetForcedCandidateCountEnabled( ) )
+                    {
+                        CD3D11_BUFFER_DESC readbackDesc( bufferDesc.ByteWidth, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ, 0, 0 );
+                        V( d3d11Device->CreateBuffer( &readbackDesc, nullptr, &m_tscmaaCandidatesReadback ) );
+                    }
                 }
                 {
                     CD3D11_BUFFER_DESC bufferDesc( 4 * sizeof( UINT ), D3D11_BIND_UNORDERED_ACCESS, D3D11_USAGE_DEFAULT, 0,
@@ -474,7 +495,9 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 readbackBuffersReady = readbackBuffersReady && (m_tscmaaControlReadback[i] != nullptr);
             if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
-                    || m_tscmaaCandidatesUAV == nullptr || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr
+                    || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
+                    || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
+                    || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr
                     || m_tscmaaDispatchArgsBuffer == nullptr || !readbackBuffersReady)) )
                 return false;
         }
@@ -523,7 +546,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.TSCMAAParams = vaVector4( temporalSettings.HistoryWeight, temporalSettings.NonDominantRemovalAmount,
             temporalReprojectionEnabled? 1.0f : 0.0f,
             vaResourceFormatHelpers::IsSRGB( inputColor->GetSRVFormat( ) )? 1.0f : 0.0f );
-        m_reprojectionConstants.TSCMAACandidateParams = vaVector4( temporalSettings.EdgeThreshold, (float)(int)GetEffectiveCandidatePolicy( ), 0.0f, 0.0f );
+        const uint32 clampedForcedCandidateCount = vaMath::Min( GetForcedCandidateCount( ),
+            (uint32)(inputColor->GetSizeX( ) * inputColor->GetSizeY( )) );
+        m_reprojectionConstants.TSCMAACandidateParams = vaVector4( temporalSettings.EdgeThreshold, (float)(int)GetEffectiveCandidatePolicy( ),
+            (float)clampedForcedCandidateCount, GetForcedCandidateCountEnabled( )? 1.0f : 0.0f );
 
         if( temporalReprojectionEnabled )
         {
@@ -741,7 +767,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
     ID3D11SamplerState * nullSamplers[2] = { nullptr, nullptr };
     dx11Context->CSSetSamplers( 0, 2, nullSamplers );
-    QueueAndConsumeTSCMAAStatisticsReadback( dx11Context, (uint32)(currentSpatial->GetSizeX( ) * currentSpatial->GetSizeY( )) );
+    QueueAndConsumeTSCMAAStatisticsReadback( dx11Context, (uint32)currentSpatial->GetSizeX( ), (uint32)currentSpatial->GetSizeY( ) );
 
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAAOutputCopy, deviceContext );
@@ -751,8 +777,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     return DrawTSCMAADebugMask( deviceContext, destination );
 }
 
-void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 pixelCount )
+void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height )
 {
+    const uint32 pixelCount = width * height;
     for( int i = 0; i < c_tscmaaReadbackBufferCount; i++ )
     {
         if( !m_tscmaaReadbackPending[i] )
@@ -775,6 +802,7 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
             m_temporalCandidateStatistics.CandidateCount = counters[0];
             m_temporalCandidateStatistics.ProcessCount = counters[1];
             m_temporalCandidateStatistics.BaseEdgeCount = counters[2];
+            m_temporalCandidateStatistics.DispatchGroupCount = counters[3];
             m_temporalCandidateStatistics.PixelCount = pixelCount;
             m_temporalCandidateStatistics.Policy = GetEffectiveCandidatePolicy( );
 
@@ -787,18 +815,104 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
                 case CandidatePolicy::IntelFamilyNonDominant:          policyName = "IntelFamilyNonDominant"; break;
                 case CandidatePolicy::ExperimentalLocalMeanMax3x3:     policyName = "ExperimentalLocalMeanMax3x3"; break;
                 }
-                VA_LOG( "TSCMAA candidate counters [%s]: base=%u (%.3f%% pixels), candidates=%u (%.3f%% pixels, %.3f%% of base), indirect=%u",
-                    policyName,
+                VA_LOG( "TSCMAA candidate counters [%s%s]: base=%u (%.3f%% pixels), candidates=%u (%.3f%% pixels, %.3f%% of base), indirect=%u, groups=%u",
+                    policyName, GetForcedCandidateCountEnabled( )? ", forced-count diagnostics" : "",
                     m_temporalCandidateStatistics.BaseEdgeCount,
                     pixelCount > 0? 100.0f * (float)m_temporalCandidateStatistics.BaseEdgeCount / (float)pixelCount : 0.0f,
                     m_temporalCandidateStatistics.CandidateCount,
                     100.0f * m_temporalCandidateStatistics.GetCandidateToPixelRatio( ),
                     100.0f * m_temporalCandidateStatistics.GetCandidateToBaseRatio( ),
-                    m_temporalCandidateStatistics.ProcessCount );
+                    m_temporalCandidateStatistics.ProcessCount,
+                    m_temporalCandidateStatistics.DispatchGroupCount );
                 m_tscmaaStatisticsLogged = true;
             }
         }
         context->Unmap( m_tscmaaControlReadback[i], 0 );
+    }
+
+    if( GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback != nullptr )
+    {
+        if( m_tscmaaCandidatesReadbackPending && m_temporalCandidateStatistics.Valid )
+        {
+            D3D11_MAPPED_SUBRESOURCE mapped;
+            ZeroMemory( &mapped, sizeof( mapped ) );
+            const HRESULT mapResult = context->Map( m_tscmaaCandidatesReadback, 0, D3D11_MAP_READ, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped );
+            if( mapResult != DXGI_ERROR_WAS_STILL_DRAWING )
+            {
+                m_tscmaaCandidatesReadbackPending = false;
+                if( SUCCEEDED( mapResult ) )
+                {
+                    if( m_tscmaaCandidatesReadbackGeneration == m_tscmaaStatisticsGeneration )
+                    {
+                        const uint32 expectedCount = vaMath::Min( GetForcedCandidateCount( ), pixelCount );
+                        const uint32 readbackCount = vaMath::Min( m_temporalCandidateStatistics.ProcessCount, m_tscmaaCandidateCapacity );
+                        const UINT * candidates = reinterpret_cast<const UINT *>( mapped.pData );
+                        vector<uint8> seen( pixelCount, 0 );
+                        uint32 duplicateCount = 0;
+                        uint32 outOfRangeCount = 0;
+
+                        for( uint32 candidateIndex = 0; candidateIndex < readbackCount; candidateIndex++ )
+                        {
+                            const uint32 packedPixel = candidates[candidateIndex];
+                            const uint32 x = packedPixel >> 16;
+                            const uint32 y = packedPixel & 0xffff;
+                            if( x >= width || y >= height )
+                            {
+                                outOfRangeCount++;
+                                continue;
+                            }
+
+                            const uint32 linearIndex = y * width + x;
+                            if( seen[linearIndex] != 0 )
+                                duplicateCount++;
+                            else
+                                seen[linearIndex] = 1;
+                        }
+
+                        const uint32 overflowCount = (m_temporalCandidateStatistics.CandidateCount > m_tscmaaCandidateCapacity)?
+                            m_temporalCandidateStatistics.CandidateCount - m_tscmaaCandidateCapacity : 0;
+                        const uint32 expectedDispatchGroups = (expectedCount + 63) / 64;
+                        m_temporalCandidateValidation.Valid = true;
+                        m_temporalCandidateValidation.RequestedCount = GetForcedCandidateCount( );
+                        m_temporalCandidateValidation.ExpectedCount = expectedCount;
+                        m_temporalCandidateValidation.ReadbackCount = readbackCount;
+                        m_temporalCandidateValidation.DuplicateCount = duplicateCount;
+                        m_temporalCandidateValidation.OutOfRangeCount = outOfRangeCount;
+                        m_temporalCandidateValidation.CapacityOverflowCount = overflowCount;
+                        m_temporalCandidateValidation.Passed =
+                            m_temporalCandidateStatistics.BaseEdgeCount == expectedCount
+                            && m_temporalCandidateStatistics.CandidateCount == expectedCount
+                            && m_temporalCandidateStatistics.ProcessCount == expectedCount
+                            && m_temporalCandidateStatistics.DispatchGroupCount == expectedDispatchGroups
+                            && readbackCount == expectedCount
+                            && duplicateCount == 0
+                            && outOfRangeCount == 0
+                            && overflowCount == 0;
+
+                        VA_LOG( "TSCMAA candidate boundary validation: requested=%u, expected=%u, candidate=%u, process=%u, groups=%u/%u, readback=%u, duplicate=%u, outOfRange=%u, overflow=%u => %s",
+                            m_temporalCandidateValidation.RequestedCount,
+                            expectedCount,
+                            m_temporalCandidateStatistics.CandidateCount,
+                            m_temporalCandidateStatistics.ProcessCount,
+                            m_temporalCandidateStatistics.DispatchGroupCount,
+                            expectedDispatchGroups,
+                            readbackCount,
+                            duplicateCount,
+                            outOfRangeCount,
+                            overflowCount,
+                            m_temporalCandidateValidation.Passed? "PASS" : "FAIL" );
+                    }
+                    context->Unmap( m_tscmaaCandidatesReadback, 0 );
+                }
+            }
+        }
+
+        if( !m_tscmaaCandidatesReadbackPending && !m_temporalCandidateValidation.Valid )
+        {
+            context->CopyResource( m_tscmaaCandidatesReadback, m_tscmaaCandidatesBuffer );
+            m_tscmaaCandidatesReadbackPending = true;
+            m_tscmaaCandidatesReadbackGeneration = m_tscmaaStatisticsGeneration;
+        }
     }
 
     for( int attempt = 0; attempt < c_tscmaaReadbackBufferCount; attempt++ )

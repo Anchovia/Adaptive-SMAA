@@ -45,7 +45,8 @@ struct SMAAReprojectionConstants
     // z: camera reprojection enabled, w: output requires linear-to-sRGB conversion.
     float4 TSCMAAParams;
     // x: base luma-edge threshold, y: candidate policy enum
-    // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3).
+    // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3),
+    // z: forced candidate count, w: forced-count diagnostics enabled.
     float4 TSCMAACandidateParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
@@ -279,6 +280,7 @@ RWTexture2D<float>                   tscmaaCandidateMask                 : regis
 #define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
 #define TSCMAA_PROCESS_COUNT_OFFSET           4
 #define TSCMAA_EDGE_COUNTER_OFFSET            8
+#define TSCMAA_DISPATCH_GROUP_COUNT_OFFSET    12
 #define TSCMAA_RESOLVE_NUM_THREADS            64
 
 int2 TSCMAAClampPixel(int2 pixel, int2 dimensions) {
@@ -364,7 +366,11 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     int2 pixel = int2(dispatchThreadID.xy);
     int2 dimensions = int2(width, height);
     float2 directionalStrength = TSCMAABaseEdgeStrength(pixel, dimensions);
-    bool baseEdge = TSCMAAIsBaseEdge(directionalStrength);
+    bool forcedCountDiagnostics = g_SMAAReprojection.TSCMAACandidateParams.w > 0.5;
+    uint linearPixelIndex = dispatchThreadID.y * width + dispatchThreadID.x;
+    uint forcedCandidateCount = min((uint)(g_SMAAReprojection.TSCMAACandidateParams.z + 0.5), width * height);
+    bool baseEdge = forcedCountDiagnostics?
+        linearPixelIndex < forcedCandidateCount : TSCMAAIsBaseEdge(directionalStrength);
     tscmaaBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
 
     if (baseEdge) {
@@ -373,12 +379,12 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     }
 
     uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
-    bool candidate = false;
-    if (policy == 0) {
+    bool candidate = forcedCountDiagnostics && baseEdge;
+    if (!forcedCountDiagnostics && policy == 0) {
         candidate = baseEdge;
-    } else if (policy == 1) {
+    } else if (!forcedCountDiagnostics && policy == 1) {
         candidate = TSCMAAIsIntelFamilyNonDominantCandidate(pixel, dimensions, directionalStrength);
-    } else {
+    } else if (!forcedCountDiagnostics) {
         float experimentalStrength = TSCMAAExperimentalEdgeStrength(pixel, dimensions);
         candidate = TSCMAAIsExperimentalLocallyDominantCandidate(pixel, dimensions, experimentalStrength);
     }
@@ -405,8 +411,10 @@ void TSCMAAComputeDispatchArgsCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
     candidateCount = min(candidateCount, candidateCapacity);
 
+    uint dispatchGroupCount = (candidateCount + TSCMAA_RESOLVE_NUM_THREADS - 1) / TSCMAA_RESOLVE_NUM_THREADS;
     tscmaaControl.Store(TSCMAA_PROCESS_COUNT_OFFSET, candidateCount);
-    tscmaaDispatchArgs.Store(0, (candidateCount + TSCMAA_RESOLVE_NUM_THREADS - 1) / TSCMAA_RESOLVE_NUM_THREADS);
+    tscmaaControl.Store(TSCMAA_DISPATCH_GROUP_COUNT_OFFSET, dispatchGroupCount);
+    tscmaaDispatchArgs.Store(0, dispatchGroupCount);
     tscmaaDispatchArgs.Store(4, 1);
     tscmaaDispatchArgs.Store(8, 1);
 }

@@ -88,6 +88,7 @@ namespace VertexAsylum
             uint32                      BaseEdgeCount               = 0;
             uint32                      CandidateCount              = 0;
             uint32                      ProcessCount                = 0;
+            uint32                      DispatchGroupCount          = 0;
             uint32                      PixelCount                  = 0;
             CandidatePolicy             Policy                      = CandidatePolicy::AllBaseEdges;
 
@@ -100,6 +101,18 @@ namespace VertexAsylum
             {
                 return (PixelCount > 0)? (float)CandidateCount / (float)PixelCount : 0.0f;
             }
+        };
+
+        struct TemporalCandidateValidation
+        {
+            bool                        Valid                       = false;
+            bool                        Passed                      = false;
+            uint32                      RequestedCount              = 0;
+            uint32                      ExpectedCount               = 0;
+            uint32                      ReadbackCount               = 0;
+            uint32                      DuplicateCount              = 0;
+            uint32                      OutOfRangeCount             = 0;
+            uint32                      CapacityOverflowCount       = 0;
         };
 
         struct TemporalSettings
@@ -155,7 +168,10 @@ namespace VertexAsylum
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_candidatePolicyOverrideEnabled    = false;
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
+        bool                        m_forcedCandidateCountEnabled        = false;
+        uint32                      m_forcedCandidateCount               = 65;
         TemporalDebugView           m_temporalDebugView                  = TemporalDebugView::None;
+        TemporalCandidateValidation m_temporalCandidateValidation;
 
         //bool                        m_debugShowEdges;
 
@@ -200,6 +216,18 @@ namespace VertexAsylum
         }
         bool                        GetCandidatePolicyOverrideEnabled( ) const { return m_candidatePolicyOverrideEnabled; }
         const TemporalCandidateStatistics & GetTemporalCandidateStatistics( ) const { return m_temporalCandidateStatistics; }
+        void                        SetForcedCandidateCountForDiagnostics( bool enabled, uint32 count )
+        {
+            if( m_forcedCandidateCountEnabled != enabled || m_forcedCandidateCount != count )
+            {
+                m_forcedCandidateCountEnabled = enabled;
+                m_forcedCandidateCount = count;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetForcedCandidateCountEnabled( ) const { return m_forcedCandidateCountEnabled; }
+        uint32                      GetForcedCandidateCount( ) const    { return m_forcedCandidateCount; }
+        const TemporalCandidateValidation & GetTemporalCandidateValidation( ) const { return m_temporalCandidateValidation; }
         TemporalDebugView           GetTemporalDebugView( ) const       { return m_temporalDebugView; }
         void                        SetTemporalDebugView( TemporalDebugView value ) { m_temporalDebugView = value; }
 

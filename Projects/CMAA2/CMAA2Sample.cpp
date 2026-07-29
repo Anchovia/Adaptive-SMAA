@@ -2096,6 +2096,18 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_SMAA->SetTemporalDebugView((vaSMAAWrapper::TemporalDebugView)debugView);
             VA_LOG("SMAA temporal debug view: %d", debugView);
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateForcedCount") == 0)
+        {
+            unsigned long long forcedCount = 0;
+            std::wistringstream values(parameter.second);
+            if (!(values >> forcedCount) || forcedCount > std::numeric_limits<uint32>::max())
+            {
+                VA_LOG_ERROR("Invalid -smaaCandidateForcedCount value; expected an unsigned 32-bit candidate count");
+                return;
+            }
+            m_SMAA->SetForcedCandidateCountForDiagnostics(true, (uint32)forcedCount);
+            VA_LOG("SMAA forced candidate-count diagnostics: requested=%u", (uint32)forcedCount);
+        }
     }
 
     for (const auto& parameter : m_application.GetCommandLineParameters())

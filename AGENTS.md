@@ -141,9 +141,10 @@ capture를 실행할 수 있다.
 - `AllBaseEdges`, `IntelFamilyNonDominant`, `ExperimentalLocalMeanMax3x3` 세 정책
 - `IntelFamilyNonDominant`는 Intel CMAA2의 연결된 수직 edge local-contrast 구조를
   TSCMAA 공개 기본값과 결합한 adaptation이며 유실된 원본 식과 동일하다고 표현하지 않음
-- candidate compact/indirect process count와 비동기 GPU readback
+- candidate compact/indirect process·group count와 비동기 GPU readback
 - base edge/candidate debug mask와 개발 UI
-- `-smaaCandidatePolicyOverride`와 `-smaaTemporalDebugView` 진단 옵션
+- `-smaaCandidatePolicyOverride`, `-smaaTemporalDebugView`,
+  `-smaaCandidateForcedCount` 진단 옵션
 
 기존 prototype 출력 보존을 위해 기본 정책은 아직 `ExperimentalLocalMeanMax3x3`이다.
 `IntelFamilyNonDominant`는 diagnostic override에서 검증 중이며 controlled
@@ -152,7 +153,13 @@ capture를 실행할 수 있다.
 동일 deterministic smoke 프레임에서 base edge 57,354개 중 AllBase 57,354개,
 Intel-family 34,938개(60.916%), Experimental 44,266개(77.180%)가 선택됐고 indirect
 process count는 candidate count와 일치했다. 이는 구현 검증용 한 프레임 결과이며 최종
-품질·성능 결과가 아니다. 0/1/group 경계, 중복과 overflow stress는 아직 남아 있다.
+품질·성능 결과가 아니다.
+
+forced-count 진단으로 0, 1, 63, 64, 65와 전체 화면 최대 1,952,640 후보를 GPU에서
+실제로 compact한 뒤 전체 candidate buffer를 readback했다. 모든 case에서 candidate와
+process count, `ceil(count/64)` group count가 기대값과 일치했고 중복·범위 밖·overflow는
+0이었다. 전체 candidate-list staging buffer는 진단 옵션이 켜진 경우에만 생성하며 본
+성능 측정에는 포함하지 않는다.
 
 현재 `O-ET2X`와 `O-ET2X-R` prototype은 다음 변경을 동시에 포함한다.
 
@@ -192,10 +199,9 @@ process count는 candidate count와 일치했다. 이는 구현 검증용 한 �
 추가 본 측정을 진행하기 전에 다음 순서를 지킨다.
 
 1. **완료:** AA mode를 Standard/Edge-selective와 Reprojection Off/On의 직교 조합으로 정리한다.
-2. **진행 중:** 후보 정책 계측 기능은 구현됐지만 0/1/group 경계, 중복과 overflow
-   검증이 남아 있다. 이를 먼저 끝낸 뒤 bilinear/no-clipping selective resolve
-   골격부터 Original SMAA 기반 `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R` 네
-   controlled mode를 구현한다.
+2. **진행 중:** 후보 정책 계측과 0/1/group/최대 경계 검증은 완료했다. 다음은
+   bilinear/no-clipping selective resolve 골격부터 Original SMAA 기반 `O-T2X`,
+   `O-T2X-R`, `O-ET2X`, `O-ET2X-R` 네 controlled mode를 구현한다.
 3. 네 mode에서 history 초기화, ping-pong, jitter, subsample index, scene/resize reset을 검증한다.
 4. 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경은 ablation toggle로 분리한다.
 5. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.

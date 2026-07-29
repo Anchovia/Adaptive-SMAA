@@ -375,11 +375,11 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 다음 항목이 모두 통과하기 전에는 `TSCMAA-inspired core 완료`라고 표현하지 않는다.
 
-- [ ] edge threshold `1/22` 적용 및 로그 기록
-- [ ] non-dominant removal `0.5` 적용 및 후보 정책 출처/식 기록
-- [ ] base edge 수와 temporal 후보 수 측정
-- [ ] 후보 compact buffer 중복·overflow 검증
-- [ ] indirect dispatch count 검증
+- [x] edge threshold `1/22` 적용 및 로그 기록
+- [x] non-dominant removal `0.5` 적용 및 후보 정책 출처/식 기록
+- [x] base edge 수와 temporal 후보 수 측정
+- [x] 후보 compact buffer 중복·overflow 검증
+- [x] indirect dispatch count 검증
 - [ ] depth 및 현재·이전 matrix reprojection 검증
 - [ ] 5-tap Catmull–Rom reference 검증
 - [ ] YCoCg variance clipping 불변 조건 검증
@@ -406,7 +406,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-**단계 1과 단계 2의 후보 추출·기본 계측 구현은 완료했다.**
+**단계 1과 단계 2의 후보 추출·계측 및 경계 검증을 완료했다.**
 
 - Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
 - `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
@@ -414,7 +414,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - `O-ET2X` no-reprojection prototype 실행 경로 추가
 - threshold `1/22`인 별도 full-resolution base luma edge 검출 구현
 - `AllBaseEdges`, `IntelFamilyNonDominant`, `ExperimentalLocalMeanMax3x3` 정책 분리
-- candidate compact buffer와 indirect process count를 비동기 staging buffer로 readback
+- candidate compact buffer와 indirect process/group count를 비동기 staging buffer로 readback
 - base edge와 selected candidate R8 debug mask 및 개발 UI 구현
 - 기존 prototype의 기본 정책은 `ExperimentalLocalMeanMax3x3`으로 유지하고, UI 또는
   `-smaaCandidatePolicyOverride`에서만 다른 정책을 선택
@@ -438,11 +438,29 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - 기본 profile과 명시적 `ExperimentalLocalMeanMax3x3` override의 `O-ET2X`,
   `O-ET2X-R` PNG SHA-256이 각각 일치해 기본 정책 회귀가 없음을 확인
 - Intel 문서의 약 50%는 강제 quota가 아니므로 60.916%를 실패나 성공으로 단정하지 않음
-- 0개·1개·64-thread group 경계와 중복/overflow stress는 아직 별도 검증이 필요
 
-다음 작업은 본 측정이 아니라 **단계 2의 경계·안전성 검증 마무리**다. 0개·1개·
-63/64/65개·최대 후보 조건에서 indirect group count, 중복, 범위와 overflow를 먼저
-검증한다. 이를 통과한 뒤 **단계 3: selective resolve 골격의 controlled 검증**으로
-넘어가 sampler를 bilinear, clipping을 Off로 실제 shader 분기하고, 같은 설정의
-full-screen ablation과 비교해 비후보가 현재 spatial 결과와 정확히 일치하는지 이미지
-diff로 확인한다.
+### 17.2 단계 2 candidate boundary·safety 결과
+
+`-smaaCandidateForcedCount` 진단 옵션으로 정확한 후보 수를 강제하고 GPU compact buffer
+전체를 비동기 staging buffer로 되읽었다. 이 큰 candidate-list readback buffer는 진단
+옵션이 켜진 경우에만 생성되며 일반 실행과 본 성능 측정에는 포함되지 않는다.
+
+| 요청 후보 | 실제/기대 후보 | 실제/기대 group | 중복 | 범위 밖 | Overflow | 결과 |
+|---:|---:|---:|---:|---:|---:|---|
+| 0 | 0 / 0 | 0 / 0 | 0 | 0 | 0 | PASS |
+| 1 | 1 / 1 | 1 / 1 | 0 | 0 | 0 | PASS |
+| 63 | 63 / 63 | 1 / 1 | 0 | 0 | 0 | PASS |
+| 64 | 64 / 64 | 1 / 1 | 0 | 0 | 0 | PASS |
+| 65 | 65 / 65 | 2 / 2 | 0 | 0 | 0 | PASS |
+| 9,999,999 | 1,952,640 / 1,952,640 | 30,510 / 30,510 | 0 | 0 | 0 | PASS |
+
+마지막 case는 1920×1017 전체 픽셀 capacity로 clamp되며 1,952,640개 좌표를 모두
+검사했다. 모든 case가 `O-ET2X`와 `O-ET2X-R` 양쪽에서 동일하게 통과했다.
+
+진단을 끈 기본 실행은 기존과 같은 44,266 candidate와 692 indirect group을 기록했고,
+변경 전 기본 `O-ET2X`/`O-ET2X-R` 캡처와 PNG SHA-256이 각각 일치했다.
+
+다음 작업은 본 측정이 아니라 **단계 3: selective resolve 골격의 controlled 검증**이다.
+sampler를 bilinear, clipping을 Off로 실제 shader 분기하고, 같은 설정의 full-screen
+ablation과 비교해 비후보가 현재 spatial 결과와 정확히 일치하는지 이미지 diff로
+확인한다.
