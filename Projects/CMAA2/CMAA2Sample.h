@@ -91,6 +91,10 @@ namespace VertexAsylum
             SMAA_O_T2X_R,           // O-T2X-R: Original SMAA Standard T2X, camera reprojection On
             SMAA_O_ET2X_R,          // O-ET2X-R: document-based edge-selective temporal, camera reprojection On
             SMAA_O_ET2X,            // O-ET2X: document-based edge-selective temporal, no-reprojection ablation
+            SMAA_A_T2X,             // A-T2X: Adaptive SMAA Standard T2X, reprojection Off
+            SMAA_A_T2X_R,           // A-T2X-R: Adaptive SMAA Standard T2X, camera reprojection On
+            SMAA_A_ET2X,            // A-ET2X: Adaptive SMAA edge-selective temporal, no-reprojection ablation
+            SMAA_A_ET2X_R,          // A-ET2X-R: Adaptive SMAA edge-selective temporal, camera reprojection On
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,

@@ -35,13 +35,31 @@ using namespace VertexAsylum;
 
 namespace
 {
-    bool IsOriginalSMAASingleSample( CMAA2Sample::AAType aaType )
+    bool IsSMAASingleSample( CMAA2Sample::AAType aaType )
     {
         return aaType == CMAA2Sample::AAType::SMAA
             || aaType == CMAA2Sample::AAType::SMAA_O_T2X
             || aaType == CMAA2Sample::AAType::SMAA_O_T2X_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ET2X
-            || aaType == CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ET2X_R
+            || aaType == CMAA2Sample::AAType::SMAA_A_T2X
+            || aaType == CMAA2Sample::AAType::SMAA_A_T2X_R
+            || aaType == CMAA2Sample::AAType::SMAA_A_ET2X
+            || aaType == CMAA2Sample::AAType::SMAA_A_ET2X_R;
+    }
+
+    vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
+    {
+        switch( aaType )
+        {
+        case CMAA2Sample::AAType::SMAA_A_T2X:
+        case CMAA2Sample::AAType::SMAA_A_T2X_R:
+        case CMAA2Sample::AAType::SMAA_A_ET2X:
+        case CMAA2Sample::AAType::SMAA_A_ET2X_R:
+            return vaSMAAWrapper::SpatialSearch::AdaptiveContrast;
+        default:
+            return vaSMAAWrapper::SpatialSearch::Original;
+        }
     }
 
     vaSMAAWrapper::TemporalSettings GetSMAATemporalSettingsForAAType( CMAA2Sample::AAType aaType )
@@ -51,6 +69,7 @@ namespace
         switch( aaType )
         {
         case CMAA2Sample::AAType::SMAA_O_T2X:
+        case CMAA2Sample::AAType::SMAA_A_T2X:
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::Off;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
@@ -59,6 +78,7 @@ namespace
             settings.HistoryWeight = 0.5f;
             break;
         case CMAA2Sample::AAType::SMAA_O_T2X_R:
+        case CMAA2Sample::AAType::SMAA_A_T2X_R:
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
@@ -68,8 +88,11 @@ namespace
             break;
         case CMAA2Sample::AAType::SMAA_O_ET2X:
         case CMAA2Sample::AAType::SMAA_O_ET2X_R:
+        case CMAA2Sample::AAType::SMAA_A_ET2X:
+        case CMAA2Sample::AAType::SMAA_A_ET2X_R:
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::EdgeSelective;
-            settings.Reprojection = (aaType == CMAA2Sample::AAType::SMAA_O_ET2X_R)?
+            settings.Reprojection = (aaType == CMAA2Sample::AAType::SMAA_O_ET2X_R
+                || aaType == CMAA2Sample::AAType::SMAA_A_ET2X_R)?
                 vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices : vaSMAAWrapper::ReprojectionMode::Off;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
             // Intel-document-family SMAA adaptation. The exact candidate,
@@ -97,6 +120,11 @@ namespace
         case vaSMAAWrapper::TemporalCoverage::EdgeSelective: return "EdgeSelective";
         default:                                             return "Unknown";
         }
+    }
+
+    const char * GetSpatialSearchName( vaSMAAWrapper::SpatialSearch value )
+    {
+        return value == vaSMAAWrapper::SpatialSearch::AdaptiveContrast? "AdaptiveContrast" : "Original";
     }
 
     const char * GetReprojectionModeName( vaSMAAWrapper::ReprojectionMode value )
@@ -341,6 +369,10 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_T2X_R:         return "O-T2X-R - Original SMAA Standard T2X + camera reprojection";
     case CMAA2Sample::AAType::SMAA_O_ET2X:          return "O-ET2X - Original SMAA TSCMAA-inspired edge-selective temporal [no-reprojection ablation]";
     case CMAA2Sample::AAType::SMAA_O_ET2X_R:        return "O-ET2X-R - Original SMAA TSCMAA-inspired edge-selective temporal + camera reprojection";
+    case CMAA2Sample::AAType::SMAA_A_T2X:           return "A-T2X - Adaptive SMAA Standard T2X";
+    case CMAA2Sample::AAType::SMAA_A_T2X_R:         return "A-T2X-R - Adaptive SMAA Standard T2X + camera reprojection";
+    case CMAA2Sample::AAType::SMAA_A_ET2X:          return "A-ET2X - Adaptive SMAA TSCMAA-inspired edge-selective temporal [no-reprojection ablation]";
+    case CMAA2Sample::AAType::SMAA_A_ET2X_R:        return "A-ET2X-R - Adaptive SMAA TSCMAA-inspired edge-selective temporal + camera reprojection";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -375,6 +407,10 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_T2X_R:         return 1;
     case CMAA2Sample::AAType::SMAA_O_ET2X:          return 1;
     case CMAA2Sample::AAType::SMAA_O_ET2X_R:        return 1;
+    case CMAA2Sample::AAType::SMAA_A_T2X:           return 1;
+    case CMAA2Sample::AAType::SMAA_A_T2X_R:         return 1;
+    case CMAA2Sample::AAType::SMAA_A_ET2X:          return 1;
+    case CMAA2Sample::AAType::SMAA_A_ET2X_R:        return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return 4;   // at the moment use to test 4xMSAA + CMAA but applied after
@@ -803,7 +839,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                 }
                 VA_SCOPE_MAKE_LAST_SELECTED();
             }
-            else if (IsOriginalSMAASingleSample(m_settings.CurrentAAOption))
+            else if (IsSMAASingleSample(m_settings.CurrentAAOption))
             {
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
@@ -989,13 +1025,13 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     ppAAApplied = true;
                     mainContext.SetOutputs(backupOutputs);
                 }
-                else if (IsOriginalSMAASingleSample(m_settings.CurrentAAOption) || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
+                else if (IsSMAASingleSample(m_settings.CurrentAAOption) || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
                     assert(!colorScratchContainsFinal);
                     mainContext.SetRenderTarget(gbufferColorScratch, nullptr, true);
                     colorScratchContainsFinal = true;
-                    if (IsOriginalSMAASingleSample(m_settings.CurrentAAOption))
+                    if (IsSMAASingleSample(m_settings.CurrentAAOption))
                         //m_SMAA->Draw( mainContext, mainColorRT ); 
                         drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
@@ -1046,6 +1082,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
 
     m_camera->SetViewportSize(mainViewport.Width, mainViewport.Height);
 
+    const vaSMAAWrapper::SpatialSearch spatialSMAASearch = GetSMAASpatialSearchForAAType( m_settings.CurrentAAOption );
+    m_SMAA->SetSpatialSearch( spatialSMAASearch );
     const vaSMAAWrapper::TemporalSettings temporalSMAASettings = GetSMAATemporalSettingsForAAType( m_settings.CurrentAAOption );
     m_SMAA->SetTemporalSettings( temporalSMAASettings );
     const bool temporalSMAAJitterEnabled = m_SMAA->GetTemporalJitterEnabled( );
@@ -1054,10 +1092,11 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
         m_SMAA->GetEffectiveHistorySampler( ) : temporalSMAASettings.Sampler;
     const vaSMAAWrapper::HistoryClipping effectiveClipping = edgeSelectiveProfile?
         m_SMAA->GetEffectiveHistoryClipping( ) : temporalSMAASettings.Clipping;
-    if( IsOriginalSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
+    if( IsSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
     {
-        VA_LOG( "SMAA profile '%s': coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, candidates=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
+        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, candidates=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
             GetAAName( m_settings.CurrentAAOption ),
+            GetSpatialSearchName( spatialSMAASearch ),
             GetTemporalCoverageName( temporalSMAASettings.Coverage ),
             GetReprojectionModeName( temporalSMAASettings.Reprojection ),
             GetJitterPolicyName( temporalSMAASettings.Jitter ),
@@ -1072,7 +1111,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
             temporalSMAASettings.EdgeThreshold );
         m_lastLoggedSMAAOption = m_settings.CurrentAAOption;
     }
-    else if( !IsOriginalSMAASingleSample( m_settings.CurrentAAOption ) )
+    else if( !IsSMAASingleSample( m_settings.CurrentAAOption ) )
     {
         m_lastLoggedSMAAOption = CMAA2Sample::AAType::MaxValue;
     }
@@ -3053,6 +3092,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         O_T2X_R,
         O_ET2X,
         O_ET2X_R,
+        A_T2X,
+        A_T2X_R,
+        A_ET2X,
+        A_ET2X_R,
         ExplicitCameraCutReset,
         SceneChange,
         SceneRestore,
@@ -3081,6 +3124,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::O_T2X_R:                return "O-T2X-R mode change";
         case Phase::O_ET2X:                 return "O-ET2X mode change";
         case Phase::O_ET2X_R:               return "O-ET2X-R mode change";
+        case Phase::A_T2X:                  return "A-T2X mode change";
+        case Phase::A_T2X_R:                return "A-T2X-R mode change";
+        case Phase::A_ET2X:                 return "A-ET2X mode change";
+        case Phase::A_ET2X_R:               return "A-ET2X-R mode change";
         case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
         case Phase::SceneChange:            return "scene change";
         case Phase::SceneRestore:           return "scene restore";
@@ -3102,8 +3149,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 
     int RequiredTargetFrames( ) const
     {
-        return (m_phase == Phase::O_T2X || m_phase == Phase::O_T2X_R
-            || m_phase == Phase::O_ET2X || m_phase == Phase::O_ET2X_R)? 3 : 2;
+        return (int)m_phase <= (int)Phase::A_ET2X_R? 3 : 2;
     }
 
     void EnterPhase( Phase phase )
@@ -3132,6 +3178,18 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
             break;
         case Phase::O_ET2X_R:
             m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            break;
+        case Phase::A_T2X:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_A_T2X;
+            break;
+        case Phase::A_T2X_R:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_A_T2X_R;
+            break;
+        case Phase::A_ET2X:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_A_ET2X;
+            break;
+        case Phase::A_ET2X_R:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_A_ET2X_R;
             break;
         case Phase::ExplicitCameraCutReset:
             // LoadCamera and other known camera cuts use this same history-reset
@@ -3178,7 +3236,7 @@ protected:
             m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
 
             abTool.ReportStart( );
-            abTool.ReportAddText( "SMAA temporal lifecycle engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "SMAA eight-case temporal lifecycle engineering validation\r\n\r\n" );
             abTool.ReportAddText( "Validates seed/resolve state, ping-pong indices, jitter/subsample pairing,\r\n" );
             abTool.ReportAddText( "first-frame reprojection matrices, mode/scene/camera-cut reset, and resize recreation.\r\n" );
             abTool.ReportAddText( "This is not a formal quality or performance measurement.\r\n\r\n" );
@@ -3191,7 +3249,7 @@ protected:
         if( m_phase == Phase::Complete )
         {
             const bool aggregatePassed = diagnostics.Passed && m_allTransitionsPassed
-                && diagnostics.SeedFrameCount >= 9
+                && diagnostics.SeedFrameCount >= 13
                 && diagnostics.ResolvedFrameCount > diagnostics.SeedFrameCount
                 && diagnostics.ReprojectionFrameCount > 0;
             VA_LOG( "SMAA temporal lifecycle validation: resets=%u, frames=%u, seed=%u, resolve=%u, reprojection=%u, failures=%u => %s",
@@ -4159,6 +4217,10 @@ void CMAA2Sample::UIPanelDraw()
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_O_T2X_R] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_O_ET2X] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_O_ET2X_R] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_A_T2X] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_A_T2X_R] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_A_ET2X] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_A_ET2X_R] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_S2x] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::FXAA] = true;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot1]    = false;
@@ -4218,7 +4280,7 @@ void CMAA2Sample::UIPanelDraw()
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::CMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA2xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA4xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA8xPlusCMAA2)
         m_CMAA2->UIPanelDrawCollapsable(false, true, true);
 
-    if (IsOriginalSMAASingleSample(m_settings.CurrentAAOption) || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
+    if (IsSMAASingleSample(m_settings.CurrentAAOption) || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
         m_SMAA->UIPanelDrawCollapsable(false, true, true);
 
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::FXAA)
