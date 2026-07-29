@@ -156,6 +156,9 @@ capture를 실행할 수 있다.
   outlier 제한과 유한값 확인
 - `-smaaCandidatePolicyValidationTest` 자동 검증: Bistro/Minecraft에서 Intel-family
   removal 0/0.25/0.5/0.75/1 sweep, base 안정성·단조성·indirect count 확인
+- `-smaaOriginalFourPerformanceSmoke` 자동 검증: PNG를 저장하지 않고 Original 네
+  mode의 SMAA total과 spatial, camera velocity, candidate 준비·추출, indirect args,
+  candidate resolve, output copy GPU timestamp를 같은 동적 경로에서 기록
 - temporal debug view 4/5/6: 후보 픽셀의 clipping 전 history, clipping 후 history,
   8배 clipping delta. 이 R16G16B16A16 debug resource는 해당 view에서만 할당한다.
 
@@ -193,6 +196,11 @@ camera-motion GPU velocity/history UV 방향, Catmull-Rom 5-tap GPU/CPU referenc
 YCoCg variance clipping GPU/CPU 불변 조건과 Intel-family candidate 정책을 검증했다.
 document profile 조립 후 두 번의 engineering capture와 lifecycle 자동 검증도 통과했다.
 이는 기능·회귀 검증 완료를 의미하며 최종 품질·성능 결론은 아니다.
+
+Original 네 mode의 내부 pass GPU timestamp도 mode당 60프레임 warm-up, 120프레임
+engineering smoke에서 모두 120/120개 수집했다. 이 smoke는 비동기 candidate counter
+readback을 켠 현재 경로를 측정하며 전체 frame GPU time은 포함하지 않는다. 단일 실행
+값은 최종 성능 우열이나 통계적 유의성 주장에 사용하지 않는다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
@@ -237,7 +245,9 @@ document profile 조립 후 두 번의 engineering capture와 lifecycle 자동 �
    candidate/process 일치를 검증하고 document adaptation 정책으로 승인했다.
 6. **완료:** Intel document profile을 조립하고 lifecycle·capture 회귀 smoke를
    통과시켰다. 기존 controlled skeleton은 diagnostic override로 재현 가능하다.
-7. 네 mode의 pass별 GPU timing을 계측하고 성능 smoke를 통과시킨다.
+7. **완료:** 네 mode의 SMAA total과 내부 pass별 GPU timing을 계측하고 PNG 없는
+   120-frame 성능 smoke를 통과시켰다. 전체 frame GPU time과 counter readback overhead는
+   본 측정 전에 별도로 계측한다.
 8. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
 9. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
 10. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.

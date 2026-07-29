@@ -341,7 +341,7 @@ reprojection 설정을 그대로 유지한 채 모든 픽셀을 후보로 만드
 - 상수·유효 history·outlier test와 debug view 검증
 - clipping 변경만 비교하는 ablation 캡처
 
-### 단계 6: Intel document profile 조립
+### 단계 6: Intel document profile 조립 — 완료
 
 - threshold `1/22`, non-dominant `0.5`
 - candidate compaction + indirect dispatch
@@ -353,7 +353,7 @@ reprojection 설정을 그대로 유지한 채 모든 픽셀을 후보로 만드
 
 이 단계까지 모든 검증표가 통과해야 `O-ET2X-R core 구현 완료`로 표시한다.
 
-### 단계 7: lifecycle·성능 smoke
+### 단계 7: lifecycle·성능 smoke — 내부 pass 계측 완료
 
 - 첫 프레임, mode/scene/resize/teleport reset
 - 0 candidate와 최대 candidate stress
@@ -393,7 +393,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] 첫 프레임·mode·scene·명시적 camera-cut·resize reset
 - [ ] static camera 떨림 없음
 - [x] object motion 미지원 사실 명시
-- [ ] 각 pass GPU time과 후보 비율 기록 가능
+- [x] 각 SMAA 내부 pass GPU time과 후보 비율 기록 가능
 - [x] Release x64 build 및 동적 장면 engineering smoke test
 
 ## 16. 결과 해석 원칙
@@ -754,5 +754,44 @@ process count도 34,938개였다. 이 값은 구현 회귀용 한 프레임 결�
 PASS했다.
 
 이 결과로 document profile의 기능 조립과 engineering 회귀 검증은 완료했다. 아직
-`TSCMAA core 최종 완료`나 품질·성능 개선을 주장하지 않는다. 다음 단계는 후보 추출,
-indirect temporal resolve와 전체 SMAA의 GPU time을 분리 계측하는 performance smoke다.
+`TSCMAA core 최종 완료`나 품질·성능 개선을 주장하지 않는다. 이어서 후보 추출,
+indirect temporal resolve와 전체 SMAA의 GPU time을 분리하는 performance smoke를
+17.10에서 진행했다.
+
+### 17.10 Original 네 mode 내부 pass GPU performance smoke
+
+`-smaaOriginalFourPerformanceSmoke <startSeconds> <warmupFrames> <measureFrames>`를
+추가했다. 이 경로는 PNG를 저장하지 않고 VSync를 끄며 동일한 Bistro camera path와
+SMAA Ultra에서 네 semantic mode를 순회한다. 엔진의 DX11 GPU timestamp-query profiler로
+다음 scope를 기록한다.
+
+- 전체 SMAA wrapper
+- camera-motion velocity 생성
+- Standard T2X spatial 및 temporal resolve
+- edge-selective SMAA 1X spatial
+- current spatial→history copy
+- candidate buffer 준비, 후보 추출, indirect args 생성
+- candidate temporal resolve와 최종 output copy
+
+2026-07-30, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017,
+`start=1 s`, mode당 warm-up 60프레임, 측정 120프레임으로 engineering smoke를
+실행했다. 모든 예상 scope가 120/120개 GPU timestamp를 반환했고 PNG는 0개였다.
+
+| Mode | SMAA total 평균 | 주요 temporal 구성 평균 |
+|---|---:|---|
+| `O-T2X` | 0.151066 ms | Standard temporal resolve 0.022443 ms |
+| `O-T2X-R` | 0.193399 ms | camera velocity 0.022963 ms, temporal resolve 0.035166 ms |
+| `O-ET2X` | 0.312713 ms | prepare 0.031847 ms, extract 0.067900 ms, indirect resolve 0.013303 ms |
+| `O-ET2X-R` | 0.343893 ms | velocity 0.022741 ms, extract 0.067729 ms, indirect resolve 0.014609 ms |
+
+동일 동적 구간에서 두 edge-selective mode의 평균 base edge는 57,000.875개,
+candidate와 process는 모두 34,670.867개로 candidate/base는 60.8251%였다.
+
+이 값은 계측 경로의 유효성을 확인하는 단일 smoke 결과다. candidate counter의 작은
+비동기 readback이 켜진 현재 경로를 포함하고, 전체 frame GPU time·FPS·반복 간 분산은
+측정하지 않았다. 따라서 네 mode의 최종 성능 우열이나 개선률로 인용하지 않는다.
+본 측정 전에는 counter readback On/Off overhead와 전체 frame GPU timer를 분리하고,
+최소 3회 반복해야 한다.
+
+계측 scope 추가 뒤 기본 네 mode 캡처를 다시 실행했으며 출력 SHA-256은 프로필 조립
+회귀 기준과 모두 일치했다. 따라서 timer scope가 shader 출력에는 영향을 주지 않았다.

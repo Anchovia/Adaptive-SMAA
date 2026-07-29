@@ -982,6 +982,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     if( temporalReprojectionEnabled )
     {
+        VA_SCOPE_CPUGPU_TIMER( SMAAGenerateCameraVelocity, deviceContext );
         deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
         vaGraphicsItem velocityRenderItem;
         deviceContext.FillFullscreenPassRenderItem( velocityRenderItem );
@@ -1031,7 +1032,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 // subpixel projection jitter. Non-candidates use the current
                 // spatial result directly, so a full-frame T2X jitter would
                 // otherwise remain visible as a two-frame oscillation.
-                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, SMAA::MODE_SMAA_1X );
+                {
+                    VA_SCOPE_CPUGPU_TIMER( SMAASpatial1X, deviceContext );
+                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, SMAA::MODE_SMAA_1X );
+                }
 
                 const vaDrawResultFlags tscmaaResult = ExecuteTSCMAAInspiredResolve( deviceContext, m_temporalSpatialCurrent,
                     m_temporalHistoryValid? previousHistory : m_temporalSpatialCurrent, currentHistory, optionalInLuma, dstRT );
@@ -1046,11 +1050,17 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaTextureDX11 * currentHistoryDX11 = currentHistory->SafeCast<vaTextureDX11*>( );
                 ID3D11RenderTargetView * currentHistoryRTV = currentHistoryDX11->GetRTV( );
-                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+                {
+                    VA_SCOPE_CPUGPU_TIMER( SMAAStandardSpatialT2X, deviceContext );
+                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+                }
 
                 ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
                 ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+                {
+                    VA_SCOPE_CPUGPU_TIMER( SMAAStandardTemporalResolve, deviceContext );
+                    m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+                }
             }
 
             m_temporalHistoryValid = true;
@@ -1099,6 +1109,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         }
         else
         {
+            VA_SCOPE_CPUGPU_TIMER( SMAASpatial1X, deviceContext );
             m_smaa->go( dx11Context, colorGammaSRV, m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, nullptr,
                 dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV(), inputMode, SMAA::MODE_SMAA_1X );
         }
@@ -1136,7 +1147,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     // Non-candidate pixels keep the current spatial SMAA value. Candidate
     // threads overwrite only their own pixels below.
     {
-        VA_SCOPE_CPUGPU_TIMER( TSCMAAInitializeHistory, deviceContext );
+        VA_SCOPE_CPUGPU_TIMER( TSCMAACopySpatialToHistory, deviceContext );
         dx11Context->CopyResource( outputHistoryDX11->GetResource( ), currentSpatialDX11->GetResource( ) );
     }
 
@@ -1183,12 +1194,15 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
 
     const UINT zeroes[4] = { 0, 0, 0, 0 };
     const FLOAT maskZeroes[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    dx11Context->ClearUnorderedAccessViewUint( m_tscmaaControlBufferUAV, zeroes );
-    dx11Context->ClearUnorderedAccessViewUint( m_tscmaaDispatchArgsBufferUAV, zeroes );
-    dx11Context->ClearUnorderedAccessViewFloat( UAVs[4], maskZeroes );
-    dx11Context->ClearUnorderedAccessViewFloat( UAVs[5], maskZeroes );
-    if( GetClippingDebugViewsEnabled( ) )
-        dx11Context->ClearUnorderedAccessViewFloat( UAVs[6], maskZeroes );
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAPrepareCandidates, deviceContext );
+        dx11Context->ClearUnorderedAccessViewUint( m_tscmaaControlBufferUAV, zeroes );
+        dx11Context->ClearUnorderedAccessViewUint( m_tscmaaDispatchArgsBufferUAV, zeroes );
+        dx11Context->ClearUnorderedAccessViewFloat( UAVs[4], maskZeroes );
+        dx11Context->ClearUnorderedAccessViewFloat( UAVs[5], maskZeroes );
+        if( GetClippingDebugViewsEnabled( ) )
+            dx11Context->ClearUnorderedAccessViewFloat( UAVs[6], maskZeroes );
+    }
 
     ID3D11SamplerState * samplers[2] = { m_LinearSampler, m_PointSampler };
     dx11Context->CSSetSamplers( 0, 2, samplers );

@@ -240,6 +240,7 @@ namespace VertexAsylum
         virtual ~CMAA2Sample( );
 
         const vaApplicationBase &               GetApplication( ) const             { return m_application; }
+        void                                    SetVsyncForBenchmark( bool enabled ) { m_application.SetVsync( enabled ); }
 
     public:
         shared_ptr<vaCameraBase> &              Camera( )                           { return m_camera; }
