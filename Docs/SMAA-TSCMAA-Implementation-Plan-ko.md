@@ -1525,3 +1525,82 @@ smoke 원시 경로:
 각 시나리오를 충분한 길이로 캡처하고, 전체 화면 지표뿐 아니라 rotor와 occluder
 disocclusion 영역을 분리해 ghosting 길이, temporal 변화와 edge 안정성을 분석하는
 것이다.
+
+### 17.24 전용 temporal stress 8-case 품질 측정
+
+2026-07-30에 세 전용 시나리오를 전체 8개 semantic mode로 정식 캡처했다. 공통 조건은
+DirectX 11, Release x64, SMAA Ultra, fixed 60 Hz, mode별 60-frame warm-up과
+240-frame PNG 저장이다. 각 실행은 8개 mode × 240장, 총 1,920 PNG이며 모든 mode가
+00000~00239 연속 index와 동일 1920×1017 해상도를 통과했다.
+
+| 시나리오 | 원시 경로 | 분리 목적 |
+|---|---|---|
+| `thin-lines` | `Projects/CMAA2/AutoBench/20260730_030857` | camera motion의 얇은 선 shimmer/crawling |
+| `object-motion` | `Projects/CMAA2/AutoBench/20260730_031939` | 고정 camera에서 rotor ghosting과 occluder disocclusion |
+| `combined` | `Projects/CMAA2/AutoBench/20260730_032435` | camera motion과 독립 object motion의 복합 영향 |
+
+품질 PNG는 숨긴 렌더 창에서 render target으로 직접 저장했다. 이는 화면 표시 FPS를
+측정한 실행이 아니므로 창 visibility는 PNG 내용에 영향을 주지 않으며, 이 실행의 FPS는
+성능 결과로 사용하지 않는다.
+
+전용 분석기 `Tools/SMAA/analyze_temporal_stress_quality.py`를 추가했다. 이 도구는
+thin-line field, occluder path, rotor ROI를 분리해 다음을 생성한다.
+
+- 인접 frame RGB MAE, 2차 시간 차분 Luma MAE, edge strength
+- Standard↔Edge-selective, reprojection Off↔On의 same-frame 차이
+- occluder의 알려진 이동 방향 뒤 36픽셀에서 trail darkness와 연속 폭을 재는 휴리스틱
+- 각 ROI의 Standard/Edge-selective 비교 GIF
+- 6개 연속 frame과 4배 absolute difference sheet
+
+#### Camera motion 얇은 선
+
+`thin-lines` ROI의 주요 대응 비교는 다음과 같다.
+
+| 비교 | 인접 frame MAE 변화 | 2차 시간 차분 변화 | Edge strength 변화 |
+|---|---:|---:|---:|
+| `O-ET2X` vs `O-T2X` | +1.539% | +29.611% | +0.647% |
+| `O-ET2X-R` vs `O-T2X-R` | -1.607% | -7.586% | +0.478% |
+| `A-ET2X` vs `A-T2X` | +1.224% | +36.673% | +0.303% |
+| `A-ET2X-R` vs `A-T2X-R` | -1.664% | -6.741% | +0.288% |
+
+reprojection Off에서는 Edge-selective의 2차 시간 차분이 커졌고, camera reprojection
+On에서는 대응 Standard보다 작아졌다. 이 수치는 실제 camera motion과 blur를 함께
+포함하므로 값 하나만으로 shimmer 순위를 확정하지 않는다.
+
+#### 독립 object motion
+
+고정 camera에서 회전하는 rotor의 Edge-selective no-reprojection은 대응 Standard보다
+인접 frame MAE가 Original +26.762%, Adaptive +26.931%, 2차 시간 차분이 각각
++15.031%, +16.545%였다. 연속 frame sheet에서는 Standard T2X의 날개에 이전 위치가
+반투명하게 겹치는 이중 잔상이 보였고, Edge-selective에서는 이 잔상이 크게 줄었다.
+동시에 시간 변화량은 더 컸으므로 history를 덜 사용하는 데 따른 flicker 가능성을
+별도로 평가해야 한다.
+
+occluder 뒤 trailing-halo 휴리스틱은 다음과 같다.
+
+| 비교 | Trail darkness 감소 | 연속 trail 폭 감소 |
+|---|---:|---:|
+| `O-ET2X` vs `O-T2X` | 39.16% | 58.39% |
+| `A-ET2X` vs `A-T2X` | 40.71% | 70.99% |
+
+`combined`에서도 모든 대응 Edge-selective case가 같은 감소 방향을 보였다. 감소 범위는
+darkness 42.84~54.50%, 연속 폭 61.42~76.78%였다. 그러나 이 지표는 현재 어두운
+occluder core와 알려진 운동 방향을 이용한 장면 전용 휴리스틱이며 supersample
+ground truth나 optical-flow 보정 ghosting metric이 아니다.
+
+#### 현재 해석
+
+이번 결과는 현재 document profile이 Standard T2X보다 object-motion 이중 잔상과
+occluder 뒤 trail을 줄일 가능성을 보여준다. 반면 여러 ROI에서 인접 frame/2차 차분이
+증가해 temporal variation 또는 flicker가 늘 수 있는 trade-off도 보인다. 따라서
+`Edge-selective가 종합적으로 더 우수하다`는 최종 결론은 아직 내리지 않는다.
+
+남은 품질 검증은 다음과 같다.
+
+1. 같은 stress timeline의 SMAA 1X control을 추가해 temporal 방식이 실제로
+   shimmer/crawling을 얼마나 줄이는지 비교
+2. 가능하면 supersample reference 또는 optical-flow 정렬 지표로 ghosting 휴리스틱 보강
+3. candidate selection, jitter, Catmull-Rom, variance clipping, history weight를
+   분리한 ablation으로 현재 trade-off의 원인 규명
+4. 현재 `-R`이 camera motion만 처리한다는 한계를 유지하고, object motion vector
+   미지원 결과를 별도로 명시

@@ -181,7 +181,13 @@ Original mode는 기존 edge target/shader path를 유지한다.
   sequence를 검증하고 temporal MAE, 2차 시간 차분, edge strength, 짝·홀 위상 gap,
   대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG, pair GIF와
   연속 frame/difference sheet 생성. `--include-adaptive`를 지정하면 8개 mode와
-  Original↔Adaptive 대응 pair까지 분석
+  Original↔Adaptive 대응 pair까지 분석하고 `--scenario`로 Bistro 또는 전용 stress
+  capture의 provenance를 기록
+- `Tools/SMAA/analyze_temporal_stress_quality.py`: 전용 stress capture의 thin-line,
+  occluder/disocclusion, rotor ROI를 분리해 인접 frame MAE, 2차 시간 차분, edge
+  strength와 대응 mode 차이를 계산. 움직이는 occluder 뒤 36픽셀의 trail darkness/width
+  휴리스틱과 ROI 비교 GIF·6-frame difference sheet를 생성하며 절대 ghosting
+  ground truth로 표현하지 않음
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -277,7 +283,8 @@ candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 �
 각각 11.376%, 7.728%다. Intel 문서의 약 50% 기본 목표보다 높은 장면 결과이며,
 후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
 Original 네 mode의 한 Bistro 경로 품질 기준선은 이후 완료됐다. Adaptive 4개를 포함한
-정식 8-case 반복 품질·성능 측정은 아직 완료되지 않았다.
+정식 8-case visible-window 성능, Bistro 연속 품질과 전용 temporal stress 품질 측정도
+이후 완료됐다. 최종 연구 결론에는 추가 ablation과 SMAA 1X/reference control이 남아 있다.
 
 Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
@@ -357,6 +364,31 @@ sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8
 축소 검증했고, 매 실행에서 8개 디렉터리와 mode별 연속·고유 PNG 3개, 기존
 8-case 분석기의 보고서/비교 이미지 생성을 확인했다. 이 축소 결과는 도구 smoke일 뿐
 최종 품질 결과가 아니다.
+
+이후 세 시나리오를 mode별 60 warm-up + 240 capture frame으로 정식 실행했다.
+각 실행은 8개 mode × 240장, 총 1,920 PNG이며 모든 mode가 00000~00239 연속 index와
+동일 1920×1017 해상도를 통과했다.
+
+- `Projects/CMAA2/AutoBench/20260730_030857`: `thin-lines`
+- `Projects/CMAA2/AutoBench/20260730_031939`: `object-motion`
+- `Projects/CMAA2/AutoBench/20260730_032435`: `combined`
+
+전용 ROI 분석에서 camera-only `thin-lines`의 Edge-selective no-reprojection은
+대응 Standard보다 2차 시간 차분이 Original +29.611%, Adaptive +36.673%였고,
+reprojection On에서는 Original -7.586%, Adaptive -6.741%였다. object-motion rotor의
+Edge-selective no-reprojection은 인접 frame MAE가 Original +26.762%, Adaptive
++26.931%로 더 컸다. 반면 occluder trailing-halo 휴리스틱은 Standard 대비
+Edge-selective에서 darkness가 Original 39.16%, Adaptive 40.71%, 연속 폭이 Original
+58.39%, Adaptive 70.99% 감소했다. combined에서도 대응 Edge-selective의 휴리스틱
+감소 방향은 재현됐다.
+
+연속 frame sheet에서는 Standard T2X의 회전 날개에 이전 위치가 반투명하게 겹치는
+이중 잔상이 보였고 Edge-selective에서 크게 줄었다. 다만 Edge-selective의 temporal
+변화 지표가 여러 ROI에서 증가했으므로 이는 현재 `ghosting 감소 가능성 ↔ temporal
+variation/flicker 증가 가능성`의 trade-off 근거다. SMAA 1X 또는 supersample
+ground truth와 optical-flow 보정이 없으므로 최종 품질 우위나 절대 ghosting 점수로
+표현하지 않는다. 품질 PNG capture는 hidden-window로 실행했지만 저장된 render target
+검증용이며 FPS 결과로 사용하지 않는다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은

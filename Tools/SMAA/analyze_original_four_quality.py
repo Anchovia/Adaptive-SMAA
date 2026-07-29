@@ -62,6 +62,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-frames", type=int, default=60)
     parser.add_argument("--start-time", type=float, default=1.0)
     parser.add_argument(
+        "--scenario",
+        choices=("bistro", "thin-lines", "object-motion", "combined"),
+        default="bistro",
+        help="Capture provenance used in the JSON and Korean report.",
+    )
+    parser.add_argument(
         "--include-adaptive",
         action="store_true",
         help="Analyze the full Original/Adaptive eight-case matrix.",
@@ -373,6 +379,9 @@ def main() -> None:
     previous2_luma: dict[str, np.ndarray] | None = None
     previous_luma: dict[str, np.ndarray] | None = None
     thumbnails: dict[str, list[np.ndarray]] = {key: [] for key, _, _ in MODES}
+    alignment_thumbnail_size = (
+        (320, 180) if args.scenario == "bistro" else (160, 90)
+    )
 
     for frame in range(args.expected_frames):
         current_rgb = {key: load_rgb(paths[key][frame]) for key, _, _ in MODES}
@@ -384,7 +393,7 @@ def main() -> None:
             thumbnails[key].append(
                 np.asarray(
                     Image.fromarray(current_luma[key].astype(np.uint8)).resize(
-                        (320, 180), Image.Resampling.BOX
+                        alignment_thumbnail_size, Image.Resampling.BOX
                     ),
                     dtype=np.uint8,
                 )
@@ -566,7 +575,13 @@ def main() -> None:
             "warmup_frames": args.warmup_frames,
             "smaa_preset": "Ultra",
             "vsync": "Off",
-            "scene": "Lumberyard Bistro flythrough",
+            "scene": {
+                "bistro": "Lumberyard Bistro flythrough",
+                "thin-lines": "SMAA Temporal Stress Test / thin-lines camera pan",
+                "object-motion": "SMAA Temporal Stress Test / object-motion disocclusion",
+                "combined": "SMAA Temporal Stress Test / combined camera and object motion",
+            }[args.scenario],
+            "scenario": args.scenario,
             "start_time_seconds": args.start_time,
         },
         "summary": summary,
@@ -626,7 +641,7 @@ def main() -> None:
             )
         )
 
-    if args.include_adaptive:
+    if args.scenario == "bistro" and args.include_adaptive:
         report_title = "# SMAA temporal 8-case 연속 프레임 품질 분석"
         report_scope = [
             "Original/Adaptive 공간 SMAA와 Standard/Edge-selective temporal,",
@@ -638,7 +653,7 @@ def main() -> None:
             "얇은 선, 독립적으로 움직이는 물체와 명시적 disocclusion 장면의 수동 확인 전에는",
             "고스팅·shimmer 개선의 최종 결론으로 사용하지 않는다.",
         ]
-    else:
+    elif args.scenario == "bistro":
         report_title = "# Original SMAA temporal 4-case 연속 프레임 품질 분석"
         report_scope = [
             "Original SMAA의 `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R`를 동일한",
@@ -649,6 +664,48 @@ def main() -> None:
             "이 결과는 한 개의 Bistro flythrough 구간에 대한 Original 4-case 품질 기준선이다.",
             "얇은 선, 독립적으로 움직이는 물체와 명시적 disocclusion 장면의 수동 확인 전에는",
             "고스팅·shimmer 개선의 최종 결론으로 사용하지 않는다.",
+        ]
+    else:
+        scenario_descriptions = {
+            "thin-lines": (
+                "고정된 얇은 수직·대각선과 고정 rotor를 두고 카메라만 수평 이동한다.",
+                "이 결과는 camera-motion에서 shimmer/crawling을 관찰하는 전용 장면이며 "
+                "독립 object-motion ghosting 결론에는 사용하지 않는다.",
+            ),
+            "object-motion": (
+                "카메라를 고정하고 어두운 occluder와 얇은 rotor만 이동시켜 "
+                "object motion과 disocclusion을 분리한다.",
+                "현재 -R mode도 object motion vector를 사용하지 않으므로, 이 결과는 "
+                "camera-only reprojection의 한계를 포함한다.",
+            ),
+            "combined": (
+                "카메라 수평 이동과 occluder/rotor의 독립 이동을 동시에 적용한다.",
+                "camera와 object motion이 겹친 복합 stress 결과이며 원인 분리는 "
+                "thin-lines와 object-motion 결과를 함께 사용한다.",
+            ),
+        }
+        scenario_scope, conclusion_scope_text = scenario_descriptions[args.scenario]
+        report_title = (
+            "# SMAA temporal 8-case 전용 stress 품질 분석"
+            if args.include_adaptive
+            else "# Original SMAA temporal 4-case 전용 stress 품질 분석"
+        )
+        matrix_description = (
+            "Original/Adaptive 공간 SMAA와 Standard/Edge-selective temporal, "
+            "reprojection Off/On의 8개 직교 조합"
+            if args.include_adaptive
+            else "Original SMAA 기반 Standard/Edge-selective temporal과 "
+            "reprojection Off/On의 4개 조합"
+        )
+        report_scope = [
+            f"`SMAA Temporal Stress Test`의 `{args.scenario}` 시나리오에서 {matrix_description}을 비교한다.",
+            scenario_scope,
+            "Edge-selective mode는 Intel 공식 TSCMAA 포팅이 아니라 공개 문서 기반 SMAA adaptation이다.",
+        ]
+        conclusion_scope = [
+            f"이 결과는 절차적 `{args.scenario}` stress 시나리오의 연속 프레임 비교다.",
+            conclusion_scope_text,
+            "전체 화면 대용 지표는 motion 자체를 포함하므로 전용 ROI와 연속 GIF를 함께 확인해야 한다.",
         ]
 
     report_lines = [
@@ -665,7 +722,8 @@ def main() -> None:
         f"- 시작 시간: {args.start_time:.3f}초",
         f"- mode별 warm-up: {args.warmup_frames}프레임",
         f"- mode별 저장: {args.expected_frames}프레임",
-        "- 동일 camera path, fixed 60 Hz simulation",
+        f"- 시나리오: `{args.scenario}`",
+        "- 동일 analytical timeline, fixed 60 Hz simulation",
         "- PNG 저장 중 FPS는 capture overhead가 포함되므로 성능 결과로 사용하지 않음",
         "",
         "## 데이터 무결성",
