@@ -1425,6 +1425,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'0'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA8x;
                 if (keyboard->IsKeyClicked(vaKeyboardKeys::KK_OEM_MINUS))m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA8xPlusCMAA2;
                 if (keyboard->IsKeyClicked(vaKeyboardKeys::KK_OEM_PLUS)) m_settings.CurrentAAOption = CMAA2Sample::AAType::SuperSampleReference;
+                if (keyboard->IsKeyClicked(vaKeyboardKeys::KK_F8) && !m_autoBench->IsActive())
+                    m_queueEightCasePerformanceBenchmark = true;
             }
         }
     }
@@ -4406,6 +4408,9 @@ void CMAA2Sample::UIPanelDraw()
     // static 이미지도 밴치마킹
     if (true)
     {
+        if (ImGui::IsKeyPressed((int)vaKeyboardKeys::KK_F8, false) && !m_autoBench->IsActive())
+            m_queueEightCasePerformanceBenchmark = true;
+
         ImGuiTreeNodeFlags headerFlags = 0;
         // headerFlags |= ImGuiTreeNodeFlags_Framed;
         headerFlags |= ImGuiTreeNodeFlags_DefaultOpen;
@@ -4416,6 +4421,14 @@ void CMAA2Sample::UIPanelDraw()
 #ifdef _DEBUG
         isDebug = true;
 #endif
+
+        if (m_queueEightCasePerformanceBenchmark)
+        {
+            m_queueEightCasePerformanceBenchmark = false;
+            m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(false);
+            m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(
+                *this, 1.0f, 300, 4800, 3, true));
+        }
 
         if (ImGui::CollapsingHeader("Benchmarking", headerFlags))
         {
@@ -4479,6 +4492,14 @@ void CMAA2Sample::UIPanelDraw()
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("Original + Adaptive, 8 PNG sequences");
+                ImGui::Separator();
+
+                if (ImGui::Button("Run SMAA eight-case performance benchmark"))
+                {
+                    m_queueEightCasePerformanceBenchmark = true;
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("F8 | 8 modes, 3 repeats, 300 warm-up + 4800 measured frames");
                 ImGui::Separator();
 #endif
                 const char* dx11 = "Run performance benchmarks (DX11)";

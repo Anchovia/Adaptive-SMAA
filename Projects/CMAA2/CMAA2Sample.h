@@ -226,6 +226,7 @@ namespace VertexAsylum
         float                                   m_temporalComparisonStartTime   = 1.0f;
         int                                     m_temporalComparisonFrameCount  = 300;
         int                                     m_temporalComparisonWarmupFrames= 60;
+        bool                                    m_queueEightCasePerformanceBenchmark = false;
         bool                                    m_commandLineCaptureProcessed   = false;
         bool                                    m_quitAfterCommandLineCapture   = false;
 
