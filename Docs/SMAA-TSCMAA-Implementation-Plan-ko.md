@@ -1155,3 +1155,89 @@ Bistro camera path만으로 잔상 길이, 독립 object motion ghosting, disocc
 현재 결과는 edge-selective adaptation의 성능 우위나 temporal 품질 우위를 보이지
 않는다. 추가 scene-specific ghosting 검증을 유지한 채 다음 구현 단계인 Adaptive
 SMAA 네 mode 통합을 준비할 수 있다.
+
+### 17.19 Adaptive SMAA 통합과 8-case 자동 검증
+
+2026-07-30에 검증 완료된 Original/TSCMAA-inspired core에서
+`codex/adaptive-temporal-smaa` 브랜치를 만들고 Adaptive SMAA를 독립 공간 처리 축으로
+통합했다.
+
+통합 원칙:
+
+- `SpatialSearch::Original`은 기존 edge target과 shader path를 유지
+- `SpatialSearch::AdaptiveContrast`에서만 RG8 edge + R8 metadata MRT 사용
+- edge pass의 local contrast를 `0.0/0.5/1.0` 세 tier로 기록
+- 낮은 대비: 수평·수직 4 step, 대각선 3 step
+- 중간 대비: 수평·수직 8 step, 대각선 Ultra 최대값의 절반
+- 높은 대비: 기존 Ultra 최대 탐색 범위
+- spatial 축만 바꾸고 대응하는 temporal 설정은 O/A mode 사이에서 동일하게 유지
+
+연결된 8개 semantic mode:
+
+| ID | Spatial | Temporal | Reprojection |
+|---|---|---|---|
+| `O-T2X` | Original | Standard T2X | Off |
+| `O-T2X-R` | Original | Standard T2X | Camera |
+| `O-ET2X` | Original | Edge-selective | Off ablation |
+| `O-ET2X-R` | Original | Edge-selective | Camera |
+| `A-T2X` | Adaptive | Standard T2X | Off |
+| `A-T2X-R` | Adaptive | Standard T2X | Camera |
+| `A-ET2X` | Adaptive | Edge-selective | Off ablation |
+| `A-ET2X-R` | Adaptive | Edge-selective | Camera |
+
+Release x64 빌드는 기존 C4834/C4100 경고 두 개만 남기고 성공했다. 이후
+`-smaaTemporalLifecycleTest`를 실제 RTX 3060 Ti/DX11에서 실행했다. Adaptive shader는
+런타임에 새로 컴파일됐고 8개 mode 모두 reset과 first-frame seed를 통과했다.
+
+| 항목 | 결과 |
+|---|---:|
+| reset | 25 |
+| completed frame | 93 |
+| seed | 13 |
+| resolve | 80 |
+| reprojection | 26 |
+| lifecycle failure | 0 |
+| 종합 | PASS |
+
+자동 측정·캡처 경로도 8-case로 확장했다.
+
+- `-smaaEightCasePerformanceSmoke`
+- `-smaaEightCasePerformanceBenchmark`
+- `-smaaEightCaseCapture`
+- `Tools/SMAA/analyze_original_four_quality.py --include-adaptive`
+
+성능 도구는 기존 Original 4-case와 같은 통계 코드와 profiler node를 사용한다. 8-case
+본 측정 명령은 기본적으로 mode당 300 warm-up, 4,800 measurement, 3 repeats이고
+정방향/역방향 순서를 교차하며 candidate readback을 끈다.
+
+축소 검증은 `-smaaEightCasePerformanceSmoke "1 30 32 1"`로 실행했다. 8개 mode의
+expected timing sample이 각각 32개 수집됐고 edge-selective 네 mode의 candidate
+sample도 각각 32개 수집되어 PASS했다. 결과는 Git에 포함하지 않는
+`Projects/CMAA2/AutoBench/20260730_013440`에 있다. 이 짧은 수치는 성능 연구 결과로
+사용하지 않는다.
+
+품질 캡처 축소 검증은 `-smaaEightCaseCapture "1 3 3"`으로 실행했다. 8개 출력
+디렉터리 모두 `00000~00002` PNG 3개와 고유 hash 3개를 확인했다. 8-case 분석은 mode별
+시간·공간 지표 외에 다음 대응 비교를 계산한다.
+
+- Original/Adaptive 각각의 Standard ↔ Edge-selective
+- Original/Adaptive 각각의 reprojection Off ↔ On
+- 동일 temporal 설정의 Original ↔ Adaptive
+
+8-case와 기존 4-case 분석 경로가 모두 통과했고 contact sheet, CSV, JSON, Markdown,
+대표 PNG/GIF와 sequence sheet를 생성했다. 축소 캡처와 분석 결과는
+`Projects/CMAA2/AutoBench/20260730_013737`에 있으며 연구 품질 결론으로 사용하지
+않는다.
+
+관련 커밋:
+
+- `1432a7b` Integrate adaptive SMAA as an orthogonal spatial mode
+- `97f54c6` Expose the eight temporal SMAA research cases
+- `f38aa25` Add eight-case temporal performance benchmark
+- `a65363d` Add eight-case temporal quality capture
+- `c05e484` Extend temporal quality analysis to eight cases
+
+이 시점에서 8개 mode의 구현·빌드·lifecycle·축소 측정/capture/analysis 경로는
+검증됐다. 아직 완료되지 않은 것은 정식 8-case 반복 측정과 별도 object-motion,
+얇은 선, disocclusion 장면의 품질 검증이다. 축소 smoke 수치로 성능 또는 품질 우위를
+주장하지 않는다.

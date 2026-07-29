@@ -128,12 +128,16 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 | `O-T2X-R` | 구현됨 | `SMAA_O_T2X_R`; camera-motion velocity 사용 |
 | `O-ET2X` | document profile 조립·engineering 검증 완료 | `SMAA_O_ET2X`; 같은 좌표의 history를 사용하는 no-reprojection ablation |
 | `O-ET2X-R` | document profile 조립·engineering 검증 완료 | `SMAA_O_ET2X_R`; edge-selective + camera reprojection On |
-| Adaptive 4개 | **미구현** | Original 4개를 검증한 뒤 `main`의 Adaptive SMAA와 통합해야 함 |
+| `A-T2X` | 구현·engineering 검증 완료 | `SMAA_A_T2X`; Adaptive SMAA + Standard T2X |
+| `A-T2X-R` | 구현·engineering 검증 완료 | `SMAA_A_T2X_R`; Adaptive SMAA + Standard T2X + camera reprojection |
+| `A-ET2X` | 구현·engineering 검증 완료 | `SMAA_A_ET2X`; Adaptive SMAA + edge-selective no-reprojection ablation |
+| `A-ET2X-R` | 구현·engineering 검증 완료 | `SMAA_A_ET2X_R`; Adaptive SMAA + edge-selective + camera reprojection |
 
-Original 네 mode는 `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, history sampler,
-clipping, candidate policy와 history weight를 명시적으로 기록하는 설정 구조로 연결되어
-있다. `-smaaOriginalFourCapture`로 네 mode를 같은 조건에서 순회하는 engineering smoke
-capture를 실행할 수 있다.
+8개 mode는 공간 처리를 `SpatialSearch::Original/AdaptiveContrast`로, temporal 처리를
+`TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, history sampler, clipping,
+candidate policy와 history weight로 각각 명시하는 설정 구조에 연결되어 있다. Adaptive
+공간 mode에서만 RG8 edge + R8 contrast metadata MRT와 대비별 탐색 범위를 사용하며,
+Original mode는 기존 edge target/shader path를 유지한다.
 
 후보 추출·계측 단계에는 다음이 구현되어 있다.
 
@@ -146,8 +150,9 @@ capture를 실행할 수 있다.
 - `-smaaCandidatePolicyOverride`, `-smaaHistorySamplerOverride`,
   `-smaaHistoryClippingOverride`, `-smaaTemporalDebugView`,
   `-smaaCandidateForcedCount` 진단 옵션
-- `-smaaTemporalLifecycleTest` 자동 검증: first-frame seed, history ping-pong,
-  jitter/subsample pairing, first-frame matrix 상태, mode/scene/camera-cut/resize reset
+- `-smaaTemporalLifecycleTest` 자동 검증: 8개 mode 전부의 first-frame seed, history
+  ping-pong, jitter/subsample pairing, first-frame matrix 상태와
+  mode/scene/camera-cut/resize reset
 - `-smaaTemporalVelocityTest` GPU 검증: 정적 카메라 velocity 0, 알려진 +right 이동의
   velocity 부호와 `historyUV = currentUV - velocity` 화면 범위 확인
 - `-smaaTemporalFeedbackTest` GPU 검증: 최종 output history와 화면 destination의
@@ -167,10 +172,16 @@ capture를 실행할 수 있다.
   3회 반복. 정방향/역방향 mode 순서를 교차하고 UI·PNG·candidate readback을 끈 상태에서
   wall frame interval, WholeFrame과 SMAA pass GPU timestamp, p95/p99, 1% low 및
   run-mean 표준편차를 기록
+- `-smaaEightCasePerformanceSmoke` / `-smaaEightCasePerformanceBenchmark`: 같은 계측
+  코드와 통계 정의로 전체 8개 mode를 순회. 본 측정 명령의 기본 조건은 300 warm-up,
+  4,800 measurement, 3 repeats이며 candidate readback을 끔
+- `-smaaOriginalFourCapture` / `-smaaEightCaseCapture`: 각각 Original 4개 또는 전체
+  8개 mode의 동일 frame index PNG sequence를 별도 디렉터리에 저장
 - `Tools/SMAA/analyze_original_four_quality.py`: Original 네 mode의 정렬된 PNG
   sequence를 검증하고 temporal MAE, 2차 시간 차분, edge strength, 짝·홀 위상 gap,
   대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG, pair GIF와
-  연속 frame/difference sheet 생성
+  연속 frame/difference sheet 생성. `--include-adaptive`를 지정하면 8개 mode와
+  Original↔Adaptive 대응 pair까지 분석
 - `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
   성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
   수행
@@ -260,7 +271,8 @@ Off 성능 결과는 다음과 같다.
 candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 픽셀의
 각각 11.376%, 7.728%다. Intel 문서의 약 50% 기본 목표보다 높은 장면 결과이며,
 후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
-아직 Original 네 mode의 최종 품질 비교와 Adaptive 4개 측정은 완료되지 않았다.
+Original 네 mode의 한 Bistro 경로 품질 기준선은 이후 완료됐다. Adaptive 4개를 포함한
+정식 8-case 반복 품질·성능 측정은 아직 완료되지 않았다.
 
 Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
@@ -277,10 +289,19 @@ MAE +22.675%, 2차 차분 +47.013%, edge strength +8.987%였고, `O-ET2X-R` vs
 한 Bistro camera path에는 독립 object motion/disocclusion ground truth가 없으므로
 ghosting 감소 결론은 보류한다.
 
+Adaptive 통합 후 `-smaaTemporalLifecycleTest`를 다시 실행해 8개 mode와
+camera-cut/scene/resize 전환을 모두 검증했다. 결과는 reset 25회, completed frame
+93개, seed 13개, resolve 80개, reprojection 26개, failure 0으로 PASS했다.
+`-smaaEightCasePerformanceSmoke 1 30 32 1`은 각 mode의 expected timing 32개와
+edge-selective 네 mode의 candidate 표본 32개를 수집해 PASS했다.
+`-smaaEightCaseCapture 1 3 3`은 8개 디렉터리에 연속·고유 PNG 3개씩을 생성했고,
+8-case 분석기와 기존 4-case 분석기 양쪽 smoke가 통과했다. 이 축소 실행은 구현·도구
+검증일 뿐 최종 8-case 품질·성능 결과가 아니다.
+
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
-sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original 네 mode의
-본 품질·성능 반복 측정을 진행할 수 있는 내부 계측 경로까지 검증됐다.
+sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8개 mode의 본
+품질·성능 반복 측정을 진행할 수 있는 내부 계측·캡처·분석 경로까지 검증됐다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
@@ -314,7 +335,7 @@ sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original
 1. **완료:** AA mode를 Standard/Edge-selective와 Reprojection Off/On의 직교 조합으로 정리한다.
 2. **완료:** 후보 정책 계측과 0/1/group/최대 경계 검증, bilinear/no-clipping
    selective resolve 골격 및 비후보/후보 픽셀 불변식 검증을 완료했다.
-3. **완료:** 네 mode의 history 초기화, ping-pong, jitter, subsample index와
+3. **완료:** 8개 mode의 history 초기화, ping-pong, jitter, subsample index와
    mode/scene/명시적 camera-cut/resize reset을 자동 검증했다. RTX 3060 Ti의 실제 GPU
    readback에서 정적 카메라 velocity 0과 +right 0.01 m 이동의 음수 X velocity 및
    history UV 방향도 검증했다. 이는 camera motion만 검증하며 object motion은 미지원이다.
@@ -325,12 +346,14 @@ sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original
    candidate/process 일치를 검증하고 document adaptation 정책으로 승인했다.
 6. **완료:** Intel document profile을 조립하고 lifecycle·capture 회귀 smoke를
    통과시켰다. 기존 controlled skeleton은 diagnostic override로 재현 가능하다.
-7. **완료:** 네 mode의 SMAA total과 내부 pass별 GPU timing을 계측하고 PNG 없는
+7. **완료:** Original 네 mode의 SMAA total과 내부 pass별 GPU timing을 계측하고 PNG 없는
    120-frame 성능 smoke를 통과시켰다. 전체 frame GPU time과 counter readback overhead는
    본 측정 전에 별도로 계측한다.
-8. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
-9. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
-10. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.
+8. **완료:** Original 4개에 대한 동일 Bistro 경로 품질·성능 기준선을 확보했다.
+9. **완료:** Adaptive SMAA를 독립 공간 축으로 결합해 `A-*` 네 mode를 만들고,
+   8-mode lifecycle, 축소 성능/capture/analysis smoke를 통과시켰다.
+10. **다음:** 전체 8개를 같은 정식 조건으로 반복 측정하고, 독립 object motion과
+   disocclusion 장면을 추가해 최종 8-case 표와 품질 결론을 작성한다.
 
 ## 7. 측정 규칙
 
