@@ -169,7 +169,8 @@ capture를 실행할 수 있다.
   run-mean 표준편차를 기록
 - `Tools/SMAA/analyze_original_four_quality.py`: Original 네 mode의 정렬된 PNG
   sequence를 검증하고 temporal MAE, 2차 시간 차분, edge strength, 짝·홀 위상 gap,
-  대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG와 pair GIF 생성
+  대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG, pair GIF와
+  연속 frame/difference sheet 생성
 - `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
   성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
   수행
@@ -265,6 +266,16 @@ Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode�
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
 축소 수치는 도구 검증용이며 품질 연구 결과로 사용하지 않는다. 다음 실제 품질 capture는
 mode당 60프레임 warm-up과 300프레임 저장으로 실행한다.
+
+실제 Original 4-case 품질 capture도 mode당 60프레임 warm-up과 300프레임 저장으로
+완료했다. 네 mode 모두 00000~00299 연속·고유 PNG이고, 모든 대응 pair의 ±2프레임
+정렬 검사에서 같은 index가 300/300 최적이었다. `O-ET2X` vs `O-T2X`는 temporal
+MAE +22.675%, 2차 차분 +47.013%, edge strength +8.987%였고, `O-ET2X-R` vs
+`O-T2X-R`은 각각 +3.208%, +4.028%, +5.350%였다. edge-selective의 선명도
+대용값이 높지만 화면 공간 temporal 변화도 작아지지 않았으므로 품질 개선으로 단정하지
+않는다. sampled sequence sheet에서 심각한 화면 전체 떨림·깨짐은 보이지 않았으나,
+한 Bistro camera path에는 독립 object motion/disocclusion ground truth가 없으므로
+ghosting 감소 결론은 보류한다.
 
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel

@@ -1087,3 +1087,71 @@ disocclusion)이며, 그 뒤에만 Adaptive 네 mode 통합·측정을 진행한
 
 다음 단계는 mode당 warm-up 60프레임, capture 300프레임의 실제 Original 4-case
 sequence를 생성해 이 분석기로 처리하고 대표 GIF를 수동 검토하는 것이다.
+
+### 17.18 Original 네 case 연속 프레임 품질 결과
+
+2026-07-30에 `-smaaOriginalFourCapture 1 300 60`을 실행했다.
+
+- RTX 3060 Ti, DirectX 11, Release x64
+- 1920×1017 windowed, SMAA Ultra, VSync Off
+- Lumberyard Bistro 동일 flythrough, fixed 60 Hz
+- mode별 warm-up 60프레임
+- mode별 PNG 300프레임, 총 1,200프레임
+- PNG 저장 중 FPS는 성능값으로 사용하지 않음
+
+원본 capture와 분석 산출물은 Git에 포함하지 않는
+`Projects/CMAA2/AutoBench/20260730_010741`에 있다. 네 mode 모두
+00000~00299 연속 index와 고유 SHA-256 파일 300개를 통과했다. Standard/Edge-selective,
+reprojection Off/On 네 대응 pair의 ±2프레임 축소 luma 정렬 검사에서 같은 index가
+모두 300/300 최적이었다.
+
+#### 시간·공간 대용 지표
+
+| Mode | 인접 frame RGB MAE | 2차 시간 차분 Luma MAE | Edge strength | 짝·홀 temporal gap |
+|---|---:|---:|---:|---:|
+| `O-T2X` | 1.216633 | 1.445442 | 2.095559 | 0.001201 |
+| `O-T2X-R` | 1.461848 | 2.029758 | 2.171057 | 0.077666 |
+| `O-ET2X` | 1.492503 | 2.124981 | 2.283882 | 0.000738 |
+| `O-ET2X-R` | 1.508738 | 2.111518 | 2.287209 | 0.000625 |
+
+| 비교 | 동일 frame RGB MAE | 차이 >8 픽셀 | Temporal MAE 변화 | 2차 차분 변화 | Edge strength 변화 |
+|---|---:|---:|---:|---:|---:|
+| `O-ET2X` vs `O-T2X` | 1.077730 | 2.631774% | +22.675% | +47.013% | +8.987% |
+| `O-ET2X-R` vs `O-T2X-R` | 0.776444 | 1.912337% | +3.208% | +4.028% | +5.350% |
+| `O-T2X-R` vs `O-T2X` | 0.697505 | 1.258117% | +20.155% | +40.425% | +3.603% |
+| `O-ET2X-R` vs `O-ET2X` | 0.109174 | 0.524544% | +1.088% | -0.634% | +0.146% |
+
+화면 공간 temporal MAE와 2차 차분에는 실제 camera/object motion이 포함된다. 따라서
+값이 높다는 사실만으로 flicker가 증가했다고 단정하지 않고, 반대로 값이 낮아도
+history blur일 수 있으므로 안정성 향상으로 단정하지 않는다.
+
+현재 결과에서 edge-selective 두 mode의 edge strength는 대응 Standard보다
+5.350~8.987% 높아 더 선명한 공간 출력 경향을 보였다. 그러나 temporal MAE와 2차
+차분은 감소하지 않았다. 특히 no-reprojection ablation은 Standard보다 변화량이 크게
+높았고, camera reprojection을 사용하면 그 차이가 +3.208%, +4.028%로 줄었다.
+`O-T2X-R`에서만 짝·홀 temporal gap 0.077666이 나타났고 deliberate jitter를 쓰지
+않는 edge-selective mode는 약 0.001 이하였지만, edge-selective의 전체 temporal
+MAE가 더 높으므로 이를 전체 안정성 개선이라고 부르지 않는다.
+
+대표 6-frame sequence/difference sheet를 확인했을 때 차이는 주로 창틀, 실내의
+고대비 세부선, 스쿠터 윤곽과 밝은 광원 edge에 집중됐다. 화면 전체 깨짐이나 이전에
+발생했던 심각한 떨림 회귀는 보이지 않았다. 다만 5-frame 간격 정적 sheet와 한 개의
+Bistro camera path만으로 잔상 길이, 독립 object motion ghosting, disocclusion을
+확정할 수 없다. 생성된 GIF를 실시간으로 보고, 별도 object-motion/disocclusion
+장면도 추가해야 한다.
+
+주요 분석 산출물:
+
+- `Analysis/SMAA-Original-Four-Quality-Analysis-ko.md`
+- `Analysis/temporal_metrics_original_four.csv`
+- `Analysis/analysis_summary_original_four.json`
+- `Analysis/contact_sheet_original_four.png`
+- `Analysis/comparison_edge_vs_standard_no_reprojection_00270_00299.gif`
+- `Analysis/comparison_edge_vs_standard_reprojected_00162_00191.gif`
+- `Analysis/sequence_sheet_edge_vs_standard_no_reprojection_00270_00295.png`
+- `Analysis/sequence_sheet_edge_vs_standard_reprojected_00162_00187.png`
+
+이로써 한 개의 동일 Bistro 경로에 대한 Original 네 case 성능·품질 기준선은 확보했다.
+현재 결과는 edge-selective adaptation의 성능 우위나 temporal 품질 우위를 보이지
+않는다. 추가 scene-specific ghosting 검증을 유지한 채 다음 구현 단계인 Adaptive
+SMAA 네 mode 통합을 준비할 수 있다.
