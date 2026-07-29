@@ -25,6 +25,31 @@ PAIRS = (
     ("standard_reprojection_effect", "o_t2x", "o_t2x_r"),
     ("edge_reprojection_effect", "o_et2x", "o_et2x_r"),
 )
+VISUAL_PAIR_NAMES = (
+    "edge_vs_standard_no_reprojection",
+    "edge_vs_standard_reprojected",
+)
+
+ADAPTIVE_MODES = (
+    ("a_t2x", "A-T2X", "A_T2X"),
+    ("a_t2x_r", "A-T2X-R", "A_T2X_R"),
+    ("a_et2x", "A-ET2X", "A_ET2X"),
+    ("a_et2x_r", "A-ET2X-R", "A_ET2X_R"),
+)
+ADAPTIVE_PAIRS = (
+    ("adaptive_edge_vs_standard_no_reprojection", "a_t2x", "a_et2x"),
+    ("adaptive_edge_vs_standard_reprojected", "a_t2x_r", "a_et2x_r"),
+    ("adaptive_standard_reprojection_effect", "a_t2x", "a_t2x_r"),
+    ("adaptive_edge_reprojection_effect", "a_et2x", "a_et2x_r"),
+    ("adaptive_effect_standard_no_reprojection", "o_t2x", "a_t2x"),
+    ("adaptive_effect_standard_reprojected", "o_t2x_r", "a_t2x_r"),
+    ("adaptive_effect_edge_no_reprojection", "o_et2x", "a_et2x"),
+    ("adaptive_effect_edge_reprojected", "o_et2x_r", "a_et2x_r"),
+)
+ADAPTIVE_VISUAL_PAIR_NAMES = (
+    "adaptive_edge_vs_standard_no_reprojection",
+    "adaptive_edge_vs_standard_reprojected",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,6 +61,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expected-frames", type=int, default=300)
     parser.add_argument("--warmup-frames", type=int, default=60)
     parser.add_argument("--start-time", type=float, default=1.0)
+    parser.add_argument(
+        "--include-adaptive",
+        action="store_true",
+        help="Analyze the full Original/Adaptive eight-case matrix.",
+    )
     return parser.parse_args()
 
 
@@ -175,7 +205,7 @@ def find_roi(
     return left, top, left + width, top + height
 
 
-def make_four_mode_comparison(
+def make_mode_comparison(
     output: Path,
     paths: dict[str, list[Path]],
     frame: int,
@@ -183,7 +213,7 @@ def make_four_mode_comparison(
 ) -> str:
     width = box[2] - box[0]
     height = box[3] - box[1]
-    canvas = Image.new("RGB", (width * 4, height + 35), "black")
+    canvas = Image.new("RGB", (width * len(MODES), height + 35), "black")
     draw = ImageDraw.Draw(canvas)
     for index, (key, semantic_id, _) in enumerate(MODES):
         image = Image.fromarray(load_rgb(paths[key][frame])).crop(box)
@@ -297,7 +327,9 @@ def make_contact_sheet(
     thumb_width = 400
     thumb_height = max(1, int(thumb_width * resolution[1] / resolution[0]))
     row_height = thumb_height + 30
-    canvas = Image.new("RGB", (thumb_width * 4, row_height * len(sampled)), "black")
+    canvas = Image.new(
+        "RGB", (thumb_width * len(MODES), row_height * len(sampled)), "black"
+    )
     draw = ImageDraw.Draw(canvas)
     for row_index, frame in enumerate(sampled):
         y = row_index * row_height
@@ -308,13 +340,23 @@ def make_contact_sheet(
             x = mode_index * thumb_width
             canvas.paste(image, (x, y + 30))
             draw.text((x + 8, y + 8), f"{frame:05d} - {semantic_id}", fill="white")
-    name = "contact_sheet_original_four.png"
+    name = (
+        "contact_sheet_eight_case.png"
+        if len(MODES) == 8
+        else "contact_sheet_original_four.png"
+    )
     canvas.save(output / name, compress_level=3)
     return name
 
 
 def main() -> None:
+    global MODES, PAIRS, VISUAL_PAIR_NAMES
     args = parse_args()
+    if args.include_adaptive:
+        MODES = MODES + ADAPTIVE_MODES
+        PAIRS = PAIRS + ADAPTIVE_PAIRS
+        VISUAL_PAIR_NAMES = VISUAL_PAIR_NAMES + ADAPTIVE_VISUAL_PAIR_NAMES
+
     capture_root = args.capture_root.resolve()
     output = (
         args.output.resolve()
@@ -427,7 +469,11 @@ def main() -> None:
             },
         }
 
-    csv_name = "temporal_metrics_original_four.csv"
+    csv_name = (
+        "temporal_metrics_eight_case.csv"
+        if args.include_adaptive
+        else "temporal_metrics_original_four.csv"
+    )
     with (output / csv_name).open("w", newline="", encoding="utf-8-sig") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0].keys()))
         writer.writeheader()
@@ -452,12 +498,18 @@ def main() -> None:
                 for row in rows
                 if row.get(column, "") != "" and int(row["frame"]) % 2 == 1
             ]
+            even_mean = statistics.fmean(even_values) if even_values else 0.0
+            odd_mean = statistics.fmean(odd_values) if odd_values else 0.0
             parity[column] = {
                 "semantic_id": semantic_id,
-                "even_mean": statistics.fmean(even_values),
-                "odd_mean": statistics.fmean(odd_values),
-                "absolute_gap": abs(
-                    statistics.fmean(even_values) - statistics.fmean(odd_values)
+                "even_count": len(even_values),
+                "odd_count": len(odd_values),
+                "even_mean": even_mean,
+                "odd_mean": odd_mean,
+                "absolute_gap": (
+                    abs(even_mean - odd_mean)
+                    if even_values and odd_values
+                    else 0.0
                 ),
             }
 
@@ -465,14 +517,16 @@ def main() -> None:
     comparison_pngs: list[str] = []
     comparison_gifs: list[str] = []
     sequence_sheets: list[str] = []
-    for pair_name, first_key, second_key in PAIRS[:2]:
+    for pair_name, first_key, second_key in PAIRS:
+        if pair_name not in VISUAL_PAIR_NAMES:
+            continue
         frame = separated_top_frames(
             rows, f"{pair_name}_pixels_gt8_pct", count=1
         )[0]
         representative_frames[pair_name] = frame
         box = find_roi(paths, resolution, frame, first_key, second_key)
         comparison_pngs.append(
-            make_four_mode_comparison(output, paths, frame, box)
+            make_mode_comparison(output, paths, frame, box)
         )
         comparison_gifs.append(
             make_pair_gif(
@@ -527,7 +581,11 @@ def main() -> None:
             "sequence_sheets": sequence_sheets,
         },
     }
-    json_name = "analysis_summary_original_four.json"
+    json_name = (
+        "analysis_summary_eight_case.json"
+        if args.include_adaptive
+        else "analysis_summary_original_four.json"
+    )
     (output / json_name).write_text(
         json.dumps(machine_summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -568,14 +626,37 @@ def main() -> None:
             )
         )
 
+    if args.include_adaptive:
+        report_title = "# SMAA temporal 8-case 연속 프레임 품질 분석"
+        report_scope = [
+            "Original/Adaptive 공간 SMAA와 Standard/Edge-selective temporal,",
+            "reprojection Off/On의 8개 직교 조합을 동일한 Lumberyard Bistro camera path에서 비교한다.",
+            "Edge-selective mode는 Intel 공식 TSCMAA 포팅이 아니라 공개 문서 기반 SMAA adaptation이다.",
+        ]
+        conclusion_scope = [
+            "이 결과는 한 개의 Bistro flythrough 구간에 대한 8-case 품질 비교다.",
+            "얇은 선, 독립적으로 움직이는 물체와 명시적 disocclusion 장면의 수동 확인 전에는",
+            "고스팅·shimmer 개선의 최종 결론으로 사용하지 않는다.",
+        ]
+    else:
+        report_title = "# Original SMAA temporal 4-case 연속 프레임 품질 분석"
+        report_scope = [
+            "Original SMAA의 `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R`를 동일한",
+            "Lumberyard Bistro camera path에서 비교한다. 이 분석은 Adaptive 4개를 포함하지 않으며,",
+            "Intel 공식 TSCMAA 포팅이 아니라 공개 문서 기반 SMAA adaptation의 중간 품질 결과다.",
+        ]
+        conclusion_scope = [
+            "이 결과는 한 개의 Bistro flythrough 구간에 대한 Original 4-case 품질 기준선이다.",
+            "얇은 선, 독립적으로 움직이는 물체와 명시적 disocclusion 장면의 수동 확인 전에는",
+            "고스팅·shimmer 개선의 최종 결론으로 사용하지 않는다.",
+        ]
+
     report_lines = [
-        "# Original SMAA temporal 4-case 연속 프레임 품질 분석",
+        report_title,
         "",
         "## 범위",
         "",
-        "Original SMAA의 `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R`를 동일한",
-        "Lumberyard Bistro camera path에서 비교한다. 이 분석은 Adaptive 4개를 포함하지 않으며,",
-        "Intel 공식 TSCMAA 포팅이 아니라 공개 문서 기반 SMAA adaptation의 중간 품질 결과다.",
+        *report_scope,
         "",
         "## 측정 조건",
         "",
@@ -655,13 +736,15 @@ def main() -> None:
             "",
             "## 결론 범위",
             "",
-            "이 결과는 한 개의 Bistro flythrough 구간에 대한 Original 4-case 품질 기준선이다.",
-            "얇은 선, 독립적으로 움직이는 물체와 명시적 disocclusion 장면의 수동 확인 전에는",
-            "고스팅·shimmer 개선의 최종 결론으로 사용하지 않는다.",
+            *conclusion_scope,
             "",
         ]
     )
-    report_name = "SMAA-Original-Four-Quality-Analysis-ko.md"
+    report_name = (
+        "SMAA-Eight-Case-Quality-Analysis-ko.md"
+        if args.include_adaptive
+        else "SMAA-Original-Four-Quality-Analysis-ko.md"
+    )
     (output / report_name).write_text(
         "\n".join(report_lines), encoding="utf-8"
     )
