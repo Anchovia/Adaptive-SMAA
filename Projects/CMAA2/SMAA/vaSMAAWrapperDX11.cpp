@@ -41,6 +41,7 @@
 
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
 
+#include <DirectXPackedVector.h>
 #include <cmath>
 
 namespace VertexAsylum
@@ -119,10 +120,12 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalSpatialCurrent        = nullptr;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        ID3D11Texture2D *           m_temporalVelocityReadback      = nullptr;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeSelectiveEnabled      = false;
+        bool                        m_velocityDiagnosticsResourcesEnabled = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
 
         SMAAReprojectionConstants   m_reprojectionConstants;
@@ -175,6 +178,7 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination );
         void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
+        void                            ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext * context, uint32 width, uint32 height );
         vaDrawResultFlags               DrawTSCMAADebugView( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
         //void                            Reset( );
 
@@ -351,10 +355,12 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[1] = nullptr;
     m_temporalSpatialCurrent = nullptr;
     m_temporalVelocity = nullptr;
+    SAFE_RELEASE( m_temporalVelocityReadback );
     m_tscmaaBaseEdgeMask = nullptr;
     m_tscmaaCandidateMask = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
+    m_velocityDiagnosticsResourcesEnabled = false;
     SAFE_RELEASE( m_tscmaaCandidatesUAV );
     SAFE_RELEASE( m_tscmaaCandidatesBuffer );
     SAFE_RELEASE( m_tscmaaCandidatesReadback );
@@ -413,7 +419,9 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeSelectiveEnabled != edgeSelective
+        || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
+            || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                 || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
                 || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
@@ -426,6 +434,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection );
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeSelectiveEnabled = edgeSelective;
+        m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -466,6 +475,27 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             if( smaaProjection || edgeSelective )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
+
+            if( GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocity != nullptr )
+            {
+                ID3D11Texture2D * velocityTexture = nullptr;
+                HRESULT hr = m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetResource( )->QueryInterface(
+                    __uuidof( ID3D11Texture2D ), reinterpret_cast<void **>( &velocityTexture ) );
+                if( SUCCEEDED( hr ) )
+                {
+                    D3D11_TEXTURE2D_DESC readbackDesc;
+                    velocityTexture->GetDesc( &readbackDesc );
+                    readbackDesc.Usage = D3D11_USAGE_STAGING;
+                    readbackDesc.BindFlags = 0;
+                    readbackDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+                    readbackDesc.MiscFlags = 0;
+                    hr = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice()->CreateTexture2D(
+                        &readbackDesc, nullptr, &m_temporalVelocityReadback );
+                    velocityTexture->Release( );
+                }
+                if( FAILED( hr ) )
+                    return false;
+            }
 
             if( edgeSelective )
             {
@@ -512,6 +542,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             for( int i = 0; i < c_tscmaaReadbackBufferCount; i++ )
                 readbackBuffersReady = readbackBuffersReady && (m_tscmaaControlReadback[i] != nullptr);
             if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
+                || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                     || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
                     || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
@@ -654,6 +685,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         deviceContext.SetRenderTarget( nullptr, nullptr, false );
         if( velocityResult != vaDrawResultFlags::None )
             return velocityResult;
+
+        if( GetTemporalVelocityDiagnosticsEnabled( ) )
+            ReadbackTemporalVelocityDiagnostics( dx11Context, (uint32)inputColor->GetSizeX( ), (uint32)inputColor->GetSizeY( ) );
 
         m_previousViewProj = currentUnjitteredViewProjForHistory;
         m_previousViewProjValid = true;
@@ -885,6 +919,119 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     }
 
     return DrawTSCMAADebugView( deviceContext, destination );
+}
+
+void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext * context, uint32 width, uint32 height )
+{
+    if( !m_temporalVelocityDiagnosticPending || m_temporalVelocityReadback == nullptr || m_temporalVelocity == nullptr
+        || GetTemporalVelocityDiagnosticMode( ) == TemporalVelocityDiagnosticMode::Disabled )
+        return;
+
+    m_temporalVelocityDiagnostics = TemporalVelocityDiagnostics( );
+    m_temporalVelocityDiagnostics.Mode = GetTemporalVelocityDiagnosticMode( );
+    context->CopyResource( m_temporalVelocityReadback, m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetResource( ) );
+    D3D11_MAPPED_SUBRESOURCE mapped;
+    ZeroMemory( &mapped, sizeof( mapped ) );
+    const HRESULT mapResult = context->Map( m_temporalVelocityReadback, 0, D3D11_MAP_READ, 0, &mapped );
+    if( FAILED( mapResult ) )
+        return;
+
+    const uint32 pixelCount = width * height;
+    uint32 finitePixelCount = 0;
+    uint32 significantXCount = 0;
+    uint32 expectedNegativeXCount = 0;
+    uint32 historyUVInBoundsCount = 0;
+    double velocitySumX = 0.0;
+    double velocitySumY = 0.0;
+    float minimumX = std::numeric_limits<float>::max( );
+    float minimumY = std::numeric_limits<float>::max( );
+    float maximumX = -std::numeric_limits<float>::max( );
+    float maximumY = -std::numeric_limits<float>::max( );
+    float maximumAbsoluteVelocity = 0.0f;
+
+    for( uint32 y = 0; y < height; y++ )
+    {
+        const uint16 * row = reinterpret_cast<const uint16 *>( reinterpret_cast<const uint8 *>( mapped.pData ) + y * mapped.RowPitch );
+        for( uint32 x = 0; x < width; x++ )
+        {
+            const float velocityX = DirectX::PackedVector::XMConvertHalfToFloat( row[x * 2 + 0] );
+            const float velocityY = DirectX::PackedVector::XMConvertHalfToFloat( row[x * 2 + 1] );
+            if( !std::isfinite( velocityX ) || !std::isfinite( velocityY ) )
+                continue;
+
+            finitePixelCount++;
+            velocitySumX += velocityX;
+            velocitySumY += velocityY;
+            minimumX = vaMath::Min( minimumX, velocityX );
+            minimumY = vaMath::Min( minimumY, velocityY );
+            maximumX = vaMath::Max( maximumX, velocityX );
+            maximumY = vaMath::Max( maximumY, velocityY );
+            maximumAbsoluteVelocity = vaMath::Max( maximumAbsoluteVelocity,
+                vaMath::Max( vaMath::Abs( velocityX ), vaMath::Abs( velocityY ) ) );
+
+            if( vaMath::Abs( velocityX ) > 1e-5f )
+            {
+                significantXCount++;
+                if( velocityX < 0.0f )
+                    expectedNegativeXCount++;
+            }
+
+            const float currentU = ((float)x + 0.5f) / (float)width;
+            const float currentV = ((float)y + 0.5f) / (float)height;
+            const float historyU = currentU - velocityX;
+            const float historyV = currentV - velocityY;
+            if( historyU > 0.0f && historyU < 1.0f && historyV > 0.0f && historyV < 1.0f )
+                historyUVInBoundsCount++;
+        }
+    }
+    context->Unmap( m_temporalVelocityReadback, 0 );
+    m_temporalVelocityDiagnosticPending = false;
+
+    m_temporalVelocityDiagnostics.Valid = true;
+    m_temporalVelocityDiagnostics.PixelCount = pixelCount;
+    m_temporalVelocityDiagnostics.FinitePixelCount = finitePixelCount;
+    m_temporalVelocityDiagnostics.SignificantXCount = significantXCount;
+    m_temporalVelocityDiagnostics.ExpectedNegativeXCount = expectedNegativeXCount;
+    m_temporalVelocityDiagnostics.HistoryUVInBoundsCount = historyUVInBoundsCount;
+    if( finitePixelCount > 0 )
+    {
+        m_temporalVelocityDiagnostics.MeanVelocity = vaVector2(
+            (float)(velocitySumX / (double)finitePixelCount), (float)(velocitySumY / (double)finitePixelCount) );
+        m_temporalVelocityDiagnostics.MinimumVelocity = vaVector2( minimumX, minimumY );
+        m_temporalVelocityDiagnostics.MaximumVelocity = vaVector2( maximumX, maximumY );
+    }
+    m_temporalVelocityDiagnostics.MaximumAbsoluteVelocity = maximumAbsoluteVelocity;
+
+    switch( m_temporalVelocityDiagnostics.Mode )
+    {
+    case TemporalVelocityDiagnosticMode::StaticCameraZero:
+        m_temporalVelocityDiagnostics.Passed = finitePixelCount == pixelCount
+            && maximumAbsoluteVelocity <= 2e-4f
+            && historyUVInBoundsCount == finitePixelCount;
+        break;
+    case TemporalVelocityDiagnosticMode::CameraRightTranslation:
+        m_temporalVelocityDiagnostics.Passed = finitePixelCount == pixelCount
+            && significantXCount >= pixelCount / 4
+            && m_temporalVelocityDiagnostics.GetExpectedNegativeXRatio( ) >= 0.95f
+            && m_temporalVelocityDiagnostics.MeanVelocity.x < -1e-5f
+            && m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ) >= 0.95f;
+        break;
+    default:
+        m_temporalVelocityDiagnostics.Passed = false;
+        break;
+    }
+
+    const char * modeName = (m_temporalVelocityDiagnostics.Mode == TemporalVelocityDiagnosticMode::StaticCameraZero)?
+        "static-zero" : "camera-right";
+    VA_LOG( "SMAA GPU velocity diagnostics [%s]: finite=%u/%u, mean=(%.8f, %.8f), rangeX=[%.8f, %.8f], maxAbs=%.8f, negativeX=%u/%u (%.3f%%), historyUVInBounds=%u/%u (%.3f%%) => %s",
+        modeName, finitePixelCount, pixelCount,
+        m_temporalVelocityDiagnostics.MeanVelocity.x, m_temporalVelocityDiagnostics.MeanVelocity.y,
+        m_temporalVelocityDiagnostics.MinimumVelocity.x, m_temporalVelocityDiagnostics.MaximumVelocity.x,
+        maximumAbsoluteVelocity, expectedNegativeXCount, significantXCount,
+        100.0f * m_temporalVelocityDiagnostics.GetExpectedNegativeXRatio( ),
+        historyUVInBoundsCount, finitePixelCount,
+        100.0f * m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ),
+        m_temporalVelocityDiagnostics.Passed? "PASS" : "FAIL" );
 }
 
 void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height )

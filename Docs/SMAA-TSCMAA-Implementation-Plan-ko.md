@@ -384,7 +384,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] base edge 수와 temporal 후보 수 측정
 - [x] 후보 compact buffer 중복·overflow 검증
 - [x] indirect dispatch count 검증
-- [ ] depth 및 현재·이전 matrix reprojection 검증
+- [x] depth 및 현재·이전 matrix reprojection 검증
 - [ ] 5-tap Catmull–Rom reference 검증
 - [ ] YCoCg variance clipping 불변 조건 검증
 - [x] 후보 history weight `0.8` 설정 및 resolve 경로 연결
@@ -410,7 +410,8 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-**단계 1, 단계 2와 단계 3의 controlled selective resolve·lifecycle 검증을 완료했다.**
+**단계 1, 단계 2와 단계 3의 controlled selective resolve·lifecycle·camera-motion
+reprojection 검증을 완료했다.**
 
 - Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
 - `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
@@ -537,8 +538,39 @@ shader compilation과 scene 준비 중에도 rendering tick은 진행될 수 있
 진단을 끈 일반 네 mode capture를 같은 조건으로 두 번 반복했으며 네 PNG SHA-256이
 실행 간 모두 일치했다. 따라서 진단 분기가 기본 출력에 영향을 주지 않음을 확인했다.
 
-이 결과는 lifecycle과 CPU→shader matrix frame ordering의 engineering 검증이다. 실제
-GPU velocity/history UV의 크기와 방향을 검증한 것은 아니다. 다음 작업에서는 정적
-카메라 velocity가 0에 가까운지, 알려진 카메라 이동에서 `historyUV = currentUV -
-velocity` 방향이 맞는지 debug/readback으로 확인한다. 그 뒤 단계 4의 Catmull-Rom 5-tap
-CPU reference test를 진행한다.
+이 결과는 lifecycle과 CPU→shader matrix frame ordering의 engineering 검증이다.
+
+### 17.5 camera-motion GPU velocity/history UV 검증 결과
+
+`-smaaTemporalVelocityTest` 진단을 추가했다. 이 옵션에서만 `R16G16_FLOAT` velocity
+texture를 staging texture로 동기 readback하며 일반 실행과 본 성능 측정에는 해당
+readback resource와 stall이 포함되지 않는다.
+
+2026-07-29, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017 Bistro에서
+`O-ET2X-R`의 camera-motion velocity를 다음 두 단계로 검증했다.
+
+| 단계 | Mean velocity | Max abs | 예상 X 부호 | History UV in bounds | 결과 |
+|---|---:|---:|---:|---:|---|
+| 정적 카메라 | `(0.00000000, 0.00000000)` | 0.00000000 | - | 100.000% | PASS |
+| 카메라 +right 0.01 m | `(-0.00512720, 0.00000000)` | 0.02040100 | 음수 100.000% | 99.405% | PASS |
+
+두 단계 모두 1,952,640개 픽셀의 velocity가 유한했다. +right 이동에서는 유의한 X
+velocity 1,952,640개가 모두 음수였고, shader resolve와 같은
+`historyUV = currentUV - velocity` 식으로 계산한 좌표의 99.405%가 화면 안에 있었다.
+따라서 현재 depth와 이전·현재 unjittered view-projection matrix로 생성하는
+camera-motion velocity의 정적 상태, 이동 방향과 history UV 부호를 실제 GPU 출력에서
+확인했다.
+
+이 검증은 object motion vector를 검증하지 않는다. 현재 renderer에는 object motion
+vector가 연결되어 있지 않으므로 움직이는 물체의 재투영 지원으로 해석하면 안 된다.
+
+진단을 끈 일반 네 mode 캡처도 다시 실행했으며 각 PNG SHA-256이 이전 회귀 기준과
+일치했다.
+
+- `O-T2X`: `9F5BFE4BE601ED547408FE4FE1F9DC1D3F0B71C294E33880E779150359928D6C`
+- `O-T2X-R`: `53C0E2A65BAA02C936A3090F26BC48DD8F568CAED2EB2EF24FB408E792BEC667`
+- `O-ET2X`: `CA3AB01FD2DEF99EB21ACF7820502DCBAC57646E67A9772EA9B6F283959D9ECE`
+- `O-ET2X-R`: `A0DE7204B3AA14AC409B512156DCB45D5901C3A14F5EDD0CA163B31243F7668D`
+
+다음 작업은 단계 4의 Catmull-Rom 5-tap CPU 16-tap reference 및 GPU 불변 조건
+검증이다.

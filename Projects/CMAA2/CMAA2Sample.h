@@ -251,6 +251,9 @@ namespace VertexAsylum
         const vaSMAAWrapper::TemporalLifecycleDiagnostics &
                                                 GetSMAATemporalLifecycleDiagnostics( ) const { return m_SMAA->GetTemporalLifecycleDiagnostics( ); }
         void                                    ResetSMAATemporalHistoryForDiagnostics( ) { m_SMAA->ResetTemporalHistory( ); }
+        void                                    SetSMAATemporalVelocityDiagnosticMode( vaSMAAWrapper::TemporalVelocityDiagnosticMode mode ) { m_SMAA->SetTemporalVelocityDiagnosticMode( mode ); }
+        const vaSMAAWrapper::TemporalVelocityDiagnostics &
+                                                GetSMAATemporalVelocityDiagnostics( ) const { return m_SMAA->GetTemporalVelocityDiagnostics( ); }
         void                                    SetWindowClientAreaSizeForDiagnostics( const vaVector2i & size ) { m_application.SetWindowClientAreaSize( size ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }

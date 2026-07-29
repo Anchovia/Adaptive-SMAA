@@ -149,6 +149,40 @@ namespace VertexAsylum
             }
         };
 
+        enum class TemporalVelocityDiagnosticMode : int32
+        {
+            Disabled,
+            StaticCameraZero,
+            CameraRightTranslation
+        };
+
+        struct TemporalVelocityDiagnostics
+        {
+            bool                        Valid                       = false;
+            bool                        Passed                      = false;
+            TemporalVelocityDiagnosticMode
+                                        Mode                        = TemporalVelocityDiagnosticMode::Disabled;
+            uint32                      PixelCount                  = 0;
+            uint32                      FinitePixelCount            = 0;
+            uint32                      SignificantXCount          = 0;
+            uint32                      ExpectedNegativeXCount     = 0;
+            uint32                      HistoryUVInBoundsCount      = 0;
+            vaVector2                   MeanVelocity                = vaVector2( 0.0f, 0.0f );
+            vaVector2                   MinimumVelocity             = vaVector2( 0.0f, 0.0f );
+            vaVector2                   MaximumVelocity             = vaVector2( 0.0f, 0.0f );
+            float                       MaximumAbsoluteVelocity     = 0.0f;
+
+            float GetExpectedNegativeXRatio( ) const
+            {
+                return SignificantXCount > 0? (float)ExpectedNegativeXCount / (float)SignificantXCount : 0.0f;
+            }
+
+            float GetHistoryUVInBoundsRatio( ) const
+            {
+                return FinitePixelCount > 0? (float)HistoryUVInBoundsCount / (float)FinitePixelCount : 0.0f;
+            }
+        };
+
         struct TemporalSettings
         {
             TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
@@ -214,6 +248,10 @@ namespace VertexAsylum
         uint32                      m_temporalLifecycleFramesSinceReset = 0;
         bool                        m_temporalLastSubsampleIndicesValid = false;
         float                       m_temporalLastSubsampleIndices[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
+        TemporalVelocityDiagnosticMode
+                                    m_temporalVelocityDiagnosticMode    = TemporalVelocityDiagnosticMode::Disabled;
+        TemporalVelocityDiagnostics m_temporalVelocityDiagnostics;
+        bool                        m_temporalVelocityDiagnosticPending = false;
 
         //bool                        m_debugShowEdges;
 
@@ -308,6 +346,19 @@ namespace VertexAsylum
             }
         }
         const TemporalLifecycleDiagnostics & GetTemporalLifecycleDiagnostics( ) const { return m_temporalLifecycleDiagnostics; }
+        void                        SetTemporalVelocityDiagnosticMode( TemporalVelocityDiagnosticMode mode )
+        {
+            if( m_temporalVelocityDiagnosticMode != mode )
+            {
+                m_temporalVelocityDiagnosticMode = mode;
+                m_temporalVelocityDiagnostics = TemporalVelocityDiagnostics( );
+                m_temporalVelocityDiagnostics.Mode = mode;
+                m_temporalVelocityDiagnosticPending = mode != TemporalVelocityDiagnosticMode::Disabled;
+            }
+        }
+        TemporalVelocityDiagnosticMode GetTemporalVelocityDiagnosticMode( ) const { return m_temporalVelocityDiagnosticMode; }
+        bool                        GetTemporalVelocityDiagnosticsEnabled( ) const { return m_temporalVelocityDiagnosticMode != TemporalVelocityDiagnosticMode::Disabled; }
+        const TemporalVelocityDiagnostics & GetTemporalVelocityDiagnostics( ) const { return m_temporalVelocityDiagnostics; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips

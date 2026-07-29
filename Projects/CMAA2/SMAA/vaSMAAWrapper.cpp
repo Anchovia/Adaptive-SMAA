@@ -106,6 +106,18 @@ void vaSMAAWrapper::UIPanelDraw( )
                 lifecycle.SeedFrameCount, lifecycle.ResolvedFrameCount, lifecycle.GetFailureCount( ) );
         }
 
+        int velocityDiagnosticMode = (int)GetTemporalVelocityDiagnosticMode( );
+        if( ImGuiEx_Combo( "GPU velocity diagnostic", velocityDiagnosticMode,
+            { string("Off"), string("Static camera = zero"), string("Camera-right translation") } ) )
+            SetTemporalVelocityDiagnosticMode( (TemporalVelocityDiagnosticMode)velocityDiagnosticMode );
+        const TemporalVelocityDiagnostics & velocityDiagnostics = GetTemporalVelocityDiagnostics( );
+        if( velocityDiagnostics.Valid )
+        {
+            ImGui::Text( "Velocity: %s, mean (%.6f, %.6f), max abs %.6f",
+                velocityDiagnostics.Passed? "PASS" : "FAIL", velocityDiagnostics.MeanVelocity.x,
+                velocityDiagnostics.MeanVelocity.y, velocityDiagnostics.MaximumAbsoluteVelocity );
+        }
+
         const TemporalCandidateStatistics & statistics = GetTemporalCandidateStatistics( );
         if( statistics.Valid )
         {

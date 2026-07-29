@@ -2272,6 +2272,111 @@ protected:
     virtual float GetProgress( ) const override { return (float)(int)m_phase / (float)(int)Phase::Complete; }
 };
 
+class BenchItemValidateSMAATemporalVelocity : public AutoBenchToolWorkItem
+{
+    enum class Phase : int
+    {
+        StaticCamera,
+        CameraRightTranslation,
+        Complete
+    };
+
+    Phase               m_phase                 = Phase::StaticCamera;
+    bool                m_started               = false;
+    bool                m_isDone                = false;
+    bool                m_staticPassed          = false;
+    bool                m_translationPassed     = false;
+
+public:
+    explicit BenchItemValidateSMAATemporalVelocity( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetSMAATemporalVelocityDiagnosticMode(
+                vaSMAAWrapper::TemporalVelocityDiagnosticMode::StaticCameraZero );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA camera-motion GPU velocity engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "O-ET2X-R only; object motion vectors are not connected.\r\n" );
+            abTool.ReportAddText( "The diagnostic staging readback is enabled only for this test and is not a performance path.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Phase", "Mean X", "Mean Y", "Max abs", "Negative-X ratio", "History UV in bounds", "Result" } );
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalVelocityDiagnostics & diagnostics =
+            m_parent.GetSMAATemporalVelocityDiagnostics( );
+        if( !diagnostics.Valid )
+            return;
+
+        if( m_phase == Phase::StaticCamera )
+        {
+            m_staticPassed = diagnostics.Mode == vaSMAAWrapper::TemporalVelocityDiagnosticMode::StaticCameraZero
+                && diagnostics.Passed;
+            abTool.ReportAddRowValues( {
+                "Static camera",
+                vaStringTools::Format( "%.8f", diagnostics.MeanVelocity.x ),
+                vaStringTools::Format( "%.8f", diagnostics.MeanVelocity.y ),
+                vaStringTools::Format( "%.8f", diagnostics.MaximumAbsoluteVelocity ),
+                "-",
+                vaStringTools::Format( "%.3f%%", 100.0f * diagnostics.GetHistoryUVInBoundsRatio( ) ),
+                m_staticPassed? "PASS" : "FAIL" } );
+
+            const vaVector3 cameraRight = m_parent.Camera()->GetWorldMatrix( ).GetAxisX( ).Normalized( );
+            m_parent.Camera()->SetPosition( m_parent.Camera()->GetPosition( ) + cameraRight * 0.01f );
+            m_parent.SetSMAATemporalVelocityDiagnosticMode(
+                vaSMAAWrapper::TemporalVelocityDiagnosticMode::CameraRightTranslation );
+            m_phase = Phase::CameraRightTranslation;
+            return;
+        }
+
+        if( m_phase == Phase::CameraRightTranslation )
+        {
+            m_translationPassed = diagnostics.Mode == vaSMAAWrapper::TemporalVelocityDiagnosticMode::CameraRightTranslation
+                && diagnostics.Passed;
+            abTool.ReportAddRowValues( {
+                "Camera translated +right by 0.01 m",
+                vaStringTools::Format( "%.8f", diagnostics.MeanVelocity.x ),
+                vaStringTools::Format( "%.8f", diagnostics.MeanVelocity.y ),
+                vaStringTools::Format( "%.8f", diagnostics.MaximumAbsoluteVelocity ),
+                vaStringTools::Format( "%.3f%%", 100.0f * diagnostics.GetExpectedNegativeXRatio( ) ),
+                vaStringTools::Format( "%.3f%%", 100.0f * diagnostics.GetHistoryUVInBoundsRatio( ) ),
+                m_translationPassed? "PASS" : "FAIL" } );
+
+            const bool aggregatePassed = m_staticPassed && m_translationPassed;
+            VA_LOG( "SMAA GPU velocity validation: static=%s, camera-right=%s => %s",
+                m_staticPassed? "PASS" : "FAIL", m_translationPassed? "PASS" : "FAIL",
+                aggregatePassed? "PASS" : "FAIL" );
+            abTool.ReportAddText( vaStringTools::Format( "\r\nAggregate: static %s, camera-right %s => %s\r\n",
+                m_staticPassed? "PASS" : "FAIL", m_translationPassed? "PASS" : "FAIL",
+                aggregatePassed? "PASS" : "FAIL" ) );
+            m_parent.SetSMAATemporalVelocityDiagnosticMode(
+                vaSMAAWrapper::TemporalVelocityDiagnosticMode::Disabled );
+            abTool.ReportFinish( );
+            m_phase = Phase::Complete;
+            m_isDone = true;
+        }
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override { return (float)(int)m_phase / (float)(int)Phase::Complete; }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -2365,6 +2470,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalVelocityTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalVelocity>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA camera-motion GPU velocity engineering validation");
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalLifecycleTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
