@@ -2390,6 +2390,146 @@ protected:
     }
 };
 
+class BenchItemValidateSMAATemporalFeedback : public AutoBenchToolWorkItem
+{
+    static const int c_maxDiagnosticFrames = 16;
+    static constexpr float c_frameDeltaTime = 1.0f / 60.0f;
+
+    bool m_started = false;
+    bool m_diagnosticsStarted = false;
+    bool m_isDone = false;
+    int m_currentFrame = 0;
+
+    static string FormatHash( uint64 value )
+    {
+        std::ostringstream stream;
+        stream << "0x" << std::hex << std::uppercase << std::setw( 16 ) << std::setfill( '0' ) << value;
+        return stream.str( );
+    }
+
+    void Finish( AutoBenchTool & abTool, const vaSMAAWrapper::TemporalFeedbackDiagnostics & diagnostics )
+    {
+        const bool passed = diagnostics.Valid && diagnostics.Passed;
+        abTool.ReportAddRowValues( { "Metric", "Value", "Acceptance", "Result" } );
+        abTool.ReportAddRowValues( {
+            "Completed frames",
+            vaStringTools::Format( "%u", diagnostics.CompletedFrameCount ),
+            ">= 3",
+            diagnostics.CompletedFrameCount >= 3? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Output history checks",
+            vaStringTools::Format( "%u", diagnostics.OutputHistoryCheckCount ),
+            ">= 3",
+            diagnostics.OutputHistoryCheckCount >= 3? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Previous history checks",
+            vaStringTools::Format( "%u", diagnostics.PreviousHistoryCheckCount ),
+            ">= 2",
+            diagnostics.PreviousHistoryCheckCount >= 2? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Readback failures",
+            vaStringTools::Format( "%u", diagnostics.ReadbackFailureCount ),
+            "0",
+            diagnostics.ReadbackFailureCount == 0? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Output/history mismatch bytes",
+            std::to_string( diagnostics.OutputHistoryMismatchBytes ),
+            "0",
+            diagnostics.OutputHistoryMismatchBytes == 0? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Previous history hash mismatches",
+            vaStringTools::Format( "%u", diagnostics.PreviousHistoryHashMismatchCount ),
+            "0",
+            diagnostics.PreviousHistoryHashMismatchCount == 0? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Last resolved history hash",
+            FormatHash( diagnostics.LastResolvedHistoryHash ),
+            "recorded",
+            diagnostics.LastResolvedHistoryHash != 0? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddRowValues( {
+            "Last previous history hash",
+            FormatHash( diagnostics.LastPreviousHistoryHash ),
+            "matches the preceding resolved hash",
+            diagnostics.PreviousHistoryHashMismatchCount == 0? "PASS" : "FAIL"
+        } );
+        abTool.ReportAddText( passed? "\r\nAggregate: PASS\r\n" : "\r\nAggregate: FAIL\r\n" );
+        abTool.ReportFinish( );
+
+        VA_LOG( "SMAA temporal feedback GPU validation: frames=%u, outputChecks=%u, previousChecks=%u, readbackFailures=%u, outputMismatchBytes=%llu, previousHashMismatches=%u => %s",
+            diagnostics.CompletedFrameCount, diagnostics.OutputHistoryCheckCount, diagnostics.PreviousHistoryCheckCount,
+            diagnostics.ReadbackFailureCount, (unsigned long long)diagnostics.OutputHistoryMismatchBytes,
+            diagnostics.PreviousHistoryHashMismatchCount, passed? "PASS" : "FAIL" );
+        m_parent.SetSMAATemporalFeedbackDiagnosticsEnabled( false );
+        m_isDone = true;
+    }
+
+public:
+    explicit BenchItemValidateSMAATemporalFeedback( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.Settings( ).CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( c_frameDeltaTime );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA TSCMAA-inspired temporal history feedback GPU validation\r\n\r\n" );
+            abTool.ReportAddText( "Diagnostic-only staging readback verifies exact resource bytes; it is disabled in normal and performance paths.\r\n" );
+            abTool.ReportAddText( "Each frame checks output history against the displayed destination. From frame two onward, previous history is hashed and compared with the preceding resolved-history hash.\r\n" );
+            abTool.ReportAddText( "Mode: O-ET2X-R, Original SMAA, edge-selective temporal, camera-motion reprojection.\r\n\r\n" );
+        }
+
+        if( !m_diagnosticsStarted )
+        {
+            if( m_parent.HasPendingShadowmapUpdates( ) )
+                return;
+            m_parent.SetSMAATemporalFeedbackDiagnosticsEnabled( true );
+            m_diagnosticsStarted = true;
+            m_currentFrame = 0;
+            m_parent.GetFlythroughCameraController( )->SetPlayTime( 1.0f );
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalFeedbackDiagnostics & diagnostics =
+            m_parent.GetSMAATemporalFeedbackDiagnostics( );
+        if( diagnostics.Valid || diagnostics.ReadbackFailureCount > 0 || m_currentFrame >= c_maxDiagnosticFrames )
+        {
+            Finish( abTool, diagnostics );
+            return;
+        }
+
+        m_currentFrame++;
+        m_parent.GetFlythroughCameraController( )->SetPlayTime( 1.0f + m_currentFrame * c_frameDeltaTime );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override { return false; }
+    virtual float GetProgress( ) const override
+    {
+        return vaMath::Clamp( (float)m_currentFrame / (float)c_maxDiagnosticFrames, 0.0f, 1.0f );
+    }
+};
+
 class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 {
     enum class Phase : int
@@ -3080,6 +3220,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalFeedbackTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalFeedback>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA temporal output/history feedback GPU validation");
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaOriginalFourPerformanceSmoke") == 0)
         {
             float startTime = 1.0f;

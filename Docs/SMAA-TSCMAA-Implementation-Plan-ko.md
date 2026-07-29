@@ -389,7 +389,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] YCoCg variance clipping 불변 조건 검증
 - [x] 후보 history weight `0.8` 설정 및 resolve 경로 연결
 - [x] 비후보 history weight `0.0`, 즉 current spatial 유지 픽셀 검증
-- [ ] 최종 output의 history feedback
+- [x] 최종 output의 history feedback
 - [x] 첫 프레임·mode·scene·명시적 camera-cut·resize reset
 - [ ] static camera 떨림 없음
 - [x] object motion 미지원 사실 명시
@@ -795,3 +795,37 @@ candidate와 process는 모두 34,670.867개로 candidate/base는 60.8251%였다
 
 계측 scope 추가 뒤 기본 네 mode 캡처를 다시 실행했으며 출력 SHA-256은 프로필 조립
 회귀 기준과 모두 일치했다. 따라서 timer scope가 shader 출력에는 영향을 주지 않았다.
+
+### 17.11 최종 output history feedback GPU 검증
+
+`-smaaTemporalFeedbackTest`를 추가해 `O-ET2X-R`의 실제 DX11 texture를 동기 staging
+readback했다. 이 resource와 stall은 진단이 명시적으로 활성화된 실행에서만 생성·사용되며
+일반 실행과 성능 측정 경로에는 포함되지 않는다.
+
+매 진단 frame에서 다음 두 불변 조건을 확인한다.
+
+1. candidate resolve가 끝난 `outputHistory`와 화면 destination으로 복사된 texture의
+   유효 pixel byte가 정확히 일치
+2. 다음 frame의 `previousHistory` FNV-1a hash가 직전 frame에서 저장한 resolved-history
+   hash와 일치
+
+2026-07-30, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017, Bistro 동적 경로에서
+얻은 결과는 다음과 같다. shader 준비 중 AutoBench tick이 대기하는 동안에도 진단 draw는
+계속되어 최소 요구 3프레임보다 많은 33프레임이 검사됐다.
+
+| 항목 | 결과 | 판정 |
+|---|---:|---|
+| 완료 frame | 33 | PASS |
+| output history/destination 검사 | 33 | PASS |
+| previous history/직전 resolve hash 검사 | 32 | PASS |
+| staging readback 실패 | 0 | PASS |
+| output history/destination mismatch byte | 0 | PASS |
+| previous history hash mismatch | 0 | PASS |
+
+따라서 최종 selective resolve 결과가 화면 출력으로 복사되는 동시에 ping-pong history에
+남고, 다음 frame에서 실제 previous history로 읽히는 것을 GPU resource 내용으로
+검증했다.
+
+진단을 끈 일반 네 mode capture를 다시 실행했다. `O-T2X-R`, `O-ET2X`,
+`O-ET2X-R`은 기존 회귀 hash와 일치했고 `O-T2X`는 이미 기록된 두 시작 hash 중 하나를
+보였다. 따라서 feedback readback 분기는 일반 shader 출력에 영향을 주지 않았다.

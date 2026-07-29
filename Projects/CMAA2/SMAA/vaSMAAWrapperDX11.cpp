@@ -387,6 +387,8 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalSpatialCurrent        = nullptr;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         ID3D11Texture2D *           m_temporalVelocityReadback      = nullptr;
+        ID3D11Texture2D *           m_temporalFeedbackReadback[2]   = { nullptr, nullptr };
+        bool                        m_temporalFeedbackExpectedHashValid = false;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -450,6 +452,10 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination );
         void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
         void                            ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext * context, uint32 width, uint32 height );
+        bool                            EnsureTemporalFeedbackReadbackTextures( ID3D11Texture2D * source );
+        void                            ValidateTemporalFeedbackDiagnostics( ID3D11DeviceContext * context,
+                                                const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
+                                                const shared_ptr<vaTexture> & destination, bool historyWasValid );
         void                            RunCatmullRomDiagnostics( ID3D11DeviceContext * context );
         void                            RunVarianceClippingDiagnostics( ID3D11DeviceContext * context );
         vaDrawResultFlags               DrawTSCMAADebugView( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
@@ -634,6 +640,9 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalSpatialCurrent = nullptr;
     m_temporalVelocity = nullptr;
     SAFE_RELEASE( m_temporalVelocityReadback );
+    SAFE_RELEASE( m_temporalFeedbackReadback[0] );
+    SAFE_RELEASE( m_temporalFeedbackReadback[1] );
+    m_temporalFeedbackExpectedHashValid = false;
     m_tscmaaBaseEdgeMask = nullptr;
     m_tscmaaCandidateMask = nullptr;
     m_tscmaaClippingDebug = nullptr;
@@ -666,6 +675,7 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     vaSMAAWrapper::ResetTemporalHistory( );
     m_temporalHistoryValid = false;
     m_previousViewProjValid = false;
+    m_temporalFeedbackExpectedHashValid = false;
     m_temporalCandidateStatistics = TemporalCandidateStatistics( );
     m_temporalCandidateValidation = TemporalCandidateValidation( );
     m_tscmaaStatisticsGeneration++;
@@ -1045,6 +1055,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     deviceContext.SetOutputs( rtState );
                     return tscmaaResult;
                 }
+                ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
+                    dstRT, temporalHistoryValidBefore );
             }
             else
             {
@@ -1359,6 +1371,201 @@ void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext
         historyUVInBoundsCount, finitePixelCount,
         100.0f * m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ),
         m_temporalVelocityDiagnostics.Passed? "PASS" : "FAIL" );
+}
+
+bool vaSMAAWrapperDX11::EnsureTemporalFeedbackReadbackTextures( ID3D11Texture2D * source )
+{
+    if( source == nullptr )
+        return false;
+    if( m_temporalFeedbackReadback[0] != nullptr && m_temporalFeedbackReadback[1] != nullptr )
+        return true;
+
+    SAFE_RELEASE( m_temporalFeedbackReadback[0] );
+    SAFE_RELEASE( m_temporalFeedbackReadback[1] );
+
+    D3D11_TEXTURE2D_DESC desc;
+    source->GetDesc( &desc );
+    if( desc.ArraySize != 1 || desc.MipLevels != 1 || desc.SampleDesc.Count != 1 )
+        return false;
+
+    desc.Usage = D3D11_USAGE_STAGING;
+    desc.BindFlags = 0;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    desc.MiscFlags = 0;
+
+    ID3D11Device * device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice( );
+    HRESULT hr = device->CreateTexture2D( &desc, nullptr, &m_temporalFeedbackReadback[0] );
+    if( SUCCEEDED( hr ) )
+        hr = device->CreateTexture2D( &desc, nullptr, &m_temporalFeedbackReadback[1] );
+    if( FAILED( hr ) )
+    {
+        SAFE_RELEASE( m_temporalFeedbackReadback[0] );
+        SAFE_RELEASE( m_temporalFeedbackReadback[1] );
+        return false;
+    }
+    return true;
+}
+
+void vaSMAAWrapperDX11::ValidateTemporalFeedbackDiagnostics( ID3D11DeviceContext * context,
+    const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
+    const shared_ptr<vaTexture> & destination, bool historyWasValid )
+{
+    if( !GetTemporalFeedbackDiagnosticsEnabled( ) )
+        return;
+
+    TemporalFeedbackDiagnostics & diagnostics = m_temporalFeedbackDiagnostics;
+    ID3D11Texture2D * previousTexture = nullptr;
+    ID3D11Texture2D * outputTexture = nullptr;
+    ID3D11Texture2D * destinationTexture = nullptr;
+
+    auto releaseTextures = [&]()
+    {
+        SAFE_RELEASE( previousTexture );
+        SAFE_RELEASE( outputTexture );
+        SAFE_RELEASE( destinationTexture );
+    };
+    auto failReadback = [&]()
+    {
+        diagnostics.ReadbackFailureCount++;
+        diagnostics.Valid = true;
+        diagnostics.Passed = false;
+        releaseTextures( );
+    };
+
+    HRESULT hr = outputHistory->SafeCast<vaTextureDX11*>( )->GetResource( )->QueryInterface(
+        __uuidof( ID3D11Texture2D ), reinterpret_cast<void **>( &outputTexture ) );
+    if( SUCCEEDED( hr ) )
+        hr = destination->SafeCast<vaTextureDX11*>( )->GetResource( )->QueryInterface(
+            __uuidof( ID3D11Texture2D ), reinterpret_cast<void **>( &destinationTexture ) );
+    if( historyWasValid && SUCCEEDED( hr ) )
+        hr = previousHistory->SafeCast<vaTextureDX11*>( )->GetResource( )->QueryInterface(
+            __uuidof( ID3D11Texture2D ), reinterpret_cast<void **>( &previousTexture ) );
+    if( FAILED( hr ) || outputTexture == nullptr || destinationTexture == nullptr
+        || (historyWasValid && previousTexture == nullptr)
+        || !EnsureTemporalFeedbackReadbackTextures( outputTexture ) )
+    {
+        failReadback( );
+        return;
+    }
+
+    D3D11_TEXTURE2D_DESC desc;
+    outputTexture->GetDesc( &desc );
+    uint32 bytesPerPixel = 0;
+    switch( desc.Format )
+    {
+    case DXGI_FORMAT_R11G11B10_FLOAT:
+    case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    case DXGI_FORMAT_R10G10B10A2_UINT:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_UINT:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+    case DXGI_FORMAT_R8G8B8A8_SINT:
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+        bytesPerPixel = 4;
+        break;
+    case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_UNORM:
+    case DXGI_FORMAT_R16G16B16A16_UINT:
+    case DXGI_FORMAT_R16G16B16A16_SNORM:
+    case DXGI_FORMAT_R16G16B16A16_SINT:
+        bytesPerPixel = 8;
+        break;
+    case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+    case DXGI_FORMAT_R32G32B32A32_UINT:
+    case DXGI_FORMAT_R32G32B32A32_SINT:
+        bytesPerPixel = 16;
+        break;
+    default:
+        break;
+    }
+    if( bytesPerPixel == 0 )
+    {
+        failReadback( );
+        return;
+    }
+
+    const size_t rowBytes = (size_t)desc.Width * bytesPerPixel;
+    auto hashMappedTexture = [&]( const D3D11_MAPPED_SUBRESOURCE & mapped )
+    {
+        uint64 hash = 1469598103934665603ULL;
+        for( uint32 y = 0; y < desc.Height; y++ )
+        {
+            const uint8 * row = reinterpret_cast<const uint8 *>( mapped.pData ) + (size_t)y * mapped.RowPitch;
+            for( size_t x = 0; x < rowBytes; x++ )
+            {
+                hash ^= row[x];
+                hash *= 1099511628211ULL;
+            }
+        }
+        return hash;
+    };
+
+    if( historyWasValid )
+    {
+        context->CopyResource( m_temporalFeedbackReadback[0], previousTexture );
+        D3D11_MAPPED_SUBRESOURCE mappedPrevious = {};
+        hr = context->Map( m_temporalFeedbackReadback[0], 0, D3D11_MAP_READ, 0, &mappedPrevious );
+        if( FAILED( hr ) )
+        {
+            failReadback( );
+            return;
+        }
+        const uint64 previousHash = hashMappedTexture( mappedPrevious );
+        context->Unmap( m_temporalFeedbackReadback[0], 0 );
+
+        diagnostics.PreviousHistoryCheckCount++;
+        diagnostics.LastPreviousHistoryHash = previousHash;
+        if( !m_temporalFeedbackExpectedHashValid || previousHash != diagnostics.LastResolvedHistoryHash )
+            diagnostics.PreviousHistoryHashMismatchCount++;
+    }
+
+    context->CopyResource( m_temporalFeedbackReadback[0], outputTexture );
+    context->CopyResource( m_temporalFeedbackReadback[1], destinationTexture );
+    D3D11_MAPPED_SUBRESOURCE mappedOutput = {};
+    D3D11_MAPPED_SUBRESOURCE mappedDestination = {};
+    hr = context->Map( m_temporalFeedbackReadback[0], 0, D3D11_MAP_READ, 0, &mappedOutput );
+    if( SUCCEEDED( hr ) )
+        hr = context->Map( m_temporalFeedbackReadback[1], 0, D3D11_MAP_READ, 0, &mappedDestination );
+    if( FAILED( hr ) )
+    {
+        if( mappedOutput.pData != nullptr )
+            context->Unmap( m_temporalFeedbackReadback[0], 0 );
+        failReadback( );
+        return;
+    }
+
+    uint64 mismatchBytes = 0;
+    for( uint32 y = 0; y < desc.Height; y++ )
+    {
+        const uint8 * outputRow = reinterpret_cast<const uint8 *>( mappedOutput.pData ) + (size_t)y * mappedOutput.RowPitch;
+        const uint8 * destinationRow = reinterpret_cast<const uint8 *>( mappedDestination.pData ) + (size_t)y * mappedDestination.RowPitch;
+        for( size_t x = 0; x < rowBytes; x++ )
+            mismatchBytes += outputRow[x] != destinationRow[x]? 1 : 0;
+    }
+    const uint64 outputHash = hashMappedTexture( mappedOutput );
+    context->Unmap( m_temporalFeedbackReadback[1], 0 );
+    context->Unmap( m_temporalFeedbackReadback[0], 0 );
+
+    diagnostics.CompletedFrameCount++;
+    diagnostics.OutputHistoryCheckCount++;
+    diagnostics.OutputHistoryMismatchBytes += mismatchBytes;
+    diagnostics.LastResolvedHistoryHash = outputHash;
+    m_temporalFeedbackExpectedHashValid = true;
+    diagnostics.Valid = diagnostics.OutputHistoryCheckCount >= 3
+        && diagnostics.PreviousHistoryCheckCount >= 2;
+    diagnostics.Passed = diagnostics.Valid
+        && diagnostics.ReadbackFailureCount == 0
+        && diagnostics.OutputHistoryMismatchBytes == 0
+        && diagnostics.PreviousHistoryHashMismatchCount == 0;
+
+    releaseTextures( );
 }
 
 void vaSMAAWrapperDX11::RunCatmullRomDiagnostics( ID3D11DeviceContext * context )

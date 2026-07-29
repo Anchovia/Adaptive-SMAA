@@ -186,6 +186,21 @@ namespace VertexAsylum
             }
         };
 
+        struct TemporalFeedbackDiagnostics
+        {
+            bool                        Enabled                     = false;
+            bool                        Valid                       = false;
+            bool                        Passed                      = false;
+            uint32                      CompletedFrameCount         = 0;
+            uint32                      OutputHistoryCheckCount     = 0;
+            uint32                      PreviousHistoryCheckCount   = 0;
+            uint32                      ReadbackFailureCount        = 0;
+            uint64                      OutputHistoryMismatchBytes  = 0;
+            uint32                      PreviousHistoryHashMismatchCount = 0;
+            uint64                      LastResolvedHistoryHash     = 0;
+            uint64                      LastPreviousHistoryHash     = 0;
+        };
+
         struct CatmullRomDiagnostics
         {
             bool                        Valid                       = false;
@@ -287,6 +302,7 @@ namespace VertexAsylum
                                     m_temporalVelocityDiagnosticMode    = TemporalVelocityDiagnosticMode::Disabled;
         TemporalVelocityDiagnostics m_temporalVelocityDiagnostics;
         bool                        m_temporalVelocityDiagnosticPending = false;
+        TemporalFeedbackDiagnostics m_temporalFeedbackDiagnostics;
         CatmullRomDiagnostics       m_catmullRomDiagnostics;
         bool                        m_catmullRomDiagnosticPending    = false;
         VarianceClippingDiagnostics m_varianceClippingDiagnostics;
@@ -419,6 +435,15 @@ namespace VertexAsylum
         TemporalVelocityDiagnosticMode GetTemporalVelocityDiagnosticMode( ) const { return m_temporalVelocityDiagnosticMode; }
         bool                        GetTemporalVelocityDiagnosticsEnabled( ) const { return m_temporalVelocityDiagnosticMode != TemporalVelocityDiagnosticMode::Disabled; }
         const TemporalVelocityDiagnostics & GetTemporalVelocityDiagnostics( ) const { return m_temporalVelocityDiagnostics; }
+        void                        SetTemporalFeedbackDiagnosticsEnabled( bool enabled )
+        {
+            m_temporalFeedbackDiagnostics = TemporalFeedbackDiagnostics( );
+            m_temporalFeedbackDiagnostics.Enabled = enabled;
+            if( enabled )
+                ResetTemporalHistory( );
+        }
+        bool                        GetTemporalFeedbackDiagnosticsEnabled( ) const { return m_temporalFeedbackDiagnostics.Enabled; }
+        const TemporalFeedbackDiagnostics & GetTemporalFeedbackDiagnostics( ) const { return m_temporalFeedbackDiagnostics; }
         void                        RequestCatmullRomDiagnostics( )
         {
             m_catmullRomDiagnostics = CatmullRomDiagnostics( );

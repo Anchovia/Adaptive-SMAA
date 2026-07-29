@@ -255,6 +255,9 @@ namespace VertexAsylum
         void                                    SetSMAATemporalVelocityDiagnosticMode( vaSMAAWrapper::TemporalVelocityDiagnosticMode mode ) { m_SMAA->SetTemporalVelocityDiagnosticMode( mode ); }
         const vaSMAAWrapper::TemporalVelocityDiagnostics &
                                                 GetSMAATemporalVelocityDiagnostics( ) const { return m_SMAA->GetTemporalVelocityDiagnostics( ); }
+        void                                    SetSMAATemporalFeedbackDiagnosticsEnabled( bool enabled ) { m_SMAA->SetTemporalFeedbackDiagnosticsEnabled( enabled ); }
+        const vaSMAAWrapper::TemporalFeedbackDiagnostics &
+                                                GetSMAATemporalFeedbackDiagnostics( ) const { return m_SMAA->GetTemporalFeedbackDiagnostics( ); }
         void                                    RequestSMAACatmullRomDiagnostics( ) { m_SMAA->RequestCatmullRomDiagnostics( ); }
         const vaSMAAWrapper::CatmullRomDiagnostics &
                                                 GetSMAACatmullRomDiagnostics( ) const { return m_SMAA->GetCatmullRomDiagnostics( ); }

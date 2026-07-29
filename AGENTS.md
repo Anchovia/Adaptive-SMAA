@@ -150,6 +150,8 @@ capture를 실행할 수 있다.
   jitter/subsample pairing, first-frame matrix 상태, mode/scene/camera-cut/resize reset
 - `-smaaTemporalVelocityTest` GPU 검증: 정적 카메라 velocity 0, 알려진 +right 이동의
   velocity 부호와 `historyUV = currentUV - velocity` 화면 범위 확인
+- `-smaaTemporalFeedbackTest` GPU 검증: 최종 output history와 화면 destination의
+  byte 일치, 다음 프레임 previous history와 직전 resolve hash의 일치 확인
 - `-smaaCatmullRomReferenceTest` GPU/CPU 검증: 실제 5-tap shader의 상수 보존,
   clamp 경계, CPU mirror 일치와 separable 16-tap reference 오차 기록
 - `-smaaVarianceClippingTest` GPU/CPU 검증: YCoCg 왕복, 상수 이웃, box 내부 history,
@@ -195,7 +197,8 @@ Catmull-Rom 5-tap과 YCoCg variance clipping은 실제 shader 분기와 diagnost
 camera-motion GPU velocity/history UV 방향, Catmull-Rom 5-tap GPU/CPU reference,
 YCoCg variance clipping GPU/CPU 불변 조건과 Intel-family candidate 정책을 검증했다.
 document profile 조립 후 두 번의 engineering capture와 lifecycle 자동 검증도 통과했다.
-이는 기능·회귀 검증 완료를 의미하며 최종 품질·성능 결론은 아니다.
+최종 resolve 결과의 history feedback도 diagnostic-only GPU staging readback으로
+검증했다. 이는 기능·회귀 검증 완료를 의미하며 최종 품질·성능 결론은 아니다.
 
 Original 네 mode의 내부 pass GPU timestamp도 mode당 60프레임 warm-up, 120프레임
 engineering smoke에서 모두 120/120개 수집했다. 이 smoke는 비동기 candidate counter
