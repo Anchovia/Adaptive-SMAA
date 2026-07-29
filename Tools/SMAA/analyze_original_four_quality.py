@@ -238,6 +238,50 @@ def make_pair_gif(
     return name
 
 
+def make_pair_sequence_sheet(
+    output: Path,
+    paths: dict[str, list[Path]],
+    expected_frames: int,
+    pair_name: str,
+    first_key: str,
+    second_key: str,
+    center_frame: int,
+    box: tuple[int, int, int, int],
+) -> str:
+    start = min(max(center_frame - 15, 0), max(0, expected_frames - 30))
+    sampled = [min(start + offset, expected_frames - 1) for offset in (0, 5, 10, 15, 20, 25)]
+    width = box[2] - box[0]
+    height = box[3] - box[1]
+    row_height = height + 35
+    labels = {key: semantic_id for key, semantic_id, _ in MODES}
+    canvas = Image.new("RGB", (width * 3, row_height * len(sampled)), "black")
+    draw = ImageDraw.Draw(canvas)
+
+    for row_index, frame in enumerate(sampled):
+        first = load_rgb(paths[first_key][frame])
+        second = load_rgb(paths[second_key][frame])
+        difference = np.clip(
+            np.abs(first.astype(np.int16) - second.astype(np.int16)) * 4,
+            0,
+            255,
+        ).astype(np.uint8)
+        images = (
+            Image.fromarray(first).crop(box),
+            Image.fromarray(second).crop(box),
+            Image.fromarray(difference).crop(box),
+        )
+        row_labels = (labels[first_key], labels[second_key], "absolute difference x4")
+        y = row_index * row_height
+        for column_index, (image, label) in enumerate(zip(images, row_labels)):
+            x = column_index * width
+            canvas.paste(image, (x, y + 35))
+            draw.text((x + 8, y + 10), f"Frame {frame:05d} - {label}", fill="white")
+
+    name = f"sequence_sheet_{pair_name}_{sampled[0]:05d}_{sampled[-1]:05d}.png"
+    canvas.save(output / name, compress_level=3)
+    return name
+
+
 def make_contact_sheet(
     output: Path,
     paths: dict[str, list[Path]],
@@ -420,6 +464,7 @@ def main() -> None:
     representative_frames: dict[str, int] = {}
     comparison_pngs: list[str] = []
     comparison_gifs: list[str] = []
+    sequence_sheets: list[str] = []
     for pair_name, first_key, second_key in PAIRS[:2]:
         frame = separated_top_frames(
             rows, f"{pair_name}_pixels_gt8_pct", count=1
@@ -431,6 +476,18 @@ def main() -> None:
         )
         comparison_gifs.append(
             make_pair_gif(
+                output,
+                paths,
+                args.expected_frames,
+                pair_name,
+                first_key,
+                second_key,
+                frame,
+                box,
+            )
+        )
+        sequence_sheets.append(
+            make_pair_sequence_sheet(
                 output,
                 paths,
                 args.expected_frames,
@@ -467,6 +524,7 @@ def main() -> None:
             "contact_sheet": contact_sheet,
             "comparison_pngs": comparison_pngs,
             "comparison_gifs": comparison_gifs,
+            "sequence_sheets": sequence_sheets,
         },
     }
     json_name = "analysis_summary_original_four.json"
@@ -591,6 +649,7 @@ def main() -> None:
     )
     report_lines.extend(f"- 대표 비교 PNG: `{name}`" for name in comparison_pngs)
     report_lines.extend(f"- 비교 GIF: `{name}`" for name in comparison_gifs)
+    report_lines.extend(f"- 연속 frame sheet: `{name}`" for name in sequence_sheets)
     report_lines.extend(
         [
             "",
