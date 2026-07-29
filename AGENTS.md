@@ -177,6 +177,9 @@ Original mode는 기존 edge target/shader path를 유지한다.
   4,800 measurement, 3 repeats이며 candidate readback을 끔
 - `-smaaOriginalFourCapture` / `-smaaEightCaseCapture`: 각각 Original 4개 또는 전체
   8개 mode의 동일 frame index PNG sequence를 별도 디렉터리에 저장
+- `-smaaOneXStressCapture`: `O-1X`와 `A-1X`를 전용 `thin-lines`,
+  `object-motion`, `combined` stress timeline에서 캡처하는 spatial-only 품질 control.
+  최종 8-case를 늘리는 mode가 아니라 SMAA 1X 대비 temporal 효과를 확인하는 기준군
 - `Tools/SMAA/analyze_original_four_quality.py`: Original 네 mode의 정렬된 PNG
   sequence를 검증하고 temporal MAE, 2차 시간 차분, edge strength, 짝·홀 위상 gap,
   대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG, pair GIF와

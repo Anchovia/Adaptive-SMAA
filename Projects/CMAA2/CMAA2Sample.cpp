@@ -45,7 +45,8 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_A_T2X
             || aaType == CMAA2Sample::AAType::SMAA_A_T2X_R
             || aaType == CMAA2Sample::AAType::SMAA_A_ET2X
-            || aaType == CMAA2Sample::AAType::SMAA_A_ET2X_R;
+            || aaType == CMAA2Sample::AAType::SMAA_A_ET2X_R
+            || aaType == CMAA2Sample::AAType::SMAA_A_1X;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -56,6 +57,7 @@ namespace
         case CMAA2Sample::AAType::SMAA_A_T2X_R:
         case CMAA2Sample::AAType::SMAA_A_ET2X:
         case CMAA2Sample::AAType::SMAA_A_ET2X_R:
+        case CMAA2Sample::AAType::SMAA_A_1X:
             return vaSMAAWrapper::SpatialSearch::AdaptiveContrast;
         default:
             return vaSMAAWrapper::SpatialSearch::Original;
@@ -373,6 +375,7 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
     case CMAA2Sample::AAType::SMAA_A_T2X_R:         return "A-T2X-R - Adaptive SMAA Standard T2X + camera reprojection";
     case CMAA2Sample::AAType::SMAA_A_ET2X:          return "A-ET2X - Adaptive SMAA TSCMAA-inspired edge-selective temporal [no-reprojection ablation]";
     case CMAA2Sample::AAType::SMAA_A_ET2X_R:        return "A-ET2X-R - Adaptive SMAA TSCMAA-inspired edge-selective temporal + camera reprojection";
+    case CMAA2Sample::AAType::SMAA_A_1X:            return "A-1X - Adaptive SMAA spatial-only quality control";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -411,6 +414,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_A_T2X_R:         return 1;
     case CMAA2Sample::AAType::SMAA_A_ET2X:          return 1;
     case CMAA2Sample::AAType::SMAA_A_ET2X_R:        return 1;
+    case CMAA2Sample::AAType::SMAA_A_1X:            return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return 4;   // at the moment use to test 4xMSAA + CMAA but applied after
@@ -2344,20 +2348,26 @@ protected:
 class BenchItemRecordSMAATemporalStressMatrix : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
-    static const int    c_modeCount = 8;
     static const int    c_modeCapacity = 8;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SMAATemporalStressScenario m_scenario;
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
+    const bool          m_oneXControlsOnly;
+    const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
     bool                m_started = false;
     bool                m_isDone = false;
     wstring             m_outputDirs[c_modeCapacity];
 
-    static const char * GetModeID(int mode)
+    static const char * GetModeID(int mode, bool oneXControlsOnly)
     {
+        if(oneXControlsOnly)
+        {
+            static const char * c_controlModeIDs[2] = { "O-1X", "A-1X" };
+            return c_controlModeIDs[mode];
+        }
         static const char * c_modeIDs[c_modeCapacity] =
         {
             "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
@@ -2366,8 +2376,13 @@ class BenchItemRecordSMAATemporalStressMatrix : public AutoBenchToolWorkItem
         return c_modeIDs[mode];
     }
 
-    static const char * GetModeDirectory(int mode)
+    static const char * GetModeDirectory(int mode, bool oneXControlsOnly)
     {
+        if(oneXControlsOnly)
+        {
+            static const char * c_controlModeDirectories[2] = { "O_1X", "A_1X" };
+            return c_controlModeDirectories[mode];
+        }
         static const char * c_modeDirectories[c_modeCapacity] =
         {
             "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R",
@@ -2376,8 +2391,17 @@ class BenchItemRecordSMAATemporalStressMatrix : public AutoBenchToolWorkItem
         return c_modeDirectories[mode];
     }
 
-    static CMAA2Sample::AAType GetModeAAType(int mode)
+    static CMAA2Sample::AAType GetModeAAType(int mode, bool oneXControlsOnly)
     {
+        if(oneXControlsOnly)
+        {
+            static const CMAA2Sample::AAType c_controlModes[2] =
+            {
+                CMAA2Sample::AAType::SMAA,
+                CMAA2Sample::AAType::SMAA_A_1X
+            };
+            return c_controlModes[mode];
+        }
         static const CMAA2Sample::AAType c_modes[c_modeCapacity] =
         {
             CMAA2Sample::AAType::SMAA_O_T2X,
@@ -2395,11 +2419,14 @@ class BenchItemRecordSMAATemporalStressMatrix : public AutoBenchToolWorkItem
 public:
     BenchItemRecordSMAATemporalStressMatrix(CMAA2Sample& parent,
         CMAA2Sample::SMAATemporalStressScenario scenario,
-        int captureFrameCount, int warmupFrameCount)
+        int captureFrameCount, int warmupFrameCount,
+        bool oneXControlsOnly = false)
         : AutoBenchToolWorkItem(parent),
         m_scenario(scenario),
         m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
-        m_warmupFrameCount(vaMath::Max(1, warmupFrameCount))
+        m_warmupFrameCount(vaMath::Max(1, warmupFrameCount)),
+        m_oneXControlsOnly(oneXControlsOnly),
+        m_modeCount(oneXControlsOnly? 2 : c_modeCapacity)
     {
     }
 
@@ -2422,14 +2449,16 @@ protected:
                 std::numeric_limits<float>::infinity();
 
             abTool.ReportStart();
-            for(int mode = 0; mode < c_modeCount; mode++)
+            for(int mode = 0; mode < m_modeCount; mode++)
             {
                 m_outputDirs[mode] = abTool.ReportGetDir()
-                    + vaStringTools::SimpleWiden(GetModeDirectory(mode)) + L"\\";
+                    + vaStringTools::SimpleWiden(GetModeDirectory(mode, m_oneXControlsOnly)) + L"\\";
                 vaFileTools::EnsureDirectoryExists(m_outputDirs[mode]);
             }
 
-            abTool.ReportAddText("SMAA eight-case dedicated temporal stress capture\r\n\r\n");
+            abTool.ReportAddText(m_oneXControlsOnly?
+                "SMAA 1X dedicated temporal stress quality controls\r\n\r\n" :
+                "SMAA eight-case dedicated temporal stress capture\r\n\r\n");
             abTool.ReportAddText(vaStringTools::Format("Scenario:       %s\r\n",
                 CMAA2Sample::GetSMAATemporalStressScenarioName(m_scenario)));
             abTool.ReportAddText("Scene:          procedural thin lines, moving occluder, rotating blades\r\n");
@@ -2439,11 +2468,15 @@ protected:
                 m_warmupFrameCount));
             abTool.ReportAddText(vaStringTools::Format("Capture:        %d frames per mode\r\n",
                 m_captureFrameCount));
-            abTool.ReportAddText("Motion scope:   -R modes reproject camera motion only; object motion vectors are not connected\r\n");
+            abTool.ReportAddText(m_oneXControlsOnly?
+                "Temporal scope: spatial-only controls; no jitter, history, or reprojection\r\n" :
+                "Motion scope:   -R modes reproject camera motion only; object motion vectors are not connected\r\n");
             abTool.ReportAddText("Classification: dedicated quality evidence; PNG capture is not a performance measurement\r\n\r\n");
             abTool.ReportAddRowValues({ "Mode", "Output directory" });
-            for(int mode = 0; mode < c_modeCount; mode++)
-                abTool.ReportAddRowValues({ GetModeID(mode), GetModeDirectory(mode) });
+            for(int mode = 0; mode < m_modeCount; mode++)
+                abTool.ReportAddRowValues({
+                    GetModeID(mode, m_oneXControlsOnly),
+                    GetModeDirectory(mode, m_oneXControlsOnly) });
 
             m_currentMode = 0;
             m_currentFrame = -m_warmupFrameCount - 1;
@@ -2453,7 +2486,7 @@ protected:
         if(m_currentFrame >= m_captureFrameCount)
         {
             m_currentMode++;
-            if(m_currentMode >= c_modeCount)
+            if(m_currentMode >= m_modeCount)
             {
                 m_isDone = true;
                 abTool.ReportFinish();
@@ -2462,7 +2495,8 @@ protected:
             m_currentFrame = -m_warmupFrameCount;
         }
 
-        m_parent.Settings().CurrentAAOption = GetModeAAType(m_currentMode);
+        m_parent.Settings().CurrentAAOption =
+            GetModeAAType(m_currentMode, m_oneXControlsOnly);
         m_parent.SetSMAATemporalStressTestState(
             m_scenario, (float)m_currentFrame * c_frameDeltaTime);
     }
@@ -2475,10 +2509,11 @@ protected:
         shared_ptr<vaPostProcess>& postProcess) override
     {
         abTool; imageCompareTool; postProcess;
-        if(m_currentMode < c_modeCount && m_currentFrame >= 0
+        if(m_currentMode < m_modeCount && m_currentFrame >= 0
             && m_currentFrame < m_captureFrameCount)
         {
-            const char* modeName = GetModeDirectory(m_currentMode);
+            const char* modeName =
+                GetModeDirectory(m_currentMode, m_oneXControlsOnly);
             const wstring fileName = m_outputDirs[m_currentMode]
                 + vaStringTools::SimpleWiden(vaStringTools::Format(
                     "%s_%s_frame_%05d.png",
@@ -2493,7 +2528,7 @@ protected:
     virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
     virtual bool IsCapturingFrame() const override
     {
-        return m_currentMode < c_modeCount && m_currentFrame >= 0
+        return m_currentMode < m_modeCount && m_currentFrame >= 0
             && m_currentFrame < m_captureFrameCount;
     }
     virtual float GetProgress() const override
@@ -2502,7 +2537,7 @@ protected:
         const int completedFrames = m_currentMode * framesPerMode
             + m_currentFrame + m_warmupFrameCount;
         return vaMath::Clamp((float)completedFrames
-            / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f);
+            / (float)(framesPerMode * m_modeCount), 0.0f, 1.0f);
     }
 };
 
@@ -4347,7 +4382,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
-        if (_wcsicmp(parameter.first.c_str(), L"smaaEightCaseStressCapture") == 0)
+        const bool oneXStressControls =
+            _wcsicmp(parameter.first.c_str(), L"smaaOneXStressCapture") == 0;
+        if (oneXStressControls
+            || _wcsicmp(parameter.first.c_str(), L"smaaEightCaseStressCapture") == 0)
         {
             wstring scenarioToken = L"object-motion";
             int frameCount = 180;
@@ -4357,7 +4395,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 std::wistringstream values(parameter.second);
                 if(!(values >> scenarioToken >> frameCount >> warmupFrameCount))
                 {
-                    VA_LOG_ERROR("Invalid -smaaEightCaseStressCapture values; expected: <thin-lines|object-motion|combined> <captureFrames> <warmupFrames>");
+                    VA_LOG_ERROR("Invalid SMAA stress capture values; expected: <thin-lines|object-motion|combined> <captureFrames> <warmupFrames>");
                     return;
                 }
             }
@@ -4379,9 +4417,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             warmupFrameCount = vaMath::Clamp(warmupFrameCount, 1, 600);
             m_autoBench->AddTask(
                 std::make_shared<BenchItemRecordSMAATemporalStressMatrix>(
-                    *this, scenario, frameCount, warmupFrameCount));
+                    *this, scenario, frameCount, warmupFrameCount,
+                    oneXStressControls));
             m_quitAfterCommandLineCapture = true;
-            VA_LOG("Queued SMAA eight-case '%s' temporal stress capture: %d capture frames, %d warm-up frames",
+            VA_LOG("Queued SMAA %s '%s' temporal stress capture: %d capture frames, %d warm-up frames",
+                oneXStressControls? "1X controls" : "eight-case",
                 GetSMAATemporalStressScenarioName(scenario),
                 frameCount, warmupFrameCount);
             return;
