@@ -1974,25 +1974,80 @@ protected:
     }
 };
 
-class BenchItemRecordSMAAOriginalFourComparison : public AutoBenchToolWorkItem
+class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
-    static const int    c_modeCount = 4;
+    static const int    c_originalModeCount = 4;
+    static const int    c_modeCapacity = 8;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
+    const int           m_modeCount;
     float               m_captureStartTime;
     int                 m_currentMode;
     int                 m_currentFrame;
     bool                m_started;
     bool                m_isDone;
-    wstring             m_outputDirs[c_modeCount];
+    wstring             m_outputDirs[c_modeCapacity];
+
+    static const char * GetModeID( int mode )
+    {
+        static const char * c_modeIDs[c_modeCapacity] =
+        {
+            "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
+            "A-T2X", "A-T2X-R", "A-ET2X", "A-ET2X-R"
+        };
+        return c_modeIDs[mode];
+    }
+
+    static const char * GetModeDirectory( int mode )
+    {
+        static const char * c_modeDirectories[c_modeCapacity] =
+        {
+            "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R",
+            "A_T2X", "A_T2X_R", "A_ET2X", "A_ET2X_R"
+        };
+        return c_modeDirectories[mode];
+    }
+
+    static const char * GetModeDescription( int mode )
+    {
+        static const char * c_modeDescriptions[c_modeCapacity] =
+        {
+            "Original SMAA Standard T2X",
+            "Original SMAA Standard T2X + camera reprojection",
+            "Original SMAA TSCMAA-inspired edge-selective temporal, no-reprojection ablation",
+            "Original SMAA TSCMAA-inspired edge-selective temporal + camera reprojection",
+            "Adaptive SMAA Standard T2X",
+            "Adaptive SMAA Standard T2X + camera reprojection",
+            "Adaptive SMAA TSCMAA-inspired edge-selective temporal, no-reprojection ablation",
+            "Adaptive SMAA TSCMAA-inspired edge-selective temporal + camera reprojection"
+        };
+        return c_modeDescriptions[mode];
+    }
+
+    static CMAA2Sample::AAType GetModeAAType( int mode )
+    {
+        static const CMAA2Sample::AAType c_modes[c_modeCapacity] =
+        {
+            CMAA2Sample::AAType::SMAA_O_T2X,
+            CMAA2Sample::AAType::SMAA_O_T2X_R,
+            CMAA2Sample::AAType::SMAA_O_ET2X,
+            CMAA2Sample::AAType::SMAA_O_ET2X_R,
+            CMAA2Sample::AAType::SMAA_A_T2X,
+            CMAA2Sample::AAType::SMAA_A_T2X_R,
+            CMAA2Sample::AAType::SMAA_A_ET2X,
+            CMAA2Sample::AAType::SMAA_A_ET2X_R
+        };
+        return c_modes[mode];
+    }
 
 public:
-    BenchItemRecordSMAAOriginalFourComparison(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
+    BenchItemRecordSMAATemporalMatrix(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, bool includeAdaptive)
         : AutoBenchToolWorkItem(parent),
         m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
         m_warmupFrameCount(vaMath::Max(1, warmupFrameCount)),
+        m_modeCount(includeAdaptive? c_modeCapacity : c_originalModeCount),
         m_captureStartTime(startTime),
         m_currentMode(0),
         m_currentFrame(0),
@@ -2020,14 +2075,15 @@ protected:
             m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity();
 
             abTool.ReportStart();
-            m_outputDirs[0] = abTool.ReportGetDir() + L"O_T2X\\";
-            m_outputDirs[1] = abTool.ReportGetDir() + L"O_T2X_R\\";
-            m_outputDirs[2] = abTool.ReportGetDir() + L"O_ET2X\\";
-            m_outputDirs[3] = abTool.ReportGetDir() + L"O_ET2X_R\\";
-            for( int i = 0; i < c_modeCount; i++ )
+            for( int i = 0; i < m_modeCount; i++ )
+            {
+                m_outputDirs[i] = abTool.ReportGetDir() + vaStringTools::SimpleWiden( GetModeDirectory( i ) ) + L"\\";
                 vaFileTools::EnsureDirectoryExists(m_outputDirs[i]);
+            }
 
-            abTool.ReportAddText("Original SMAA four-mode temporal capture\r\n\r\n");
+            abTool.ReportAddText(m_modeCount == c_modeCapacity?
+                "SMAA eight-case temporal capture\r\n\r\n" :
+                "Original SMAA four-mode temporal capture\r\n\r\n");
             abTool.ReportAddText("Engineering comparison capture; this is not a formal quality or performance result.\r\n");
             abTool.ReportAddText("O-T2X and O-T2X-R use the official SMAA T2X jitter pattern.\r\n");
             abTool.ReportAddText("O-ET2X and O-ET2X-R use the Intel-document-family edge-selective SMAA adaptation without deliberate projection jitter.\r\n");
@@ -2040,10 +2096,8 @@ protected:
             abTool.ReportAddText("Shadowmaps:    wait for stable lighting before frame zero\r\n");
             abTool.ReportAddText(vaStringTools::Format("Capture:       %d frames per mode\r\n\r\n", m_captureFrameCount));
             abTool.ReportAddRowValues({ "Mode", "AA implementation", "Output directory" });
-            abTool.ReportAddRowValues({ "O-T2X", "Original SMAA Standard T2X", "O_T2X" });
-            abTool.ReportAddRowValues({ "O-T2X-R", "Original SMAA Standard T2X + camera reprojection", "O_T2X_R" });
-            abTool.ReportAddRowValues({ "O-ET2X", "Original SMAA TSCMAA-inspired edge-selective temporal, no-reprojection ablation", "O_ET2X" });
-            abTool.ReportAddRowValues({ "O-ET2X-R", "Original SMAA TSCMAA-inspired edge-selective temporal + camera reprojection", "O_ET2X_R" });
+            for( int mode = 0; mode < m_modeCount; mode++ )
+                abTool.ReportAddRowValues({ GetModeID( mode ), GetModeDescription( mode ), GetModeDirectory( mode ) });
 
             m_currentMode = 0;
             m_currentFrame = -m_warmupFrameCount - 1;
@@ -2058,7 +2112,7 @@ protected:
         if (m_currentFrame >= m_captureFrameCount)
         {
             m_currentMode++;
-            if (m_currentMode >= c_modeCount)
+            if (m_currentMode >= m_modeCount)
             {
                 m_isDone = true;
                 abTool.ReportFinish();
@@ -2067,14 +2121,7 @@ protected:
             m_currentFrame = -m_warmupFrameCount;
         }
 
-        const CMAA2Sample::AAType modes[c_modeCount] =
-        {
-            CMAA2Sample::AAType::SMAA_O_T2X,
-            CMAA2Sample::AAType::SMAA_O_T2X_R,
-            CMAA2Sample::AAType::SMAA_O_ET2X,
-            CMAA2Sample::AAType::SMAA_O_ET2X_R
-        };
-        m_parent.Settings().CurrentAAOption = modes[m_currentMode];
+        m_parent.Settings().CurrentAAOption = GetModeAAType(m_currentMode);
 
         const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
         m_parent.GetFlythroughCameraController()->SetPlayTime(vaMath::Max(0.0f, playTime));
@@ -2086,28 +2133,27 @@ protected:
         const shared_ptr<vaTexture>& colorInOut, shared_ptr<vaPostProcess>& postProcess) override
     {
         abTool; imageCompareTool; postProcess;
-        if (m_currentMode < c_modeCount && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
+        if (m_currentMode < m_modeCount && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
         {
-            const char* modeNames[c_modeCount] = { "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R" };
-            const char* modeName = modeNames[m_currentMode];
+            const char* modeName = GetModeDirectory(m_currentMode);
             const wstring fileName = m_outputDirs[m_currentMode] + vaStringTools::SimpleWiden(
                 vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
             if (!colorInOut->SaveToPNGFile(renderContext, fileName))
-                VA_LOG_ERROR(L"Failed to save Original SMAA temporal frame '%s'", fileName.c_str());
+                VA_LOG_ERROR(L"Failed to save SMAA temporal frame '%s'", fileName.c_str());
         }
     }
 
     virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
     virtual bool IsCapturingFrame() const override
     {
-        return m_currentMode < c_modeCount && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount;
+        return m_currentMode < m_modeCount && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount;
     }
 
     virtual float GetProgress() const override
     {
         const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
         const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
-        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f);
+        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * m_modeCount), 0.0f, 1.0f);
     }
 };
 
@@ -3953,8 +3999,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         }
 
         const bool originalFourCapture = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourCapture") == 0;
+        const bool eightCaseCapture = _wcsicmp(parameter.first.c_str(), L"smaaEightCaseCapture") == 0;
         const bool legacyPairCaptureAlias = _wcsicmp(parameter.first.c_str(), L"smaaTemporalPairCapture") == 0;
-        if (!originalFourCapture && !legacyPairCaptureAlias)
+        if (!originalFourCapture && !eightCaseCapture && !legacyPairCaptureAlias)
             continue;
 
         float startTime = m_temporalComparisonStartTime;
@@ -3965,7 +4012,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             std::wistringstream values(parameter.second);
             if (!(values >> startTime >> frameCount >> warmupFrameCount))
             {
-                VA_LOG_ERROR("Invalid -smaaOriginalFourCapture values; expected: <startTimeSeconds> <captureFrames> <warmupFrames>");
+                VA_LOG_ERROR("Invalid SMAA temporal capture values; expected: <startTimeSeconds> <captureFrames> <warmupFrames>");
                 return;
             }
         }
@@ -3973,11 +4020,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         frameCount = vaMath::Clamp(frameCount, 1, 1800);
         warmupFrameCount = vaMath::Clamp(warmupFrameCount, 0, 600);
         startTime = vaMath::Max(0.0f, startTime);
-        m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAAOriginalFourComparison>(
-            *this, startTime, frameCount, warmupFrameCount));
+        m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalMatrix>(
+            *this, startTime, frameCount, warmupFrameCount, eightCaseCapture));
         m_quitAfterCommandLineCapture = true;
-        VA_LOG("Queued Original SMAA four-mode temporal capture: start %.3f s, %d capture frames, %d warm-up frames",
-            startTime, frameCount, warmupFrameCount);
+        VA_LOG("Queued SMAA %s temporal capture: start %.3f s, %d capture frames, %d warm-up frames",
+            eightCaseCapture? "eight-case" : "Original four-mode", startTime, frameCount, warmupFrameCount);
         return;
     }
 }
@@ -4419,11 +4466,19 @@ void CMAA2Sample::UIPanelDraw()
 
                 if (ImGui::Button("Capture Original SMAA four temporal modes"))
                 {
-                    m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAAOriginalFourComparison>(*this,
-                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));
+                    m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalMatrix>(*this,
+                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames, false));
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("Separate deterministic pair capture");
+
+                if (ImGui::Button("Capture full SMAA eight-case matrix"))
+                {
+                    m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalMatrix>(*this,
+                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames, true));
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("Original + Adaptive, 8 PNG sequences");
                 ImGui::Separator();
 #endif
                 const char* dx11 = "Run performance benchmarks (DX11)";
