@@ -41,8 +41,26 @@
 
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
 
+#include <cmath>
+
 namespace VertexAsylum
 {
+    static bool SMAATemporalMatrixIsFinite( const vaMatrix4x4 & matrix )
+    {
+        for( uint32 row = 0; row < 4; row++ )
+            for( uint32 column = 0; column < 4; column++ )
+                if( !std::isfinite( matrix( row, column ) ) )
+                    return false;
+        return true;
+    }
+
+    static bool SMAATemporalSubsampleIndicesMatch( const float actual[4], const vaVector4 & expected )
+    {
+        return vaMath::NearEqual( actual[0], expected.x, 1e-6f )
+            && vaMath::NearEqual( actual[1], expected.y, 1e-6f )
+            && vaMath::NearEqual( actual[2], expected.z, 1e-6f )
+            && vaMath::NearEqual( actual[3], expected.w, 1e-6f );
+    }
 
     struct TechniqueThingieDX11 : public SMAATechniqueInterface
     {
@@ -535,6 +553,40 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
     const bool edgeSelectiveTemporalEnabled = GetEdgeSelectiveTemporalEnabled( );
+    const bool temporalLifecycleDiagnosticsEnabled = m_temporalLifecycleDiagnostics.Enabled && GetTemporalModeEnabled( );
+    const int temporalFrameIndexBefore = GetTemporalFrameIndex( );
+    const bool temporalHistoryValidBefore = m_temporalHistoryValid;
+    const bool previousViewProjValidBefore = m_previousViewProjValid;
+    if( temporalLifecycleDiagnosticsEnabled )
+    {
+        const int expectedFrameIndex = (int)(m_temporalLifecycleFramesSinceReset % 2);
+        if( temporalFrameIndexBefore != expectedFrameIndex || m_smaa->getFrameIndex( ) != temporalFrameIndexBefore )
+            m_temporalLifecycleDiagnostics.FrameIndexMismatchCount++;
+
+        const bool expectedHistoryValid = m_temporalLifecycleFramesSinceReset > 0;
+        if( temporalHistoryValidBefore != expectedHistoryValid )
+            m_temporalLifecycleDiagnostics.HistoryStateMismatchCount++;
+
+        if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || m_temporalHistory[0] == m_temporalHistory[1] )
+            m_temporalLifecycleDiagnostics.HistoryResourceMismatchCount++;
+
+        const vaVector2 expectedJitter = GetTemporalJitterEnabled( )? GetTemporalJitterOffset( ) : vaVector2( 0.0f, 0.0f );
+        vaVector2 actualJitter( 0.0f, 0.0f );
+        if( optionalCamera != nullptr )
+            actualJitter = const_cast<vaCameraBase *>( optionalCamera )->GetSubpixelOffset( );
+        if( optionalCamera == nullptr || !vaVector2::NearEqual( actualJitter, expectedJitter, 1e-6f ) )
+            m_temporalLifecycleDiagnostics.JitterMismatchCount++;
+
+        m_temporalLifecycleDiagnostics.LastFrameIndexBefore = temporalFrameIndexBefore;
+        m_temporalLifecycleDiagnostics.LastHistoryValidBefore = temporalHistoryValidBefore;
+        m_temporalLifecycleDiagnostics.LastWasSeed = !temporalHistoryValidBefore;
+        m_temporalLifecycleDiagnostics.LastUsedReprojection = temporalReprojectionEnabled;
+        m_temporalLifecycleDiagnostics.LastJitter = actualJitter;
+        m_temporalLifecycleDiagnostics.LastWidth = (uint32)inputColor->GetSizeX( );
+        m_temporalLifecycleDiagnostics.LastHeight = (uint32)inputColor->GetSizeY( );
+        m_temporalLastSubsampleIndicesValid = false;
+    }
+
     vaMatrix4x4 currentUnjitteredViewProjForHistory = vaMatrix4x4::Identity;
     if( temporalReprojectionEnabled || edgeSelectiveTemporalEnabled )
     {
@@ -570,6 +622,21 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
             m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
             currentUnjitteredViewProjForHistory = currentUnjitteredViewProj;
+
+            if( temporalLifecycleDiagnosticsEnabled )
+            {
+                m_temporalLifecycleDiagnostics.ReprojectionFrameCount++;
+                const bool matricesFinite = SMAATemporalMatrixIsFinite( m_reprojectionConstants.CurrentViewProjInv )
+                    && SMAATemporalMatrixIsFinite( m_reprojectionConstants.CurrentUnjitteredViewProj )
+                    && SMAATemporalMatrixIsFinite( m_reprojectionConstants.PreviousViewProj );
+                const bool inverseMatches = vaMatrix4x4::NearEqual(
+                    currentJitteredViewProj * m_reprojectionConstants.CurrentViewProjInv, vaMatrix4x4::Identity, 2e-3f );
+                const bool firstFramePreviousMatches = previousViewProjValidBefore
+                    || vaMatrix4x4::NearEqual( m_reprojectionConstants.PreviousViewProj,
+                        m_reprojectionConstants.CurrentUnjitteredViewProj, 1e-5f );
+                if( !matricesFinite || !inverseMatches || !firstFramePreviousMatches )
+                    m_temporalLifecycleDiagnostics.MatrixMismatchCount++;
+            }
         }
 
         m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
@@ -648,6 +715,46 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
             AdvanceTemporalFrame( );
+
+            if( temporalLifecycleDiagnosticsEnabled )
+            {
+                const vaVector4 expectedSubsampleIndices = edgeSelectiveTemporalEnabled?
+                    vaVector4( 0.0f, 0.0f, 0.0f, 0.0f ) :
+                    ((temporalFrameIndexBefore == 0)? vaVector4( 1.0f, 1.0f, 1.0f, 0.0f ) : vaVector4( 2.0f, 2.0f, 2.0f, 0.0f ));
+                if( !m_temporalLastSubsampleIndicesValid
+                    || !SMAATemporalSubsampleIndicesMatch( m_temporalLastSubsampleIndices, expectedSubsampleIndices ) )
+                    m_temporalLifecycleDiagnostics.SubsampleMismatchCount++;
+
+                const int expectedFrameIndexAfter = 1 - temporalFrameIndexBefore;
+                if( GetTemporalFrameIndex( ) != expectedFrameIndexAfter || m_smaa->getFrameIndex( ) != expectedFrameIndexAfter )
+                    m_temporalLifecycleDiagnostics.FrameIndexMismatchCount++;
+
+                m_temporalLifecycleDiagnostics.CompletedFrameCount++;
+                if( temporalHistoryValidBefore )
+                    m_temporalLifecycleDiagnostics.ResolvedFrameCount++;
+                else
+                    m_temporalLifecycleDiagnostics.SeedFrameCount++;
+                m_temporalLifecycleDiagnostics.LastFrameIndexAfter = GetTemporalFrameIndex( );
+                m_temporalLifecycleDiagnostics.LastSubsampleIndices = vaVector4(
+                    m_temporalLastSubsampleIndices[0], m_temporalLastSubsampleIndices[1],
+                    m_temporalLastSubsampleIndices[2], m_temporalLastSubsampleIndices[3] );
+                m_temporalLifecycleFramesSinceReset++;
+                m_temporalLifecycleDiagnostics.Passed = m_temporalLifecycleDiagnostics.GetFailureCount( ) == 0;
+
+                if( m_temporalLifecycleFramesSinceReset <= 2 || !m_temporalLifecycleDiagnostics.Passed )
+                {
+                    VA_LOG( "SMAA temporal lifecycle: frame=%d->%d, history=%s, historyRT=%d/%d, jitter=(%.3f, %.3f), subsample=(%.0f, %.0f, %.0f, %.0f), reprojection=%s, size=%ux%u => %s",
+                        temporalFrameIndexBefore, GetTemporalFrameIndex( ),
+                        temporalHistoryValidBefore? "resolve" : "seed",
+                        temporalFrameIndexBefore, 1 - temporalFrameIndexBefore,
+                        m_temporalLifecycleDiagnostics.LastJitter.x, m_temporalLifecycleDiagnostics.LastJitter.y,
+                        m_temporalLastSubsampleIndices[0], m_temporalLastSubsampleIndices[1],
+                        m_temporalLastSubsampleIndices[2], m_temporalLastSubsampleIndices[3],
+                        temporalReprojectionEnabled? "camera-depth-matrices" : "off",
+                        m_temporalLifecycleDiagnostics.LastWidth, m_temporalLifecycleDiagnostics.LastHeight,
+                        m_temporalLifecycleDiagnostics.Passed? "PASS" : "FAIL" );
+                }
+            }
         }
         else
         {
@@ -997,6 +1104,11 @@ void vaSMAAWrapperDX11::SetVariablesA( ID3D11DeviceContext * context, float thre
 void vaSMAAWrapperDX11::SetVariablesB( ID3D11DeviceContext * context, float subsampleIndicesVariable[4] )
 {
     memcpy( m_constants.subsampleIndices, subsampleIndicesVariable, sizeof(float)*4 );
+    if( m_temporalLifecycleDiagnostics.Enabled )
+    {
+        memcpy( m_temporalLastSubsampleIndices, subsampleIndicesVariable, sizeof(float)*4 );
+        m_temporalLastSubsampleIndicesValid = true;
+    }
     m_constantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->Update( context, &m_constants, sizeof(m_constants) );
 }
 

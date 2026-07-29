@@ -247,6 +247,11 @@ namespace VertexAsylum
         shared_ptr<vaPostProcessTonemap>  &     PostProcessTonemap( )               { return m_postProcessTonemap; }
         void                                    SetSMAAPreset( vaSMAAWrapper::Preset preset ) { m_SMAA->SetPreset( preset ); }
         vaSMAAWrapper::Preset                   GetSMAAPreset( ) const               { return m_SMAA->GetPreset( ); }
+        void                                    SetSMAATemporalLifecycleDiagnosticsEnabled( bool enabled ) { m_SMAA->SetTemporalLifecycleDiagnosticsEnabled( enabled ); }
+        const vaSMAAWrapper::TemporalLifecycleDiagnostics &
+                                                GetSMAATemporalLifecycleDiagnostics( ) const { return m_SMAA->GetTemporalLifecycleDiagnostics( ); }
+        void                                    ResetSMAATemporalHistoryForDiagnostics( ) { m_SMAA->ResetTemporalHistory( ); }
+        void                                    SetWindowClientAreaSizeForDiagnostics( const vaVector2i & size ) { m_application.SetWindowClientAreaSize( size ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }
         void                                    SetFixedDeltaTime( float deltaTime ) { m_fixedDeltaTime = deltaTime; }

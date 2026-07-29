@@ -2071,6 +2071,207 @@ protected:
     }
 };
 
+class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
+{
+    enum class Phase : int
+    {
+        O_T2X,
+        O_T2X_R,
+        O_ET2X,
+        O_ET2X_R,
+        ExplicitCameraCutReset,
+        SceneChange,
+        SceneRestore,
+        Resize,
+        ResizeRestore,
+        Complete
+    };
+
+    Phase               m_phase                 = Phase::O_T2X;
+    bool                m_started               = false;
+    bool                m_isDone                = false;
+    bool                m_allTransitionsPassed  = true;
+    bool                m_firstTargetFrameChecked = false;
+    int                 m_targetFramesObserved  = 0;
+    uint32              m_phaseStartResetCount  = 0;
+    uint32              m_phaseStartSeedFrameCount = 0;
+    uint32              m_lastObservedFrameCount = 0;
+    vaVector2i          m_originalWindowSize;
+    vaVector2i          m_resizedWindowSize;
+
+    static const char * GetPhaseName( Phase phase )
+    {
+        switch( phase )
+        {
+        case Phase::O_T2X:                  return "O-T2X mode start";
+        case Phase::O_T2X_R:                return "O-T2X-R mode change";
+        case Phase::O_ET2X:                 return "O-ET2X mode change";
+        case Phase::O_ET2X_R:               return "O-ET2X-R mode change";
+        case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
+        case Phase::SceneChange:            return "scene change";
+        case Phase::SceneRestore:           return "scene restore";
+        case Phase::Resize:                 return "resolution change";
+        case Phase::ResizeRestore:          return "resolution restore";
+        case Phase::Complete:               return "complete";
+        default:                            return "unknown";
+        }
+    }
+
+    bool TargetSizeMatches( const vaSMAAWrapper::TemporalLifecycleDiagnostics & diagnostics ) const
+    {
+        if( m_phase == Phase::Resize )
+            return diagnostics.LastWidth == (uint32)m_resizedWindowSize.x && diagnostics.LastHeight == (uint32)m_resizedWindowSize.y;
+        if( m_phase == Phase::ResizeRestore )
+            return diagnostics.LastWidth == (uint32)m_originalWindowSize.x && diagnostics.LastHeight == (uint32)m_originalWindowSize.y;
+        return true;
+    }
+
+    int RequiredTargetFrames( ) const
+    {
+        return (m_phase == Phase::O_T2X || m_phase == Phase::O_T2X_R
+            || m_phase == Phase::O_ET2X || m_phase == Phase::O_ET2X_R)? 3 : 2;
+    }
+
+    void EnterPhase( Phase phase )
+    {
+        m_phase = phase;
+        const vaSMAAWrapper::TemporalLifecycleDiagnostics & diagnostics = m_parent.GetSMAATemporalLifecycleDiagnostics( );
+        m_phaseStartResetCount = diagnostics.ResetCount;
+        m_phaseStartSeedFrameCount = diagnostics.SeedFrameCount;
+        m_lastObservedFrameCount = diagnostics.CompletedFrameCount;
+        m_targetFramesObserved = 0;
+        m_firstTargetFrameChecked = false;
+
+        switch( phase )
+        {
+        case Phase::O_T2X:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_T2X;
+            // The initial mode may already be selected in persisted settings,
+            // so explicitly establish a known reset boundary for phase zero.
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            break;
+        case Phase::O_T2X_R:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_T2X_R;
+            break;
+        case Phase::O_ET2X:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X;
+            break;
+        case Phase::O_ET2X_R:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            break;
+        case Phase::ExplicitCameraCutReset:
+            // LoadCamera and other known camera cuts use this same history-reset
+            // entry point; no arbitrary motion threshold is introduced.
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            break;
+        case Phase::SceneChange:
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::MinecraftLostEmpire;
+            break;
+        case Phase::SceneRestore:
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            break;
+        case Phase::Resize:
+            m_parent.SetWindowClientAreaSizeForDiagnostics( m_resizedWindowSize );
+            break;
+        case Phase::ResizeRestore:
+            m_parent.SetWindowClientAreaSizeForDiagnostics( m_originalWindowSize );
+            break;
+        case Phase::Complete:
+            break;
+        }
+    }
+
+public:
+    explicit BenchItemValidateSMAATemporalLifecycle( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_originalWindowSize = m_parent.GetApplication().GetWindowClientAreaSize( );
+            m_resizedWindowSize = vaVector2i( vaMath::Max( 320, m_originalWindowSize.x - 64 ),
+                vaMath::Max( 240, m_originalWindowSize.y - 64 ) );
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA temporal lifecycle engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "Validates seed/resolve state, ping-pong indices, jitter/subsample pairing,\r\n" );
+            abTool.ReportAddText( "first-frame reprojection matrices, mode/scene/camera-cut reset, and resize recreation.\r\n" );
+            abTool.ReportAddText( "This is not a formal quality or performance measurement.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Phase", "Reset observed", "First frame seeded", "Result" } );
+            EnterPhase( Phase::O_T2X );
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalLifecycleDiagnostics & diagnostics = m_parent.GetSMAATemporalLifecycleDiagnostics( );
+        if( m_phase == Phase::Complete )
+        {
+            const bool aggregatePassed = diagnostics.Passed && m_allTransitionsPassed
+                && diagnostics.SeedFrameCount >= 9
+                && diagnostics.ResolvedFrameCount > diagnostics.SeedFrameCount
+                && diagnostics.ReprojectionFrameCount > 0;
+            VA_LOG( "SMAA temporal lifecycle validation: resets=%u, frames=%u, seed=%u, resolve=%u, reprojection=%u, failures=%u => %s",
+                diagnostics.ResetCount, diagnostics.CompletedFrameCount, diagnostics.SeedFrameCount,
+                diagnostics.ResolvedFrameCount, diagnostics.ReprojectionFrameCount,
+                diagnostics.GetFailureCount( ), aggregatePassed? "PASS" : "FAIL" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "\r\nAggregate: resets %u, frames %u, seed %u, resolve %u, reprojection %u, failures %u => %s\r\n",
+                diagnostics.ResetCount, diagnostics.CompletedFrameCount, diagnostics.SeedFrameCount,
+                diagnostics.ResolvedFrameCount, diagnostics.ReprojectionFrameCount,
+                diagnostics.GetFailureCount( ), aggregatePassed? "PASS" : "FAIL" ) );
+            m_allTransitionsPassed = m_allTransitionsPassed && aggregatePassed;
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( false );
+            abTool.ReportFinish( );
+            m_isDone = true;
+            return;
+        }
+
+        if( diagnostics.CompletedFrameCount == m_lastObservedFrameCount )
+            return;
+        m_lastObservedFrameCount = diagnostics.CompletedFrameCount;
+
+        if( !TargetSizeMatches( diagnostics ) )
+            return;
+
+        m_targetFramesObserved++;
+        if( !m_firstTargetFrameChecked )
+        {
+            const bool resetObserved = diagnostics.ResetCount > m_phaseStartResetCount;
+            // Shader compilation or scene setup can pause AutoBench ticks while
+            // rendering continues. Use the cumulative seed counter rather than
+            // assuming the latest completed frame is still the seed frame.
+            const bool seeded = diagnostics.SeedFrameCount > m_phaseStartSeedFrameCount;
+            const bool phasePassed = resetObserved && seeded && diagnostics.Passed;
+            m_allTransitionsPassed = m_allTransitionsPassed && phasePassed;
+            m_firstTargetFrameChecked = true;
+            abTool.ReportAddRowValues( { GetPhaseName( m_phase ), resetObserved? "yes" : "no",
+                seeded? "yes" : "no", phasePassed? "PASS" : "FAIL" } );
+            VA_LOG( "SMAA temporal lifecycle phase [%s]: reset=%s, seeded=%s => %s",
+                GetPhaseName( m_phase ), resetObserved? "yes" : "no", seeded? "yes" : "no",
+                phasePassed? "PASS" : "FAIL" );
+        }
+
+        if( m_targetFramesObserved < RequiredTargetFrames( ) )
+            return;
+
+        EnterPhase( (Phase)((int)m_phase + 1) );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override { return (float)(int)m_phase / (float)(int)Phase::Complete; }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -2145,10 +2346,33 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_SMAA->SetForcedCandidateCountForDiagnostics(true, (uint32)forcedCount);
             VA_LOG("SMAA forced candidate-count diagnostics: requested=%u", (uint32)forcedCount);
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalLifecycleDiagnostics") == 0)
+        {
+            int enabled = 1;
+            if (!parameter.second.empty())
+            {
+                std::wistringstream values(parameter.second);
+                if (!(values >> enabled) || enabled < 0 || enabled > 1)
+                {
+                    VA_LOG_ERROR("Invalid -smaaTemporalLifecycleDiagnostics value; expected 0 or 1");
+                    return;
+                }
+            }
+            m_SMAA->SetTemporalLifecycleDiagnosticsEnabled(enabled != 0);
+            VA_LOG("SMAA temporal lifecycle diagnostics: %s", enabled != 0? "enabled" : "disabled");
+        }
     }
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalLifecycleTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA temporal lifecycle engineering validation");
+            return;
+        }
+
         const bool originalFourCapture = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourCapture") == 0;
         const bool legacyPairCaptureAlias = _wcsicmp(parameter.first.c_str(), L"smaaTemporalPairCapture") == 0;
         if (!originalFourCapture && !legacyPairCaptureAlias)

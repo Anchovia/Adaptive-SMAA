@@ -95,6 +95,17 @@ void vaSMAAWrapper::UIPanelDraw( )
             { string("Off"), string("Base edges"), string("Selected candidates"), string("Current spatial SMAA") } ) )
             SetTemporalDebugView( (TemporalDebugView)debugView );
 
+        bool lifecycleDiagnosticsEnabled = m_temporalLifecycleDiagnostics.Enabled;
+        if( ImGui::Checkbox( "Validate temporal lifecycle", &lifecycleDiagnosticsEnabled ) )
+            SetTemporalLifecycleDiagnosticsEnabled( lifecycleDiagnosticsEnabled );
+        if( lifecycleDiagnosticsEnabled )
+        {
+            const TemporalLifecycleDiagnostics & lifecycle = GetTemporalLifecycleDiagnostics( );
+            ImGui::Text( "Lifecycle: %s, resets %u, frames %u (seed %u / resolve %u), failures %u",
+                lifecycle.Passed? "PASS" : "FAIL", lifecycle.ResetCount, lifecycle.CompletedFrameCount,
+                lifecycle.SeedFrameCount, lifecycle.ResolvedFrameCount, lifecycle.GetFailureCount( ) );
+        }
+
         const TemporalCandidateStatistics & statistics = GetTemporalCandidateStatistics( );
         if( statistics.Valid )
         {

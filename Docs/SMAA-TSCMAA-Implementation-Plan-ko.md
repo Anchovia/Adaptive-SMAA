@@ -390,11 +390,11 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] 후보 history weight `0.8` 설정 및 resolve 경로 연결
 - [x] 비후보 history weight `0.0`, 즉 current spatial 유지 픽셀 검증
 - [ ] 최종 output의 history feedback
-- [ ] 첫 프레임·mode·scene·teleport·resize reset
+- [x] 첫 프레임·mode·scene·명시적 camera-cut·resize reset
 - [ ] static camera 떨림 없음
-- [ ] object motion 미지원 사실 명시
+- [x] object motion 미지원 사실 명시
 - [ ] 각 pass GPU time과 후보 비율 기록 가능
-- [ ] Release x64 build 및 동적 장면 smoke test
+- [x] Release x64 build 및 동적 장면 engineering smoke test
 
 ## 16. 결과 해석 원칙
 
@@ -410,7 +410,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-**단계 1, 단계 2와 단계 3의 controlled selective resolve 픽셀 검증을 완료했다.**
+**단계 1, 단계 2와 단계 3의 controlled selective resolve·lifecycle 검증을 완료했다.**
 
 - Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
 - `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
@@ -498,6 +498,47 @@ spatial로 보존했기 때문이다.
 - `O-ET2X`: `D39F9FBD3DA57D3EAE0E648657651F9FE5B3498450045F7E6AD0A88D00B963F5`
 - `O-ET2X-R`: `FCAEEE29310774501E2E3B37DEADA880A64062365974FBEBC8B8C35C2DCAF7C3`
 
-다음 작업은 본 측정이 아니다. history 초기화, ping-pong, mode/scene/resize reset과
-camera reprojection의 좌표·행렬 순서를 검증한 뒤, 단계 4의 Catmull-Rom 5-tap CPU
-reference test를 진행한다.
+### 17.4 temporal lifecycle 자동 검증 결과
+
+`-smaaTemporalLifecycleTest` 진단을 추가해 다음 상태를 각 temporal draw에서 검증한다.
+
+- wrapper frame index와 공식 SMAA core frame index 일치
+- current/previous history texture가 서로 다른 ping-pong resource인지 확인
+- reset 뒤 첫 프레임은 history를 읽지 않고 seed하며 `0 → 1`로 전환
+- 이후 history resolve가 `1 → 0 → 1` 순서로 교대
+- Standard T2X frame 0/1의 jitter가 각각 `(0.25, 0.25)`, `(-0.25, -0.25)`
+- Standard T2X subsample index가 각각 `(1,1,1,0)`, `(2,2,2,0)`
+- edge-selective profile의 jitter와 subsample index는 모두 0
+- reprojection matrix가 유한하고 `CurrentViewProj * CurrentViewProjInv`가 identity에
+  근접하는지 확인
+- reset 직후 첫 reprojection frame에서 `PreviousViewProj == CurrentUnjitteredViewProj`
+
+2026-07-29 Release x64 자동 실행에서는 다음 reset 경계를 순서대로 시험했다.
+
+1. `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R` mode 시작·전환
+2. 알려진 camera cut에서 사용하는 명시적 history reset entry point
+3. Bistro에서 Minecraft로 scene 변경 후 Bistro 복원
+4. `1920×1017 → 1856×953` resize 후 원래 해상도 복원
+
+| 항목 | 결과 |
+|---|---:|
+| 관측 reset | 16 |
+| 완료 temporal frame | 79 |
+| seed frame | 9 |
+| history resolve frame | 70 |
+| camera reprojection frame | 20 |
+| frame/history/resource/jitter/subsample/matrix failure | 0 |
+| 전체 판정 | PASS |
+
+shader compilation과 scene 준비 중에도 rendering tick은 진행될 수 있어 완료 frame 수는
+테스트의 최소 frame 수보다 많다. 자동 판정은 마지막 프레임이 seed라고 가정하지 않고,
+각 reset 경계 뒤 seed counter가 실제로 증가했는지 확인한다.
+
+진단을 끈 일반 네 mode capture를 같은 조건으로 두 번 반복했으며 네 PNG SHA-256이
+실행 간 모두 일치했다. 따라서 진단 분기가 기본 출력에 영향을 주지 않음을 확인했다.
+
+이 결과는 lifecycle과 CPU→shader matrix frame ordering의 engineering 검증이다. 실제
+GPU velocity/history UV의 크기와 방향을 검증한 것은 아니다. 다음 작업에서는 정적
+카메라 velocity가 0에 가까운지, 알려진 카메라 이동에서 `historyUV = currentUV -
+velocity` 방향이 맞는지 debug/readback으로 확인한다. 그 뒤 단계 4의 Catmull-Rom 5-tap
+CPU reference test를 진행한다.

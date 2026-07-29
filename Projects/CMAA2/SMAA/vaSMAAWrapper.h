@@ -116,6 +116,39 @@ namespace VertexAsylum
             uint32                      CapacityOverflowCount       = 0;
         };
 
+        struct TemporalLifecycleDiagnostics
+        {
+            bool                        Enabled                     = false;
+            bool                        Passed                      = true;
+            uint32                      ResetCount                  = 0;
+            uint32                      CompletedFrameCount         = 0;
+            uint32                      SeedFrameCount              = 0;
+            uint32                      ResolvedFrameCount          = 0;
+            uint32                      ReprojectionFrameCount      = 0;
+            uint32                      FrameIndexMismatchCount     = 0;
+            uint32                      HistoryStateMismatchCount   = 0;
+            uint32                      HistoryResourceMismatchCount = 0;
+            uint32                      JitterMismatchCount         = 0;
+            uint32                      SubsampleMismatchCount      = 0;
+            uint32                      MatrixMismatchCount         = 0;
+            int32                       LastFrameIndexBefore        = -1;
+            int32                       LastFrameIndexAfter         = -1;
+            uint32                      LastWidth                   = 0;
+            uint32                      LastHeight                  = 0;
+            bool                        LastHistoryValidBefore      = false;
+            bool                        LastWasSeed                 = false;
+            bool                        LastUsedReprojection        = false;
+            vaVector2                   LastJitter                  = vaVector2( 0.0f, 0.0f );
+            vaVector4                   LastSubsampleIndices        = vaVector4( 0.0f, 0.0f, 0.0f, 0.0f );
+
+            uint32 GetFailureCount( ) const
+            {
+                return FrameIndexMismatchCount + HistoryStateMismatchCount
+                    + HistoryResourceMismatchCount + JitterMismatchCount
+                    + SubsampleMismatchCount + MatrixMismatchCount;
+            }
+        };
+
         struct TemporalSettings
         {
             TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
@@ -177,6 +210,10 @@ namespace VertexAsylum
         uint32                      m_forcedCandidateCount               = 65;
         TemporalDebugView           m_temporalDebugView                  = TemporalDebugView::None;
         TemporalCandidateValidation m_temporalCandidateValidation;
+        TemporalLifecycleDiagnostics m_temporalLifecycleDiagnostics;
+        uint32                      m_temporalLifecycleFramesSinceReset = 0;
+        bool                        m_temporalLastSubsampleIndicesValid = false;
+        float                       m_temporalLastSubsampleIndices[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         //bool                        m_debugShowEdges;
 
@@ -257,6 +294,20 @@ namespace VertexAsylum
         const TemporalCandidateValidation & GetTemporalCandidateValidation( ) const { return m_temporalCandidateValidation; }
         TemporalDebugView           GetTemporalDebugView( ) const       { return m_temporalDebugView; }
         void                        SetTemporalDebugView( TemporalDebugView value ) { m_temporalDebugView = value; }
+        void                        SetTemporalLifecycleDiagnosticsEnabled( bool enabled )
+        {
+            if( enabled )
+            {
+                m_temporalLifecycleDiagnostics = TemporalLifecycleDiagnostics( );
+                m_temporalLifecycleDiagnostics.Enabled = true;
+                ResetTemporalHistory( );
+            }
+            else
+            {
+                m_temporalLifecycleDiagnostics.Enabled = false;
+            }
+        }
+        const TemporalLifecycleDiagnostics & GetTemporalLifecycleDiagnostics( ) const { return m_temporalLifecycleDiagnostics; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
@@ -266,7 +317,14 @@ namespace VertexAsylum
             return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
         }
 
-        virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; }
+        virtual void                ResetTemporalHistory( )
+        {
+            m_temporalFrameIndex = 0;
+            m_temporalLifecycleFramesSinceReset = 0;
+            m_temporalLastSubsampleIndicesValid = false;
+            if( m_temporalLifecycleDiagnostics.Enabled )
+                m_temporalLifecycleDiagnostics.ResetCount++;
+        }
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,

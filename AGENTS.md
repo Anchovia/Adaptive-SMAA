@@ -146,6 +146,8 @@ capture를 실행할 수 있다.
 - `-smaaCandidatePolicyOverride`, `-smaaHistorySamplerOverride`,
   `-smaaHistoryClippingOverride`, `-smaaTemporalDebugView`,
   `-smaaCandidateForcedCount` 진단 옵션
+- `-smaaTemporalLifecycleTest` 자동 검증: first-frame seed, history ping-pong,
+  jitter/subsample pairing, first-frame matrix 상태, mode/scene/camera-cut/resize reset
 
 기존 prototype 출력 보존을 위해 기본 정책은 아직 `ExperimentalLocalMeanMax3x3`이다.
 `IntelFamilyNonDominant`는 diagnostic override에서 검증 중이며 controlled
@@ -204,8 +206,9 @@ lifecycle 검증이 남아 있으므로 두 mode를 최종 document profile로 �
 1. **완료:** AA mode를 Standard/Edge-selective와 Reprojection Off/On의 직교 조합으로 정리한다.
 2. **완료:** 후보 정책 계측과 0/1/group/최대 경계 검증, bilinear/no-clipping
    selective resolve 골격 및 비후보/후보 픽셀 불변식 검증을 완료했다.
-3. **다음 작업:** 네 mode에서 history 초기화, ping-pong, jitter, subsample index,
-   scene/resize reset을 검증한다.
+3. **부분 완료:** 네 mode의 history 초기화, ping-pong, jitter, subsample index와
+   mode/scene/명시적 camera-cut/resize reset을 자동 검증했다. GPU velocity의 정적
+   카메라 0 근접 여부와 알려진 카메라 이동 방향 검증은 남아 있다.
 4. 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경은 ablation toggle로 분리한다.
 5. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
 6. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
