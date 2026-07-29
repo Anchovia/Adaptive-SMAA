@@ -2111,9 +2111,10 @@ protected:
     }
 };
 
-class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
+class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 {
-    static const int c_modeCount = 4;
+    static const int c_originalModeCount = 4;
+    static const int c_modeCapacity = 8;
     static const int c_framePerSecond = 60;
 
     enum Metric
@@ -2149,14 +2150,15 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
     const int m_warmupFrameCount;
     const int m_measureFrameCount;
     const int m_repeatCount;
+    const int m_modeCount;
     const float m_frameDeltaTime = 1.0f / (float)c_framePerSecond;
 
-    vector<double> m_samples[c_modeCount][MetricCount];
+    vector<double> m_samples[c_modeCapacity][MetricCount];
     vector<double> m_currentRunSamples[MetricCount];
-    vector<double> m_runMeans[c_modeCount][MetricCount];
-    vector<double> m_baseEdgeCounts[c_modeCount];
-    vector<double> m_candidateCounts[c_modeCount];
-    vector<double> m_processCounts[c_modeCount];
+    vector<double> m_runMeans[c_modeCapacity][MetricCount];
+    vector<double> m_baseEdgeCounts[c_modeCapacity];
+    vector<double> m_candidateCounts[c_modeCapacity];
+    vector<double> m_processCounts[c_modeCapacity];
     vaSystemTimer m_wallTimer;
     int m_currentRepeat = 0;
     int m_currentOrderIndex = 0;
@@ -2170,20 +2172,34 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
 
     static const char * GetModeID( int mode )
     {
-        static const char * c_modeIDs[c_modeCount] = { "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R" };
+        static const char * c_modeIDs[c_modeCapacity] =
+        {
+            "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
+            "A-T2X", "A-T2X-R", "A-ET2X", "A-ET2X-R"
+        };
         return c_modeIDs[mode];
     }
 
     static CMAA2Sample::AAType GetModeAAType( int mode )
     {
-        static const CMAA2Sample::AAType c_modes[c_modeCount] =
+        static const CMAA2Sample::AAType c_modes[c_modeCapacity] =
         {
             CMAA2Sample::AAType::SMAA_O_T2X,
             CMAA2Sample::AAType::SMAA_O_T2X_R,
             CMAA2Sample::AAType::SMAA_O_ET2X,
-            CMAA2Sample::AAType::SMAA_O_ET2X_R
+            CMAA2Sample::AAType::SMAA_O_ET2X_R,
+            CMAA2Sample::AAType::SMAA_A_T2X,
+            CMAA2Sample::AAType::SMAA_A_T2X_R,
+            CMAA2Sample::AAType::SMAA_A_ET2X,
+            CMAA2Sample::AAType::SMAA_A_ET2X_R
         };
         return c_modes[mode];
+    }
+
+    static bool IsEdgeSelectiveMode( int mode )
+    {
+        const int temporalProfile = mode % c_originalModeCount;
+        return temporalProfile == 2 || temporalProfile == 3;
     }
 
     static const char * GetMetricNodeName( Metric metric )
@@ -2212,9 +2228,10 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
 
-        const bool standard = mode == 0 || mode == 1;
-        const bool edgeSelective = mode == 2 || mode == 3;
-        const bool reprojected = mode == 1 || mode == 3;
+        const int temporalProfile = mode % c_originalModeCount;
+        const bool standard = temporalProfile == 0 || temporalProfile == 1;
+        const bool edgeSelective = temporalProfile == 2 || temporalProfile == 3;
+        const bool reprojected = temporalProfile == 1 || temporalProfile == 3;
 
         if( metric == GenerateCameraVelocity )
             return reprojected;
@@ -2263,9 +2280,9 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
         return result;
     }
 
-    static int GetModeForOrder( int repeat, int orderIndex )
+    int GetModeForOrder( int repeat, int orderIndex ) const
     {
-        return (repeat & 1) == 0? orderIndex : c_modeCount - 1 - orderIndex;
+        return (repeat & 1) == 0? orderIndex : m_modeCount - 1 - orderIndex;
     }
 
     void CollectPreviousFrame( double wallFrameMilliseconds )
@@ -2304,7 +2321,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
                 m_passed = false;
         }
 
-        if( m_currentMode >= 2 && m_candidateReadbackEnabled )
+        if( IsEdgeSelectiveMode( m_currentMode ) && m_candidateReadbackEnabled )
         {
             const vaSMAAWrapper::TemporalCandidateStatistics & statistics =
                 m_parent.GetSMAATemporalCandidateStatistics( );
@@ -2338,7 +2355,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
         abTool.ReportAddRowValues( { "Mode", "Timing metric", "Type", "Samples", "Mean ms", "Median ms",
             "Frame stddev ms", "P95 ms", "P99 ms", "Max ms", "Runs", "Run-mean stddev ms" } );
 
-        for( int mode = 0; mode < c_modeCount; mode++ )
+        for( int mode = 0; mode < m_modeCount; mode++ )
         {
             for( int metricIndex = 0; metricIndex < MetricCount; metricIndex++ )
             {
@@ -2371,7 +2388,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
         abTool.ReportAddText( "\r\nFrame-rate characterization:\r\n" );
         abTool.ReportAddRowValues( { "Mode", "Wall average FPS", "Wall 1% low FPS",
             "GPU-equivalent average FPS", "GPU-equivalent 1% low FPS" } );
-        for( int mode = 0; mode < c_modeCount; mode++ )
+        for( int mode = 0; mode < m_modeCount; mode++ )
         {
             const Summary wall = ComputeSummary( m_samples[mode][ApplicationFrameWall] );
             const Summary wholeFrame = ComputeSummary( m_samples[mode][WholeFrame] );
@@ -2389,8 +2406,10 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
             abTool.ReportAddText( "\r\nCandidate counter characterization (asynchronous diagnostic readback enabled):\r\n" );
             abTool.ReportAddRowValues( { "Mode", "Counter samples", "Mean base edges", "Mean candidates",
                 "Mean process count", "Mean candidate/base" } );
-            for( int mode = 2; mode < c_modeCount; mode++ )
+            for( int mode = 0; mode < m_modeCount; mode++ )
             {
+                if( !IsEdgeSelectiveMode( mode ) )
+                    continue;
                 const Summary base = ComputeSummary( m_baseEdgeCounts[mode] );
                 const Summary candidates = ComputeSummary( m_candidateCounts[mode] );
                 const Summary process = ComputeSummary( m_processCounts[mode] );
@@ -2414,18 +2433,19 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
             "\r\nPerformance benchmark validation: PASS\r\n" :
             "\r\nPerformance benchmark validation: FAIL\r\n" );
         abTool.ReportFinish( );
-        VA_LOG( "SMAA Original four-mode performance benchmark: repeats=%d, warmup=%d, measured=%d per run => %s",
-            m_repeatCount, m_warmupFrameCount, m_measureFrameCount, m_passed? "PASS" : "FAIL" );
+        VA_LOG( "SMAA %d-mode performance benchmark: repeats=%d, warmup=%d, measured=%d per run => %s",
+            m_modeCount, m_repeatCount, m_warmupFrameCount, m_measureFrameCount, m_passed? "PASS" : "FAIL" );
     }
 
 public:
-    BenchItemSMAAOriginalFourPerformanceSmoke( CMAA2Sample & parent, float startTime,
-        int warmupFrameCount, int measureFrameCount, int repeatCount )
+    BenchItemSMAATemporalPerformanceBenchmark( CMAA2Sample & parent, float startTime,
+        int warmupFrameCount, int measureFrameCount, int repeatCount, bool includeAdaptive )
         : AutoBenchToolWorkItem( parent ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
         m_warmupFrameCount( vaMath::Max( 8, warmupFrameCount ) ),
         m_measureFrameCount( vaMath::Max( 16, measureFrameCount ) ),
-        m_repeatCount( vaMath::Clamp( repeatCount, 1, 9 ) )
+        m_repeatCount( vaMath::Clamp( repeatCount, 1, 9 ) ),
+        m_modeCount( includeAdaptive? c_modeCapacity : c_originalModeCount )
     {
     }
 
@@ -2449,10 +2469,14 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            abTool.ReportAddText( m_repeatCount > 1?
-                "Original SMAA four-mode repeated performance benchmark\r\n\r\n" :
-                "Original SMAA four-mode GPU performance smoke\r\n\r\n" );
-            abTool.ReportAddText( "This measures the Original four cases only; it is not the final Adaptive-inclusive 8-case benchmark.\r\n" );
+            abTool.ReportAddText( m_modeCount == c_modeCapacity?
+                (m_repeatCount > 1? "SMAA eight-case repeated performance benchmark\r\n\r\n" :
+                    "SMAA eight-case GPU performance smoke\r\n\r\n") :
+                (m_repeatCount > 1? "Original SMAA four-mode repeated performance benchmark\r\n\r\n" :
+                    "Original SMAA four-mode GPU performance smoke\r\n\r\n") );
+            abTool.ReportAddText( m_modeCount == c_modeCapacity?
+                "This measures the full Original/Adaptive, Standard/Edge-selective, reprojection Off/On matrix.\r\n" :
+                "This measures the Original four cases only; it is not the final Adaptive-inclusive 8-case benchmark.\r\n" );
             abTool.ReportAddText( "Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, UI hidden, no PNG capture.\r\n" );
             abTool.ReportAddText( "GPU pass timings use the built-in timestamp-query profiler; values are milliseconds.\r\n" );
             abTool.ReportAddText( "WholeFrame covers GPU work between BeginFrame and EndAndPresentFrame, excluding Present itself.\r\n" );
@@ -2485,7 +2509,7 @@ protected:
             VA_LOG( "SMAA performance benchmark: repeat %d/%d completed %s (%d measured frames)",
                 m_currentRepeat + 1, m_repeatCount, GetModeID( m_currentMode ), m_measureFrameCount );
             m_currentOrderIndex++;
-            if( m_currentOrderIndex >= c_modeCount )
+            if( m_currentOrderIndex >= m_modeCount )
             {
                 m_currentOrderIndex = 0;
                 m_currentRepeat++;
@@ -2514,10 +2538,10 @@ protected:
     virtual float GetProgress( ) const override
     {
         const int framesPerMode = m_warmupFrameCount + m_measureFrameCount;
-        const int completedProfiles = m_currentRepeat * c_modeCount + m_currentOrderIndex;
+        const int completedProfiles = m_currentRepeat * m_modeCount + m_currentOrderIndex;
         const int completedFrames = completedProfiles * framesPerMode + m_currentFrame + m_warmupFrameCount;
         return vaMath::Clamp( (float)completedFrames /
-            (float)(framesPerMode * c_modeCount * m_repeatCount), 0.0f, 1.0f );
+            (float)(framesPerMode * m_modeCount * m_repeatCount), 0.0f, 1.0f );
     }
 };
 
@@ -3821,8 +3845,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
-        const bool performanceSmoke = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourPerformanceSmoke") == 0;
-        const bool repeatedPerformanceBenchmark = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourPerformanceBenchmark") == 0;
+        const bool originalPerformanceSmoke = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourPerformanceSmoke") == 0;
+        const bool originalPerformanceBenchmark = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourPerformanceBenchmark") == 0;
+        const bool eightCasePerformanceSmoke = _wcsicmp(parameter.first.c_str(), L"smaaEightCasePerformanceSmoke") == 0;
+        const bool eightCasePerformanceBenchmark = _wcsicmp(parameter.first.c_str(), L"smaaEightCasePerformanceBenchmark") == 0;
+        const bool performanceSmoke = originalPerformanceSmoke || eightCasePerformanceSmoke;
+        const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark;
+        const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
             float startTime = 1.0f;
@@ -3834,7 +3863,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 std::wistringstream values(parameter.second);
                 if (!(values >> startTime >> warmupFrameCount >> measureFrameCount))
                 {
-                    VA_LOG_ERROR("Invalid SMAA Original four-mode performance values; expected: <startTimeSeconds> <warmupFrames> <measureFrames> [repeats]");
+                    VA_LOG_ERROR("Invalid SMAA temporal performance values; expected: <startTimeSeconds> <warmupFrames> <measureFrames> [repeats]");
                     return;
                 }
                 int parsedRepeatCount = repeatCount;
@@ -3847,10 +3876,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             repeatCount = vaMath::Clamp(repeatCount, 1, 9);
             if (repeatedPerformanceBenchmark)
                 m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(false);
-            m_autoBench->AddTask(std::make_shared<BenchItemSMAAOriginalFourPerformanceSmoke>(
-                *this, startTime, warmupFrameCount, measureFrameCount, repeatCount));
+            m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(
+                *this, startTime, warmupFrameCount, measureFrameCount, repeatCount, includeAdaptive));
             m_quitAfterCommandLineCapture = true;
-            VA_LOG("Queued Original SMAA four-mode %s: start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
+            VA_LOG("Queued SMAA %s %s: start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
+                includeAdaptive? "eight-case" : "Original four-mode",
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
                 startTime, repeatCount, warmupFrameCount, measureFrameCount,
                 m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled()? "On" : "Off");
