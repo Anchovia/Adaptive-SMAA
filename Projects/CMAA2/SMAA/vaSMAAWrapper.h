@@ -282,6 +282,7 @@ namespace VertexAsylum
         TemporalSettings            m_temporalSettings;
         int                         m_temporalFrameIndex                = 0;
         TemporalCandidateStatistics m_temporalCandidateStatistics;
+        bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
         bool                        m_candidatePolicyOverrideEnabled    = false;
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
         bool                        m_nonDominantRemovalOverrideEnabled  = false;
@@ -388,6 +389,16 @@ namespace VertexAsylum
         bool                        GetHistorySamplerOverrideEnabled( ) const { return m_historySamplerOverrideEnabled; }
         bool                        GetHistoryClippingOverrideEnabled( ) const { return m_historyClippingOverrideEnabled; }
         const TemporalCandidateStatistics & GetTemporalCandidateStatistics( ) const { return m_temporalCandidateStatistics; }
+        void                        SetTemporalCandidateStatisticsReadbackEnabled( bool enabled )
+        {
+            if( m_temporalCandidateStatisticsReadbackEnabled != enabled )
+            {
+                m_temporalCandidateStatisticsReadbackEnabled = enabled;
+                m_temporalCandidateStatistics = TemporalCandidateStatistics( );
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTemporalCandidateStatisticsReadbackEnabled( ) const { return m_temporalCandidateStatisticsReadbackEnabled; }
         void                        SetForcedCandidateCountForDiagnostics( bool enabled, uint32 count )
         {
             if( m_forcedCandidateCountEnabled != enabled || m_forcedCandidateCount != count )

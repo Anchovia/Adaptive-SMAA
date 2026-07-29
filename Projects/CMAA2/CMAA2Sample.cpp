@@ -2120,6 +2120,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
     bool m_isDone = false;
     bool m_previousFrameAvailable = false;
     bool m_passed = true;
+    bool m_candidateReadbackEnabled = true;
 
     static const char * GetModeID( int mode )
     {
@@ -2240,7 +2241,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
                 m_passed = false;
         }
 
-        if( m_currentMode >= 2 )
+        if( m_currentMode >= 2 && m_candidateReadbackEnabled )
         {
             const vaSMAAWrapper::TemporalCandidateStatistics & statistics =
                 m_parent.GetSMAATemporalCandidateStatistics( );
@@ -2283,26 +2284,31 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
             }
         }
 
-        abTool.ReportAddText( "\r\nCandidate counter characterization (asynchronous diagnostic readback enabled):\r\n" );
-        abTool.ReportAddRowValues( { "Mode", "Counter samples", "Mean base edges", "Mean candidates",
-            "Mean process count", "Mean candidate/base" } );
-        for( int mode = 2; mode < c_modeCount; mode++ )
+        if( m_candidateReadbackEnabled )
         {
-            const Summary base = ComputeSummary( m_baseEdgeCounts[mode] );
-            const Summary candidates = ComputeSummary( m_candidateCounts[mode] );
-            const Summary process = ComputeSummary( m_processCounts[mode] );
-            const double ratio = base.Mean > 0.0? candidates.Mean / base.Mean : 0.0;
-            if( base.Count == 0 || candidates.Count != base.Count || process.Count != base.Count )
-                m_passed = false;
-            abTool.ReportAddRowValues( {
-                GetModeID( mode ),
-                vaStringTools::Format( "%d", base.Count ),
-                vaStringTools::Format( "%.3f", base.Mean ),
-                vaStringTools::Format( "%.3f", candidates.Mean ),
-                vaStringTools::Format( "%.3f", process.Mean ),
-                vaStringTools::Format( "%.6f", ratio )
-            } );
+            abTool.ReportAddText( "\r\nCandidate counter characterization (asynchronous diagnostic readback enabled):\r\n" );
+            abTool.ReportAddRowValues( { "Mode", "Counter samples", "Mean base edges", "Mean candidates",
+                "Mean process count", "Mean candidate/base" } );
+            for( int mode = 2; mode < c_modeCount; mode++ )
+            {
+                const Summary base = ComputeSummary( m_baseEdgeCounts[mode] );
+                const Summary candidates = ComputeSummary( m_candidateCounts[mode] );
+                const Summary process = ComputeSummary( m_processCounts[mode] );
+                const double ratio = base.Mean > 0.0? candidates.Mean / base.Mean : 0.0;
+                if( base.Count == 0 || candidates.Count != base.Count || process.Count != base.Count )
+                    m_passed = false;
+                abTool.ReportAddRowValues( {
+                    GetModeID( mode ),
+                    vaStringTools::Format( "%d", base.Count ),
+                    vaStringTools::Format( "%.3f", base.Mean ),
+                    vaStringTools::Format( "%.3f", candidates.Mean ),
+                    vaStringTools::Format( "%.3f", process.Mean ),
+                    vaStringTools::Format( "%.6f", ratio )
+                } );
+            }
         }
+        else
+            abTool.ReportAddText( "\r\nCandidate counter readback was disabled for uncontaminated timing.\r\n" );
 
         abTool.ReportAddText( m_passed?
             "\r\nPerformance smoke validation: PASS\r\n" :
@@ -2336,6 +2342,7 @@ protected:
             m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
             m_parent.SetVsyncForBenchmark( false );
             m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity( );
+            m_candidateReadbackEnabled = m_parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( );
 
             abTool.ReportStart( );
             abTool.ReportAddText( "Original SMAA four-mode GPU performance smoke\r\n\r\n" );
@@ -2343,7 +2350,9 @@ protected:
             abTool.ReportAddText( "Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, no PNG capture.\r\n" );
             abTool.ReportAddText( "GPU pass timings use the built-in timestamp-query profiler; values are milliseconds.\r\n" );
             abTool.ReportAddText( "This smoke validates SMAA total and internal pass timings; whole-frame GPU timing is a separate benchmark.\r\n" );
-            abTool.ReportAddText( "Current candidate counter readback remains enabled and is reported explicitly.\r\n" );
+            abTool.ReportAddText( m_candidateReadbackEnabled?
+                "Candidate counter readback: enabled and reported explicitly.\r\n" :
+                "Candidate counter readback: disabled for timing isolation.\r\n" );
             abTool.ReportAddText( vaStringTools::Format( "Start time: %.3f s, warm-up: %d frames, measurement: %d frames per mode.\r\n\r\n",
                 m_startTime, m_warmupFrameCount, m_measureFrameCount ) );
 
@@ -2387,6 +2396,267 @@ protected:
         const int framesPerMode = m_warmupFrameCount + m_measureFrameCount;
         const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
         return vaMath::Clamp( (float)completedFrames / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f );
+    }
+};
+
+class BenchItemSMAACandidateReadbackOverhead : public AutoBenchToolWorkItem
+{
+    static const int c_profileCount = 4;
+    static const int c_framePerSecond = 60;
+
+    struct Summary
+    {
+        int Count = 0;
+        double Mean = 0.0;
+        double Median = 0.0;
+        double StandardDeviation = 0.0;
+        double P95 = 0.0;
+        double Maximum = 0.0;
+    };
+
+    const float m_startTime;
+    const int m_warmupFrameCount;
+    const int m_measureFrameCount;
+    const float m_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+
+    vector<double> m_gpuSamples[c_profileCount];
+    vector<double> m_cpuSamples[c_profileCount];
+    vector<double> m_candidateCounts[c_profileCount];
+    int m_currentProfile = 0;
+    int m_currentFrame = 0;
+    int m_disabledReadbackUnexpectedValidCount = 0;
+    bool m_started = false;
+    bool m_isDone = false;
+    bool m_previousFrameAvailable = false;
+    bool m_passed = true;
+
+    static bool IsReprojected( int profile ) { return profile >= 2; }
+    static bool IsReadbackEnabled( int profile ) { return (profile & 1) != 0; }
+
+    static const char * GetProfileID( int profile )
+    {
+        static const char * c_profileIDs[c_profileCount] =
+        {
+            "O-ET2X / readback Off",
+            "O-ET2X / readback On",
+            "O-ET2X-R / readback Off",
+            "O-ET2X-R / readback On"
+        };
+        return c_profileIDs[profile];
+    }
+
+    static CMAA2Sample::AAType GetProfileAAType( int profile )
+    {
+        return IsReprojected( profile )?
+            CMAA2Sample::AAType::SMAA_O_ET2X_R :
+            CMAA2Sample::AAType::SMAA_O_ET2X;
+    }
+
+    static Summary ComputeSummary( const vector<double> & values )
+    {
+        Summary result;
+        result.Count = (int)values.size( );
+        if( values.empty( ) )
+            return result;
+
+        vector<double> sorted = values;
+        std::sort( sorted.begin( ), sorted.end( ) );
+        for( double value : sorted )
+            result.Mean += value;
+        result.Mean /= (double)sorted.size( );
+
+        const size_t middle = sorted.size( ) / 2;
+        result.Median = (sorted.size( ) % 2 == 0)?
+            (sorted[middle - 1] + sorted[middle]) * 0.5 : sorted[middle];
+
+        double variance = 0.0;
+        for( double value : sorted )
+        {
+            const double difference = value - result.Mean;
+            variance += difference * difference;
+        }
+        result.StandardDeviation = std::sqrt( variance / (double)sorted.size( ) );
+
+        const size_t p95Index = vaMath::Min( sorted.size( ) - 1,
+            (size_t)std::ceil( 0.95 * (double)sorted.size( ) ) - 1 );
+        result.P95 = sorted[p95Index];
+        result.Maximum = sorted.back( );
+        return result;
+    }
+
+    void CollectPreviousFrame( )
+    {
+        vaProfiler * profiler = vaProfiler::GetInstancePtr( );
+        const vaNestedProfilerNode * node = profiler != nullptr? profiler->FindNode( "SMAA" ) : nullptr;
+        if( node == nullptr )
+        {
+            m_passed = false;
+            return;
+        }
+
+        const double gpuMilliseconds = node->GetFrameLastTotalTimeGPU( ) * 1000.0;
+        const double cpuMilliseconds = node->GetFrameLastTotalTimeCPU( ) * 1000.0;
+        if( std::isfinite( gpuMilliseconds ) && gpuMilliseconds > 0.0 )
+            m_gpuSamples[m_currentProfile].push_back( gpuMilliseconds );
+        else
+            m_passed = false;
+        if( std::isfinite( cpuMilliseconds ) && cpuMilliseconds > 0.0 )
+            m_cpuSamples[m_currentProfile].push_back( cpuMilliseconds );
+        else
+            m_passed = false;
+
+        const vaSMAAWrapper::TemporalCandidateStatistics & statistics =
+            m_parent.GetSMAATemporalCandidateStatistics( );
+        if( IsReadbackEnabled( m_currentProfile ) )
+        {
+            if( statistics.Valid )
+                m_candidateCounts[m_currentProfile].push_back( (double)statistics.CandidateCount );
+        }
+        else if( statistics.Valid )
+        {
+            m_disabledReadbackUnexpectedValidCount++;
+            m_passed = false;
+        }
+    }
+
+    void FinishReport( AutoBenchTool & abTool )
+    {
+        abTool.ReportAddRowValues( { "Profile", "GPU samples", "GPU mean ms", "GPU median ms",
+            "GPU stddev ms", "GPU p95 ms", "CPU samples", "CPU mean ms", "Candidate samples" } );
+
+        for( int profile = 0; profile < c_profileCount; profile++ )
+        {
+            const Summary gpu = ComputeSummary( m_gpuSamples[profile] );
+            const Summary cpu = ComputeSummary( m_cpuSamples[profile] );
+            const Summary candidates = ComputeSummary( m_candidateCounts[profile] );
+            if( gpu.Count != m_measureFrameCount || cpu.Count != m_measureFrameCount )
+                m_passed = false;
+            if( IsReadbackEnabled( profile ) && candidates.Count == 0 )
+                m_passed = false;
+            if( !IsReadbackEnabled( profile ) && candidates.Count != 0 )
+                m_passed = false;
+
+            abTool.ReportAddRowValues( {
+                GetProfileID( profile ),
+                vaStringTools::Format( "%d", gpu.Count ),
+                vaStringTools::Format( "%.6f", gpu.Mean ),
+                vaStringTools::Format( "%.6f", gpu.Median ),
+                vaStringTools::Format( "%.6f", gpu.StandardDeviation ),
+                vaStringTools::Format( "%.6f", gpu.P95 ),
+                vaStringTools::Format( "%d", cpu.Count ),
+                vaStringTools::Format( "%.6f", cpu.Mean ),
+                vaStringTools::Format( "%d", candidates.Count )
+            } );
+        }
+
+        abTool.ReportAddText( "\r\nReadback On minus Off characterization (single engineering smoke):\r\n" );
+        abTool.ReportAddRowValues( { "Mode", "GPU delta ms", "GPU delta percent", "CPU delta ms", "CPU delta percent" } );
+        for( int mode = 0; mode < 2; mode++ )
+        {
+            const int offProfile = mode * 2;
+            const int onProfile = offProfile + 1;
+            const Summary gpuOff = ComputeSummary( m_gpuSamples[offProfile] );
+            const Summary gpuOn = ComputeSummary( m_gpuSamples[onProfile] );
+            const Summary cpuOff = ComputeSummary( m_cpuSamples[offProfile] );
+            const Summary cpuOn = ComputeSummary( m_cpuSamples[onProfile] );
+            const double gpuDelta = gpuOn.Mean - gpuOff.Mean;
+            const double cpuDelta = cpuOn.Mean - cpuOff.Mean;
+            abTool.ReportAddRowValues( {
+                mode == 0? "O-ET2X" : "O-ET2X-R",
+                vaStringTools::Format( "%.6f", gpuDelta ),
+                vaStringTools::Format( "%.3f", gpuOff.Mean > 0.0? 100.0 * gpuDelta / gpuOff.Mean : 0.0 ),
+                vaStringTools::Format( "%.6f", cpuDelta ),
+                vaStringTools::Format( "%.3f", cpuOff.Mean > 0.0? 100.0 * cpuDelta / cpuOff.Mean : 0.0 )
+            } );
+        }
+
+        abTool.ReportAddText( vaStringTools::Format(
+            "\r\nUnexpected valid counter samples while readback was disabled: %d\r\n",
+            m_disabledReadbackUnexpectedValidCount ) );
+        abTool.ReportAddText( m_passed?
+            "\r\nCandidate statistics readback overhead smoke: PASS\r\n" :
+            "\r\nCandidate statistics readback overhead smoke: FAIL\r\n" );
+        abTool.ReportFinish( );
+        m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( true );
+        VA_LOG( "SMAA candidate statistics readback overhead smoke: warmup=%d, measured=%d per profile => %s",
+            m_warmupFrameCount, m_measureFrameCount, m_passed? "PASS" : "FAIL" );
+    }
+
+public:
+    BenchItemSMAACandidateReadbackOverhead( CMAA2Sample & parent, float startTime,
+        int warmupFrameCount, int measureFrameCount )
+        : AutoBenchToolWorkItem( parent ),
+        m_startTime( vaMath::Max( 0.0f, startTime ) ),
+        m_warmupFrameCount( vaMath::Max( 8, warmupFrameCount ) ),
+        m_measureFrameCount( vaMath::Max( 16, measureFrameCount ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( m_frameDeltaTime );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetVsyncForBenchmark( false );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA candidate statistics readback overhead smoke\r\n\r\n" );
+            abTool.ReportAddText( "Engineering isolation test; this is not a final performance result.\r\n" );
+            abTool.ReportAddText( "Only the asynchronous four-counter GPU-to-CPU diagnostic readback changes between each paired profile.\r\n" );
+            abTool.ReportAddText( "Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, no PNG capture.\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Start time: %.3f s, warm-up: %d frames, measurement: %d frames per profile.\r\n\r\n",
+                m_startTime, m_warmupFrameCount, m_measureFrameCount ) );
+
+            m_currentProfile = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        if( m_previousFrameAvailable && m_currentFrame >= 0 )
+            CollectPreviousFrame( );
+
+        if( m_currentFrame == -1 && m_parent.HasPendingShadowmapUpdates( ) )
+            return;
+
+        if( m_previousFrameAvailable && m_currentFrame >= m_measureFrameCount - 1 )
+        {
+            VA_LOG( "SMAA candidate readback overhead smoke: completed %s (%d measured frames)",
+                GetProfileID( m_currentProfile ), m_measureFrameCount );
+            m_currentProfile++;
+            if( m_currentProfile >= c_profileCount )
+            {
+                FinishReport( abTool );
+                m_isDone = true;
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount - 1;
+            m_previousFrameAvailable = false;
+        }
+
+        m_currentFrame++;
+        m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( IsReadbackEnabled( m_currentProfile ) );
+        m_parent.Settings( ).CurrentAAOption = GetProfileAAType( m_currentProfile );
+        const float playTime = m_startTime + m_currentFrame * m_frameDeltaTime;
+        m_parent.GetFlythroughCameraController( )->SetPlayTime( vaMath::Max( 0.0f, playTime ) );
+        m_previousFrameAvailable = true;
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override { return false; }
+    virtual float GetProgress( ) const override
+    {
+        const int framesPerProfile = m_warmupFrameCount + m_measureFrameCount;
+        const int completedFrames = m_currentProfile * framesPerProfile + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp( (float)completedFrames / (float)(framesPerProfile * c_profileCount), 0.0f, 1.0f );
     }
 };
 
@@ -3363,6 +3633,18 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_SMAA->SetForcedCandidateCountForDiagnostics(true, (uint32)forcedCount);
             VA_LOG("SMAA forced candidate-count diagnostics: requested=%u", (uint32)forcedCount);
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateStatisticsReadback") == 0)
+        {
+            int enabled = 1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> enabled) || enabled < 0 || enabled > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaCandidateStatisticsReadback value; expected 0 or 1");
+                return;
+            }
+            m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(enabled != 0);
+            VA_LOG("SMAA candidate statistics GPU readback: %s", enabled != 0? "enabled" : "disabled");
+        }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalLifecycleDiagnostics") == 0)
         {
             int enabled = 1;
@@ -3419,6 +3701,31 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 *this, startTime, warmupFrameCount, measureFrameCount));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued Original SMAA four-mode GPU performance smoke: start %.3f s, %d warm-up frames, %d measurement frames",
+                startTime, warmupFrameCount, measureFrameCount);
+            return;
+        }
+
+        if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateReadbackOverheadTest") == 0)
+        {
+            float startTime = 1.0f;
+            int warmupFrameCount = 60;
+            int measureFrameCount = 180;
+            if (!parameter.second.empty())
+            {
+                std::wistringstream values(parameter.second);
+                if (!(values >> startTime >> warmupFrameCount >> measureFrameCount))
+                {
+                    VA_LOG_ERROR("Invalid -smaaCandidateReadbackOverheadTest values; expected: <startTimeSeconds> <warmupFrames> <measureFrames>");
+                    return;
+                }
+            }
+            startTime = vaMath::Max(0.0f, startTime);
+            warmupFrameCount = vaMath::Clamp(warmupFrameCount, 8, 600);
+            measureFrameCount = vaMath::Clamp(measureFrameCount, 16, 4800);
+            m_autoBench->AddTask(std::make_shared<BenchItemSMAACandidateReadbackOverhead>(
+                *this, startTime, warmupFrameCount, measureFrameCount));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA candidate statistics readback overhead smoke: start %.3f s, %d warm-up frames, %d measurement frames",
                 startTime, warmupFrameCount, measureFrameCount);
             return;
         }

@@ -860,3 +860,47 @@ frame-to-frame byte 변화가 없었다. 이 검증은 static camera 떨림 부�
 포팅이나 최종 8-case 품질·성능 연구 완료를 의미하지 않는다. 다음 단계는 전체 frame
 GPU timing과 candidate counter readback overhead를 정리한 뒤 Original 네 case의
 반복 본 측정을 시작하는 것이다.
+
+### 17.13 후보 통계 readback 오버헤드 분리
+
+edge-selective resolve가 만든 네 개의 control counter를 CPU에서 확인하는 비동기
+GPU→CPU readback은 알고리즘 출력이 아니라 진단 계측이다. 이를 본 성능에서 제외할 수
+있도록 `-smaaCandidateStatisticsReadback 0|1` 설정과
+`-smaaCandidateReadbackOverheadTest <startSeconds> <warmupFrames> <measureFrames>`를
+추가했다. forced-count 후보 경계 진단은 정확성 검증에 counter가 필수이므로 설정이
+Off여도 readback을 수행한다.
+
+2026-07-30, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017, VSync Off,
+SMAA Ultra, 동일 Bistro 동적 경로에서 profile당 60프레임 warm-up과 180프레임 측정으로
+다음 단일 engineering smoke 결과를 얻었다.
+
+| Profile | SMAA GPU 평균 | SMAA CPU 평균 | Counter sample |
+|---|---:|---:|---:|
+| `O-ET2X`, readback Off | 0.297170 ms | 0.024362 ms | 0 |
+| `O-ET2X`, readback On | 0.316911 ms | 0.024772 ms | 180 |
+| `O-ET2X-R`, readback Off | 0.327788 ms | 0.030301 ms | 0 |
+| `O-ET2X-R`, readback On | 0.349338 ms | 0.028871 ms | 180 |
+
+On−Off GPU 평균 차이는 `O-ET2X` 0.019740 ms(6.643%), `O-ET2X-R`
+0.021550 ms(6.574%)였다. CPU 평균 차이는 각각 +0.000409 ms, -0.001430 ms로 방향이
+일관되지 않았다. 이는 한 번의 짝 smoke이므로 효과 크기의 최종 통계가 아니라, 작은
+counter readback도 GPU timing에 포함하면 안 된다는 구현 근거로만 사용한다.
+
+동일한 `start=1 s`, warm-up 60프레임, 1프레임 capture를 readback Off/On으로 각각
+실행했다. 알고리즘 영향을 직접 받는 두 edge-selective 결과는 각각 SHA-256이 완전히
+일치했다.
+
+- `O-ET2X`: `235A32AF21E4E2EFDBCA21878F13B4CB70447127FD43C7663F602DF27056EE7C`
+- `O-ET2X-R`: `5C78117959D8AE6522EF31D0D62EFB88355ED20917D97DB0831323AE7D0D4E2C`
+
+`O-T2X-R`도 일치했다. `O-T2X`는 이미 17.10 이전부터 기록한 실행 시작 hash
+비결정성을 다시 보였으므로 readback 설정 영향의 증거로 해석하지 않는다.
+
+이후 측정은 다음처럼 분리한다.
+
+1. 후보 수·candidate/base 특성화: readback On
+2. SMAA pass와 전체 frame timing: readback Off
+3. 성능 측정과 PNG 품질 capture: 별도 실행
+
+이제 counter readback 오버헤드 분리는 완료했다. Original 네 case의 반복 본 측정 전에
+남은 계측 과제는 신뢰할 수 있는 전체 frame GPU timing 경로를 확정하는 것이다.

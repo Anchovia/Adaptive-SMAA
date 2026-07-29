@@ -163,6 +163,11 @@ capture를 실행할 수 있다.
 - `-smaaOriginalFourPerformanceSmoke` 자동 검증: PNG를 저장하지 않고 Original 네
   mode의 SMAA total과 spatial, camera velocity, candidate 준비·추출, indirect args,
   candidate resolve, output copy GPU timestamp를 같은 동적 경로에서 기록
+- `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
+  성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
+  수행
+- `-smaaCandidateReadbackOverheadTest`: `O-ET2X`/`O-ET2X-R`에서 readback Off/On만
+  바꾼 짝 비교로 SMAA GPU/CPU scope 오버헤드를 기록
 - temporal debug view 4/5/6: 후보 픽셀의 clipping 전 history, clipping 후 history,
   8배 clipping delta. 이 R16G16B16A16 debug resource는 해당 view에서만 할당한다.
 
@@ -207,10 +212,18 @@ engineering smoke에서 모두 120/120개 수집했다. 이 smoke는 비동기 c
 readback을 켠 현재 경로를 측정하며 전체 frame GPU time은 포함하지 않는다. 단일 실행
 값은 최종 성능 우열이나 통계적 유의성 주장에 사용하지 않는다.
 
+후보 카운터 readback은 출력 알고리즘과 분리해 On/Off 가능하다. RTX 3060 Ti,
+1920×1017, mode/profile당 60프레임 warm-up과 180프레임 측정의 단일 engineering
+smoke에서 readback On은 Off보다 SMAA GPU 평균이 `O-ET2X` 0.019740 ms(6.643%),
+`O-ET2X-R` 0.021550 ms(6.574%) 높았다. CPU 차이는 일관된 방향이 아니었다. 두
+edge-selective mode의 readback Off/On PNG는 각각 byte-identical했다. 이 결과는
+계측 오버헤드를 본 성능에서 제외해야 한다는 근거이며 최종 성능 결론이 아니다.
+후보 수 특성화 실행은 readback On, timing 본 실행은 readback Off로 분리한다.
+
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
 sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original 네 mode의
-본 품질·성능 측정 전에 전체 frame timing과 counter readback overhead를 분리해야 한다.
+본 품질·성능 측정 전에 남은 계측 과제는 전체 frame timing 경로 확정이다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은

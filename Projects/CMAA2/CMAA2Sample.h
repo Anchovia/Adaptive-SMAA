@@ -268,6 +268,8 @@ namespace VertexAsylum
         void                                    SetSMAANonDominantRemovalOverride( bool enabled, float value ) { m_SMAA->SetNonDominantRemovalOverride( enabled, value ); }
         const vaSMAAWrapper::TemporalCandidateStatistics &
                                                 GetSMAATemporalCandidateStatistics( ) const { return m_SMAA->GetTemporalCandidateStatistics( ); }
+        void                                    SetSMAATemporalCandidateStatisticsReadbackEnabled( bool enabled ) { m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled( enabled ); }
+        bool                                    GetSMAATemporalCandidateStatisticsReadbackEnabled( ) const { return m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled( ); }
         void                                    SetWindowClientAreaSizeForDiagnostics( const vaVector2i & size ) { m_application.SetWindowClientAreaSize( size ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }

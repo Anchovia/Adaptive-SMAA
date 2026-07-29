@@ -1250,7 +1250,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
     ID3D11SamplerState * nullSamplers[2] = { nullptr, nullptr };
     dx11Context->CSSetSamplers( 0, 2, nullSamplers );
-    QueueAndConsumeTSCMAAStatisticsReadback( dx11Context, (uint32)currentSpatial->GetSizeX( ), (uint32)currentSpatial->GetSizeY( ) );
+    if( GetTemporalCandidateStatisticsReadbackEnabled( ) || GetForcedCandidateCountEnabled( ) )
+        QueueAndConsumeTSCMAAStatisticsReadback( dx11Context, (uint32)currentSpatial->GetSizeX( ), (uint32)currentSpatial->GetSizeY( ) );
 
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAAOutputCopy, deviceContext );
