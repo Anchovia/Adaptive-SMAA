@@ -668,3 +668,46 @@ debug를 끈 기본 실행에서 `O-ET2X`와 `O-ET2X-R` 해시는 각각 기존
 기본 실행 및 본 성능 경로에 포함되지 않는다.
 
 다음 작업은 단계 6의 candidate 정책 승인과 Intel document profile 조립이다.
+
+### 17.8 Intel-family candidate removal sweep 결과
+
+`-smaaCandidatePolicyValidationTest`를 추가해 `IntelFamilyNonDominant` 정책을 두 장면의
+고정 카메라에서 검증했다. shadow-map update가 끝난 뒤 각 removal 값마다 GPU counter
+readback을 새로 받아 다음 조건을 자동 판정한다.
+
+- removal `0`에서 candidate 수와 base edge 수 일치
+- removal 증가 시 base edge 수 고정
+- candidate 수 단조 비증가
+- indirect process 수와 candidate 수 일치
+
+2026-07-29, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017 결과는 다음과 같다.
+
+| 장면 | Removal | Base edge | Candidate | Candidate/Base | Process |
+|---|---:|---:|---:|---:|---:|
+| Bistro | 0.00 | 211,713 | 211,713 | 100.000% | 211,713 |
+| Bistro | 0.25 | 211,713 | 176,828 | 83.523% | 176,828 |
+| Bistro | 0.50 | 211,713 | 148,824 | 70.295% | 148,824 |
+| Bistro | 0.75 | 211,713 | 126,254 | 59.635% | 126,254 |
+| Bistro | 1.00 | 211,713 | 106,423 | 50.268% | 106,423 |
+| Minecraft | 0.00 | 439,615 | 439,615 | 100.000% | 439,615 |
+| Minecraft | 0.25 | 439,615 | 317,055 | 72.121% | 317,055 |
+| Minecraft | 0.50 | 439,615 | 229,988 | 52.316% | 229,988 |
+| Minecraft | 0.75 | 439,615 | 172,143 | 39.158% | 172,143 |
+| Minecraft | 1.00 | 439,615 | 129,426 | 29.441% | 129,426 |
+
+10개 단계가 모두 PASS했다. 공개 기본값 removal `0.5`에서 후보 비율은 Bistro
+70.295%, Minecraft 52.316%로 장면에 따라 달랐다. Intel 문서의 약 50%는 quota가
+아니므로 Bistro를 50%에 맞추기 위해 removal을 1.0으로 바꾸거나 threshold를 자동
+조정하지 않는다.
+
+기존 전체 candidate buffer 검증에서는 중복·범위 밖·overflow가 모두 0이었고,
+Intel-family mask도 engineering capture에서 육안 확인했다. 따라서
+`IntelFamilyNonDominant + threshold 1/22 + removal 0.5`를 SMAA document adaptation의
+candidate 정책으로 내부 승인한다. 이는 공개 문서와 Intel CMAA2의 연결 edge 구조에
+근거한 adaptation 승인이지, 유실된 공식 TSCMAA shader 식의 재현 인증이 아니다.
+
+removal override를 끈 기본 prototype 회귀에서 `O-ET2X`와 `O-ET2X-R` 해시는 기존
+`CA3AB0...`, `A0DE72...`와 일치했다.
+
+다음 작업은 승인한 candidate, Catmull-Rom 5-tap, YCoCg clipping과 history weight
+0.8을 하나의 Intel document profile로 조립하는 단계 6이다.

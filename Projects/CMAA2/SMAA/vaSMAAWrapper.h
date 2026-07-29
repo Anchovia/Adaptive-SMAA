@@ -269,6 +269,8 @@ namespace VertexAsylum
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_candidatePolicyOverrideEnabled    = false;
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
+        bool                        m_nonDominantRemovalOverrideEnabled  = false;
+        float                       m_nonDominantRemovalOverride         = 0.5f;
         bool                        m_historySamplerOverrideEnabled     = false;
         HistorySampler              m_historySamplerOverride            = HistorySampler::CatmullRom5Tap;
         bool                        m_historyClippingOverrideEnabled    = false;
@@ -332,6 +334,21 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidatePolicyOverrideEnabled( ) const { return m_candidatePolicyOverrideEnabled; }
+        float                       GetEffectiveNonDominantRemovalAmount( ) const
+        {
+            return m_nonDominantRemovalOverrideEnabled? m_nonDominantRemovalOverride : m_temporalSettings.NonDominantRemovalAmount;
+        }
+        void                        SetNonDominantRemovalOverride( bool enabled, float value )
+        {
+            value = vaMath::Clamp( value, 0.0f, 1.0f );
+            if( m_nonDominantRemovalOverrideEnabled != enabled || m_nonDominantRemovalOverride != value )
+            {
+                m_nonDominantRemovalOverrideEnabled = enabled;
+                m_nonDominantRemovalOverride = value;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetNonDominantRemovalOverrideEnabled( ) const { return m_nonDominantRemovalOverrideEnabled; }
         HistorySampler              GetEffectiveHistorySampler( ) const { return m_historySamplerOverrideEnabled? m_historySamplerOverride : m_temporalSettings.Sampler; }
         HistoryClipping             GetEffectiveHistoryClipping( ) const { return m_historyClippingOverrideEnabled? m_historyClippingOverride : m_temporalSettings.Clipping; }
         void                        SetHistorySamplerOverride( bool enabled, HistorySampler value )

@@ -2541,6 +2541,133 @@ protected:
     virtual float GetProgress( ) const override { return m_isDone? 1.0f : 0.5f; }
 };
 
+class BenchItemValidateSMAACandidatePolicy : public AutoBenchToolWorkItem
+{
+    const CMAA2Sample::SceneSelectionType m_scenes[2] =
+    {
+        CMAA2Sample::SceneSelectionType::LumberyardBistro,
+        CMAA2Sample::SceneSelectionType::MinecraftLostEmpire
+    };
+    const char *        m_sceneNames[2]          = { "LumberyardBistro", "MinecraftLostEmpire" };
+    const float         m_removalAmounts[5]      = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+    int                 m_sceneIndex             = 0;
+    int                 m_removalIndex           = 0;
+    uint32              m_expectedBaseCount      = 0;
+    uint32              m_previousCandidateCount = 0;
+    bool                m_started                = false;
+    bool                m_lightingStableArmed    = false;
+    bool                m_passed                 = true;
+    bool                m_isDone                 = false;
+
+public:
+    explicit BenchItemValidateSMAACandidatePolicy( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = m_scenes[m_sceneIndex];
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAANonDominantRemovalOverride( true, m_removalAmounts[m_removalIndex] );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA TSCMAA-inspired Intel-family candidate policy validation\r\n\r\n" );
+            abTool.ReportAddText( "The local connected-edge formula is a documented adaptation of Intel CMAA2 structure plus the public TSCMAA threshold/removal defaults, not recovered official TSCMAA source.\r\n" );
+            abTool.ReportAddText( "Each scene is held at a fixed camera; statistics are accepted only after shadow-map updates finish.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Scene", "Removal", "Base edges", "Candidates", "Candidate/base", "Indirect process", "Checks", "Result" } );
+            return;
+        }
+
+        if( !m_lightingStableArmed )
+        {
+            if( m_parent.HasPendingShadowmapUpdates( ) )
+                return;
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            m_lightingStableArmed = true;
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalCandidateStatistics & statistics =
+            m_parent.GetSMAATemporalCandidateStatistics( );
+        if( !statistics.Valid || statistics.Policy != vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant )
+            return;
+
+        bool stepPassed = statistics.ProcessCount == statistics.CandidateCount;
+        string checks = "process=candidate";
+        if( m_removalIndex == 0 )
+        {
+            m_expectedBaseCount = statistics.BaseEdgeCount;
+            m_previousCandidateCount = statistics.CandidateCount;
+            stepPassed = stepPassed && statistics.CandidateCount == statistics.BaseEdgeCount;
+            checks += ", removal0=base";
+        }
+        else
+        {
+            stepPassed = stepPassed && statistics.BaseEdgeCount == m_expectedBaseCount;
+            stepPassed = stepPassed && statistics.CandidateCount <= m_previousCandidateCount;
+            checks += ", base stable, monotonic";
+            m_previousCandidateCount = statistics.CandidateCount;
+        }
+        m_passed = m_passed && stepPassed;
+
+        abTool.ReportAddRowValues( {
+            m_sceneNames[m_sceneIndex],
+            vaStringTools::Format( "%.2f", m_removalAmounts[m_removalIndex] ),
+            vaStringTools::Format( "%u", statistics.BaseEdgeCount ),
+            vaStringTools::Format( "%u", statistics.CandidateCount ),
+            vaStringTools::Format( "%.3f%%", 100.0f * statistics.GetCandidateToBaseRatio( ) ),
+            vaStringTools::Format( "%u", statistics.ProcessCount ),
+            checks,
+            stepPassed? "PASS" : "FAIL" } );
+
+        m_removalIndex++;
+        if( m_removalIndex < 5 )
+        {
+            m_parent.SetSMAANonDominantRemovalOverride( true, m_removalAmounts[m_removalIndex] );
+            return;
+        }
+
+        m_sceneIndex++;
+        if( m_sceneIndex < 2 )
+        {
+            m_removalIndex = 0;
+            m_expectedBaseCount = 0;
+            m_previousCandidateCount = 0;
+            m_lightingStableArmed = false;
+            m_parent.Settings().SceneChoice = m_scenes[m_sceneIndex];
+            m_parent.SetSMAANonDominantRemovalOverride( true, m_removalAmounts[m_removalIndex] );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            return;
+        }
+
+        abTool.ReportAddText( m_passed? "\r\nAggregate: PASS\r\n" : "\r\nAggregate: FAIL\r\n" );
+        m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
+        m_parent.SetSMAACandidatePolicyOverride(
+            false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+        abTool.ReportFinish( );
+        m_isDone = true;
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override
+    {
+        return m_isDone? 1.0f : (float)(m_sceneIndex * 5 + m_removalIndex) / 10.0f;
+    }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -2634,6 +2761,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyValidationTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAACandidatePolicy>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA Intel-family candidate policy removal sweep");
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaVarianceClippingTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAVarianceClipping>(*this));

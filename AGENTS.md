@@ -154,12 +154,15 @@ capture를 실행할 수 있다.
   clamp 경계, CPU mirror 일치와 separable 16-tap reference 오차 기록
 - `-smaaVarianceClippingTest` GPU/CPU 검증: YCoCg 왕복, 상수 이웃, box 내부 history,
   outlier 제한과 유한값 확인
+- `-smaaCandidatePolicyValidationTest` 자동 검증: Bistro/Minecraft에서 Intel-family
+  removal 0/0.25/0.5/0.75/1 sweep, base 안정성·단조성·indirect count 확인
 - temporal debug view 4/5/6: 후보 픽셀의 clipping 전 history, clipping 후 history,
   8배 clipping delta. 이 R16G16B16A16 debug resource는 해당 view에서만 할당한다.
 
 기존 prototype 출력 보존을 위해 기본 정책은 아직 `ExperimentalLocalMeanMax3x3`이다.
-`IntelFamilyNonDominant`는 diagnostic override에서 검증 중이며 controlled
-`O-ET2X`/`O-ET2X-R` 기본값으로 아직 승인하지 않았다.
+`IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 다음
+document profile 조립에서 사용할 adaptation 정책으로 승인했다. 다만 유실된 Intel
+TSCMAA 원본 식과 동일하다고 표현하지 않는다.
 
 동일 deterministic smoke 프레임에서 base edge 57,354개 중 AllBase 57,354개,
 Intel-family 34,938개(60.916%), Experimental 44,266개(77.180%)가 선택됐고 indirect
@@ -187,8 +190,9 @@ Catmull-Rom 5-tap과 YCoCg variance clipping은 실제 shader 분기와 diagnost
 현재 spatial 결과를 유지하고 후보만 indirect resolve가 덮어쓰는지 픽셀 단위로 검증했다.
 history lifecycle, camera-motion GPU velocity/history UV 방향과 Catmull-Rom 5-tap
 GPU/CPU reference test, YCoCg variance clipping GPU/CPU 불변 조건과 debug view를
-검증했다. 다만 candidate 정책 승인과 document profile 조립이 남아 있으므로 두 mode를
-최종 document profile로 간주하지 않는다.
+검증했고 Intel-family candidate 정책도 내부 승인 조건을 통과했다. 다만 document
+profile 조립과 그 조립 결과의 회귀 검증이 남아 있으므로 두 mode를 최종 document
+profile로 간주하지 않는다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
@@ -229,9 +233,12 @@ GPU/CPU reference test, YCoCg variance clipping GPU/CPU 불변 조건과 debug v
 4. **완료:** 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경을
    ablation toggle로 분리했다. Catmull-Rom 5-tap과 YCoCg variance clipping의 실제
    GPU shader/CPU reference 및 불변 조건 검증을 완료했다.
-5. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
-6. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
-7. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.
+5. **완료:** Intel-family candidate의 두 장면 removal sweep, base 안정성, 단조성,
+   candidate/process 일치를 검증하고 document adaptation 정책으로 승인했다.
+6. Intel document profile을 조립하고 lifecycle·회귀·성능 smoke를 통과시킨다.
+7. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
+8. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
+9. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 7. 측정 규칙
 

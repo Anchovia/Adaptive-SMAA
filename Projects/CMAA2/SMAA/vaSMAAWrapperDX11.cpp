@@ -933,7 +933,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.PreviousViewProj = vaMatrix4x4::Identity;
         m_reprojectionConstants.TemporalResolution = vaVector4( (float)inputColor->GetSizeX( ), (float)inputColor->GetSizeY( ),
             1.0f / (float)inputColor->GetSizeX( ), 1.0f / (float)inputColor->GetSizeY( ) );
-        m_reprojectionConstants.TSCMAAParams = vaVector4( temporalSettings.HistoryWeight, temporalSettings.NonDominantRemovalAmount,
+        m_reprojectionConstants.TSCMAAParams = vaVector4( temporalSettings.HistoryWeight, GetEffectiveNonDominantRemovalAmount( ),
             temporalReprojectionEnabled? 1.0f : 0.0f,
             vaResourceFormatHelpers::IsSRGB( inputColor->GetSRVFormat( ) )? 1.0f : 0.0f );
         const uint32 clampedForcedCandidateCount = vaMath::Min( GetForcedCandidateCount( ),

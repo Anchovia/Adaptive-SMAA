@@ -60,6 +60,16 @@ void vaSMAAWrapper::UIPanelDraw( )
                 SetCandidatePolicyOverride( true, (CandidatePolicy)policy );
         }
 
+        bool removalOverrideEnabled = m_nonDominantRemovalOverrideEnabled;
+        if( ImGui::Checkbox( "Override non-dominant removal", &removalOverrideEnabled ) )
+            SetNonDominantRemovalOverride( removalOverrideEnabled, m_nonDominantRemovalOverride );
+        if( removalOverrideEnabled )
+        {
+            float removal = m_nonDominantRemovalOverride;
+            if( ImGui::SliderFloat( "Non-dominant removal", &removal, 0.0f, 1.0f, "%.3f" ) )
+                SetNonDominantRemovalOverride( true, removal );
+        }
+
         bool samplerOverrideEnabled = m_historySamplerOverrideEnabled;
         if( ImGui::Checkbox( "Override history sampler", &samplerOverrideEnabled ) )
             SetHistorySamplerOverride( samplerOverrideEnabled, m_historySamplerOverride );

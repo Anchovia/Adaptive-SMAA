@@ -260,6 +260,10 @@ namespace VertexAsylum
         void                                    RequestSMAAVarianceClippingDiagnostics( ) { m_SMAA->RequestVarianceClippingDiagnostics( ); }
         const vaSMAAWrapper::VarianceClippingDiagnostics &
                                                 GetSMAAVarianceClippingDiagnostics( ) const { return m_SMAA->GetVarianceClippingDiagnostics( ); }
+        void                                    SetSMAACandidatePolicyOverride( bool enabled, vaSMAAWrapper::CandidatePolicy policy ) { m_SMAA->SetCandidatePolicyOverride( enabled, policy ); }
+        void                                    SetSMAANonDominantRemovalOverride( bool enabled, float value ) { m_SMAA->SetNonDominantRemovalOverride( enabled, value ); }
+        const vaSMAAWrapper::TemporalCandidateStatistics &
+                                                GetSMAATemporalCandidateStatistics( ) const { return m_SMAA->GetTemporalCandidateStatistics( ); }
         void                                    SetWindowClientAreaSizeForDiagnostics( const vaVector2i & size ) { m_application.SetWindowClientAreaSize( size ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }
