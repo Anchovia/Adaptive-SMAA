@@ -740,8 +740,6 @@ void CMAA2Sample::OnTick(float deltaTime)
                 }
             }
         }
-        GetRenderDevice().BeginFrame(deltaTime);
-
         // draw imgui 
         if (vaUIManager::GetInstance().IsVisible())
         {
@@ -2081,6 +2079,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
 
     enum Metric
     {
+        WholeFrame,
         SMAATotal,
         GenerateCameraVelocity,
         StandardSpatialT2X,
@@ -2144,6 +2143,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
     {
         switch( metric )
         {
+        case WholeFrame:                return "WholeFrame";
         case SMAATotal:                 return "SMAA";
         case GenerateCameraVelocity:    return "SMAAGenerateCameraVelocity";
         case StandardSpatialT2X:        return "SMAAStandardSpatialT2X";
@@ -2161,7 +2161,7 @@ class BenchItemSMAAOriginalFourPerformanceSmoke : public AutoBenchToolWorkItem
 
     static bool IsMetricExpected( int mode, Metric metric )
     {
-        if( metric == SMAATotal )
+        if( metric == WholeFrame || metric == SMAATotal )
             return true;
 
         const bool standard = mode == 0 || mode == 1;
@@ -2349,7 +2349,7 @@ protected:
             abTool.ReportAddText( "Engineering timing smoke; this is not the final repeated 8-case benchmark.\r\n" );
             abTool.ReportAddText( "Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, no PNG capture.\r\n" );
             abTool.ReportAddText( "GPU pass timings use the built-in timestamp-query profiler; values are milliseconds.\r\n" );
-            abTool.ReportAddText( "This smoke validates SMAA total and internal pass timings; whole-frame GPU timing is a separate benchmark.\r\n" );
+            abTool.ReportAddText( "WholeFrame covers GPU work between BeginFrame and EndAndPresentFrame, excluding Present itself.\r\n" );
             abTool.ReportAddText( m_candidateReadbackEnabled?
                 "Candidate counter readback: enabled and reported explicitly.\r\n" :
                 "Candidate counter readback: disabled for timing isolation.\r\n" );

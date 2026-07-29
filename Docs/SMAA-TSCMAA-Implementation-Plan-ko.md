@@ -904,3 +904,52 @@ counter readback도 GPU timing에 포함하면 안 된다는 구현 근거로만
 
 이제 counter readback 오버헤드 분리는 완료했다. Original 네 case의 반복 본 측정 전에
 남은 계측 과제는 신뢰할 수 있는 전체 frame GPU timing 경로를 확정하는 것이다.
+
+### 17.14 DX11 전체 frame GPU timing 수명주기 복구
+
+기존 `WholeFrame` profiler node가 0을 반환하던 원인을 조사했다. 로컬 기준선의
+`CMAA2Sample::OnTick`에는 한 번의 render/present 구간에서 `BeginFrame`이 두 번
+호출되고 있었다. 두 번째 호출은 사용자 스크린샷 기능 뒤, ImGui 렌더 앞에 남아 있었다.
+Release 빌드에서는 assert가 제거되므로 프로그램은 계속 실행됐지만 다음 상태가
+발생했다.
+
+- DX11 GPU timer의 frame-active 상태가 한 frame 안에서 두 번 시작
+- 첫 `WholeFrame` profiler scope를 닫기 전에 두 번째 scope 생성
+- profiler frame 계층과 query 수명주기가 불일치
+
+[Intel 공식 CMAA2의 `CMAA2Sample.cpp`](https://github.com/GameTechDev/CMAA2/blob/master/Projects/CMAA2/CMAA2Sample.cpp)는
+`RenderTick` 앞에서 `BeginFrame`을 한 번 호출하고, ImGui 뒤
+`EndAndPresentFrame`으로 닫는다. 이에 맞춰 로컬의 두 번째 `BeginFrame`만 제거했다.
+스크린샷 저장 기능과 렌더링 내용은 유지했다.
+
+수정 뒤 `WholeFrame`을 `-smaaOriginalFourPerformanceSmoke`의 정식 metric으로
+추가했다. 이 scope는 `BeginFrame` 이후부터 `EndAndPresentFrame` 진입 시점까지의
+GPU work를 포함하며 DXGI `Present` 자체는 제외한다.
+
+2026-07-30, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017, VSync Off,
+SMAA Ultra, candidate counter readback Off, mode당 warm-up 60프레임과 측정
+120프레임의 engineering smoke 결과는 다음과 같다.
+
+| Mode | WholeFrame GPU 평균 | SMAA GPU 평균 | GPU sample |
+|---|---:|---:|---:|
+| `O-T2X` | 2.669116 ms | 0.150827 ms | 120/120 |
+| `O-T2X-R` | 2.724453 ms | 0.191497 ms | 120/120 |
+| `O-ET2X` | 2.815045 ms | 0.308625 ms | 120/120 |
+| `O-ET2X-R` | 2.893030 ms | 0.340531 ms | 120/120 |
+
+모든 내부 expected scope도 120/120개를 반환해 performance smoke가 PASS했다. 이 값은
+전체 frame 계측 경로를 검증한 단일 실행이지 최종 반복 성능 결과가 아니다.
+
+수명주기 회귀에서는 16 reset, 81 temporal frame, 9 seed, 72 resolve,
+20 camera reprojection, failure 0으로 PASS했다. 같은 `start=1 s`, warm-up
+60프레임, 1프레임 capture hash도 수정 직전과 일치했다.
+
+- `O-T2X`: `9F5BFE4BE601ED547408FE4FE1F9DC1D3F0B71C294E33880E779150359928D6C`
+- `O-T2X-R`: `53C0E2A65BAA02C936A3090F26BC48DD8F568CAED2EB2EF24FB408E792BEC667`
+- `O-ET2X`: `235A32AF21E4E2EFDBCA21878F13B4CB70447127FD43C7663F602DF27056EE7C`
+- `O-ET2X-R`: `5C78117959D8AE6522EF31D0D62EFB88355ED20917D97DB0831323AE7D0D4E2C`
+
+따라서 두 번째 `BeginFrame` 제거는 공식 렌더 수명주기를 복구하고 전체 frame
+timestamp를 활성화했으며, 검증한 렌더 출력에는 영향을 주지 않았다. counter readback
+분리와 WholeFrame 경로가 모두 준비됐으므로 다음 단계는 Original 네 case의 반복
+성능 측정 설계를 고정하고 최소 3회 실행하는 것이다.

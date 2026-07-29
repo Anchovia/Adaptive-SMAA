@@ -161,8 +161,8 @@ capture를 실행할 수 있다.
 - `-smaaCandidatePolicyValidationTest` 자동 검증: Bistro/Minecraft에서 Intel-family
   removal 0/0.25/0.5/0.75/1 sweep, base 안정성·단조성·indirect count 확인
 - `-smaaOriginalFourPerformanceSmoke` 자동 검증: PNG를 저장하지 않고 Original 네
-  mode의 SMAA total과 spatial, camera velocity, candidate 준비·추출, indirect args,
-  candidate resolve, output copy GPU timestamp를 같은 동적 경로에서 기록
+  mode의 WholeFrame, SMAA total과 spatial, camera velocity, candidate 준비·추출,
+  indirect args, candidate resolve, output copy GPU timestamp를 같은 동적 경로에서 기록
 - `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
   성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
   수행
@@ -220,10 +220,17 @@ edge-selective mode의 readback Off/On PNG는 각각 byte-identical했다. 이 �
 계측 오버헤드를 본 성능에서 제외해야 한다는 근거이며 최종 성능 결론이 아니다.
 후보 수 특성화 실행은 readback On, timing 본 실행은 readback Off로 분리한다.
 
+전체 frame profiler가 0을 반환하던 원인은 `CMAA2Sample::OnTick`에서 한 frame에
+`BeginFrame`을 두 번 호출하던 로컬 기준선 수명주기 오류였다. Intel 공식 CMAA2
+렌더 루프처럼 한 번만 호출하도록 복구했다. 수정 후 readback Off, 60프레임 warm-up,
+120프레임 engineering smoke에서 네 mode 모두 `WholeFrame` GPU timestamp 120/120개를
+수집했다. `WholeFrame`은 BeginFrame부터 EndAndPresentFrame 직전까지의 GPU work이며
+Present 자체는 제외한다. temporal lifecycle과 네 mode 출력 hash 회귀도 통과했다.
+
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
 sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original 네 mode의
-본 품질·성능 측정 전에 남은 계측 과제는 전체 frame timing 경로 확정이다.
+본 품질·성능 반복 측정을 진행할 수 있는 내부 계측 경로까지 검증됐다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
