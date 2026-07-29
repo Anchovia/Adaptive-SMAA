@@ -182,6 +182,11 @@ Original mode는 기존 edge target/shader path를 유지한다.
   대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG, pair GIF와
   연속 frame/difference sheet 생성. `--include-adaptive`를 지정하면 8개 mode와
   Original↔Adaptive 대응 pair까지 분석
+- `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
+  mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
+  Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
+  Markdown 생성. `--window-state`와 `--classification`을 반드시 실제 실행 조건에
+  맞게 기록
 - `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
   성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
   수행
@@ -297,6 +302,13 @@ edge-selective 네 mode의 candidate 표본 32개를 수집해 PASS했다.
 `-smaaEightCaseCapture 1 3 3`은 8개 디렉터리에 연속·고유 PNG 3개씩을 생성했고,
 8-case 분석기와 기존 4-case 분석기 양쪽 smoke가 통과했다. 이 축소 실행은 구현·도구
 검증일 뿐 최종 8-case 품질·성능 결과가 아니다.
+
+전체 길이의 첫 8-case 성능 실행은 mode당 300 warm-up, 4,800 measurement,
+3 repeats로 내부 validation PASS와 mode별 14,400 timing 표본을 확보했다. 다만
+애플리케이션 창을 운영체제 수준에서 숨겨 실행했으므로
+`analyze_eight_case_performance.py --window-state hidden --classification engineering`
+으로 분류한다. 이 결과는 계측과 분석 경로 검증 및 예비 GPU pass 비교에만 사용하고,
+논문용 FPS·WholeFrame 결과는 visible-window formal 실행으로 재현한 뒤 확정한다.
 
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel

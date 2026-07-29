@@ -1241,3 +1241,67 @@ sample도 각각 32개 수집되어 PASS했다. 결과는 Git에 포함하지 �
 검증됐다. 아직 완료되지 않은 것은 정식 8-case 반복 측정과 별도 object-motion,
 얇은 선, disocclusion 장면의 품질 검증이다. 축소 smoke 수치로 성능 또는 품질 우위를
 주장하지 않는다.
+
+### 17.20 8-case 성능 분석기와 숨김 창 engineering 실행
+
+8개 mode의 성능 결과를 세 연구 축으로 일관되게 분리하기 위해
+`Tools/SMAA/analyze_eight_case_performance.py`를 추가했다.
+
+입력 검증:
+
+- 정확한 8개 semantic ID 존재
+- 각 mode의 `ApplicationFrameWall`, `WholeFrame`, `SMAA` 존재
+- 설정된 measurement frame × repeats와 실제 표본 수 일치
+- 각 timing metric의 run 수 일치
+- frame-rate characterization 존재
+- candidate counter readback Off
+- 벤치마크 내부 validation PASS
+
+출력 비교:
+
+- Original ↔ Adaptive: 대응 temporal/reprojection 설정 네 쌍
+- Standard ↔ Edge-selective: 대응 spatial/reprojection 설정 네 쌍
+- Reprojection Off ↔ On: 대응 spatial/temporal 설정 네 쌍
+- 각 쌍에서 Wall, WholeFrame, SMAA 평균 시간의 절대·백분율 변화
+
+분석기는 다음과 같이 실행한다.
+
+```powershell
+python Tools/SMAA/analyze_eight_case_performance.py `
+  <results.csv> `
+  --window-state visible|hidden|unknown `
+  --classification formal|engineering
+```
+
+`formal` 결과는 `--window-state visible --classification formal` 조합에서만 표시한다.
+창 상태를 알 수 없거나 운영체제 수준에서 숨겨 실행한 결과가 논문용 FPS 결과로
+잘못 사용되는 것을 막기 위한 provenance 규칙이다.
+
+첫 전체 길이 실행은 mode당 warm-up 300프레임, measurement 4,800프레임, 3회 반복으로
+완료되어 내부 PASS와 mode별 14,400개 표본을 확보했다. 원본은 Git에 포함하지 않는
+`Projects/CMAA2/AutoBench/20260730_014653/20260730_014653_results.csv`다. 이 실행은
+프로그램 창을 숨긴 상태였으므로 다음과 같이 engineering 결과로 분석했다.
+
+```powershell
+python Tools/SMAA/analyze_eight_case_performance.py `
+  Projects/CMAA2/AutoBench/20260730_014653/20260730_014653_results.csv `
+  --window-state hidden `
+  --classification engineering
+```
+
+검증 결과는 8개 mode, mode별 14,400개 표본, 12개 대응 비교와 36개 지표 행으로
+PASS했다. 이 예비 실행에서는 대응 case 평균 SMAA 시간이 Adaptive에서 10.66%
+감소했고, Edge-selective에서 Standard 대비 76.93% 증가했으며, camera reprojection
+On에서 Off 대비 14.39% 증가했다. 이는 숨김 실행에서 관측한 예비 GPU pass 결과이고,
+visible-window 실행으로 재현하기 전에는 최종 성능 결론으로 사용하지 않는다.
+
+생성 산출물:
+
+- `PerformanceAnalysis/SMAA-Eight-Case-Performance-Analysis-ko.md`
+- `PerformanceAnalysis/smaa_eight_case_performance_modes.csv`
+- `PerformanceAnalysis/smaa_eight_case_performance_comparisons.csv`
+- `PerformanceAnalysis/smaa_eight_case_performance_analysis.json`
+
+다음 작업은 동일 실행 파일과 설정으로 창을 보이는 상태에서 8-case 반복 벤치마크를
+재실행하고, `visible/formal` 분석 결과가 숨김 engineering 결과와 같은 GPU timing
+방향을 재현하는지 확인하는 것이다.
