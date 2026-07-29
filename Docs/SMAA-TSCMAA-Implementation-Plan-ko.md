@@ -1477,3 +1477,51 @@ contact sheet와 6-frame sequence/difference sheet에서 화면 전체 깨짐이
 이 시점에서 동일 Bistro path의 8-case 성능·품질 표는 확보됐다. 다음 단계는 풍차 날개,
 얇은 선/울타리, 정지 카메라의 독립 object motion과 명시적 disocclusion 장면을
 추가해 ghosting, shimmer, crawling과 flicker를 검증하는 것이다.
+
+### 17.23 전용 temporal stress 장면과 캡처 smoke
+
+2026-07-30에 기존 장면 asset을 수정하지 않는 별도 절차적 장면
+`SMAA Temporal Stress Test`를 추가했다.
+
+- 밝은 수직·대각선 반복선: 카메라 수평 이동 시 shimmer/crawling 관찰
+- 회전하는 네 개의 얇은 날개: 빠른 대각선·subpixel object edge 관찰
+- 밝은 반복선 앞의 어두운 이동 occluder: object-motion ghosting과 disocclusion 관찰
+- 고정 노출, SMAA Ultra, fixed 60 Hz analytical timeline
+
+8개 semantic mode를 같은 순서와 timeline으로 저장하는 명령은 다음과 같다.
+
+```powershell
+.\CMAA2.exe -smaaEightCaseStressCapture "thin-lines 180 60"
+.\CMAA2.exe -smaaEightCaseStressCapture "object-motion 180 60"
+.\CMAA2.exe -smaaEightCaseStressCapture "combined 180 60"
+```
+
+각 시나리오의 의미는 다음과 같다.
+
+| 시나리오 | 카메라 | 독립 물체 |
+|---|---|---|
+| `thin-lines` | 수평 이동 | 고정 |
+| `object-motion` | 고정 | occluder 이동 + 날개 회전 |
+| `combined` | 수평 이동 | occluder 이동 + 날개 회전 |
+
+`-R` mode의 reprojection은 현재 depth와 이전·현재 카메라 행렬에서 만든 camera motion만
+처리한다. 따라서 `object-motion`은 object motion vector 미지원 상태가 temporal
+history에 어떤 잔상을 만드는지 분리하는 장면이다.
+
+Release x64 빌드 후 각 시나리오에 3 warm-up + 3 capture frame smoke를 실행했다.
+각 실행에서 8개 mode 디렉터리, mode별 연속·고유 PNG 3개와 기존
+`analyze_original_four_quality.py --include-adaptive` 분석 산출물 생성을 확인했다.
+첫 thin-lines smoke에서 free-flight controller가 analytical camera를 덮어써 하늘만
+캡처되는 문제를 발견했고, controller 처리 뒤 테스트 카메라를 재적용하도록 수정했다.
+재실행에서는 backdrop, 반복선, occluder와 rotor가 정상 출력됐다.
+
+smoke 원시 경로:
+
+- `Projects/CMAA2/AutoBench/20260730_030258`: `thin-lines`
+- `Projects/CMAA2/AutoBench/20260730_030342`: `object-motion`
+- `Projects/CMAA2/AutoBench/20260730_030417`: `combined`
+
+이 결과는 장면·캡처·분석 도구 검증용이며 최종 품질 결론에 사용하지 않는다. 다음 작업은
+각 시나리오를 충분한 길이로 캡처하고, 전체 화면 지표뿐 아니라 rotor와 occluder
+disocclusion 영역을 분리해 ghosting 길이, temporal 변화와 edge 안정성을 분석하는
+것이다.

@@ -62,7 +62,17 @@ namespace VertexAsylum
             LumberyardBistro,
             StaticImage,
             MinecraftLostEmpire,
+            SMAATemporalStressTest,
             
+            MaxValue
+        };
+
+        enum class SMAATemporalStressScenario : int32
+        {
+            ThinLinesCameraPan,
+            ObjectMotionDisocclusion,
+            CombinedCameraAndObjectMotion,
+
             MaxValue
         };
 
@@ -195,6 +205,14 @@ namespace VertexAsylum
         shared_ptr<vaTexture>                   m_loadedStaticImage;
 
         shared_ptr<vaScene>                     m_scenes[ (int32)SceneSelectionType::MaxValue ];
+        shared_ptr<vaSceneObject>               m_temporalStressMovingOccluder;
+        vector<shared_ptr<vaSceneObject>>       m_temporalStressRotorBlades;
+        vector<shared_ptr<vaRenderMesh>>        m_temporalStressMeshes;
+        vector<shared_ptr<vaRenderMaterial>>    m_temporalStressMaterials;
+        SMAATemporalStressScenario              m_temporalStressScenario =
+                                                    SMAATemporalStressScenario::ObjectMotionDisocclusion;
+        float                                   m_temporalStressTimeSeconds = 0.0f;
+        bool                                    m_temporalStressStateConfigured = false;
 
         shared_ptr<vaScene>                     m_currentScene;
         vaRenderSelection                       m_currentSceneMainRenderSelection;
@@ -290,6 +308,8 @@ namespace VertexAsylum
                                                 GetFlythroughCameraController()     { return m_flythroughCameraController; }
         bool                                    GetFlythroughCameraEnabled() const  { return m_flythroughPlay; }
         void                                    SetFlythroughCameraEnabled( bool enabled ) { m_flythroughPlay = enabled; }
+        void                                    SetSMAATemporalStressTestState( SMAATemporalStressScenario scenario, float timeSeconds );
+        static const char *                     GetSMAATemporalStressScenarioName( SMAATemporalStressScenario scenario );
 
     public:
         // events/callbacks:

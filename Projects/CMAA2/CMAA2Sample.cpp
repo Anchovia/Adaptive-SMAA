@@ -518,9 +518,175 @@ void CMAA2Sample::LoadAssetsAndScenes()
         m_scenes[(int32)SceneSelectionType::LumberyardBistro]->SetSkybox(GetRenderDevice(), "Media\\Bistro_Exterior_Dark_cube.dds", mat, 0.01f);
     }
 
+    // Deterministic SMAA temporal stress scene. This is deliberately separate
+    // from the research scenes so the quality tests never modify Bistro or
+    // Minecraft assets. The dark occluder moves across bright thin geometry,
+    // producing controlled object-motion and disocclusion regions. The rotor
+    // supplies fast diagonal subpixel edges.
+    {
+        shared_ptr<vaScene> scene = m_scenes[(int32)SceneSelectionType::SMAATemporalStressTest];
+        scene->Clear();
+        scene->Name() = "SMAA Temporal Stress Test";
+        scene->SetSkybox(GetRenderDevice(), "Media\\sky_cube.dds", vaMatrix3x3::Identity, 0.015f);
+        scene->Lights().push_back(std::make_shared<vaLight>(
+            vaLight::MakeAmbient("TemporalTestAmbient", vaVector3(0.55f, 0.55f, 0.55f))));
+        scene->Lights().push_back(std::make_shared<vaLight>(
+            vaLight::MakeDirectional("TemporalTestDirectional", vaVector3(0.8f, 0.8f, 0.8f),
+                vaVector3(-0.25f, 0.4f, -1.0f).Normalized())));
+
+        auto createMaterial = [this](const vaVector4& albedo, bool doubleSided)
+        {
+            shared_ptr<vaRenderMaterial> material =
+                GetRenderDevice().GetMaterialManager().CreateRenderMaterial(vaCore::GUIDCreate());
+            material->InitializeDefaultMaterial();
+            const int albedoIndex = material->FindInputByName("Albedo");
+            assert(albedoIndex >= 0);
+            vaRenderMaterial::MaterialInput albedoInput = material->GetInputs()[albedoIndex];
+            albedoInput.Value = vaRenderMaterial::MaterialInput::ValueVar(albedo);
+            material->SetInput(albedoIndex, albedoInput);
+            vaRenderMaterial::MaterialSettings settings = material->GetMaterialSettings();
+            settings.CastShadows = false;
+            settings.ReceiveShadows = false;
+            if(doubleSided)
+                settings.FaceCull = vaFaceCull::None;
+            material->SetMaterialSettings(settings);
+            m_temporalStressMaterials.push_back(material);
+            return material;
+        };
+
+        auto bindMaterial = [](const shared_ptr<vaRenderMesh>& mesh,
+            const shared_ptr<vaRenderMaterial>& material)
+        {
+            vaRenderMesh::SubPart part = mesh->GetPart();
+            part.CachedMaterialRef = material;
+            part.MaterialID = material->UIDObject_GetUID();
+            mesh->SetPart(part);
+        };
+
+        shared_ptr<vaRenderMaterial> brightMaterial = createMaterial(
+            vaVector4(0.92f, 0.95f, 1.0f, 1.0f), false);
+        shared_ptr<vaRenderMaterial> rotorMaterial = createMaterial(
+            vaVector4(1.0f, 0.32f, 0.06f, 1.0f), false);
+        shared_ptr<vaRenderMaterial> occluderMaterial = createMaterial(
+            vaVector4(0.025f, 0.03f, 0.04f, 1.0f), false);
+        shared_ptr<vaRenderMaterial> backdropMaterial = createMaterial(
+            vaVector4(0.12f, 0.16f, 0.22f, 1.0f), true);
+
+        shared_ptr<vaRenderMesh> brightCylinder = vaRenderMesh::CreateCylinder(
+            GetRenderDevice(), vaMatrix4x4::Identity, 1.0f, 1.0f, 1.0f, 12, false, false);
+        shared_ptr<vaRenderMesh> rotorCube = vaRenderMesh::CreateCube(
+            GetRenderDevice(), vaMatrix4x4::Identity, false);
+        shared_ptr<vaRenderMesh> occluderCube = vaRenderMesh::CreateCube(
+            GetRenderDevice(), vaMatrix4x4::Identity, false);
+        shared_ptr<vaRenderMesh> backdropPlane = vaRenderMesh::CreatePlane(
+            GetRenderDevice(), vaMatrix4x4::Identity, 1.0f, 1.0f);
+        bindMaterial(brightCylinder, brightMaterial);
+        bindMaterial(rotorCube, rotorMaterial);
+        bindMaterial(occluderCube, occluderMaterial);
+        bindMaterial(backdropPlane, backdropMaterial);
+        m_temporalStressMeshes = { brightCylinder, rotorCube, occluderCube, backdropPlane };
+
+        auto createObject = [&scene](const string& name, const shared_ptr<vaRenderMesh>& mesh,
+            const vaMatrix4x4& transform)
+        {
+            shared_ptr<vaSceneObject> object = scene->CreateObject(name, transform);
+            object->AddRenderMeshRef(mesh);
+            return object;
+        };
+
+        createObject("TemporalTestBackdrop", backdropPlane,
+            vaMatrix4x4::Scaling(5.2f, 3.6f, 1.0f)
+            * vaMatrix4x4::RotationX(0.5f * VA_PIf)
+            * vaMatrix4x4::Translation(0.0f, 2.8f, 2.7f));
+
+        // Repeated vertical and diagonal lines expose shimmer/crawling while
+        // the camera translates laterally by a subpixel-sensitive distance.
+        for(int lineIndex = -8; lineIndex <= 8; lineIndex++)
+        {
+            const float x = (float)lineIndex * 0.42f;
+            createObject(vaStringTools::Format("TemporalTestVerticalLine_%02d", lineIndex + 8),
+                brightCylinder,
+                vaMatrix4x4::Scaling(0.024f, 0.024f, 4.6f)
+                * vaMatrix4x4::Translation(x, 1.8f, 2.45f));
+        }
+        for(int lineIndex = -3; lineIndex <= 3; lineIndex++)
+        {
+            const float x = (float)lineIndex * 0.92f;
+            const float angle = (lineIndex & 1)? 0.24f * VA_PIf : -0.24f * VA_PIf;
+            createObject(vaStringTools::Format("TemporalTestDiagonalLine_%02d", lineIndex + 3),
+                brightCylinder,
+                vaMatrix4x4::Scaling(0.022f, 0.022f, 3.4f)
+                * vaMatrix4x4::RotationY(angle)
+                * vaMatrix4x4::Translation(x, 1.4f, 2.45f));
+        }
+
+        m_temporalStressMovingOccluder = createObject("TemporalTestMovingOccluder",
+            occluderCube,
+            vaMatrix4x4::Scaling(0.75f, 0.28f, 1.1f)
+            * vaMatrix4x4::Translation(-2.8f, -0.2f, 1.65f));
+
+        m_temporalStressRotorBlades.clear();
+        for(int bladeIndex = 0; bladeIndex < 4; bladeIndex++)
+        {
+            m_temporalStressRotorBlades.push_back(createObject(
+                vaStringTools::Format("TemporalTestRotorBlade_%d", bladeIndex),
+                rotorCube, vaMatrix4x4::Identity));
+        }
+    }
+
 #ifdef ENABLE_TEXTURE_REDUCTION_TOOL
     vaTextureReductionTestTool::SetSupportedByApp();
 #endif
+}
+
+const char* CMAA2Sample::GetSMAATemporalStressScenarioName(SMAATemporalStressScenario scenario)
+{
+    switch(scenario)
+    {
+    case SMAATemporalStressScenario::ThinLinesCameraPan:             return "thin-lines";
+    case SMAATemporalStressScenario::ObjectMotionDisocclusion:       return "object-motion";
+    case SMAATemporalStressScenario::CombinedCameraAndObjectMotion:  return "combined";
+    default:                                                         return "invalid";
+    }
+}
+
+void CMAA2Sample::SetSMAATemporalStressTestState(
+    SMAATemporalStressScenario scenario, float timeSeconds)
+{
+    assert(scenario >= SMAATemporalStressScenario::ThinLinesCameraPan
+        && scenario < SMAATemporalStressScenario::MaxValue);
+    m_temporalStressScenario = scenario;
+    m_temporalStressTimeSeconds = timeSeconds;
+    m_temporalStressStateConfigured = true;
+    const bool cameraMoves = scenario == SMAATemporalStressScenario::ThinLinesCameraPan
+        || scenario == SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+    const bool objectsMove = scenario == SMAATemporalStressScenario::ObjectMotionDisocclusion
+        || scenario == SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+
+    const float cameraPhase = timeSeconds * (2.0f * VA_PIf / 4.0f);
+    const float objectPhase = timeSeconds * (2.0f * VA_PIf / 3.0f);
+    const float cameraX = cameraMoves? 0.42f * vaMath::Sin(cameraPhase) : 0.0f;
+    const vaVector3 cameraPosition(cameraX, -10.0f, 2.65f);
+    m_camera->SetPosition(cameraPosition);
+    m_camera->SetOrientationLookAt(vaVector3(cameraX, 1.3f, 2.45f));
+
+    if(m_temporalStressMovingOccluder != nullptr)
+    {
+        const float occluderX = objectsMove? 2.75f * vaMath::Sin(objectPhase) : -2.8f;
+        m_temporalStressMovingOccluder->SetLocalTransform(
+            vaMatrix4x4::Scaling(0.75f, 0.28f, 1.1f)
+            * vaMatrix4x4::Translation(occluderX, -0.2f, 1.65f));
+    }
+
+    const float rotorAngle = objectsMove? timeSeconds * 2.4f * VA_PIf : 0.17f * VA_PIf;
+    for(int bladeIndex = 0; bladeIndex < (int)m_temporalStressRotorBlades.size(); bladeIndex++)
+    {
+        const float angle = rotorAngle + (float)bladeIndex * 0.5f * VA_PIf;
+        m_temporalStressRotorBlades[bladeIndex]->SetLocalTransform(
+            vaMatrix4x4::Scaling(1.25f, 0.10f, 0.075f)
+            * vaMatrix4x4::RotationY(angle)
+            * vaMatrix4x4::Translation(2.45f, 0.15f, 3.95f));
+    }
 }
 
 void CMAA2Sample::OnBeforeStopped()
@@ -639,6 +805,22 @@ void CMAA2Sample::OnTick(float deltaTime)
     }
 
     m_camera->Tick(deltaTime, m_application.HasFocus() && !freezeMotionAndInput);
+
+    // The free-flight controller owns the camera during the regular tick. The
+    // stress capture needs an identical analytical camera pose for every mode,
+    // so apply it after controller input and rebuild the camera matrices with
+    // the controller temporarily detached.
+    if(m_settings.SceneChoice == CMAA2Sample::SceneSelectionType::SMAATemporalStressTest
+        && m_temporalStressStateConfigured)
+    {
+        shared_ptr<vaCameraControllerBase> previousController =
+            m_camera->GetAttachedController();
+        m_camera->AttachController(nullptr);
+        SetSMAATemporalStressTestState(
+            m_temporalStressScenario, m_temporalStressTimeSeconds);
+        m_camera->Tick(0.0f, false);
+        m_camera->AttachController(previousController);
+    }
 
     // Scene stuff
     {
@@ -2156,6 +2338,171 @@ protected:
         const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
         const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
         return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * m_modeCount), 0.0f, 1.0f);
+    }
+};
+
+class BenchItemRecordSMAATemporalStressMatrix : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 8;
+    static const int    c_modeCapacity = 8;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const CMAA2Sample::SMAATemporalStressScenario m_scenario;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    int                 m_currentMode = 0;
+    int                 m_currentFrame = 0;
+    bool                m_started = false;
+    bool                m_isDone = false;
+    wstring             m_outputDirs[c_modeCapacity];
+
+    static const char * GetModeID(int mode)
+    {
+        static const char * c_modeIDs[c_modeCapacity] =
+        {
+            "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
+            "A-T2X", "A-T2X-R", "A-ET2X", "A-ET2X-R"
+        };
+        return c_modeIDs[mode];
+    }
+
+    static const char * GetModeDirectory(int mode)
+    {
+        static const char * c_modeDirectories[c_modeCapacity] =
+        {
+            "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R",
+            "A_T2X", "A_T2X_R", "A_ET2X", "A_ET2X_R"
+        };
+        return c_modeDirectories[mode];
+    }
+
+    static CMAA2Sample::AAType GetModeAAType(int mode)
+    {
+        static const CMAA2Sample::AAType c_modes[c_modeCapacity] =
+        {
+            CMAA2Sample::AAType::SMAA_O_T2X,
+            CMAA2Sample::AAType::SMAA_O_T2X_R,
+            CMAA2Sample::AAType::SMAA_O_ET2X,
+            CMAA2Sample::AAType::SMAA_O_ET2X_R,
+            CMAA2Sample::AAType::SMAA_A_T2X,
+            CMAA2Sample::AAType::SMAA_A_T2X_R,
+            CMAA2Sample::AAType::SMAA_A_ET2X,
+            CMAA2Sample::AAType::SMAA_A_ET2X_R
+        };
+        return c_modes[mode];
+    }
+
+public:
+    BenchItemRecordSMAATemporalStressMatrix(CMAA2Sample& parent,
+        CMAA2Sample::SMAATemporalStressScenario scenario,
+        int captureFrameCount, int warmupFrameCount)
+        : AutoBenchToolWorkItem(parent),
+        m_scenario(scenario),
+        m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
+        m_warmupFrameCount(vaMath::Max(1, warmupFrameCount))
+    {
+    }
+
+protected:
+    virtual void Tick(AutoBenchTool& abTool, float deltaTime) override
+    {
+        deltaTime;
+
+        if(!m_started)
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.SetFlythroughCameraEnabled(false);
+            m_parent.SetRequireDeterminism(true);
+            m_parent.SetFixedDeltaTime(c_frameDeltaTime);
+            m_parent.SetSMAAPreset(vaSMAAWrapper::Preset::PRESET_ULTRA);
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled(false);
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity();
+
+            abTool.ReportStart();
+            for(int mode = 0; mode < c_modeCount; mode++)
+            {
+                m_outputDirs[mode] = abTool.ReportGetDir()
+                    + vaStringTools::SimpleWiden(GetModeDirectory(mode)) + L"\\";
+                vaFileTools::EnsureDirectoryExists(m_outputDirs[mode]);
+            }
+
+            abTool.ReportAddText("SMAA eight-case dedicated temporal stress capture\r\n\r\n");
+            abTool.ReportAddText(vaStringTools::Format("Scenario:       %s\r\n",
+                CMAA2Sample::GetSMAATemporalStressScenarioName(m_scenario)));
+            abTool.ReportAddText("Scene:          procedural thin lines, moving occluder, rotating blades\r\n");
+            abTool.ReportAddText("API/preset:     DirectX 11, SMAA Ultra\r\n");
+            abTool.ReportAddText("Timeline:       fixed 60 Hz and identical per mode\r\n");
+            abTool.ReportAddText(vaStringTools::Format("Warm-up:        %d frames\r\n",
+                m_warmupFrameCount));
+            abTool.ReportAddText(vaStringTools::Format("Capture:        %d frames per mode\r\n",
+                m_captureFrameCount));
+            abTool.ReportAddText("Motion scope:   -R modes reproject camera motion only; object motion vectors are not connected\r\n");
+            abTool.ReportAddText("Classification: dedicated quality evidence; PNG capture is not a performance measurement\r\n\r\n");
+            abTool.ReportAddRowValues({ "Mode", "Output directory" });
+            for(int mode = 0; mode < c_modeCount; mode++)
+                abTool.ReportAddRowValues({ GetModeID(mode), GetModeDirectory(mode) });
+
+            m_currentMode = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if(m_currentFrame >= m_captureFrameCount)
+        {
+            m_currentMode++;
+            if(m_currentMode >= c_modeCount)
+            {
+                m_isDone = true;
+                abTool.ReportFinish();
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        m_parent.Settings().CurrentAAOption = GetModeAAType(m_currentMode);
+        m_parent.SetSMAATemporalStressTestState(
+            m_scenario, (float)m_currentFrame * c_frameDeltaTime);
+    }
+
+    virtual void OnRender(AutoBenchTool&) override {}
+
+    virtual void OnRenderComparePoint(AutoBenchTool& abTool,
+        vaImageCompareTool& imageCompareTool, vaRenderDeviceContext& renderContext,
+        const shared_ptr<vaTexture>& colorInOut,
+        shared_ptr<vaPostProcess>& postProcess) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if(m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount)
+        {
+            const char* modeName = GetModeDirectory(m_currentMode);
+            const wstring fileName = m_outputDirs[m_currentMode]
+                + vaStringTools::SimpleWiden(vaStringTools::Format(
+                    "%s_%s_frame_%05d.png",
+                    CMAA2Sample::GetSMAATemporalStressScenarioName(m_scenario),
+                    modeName, m_currentFrame));
+            if(!colorInOut->SaveToPNGFile(renderContext, fileName))
+                VA_LOG_ERROR(L"Failed to save SMAA temporal stress frame '%s'",
+                    fileName.c_str());
+        }
+    }
+
+    virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
+    virtual bool IsCapturingFrame() const override
+    {
+        return m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount;
+    }
+    virtual float GetProgress() const override
+    {
+        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int completedFrames = m_currentMode * framesPerMode
+            + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp((float)completedFrames
+            / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f);
     }
 };
 
@@ -3997,6 +4344,46 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA temporal lifecycle engineering validation");
+            return;
+        }
+
+        if (_wcsicmp(parameter.first.c_str(), L"smaaEightCaseStressCapture") == 0)
+        {
+            wstring scenarioToken = L"object-motion";
+            int frameCount = 180;
+            int warmupFrameCount = 60;
+            if(!parameter.second.empty())
+            {
+                std::wistringstream values(parameter.second);
+                if(!(values >> scenarioToken >> frameCount >> warmupFrameCount))
+                {
+                    VA_LOG_ERROR("Invalid -smaaEightCaseStressCapture values; expected: <thin-lines|object-motion|combined> <captureFrames> <warmupFrames>");
+                    return;
+                }
+            }
+
+            SMAATemporalStressScenario scenario = SMAATemporalStressScenario::MaxValue;
+            if(_wcsicmp(scenarioToken.c_str(), L"thin-lines") == 0)
+                scenario = SMAATemporalStressScenario::ThinLinesCameraPan;
+            else if(_wcsicmp(scenarioToken.c_str(), L"object-motion") == 0)
+                scenario = SMAATemporalStressScenario::ObjectMotionDisocclusion;
+            else if(_wcsicmp(scenarioToken.c_str(), L"combined") == 0)
+                scenario = SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+            else
+            {
+                VA_LOG_ERROR("Invalid SMAA temporal stress scenario; expected thin-lines, object-motion, or combined");
+                return;
+            }
+
+            frameCount = vaMath::Clamp(frameCount, 1, 1800);
+            warmupFrameCount = vaMath::Clamp(warmupFrameCount, 1, 600);
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemRecordSMAATemporalStressMatrix>(
+                    *this, scenario, frameCount, warmupFrameCount));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA eight-case '%s' temporal stress capture: %d capture frames, %d warm-up frames",
+                GetSMAATemporalStressScenarioName(scenario),
+                frameCount, warmupFrameCount);
             return;
         }
 

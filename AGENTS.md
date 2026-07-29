@@ -341,6 +341,23 @@ Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다
 sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8개 mode의 본
 품질·성능 반복 측정을 진행할 수 있는 내부 계측·캡처·분석 경로까지 검증됐다.
 
+독립 object motion과 얇은 선/disocclusion을 위한 별도 절차적 장면
+`SMAA Temporal Stress Test`를 추가했다. 기존 Bistro/Minecraft asset은 수정하지 않는다.
+다음 세 시나리오를 `-smaaEightCaseStressCapture`로 전체 8개 mode에서 동일한 fixed
+60 Hz timeline으로 캡처한다.
+
+- `thin-lines`: 물체는 고정하고 카메라만 수평 이동
+- `object-motion`: 카메라는 고정하고 어두운 occluder와 회전 날개만 이동
+- `combined`: 카메라와 두 물체가 동시에 이동
+
+명령 형식은
+`-smaaEightCaseStressCapture "<thin-lines|object-motion|combined> <captureFrames> <warmupFrames>"`
+이다. `-R` mode도 camera-motion reprojection만 사용하며 object motion vector는
+연결되지 않는다. 2026-07-30에 각 시나리오를 3 warm-up + 3 capture frame으로
+축소 검증했고, 매 실행에서 8개 디렉터리와 mode별 연속·고유 PNG 3개, 기존
+8-case 분석기의 보고서/비교 이미지 생성을 확인했다. 이 축소 결과는 도구 smoke일 뿐
+최종 품질 결과가 아니다.
+
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
 반복 일치했으며 이 현상은 sampler override와 무관하다. 시작 프레임/history warm-up
@@ -394,8 +411,9 @@ sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8
     세 독립 축의 성능 차이를 분석했다.
 11. **완료:** 전체 8개 품질 sequence를 같은 Bistro 경로에서 캡처하고 정량·시각
     분석 및 Original deterministic regression 검증을 완료했다.
-12. **다음:** 독립 object motion, 얇은 선과 disocclusion 전용 장면을 추가해
-    ghosting·shimmer·crawling 최종 품질 결론을 작성한다.
+12. **진행 중:** 독립 object motion, 얇은 선과 disocclusion 전용 장면 및 8-case
+    캡처 자동화를 추가하고 축소 smoke를 통과했다. 충분한 길이의 세 시나리오 capture와
+    ghosting·shimmer·crawling 정량·시각 분석이 남아 있다.
 
 ## 7. 측정 규칙
 
