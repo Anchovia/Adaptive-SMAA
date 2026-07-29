@@ -329,7 +329,7 @@ history UV/velocity, variance clip delta다.
 이는 `O-T2X`가 아니라 edge-selective pipeline의 jitter, sampler, clipping, weight와
 reprojection 설정을 그대로 유지한 채 모든 픽셀을 후보로 만드는 matched diagnostic이다.
 
-### 단계 4: 5-tap sampler
+### 단계 4: 5-tap sampler — 완료
 
 - `CatmullRom5Tap` 독립 구현
 - CPU 16-tap reference test와 GPU 불변 조건 검증
@@ -385,7 +385,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] 후보 compact buffer 중복·overflow 검증
 - [x] indirect dispatch count 검증
 - [x] depth 및 현재·이전 matrix reprojection 검증
-- [ ] 5-tap Catmull–Rom reference 검증
+- [x] 5-tap Catmull–Rom reference 검증
 - [ ] YCoCg variance clipping 불변 조건 검증
 - [x] 후보 history weight `0.8` 설정 및 resolve 경로 연결
 - [x] 비후보 history weight `0.0`, 즉 current spatial 유지 픽셀 검증
@@ -572,5 +572,52 @@ vector가 연결되어 있지 않으므로 움직이는 물체의 재투영 지�
 - `O-ET2X`: `CA3AB01FD2DEF99EB21ACF7820502DCBAC57646E67A9772EA9B6F283959D9ECE`
 - `O-ET2X-R`: `A0DE7204B3AA14AC409B512156DCB45D5901C3A14F5EDD0CA163B31243F7668D`
 
-다음 작업은 단계 4의 Catmull-Rom 5-tap CPU 16-tap reference 및 GPU 불변 조건
-검증이다.
+### 17.6 Catmull-Rom 5-tap GPU/CPU reference 검증 결과
+
+`-smaaCatmullRomReferenceTest` 자동 진단을 추가했다. 이 진단은 production resolve가
+호출하는 `TSCMAASampleHistoryCatmullRom5Tap` 함수를 전용 compute shader에서도 그대로
+호출한다.
+
+- 8×8 `RGBA32F` 입력: 고주파 결정론 패턴, 평면 gradient, 상수 `0.375`, 상수 `1.0`
+- 16×16 GPU UV grid: `[-0.1, 1.1]`을 포함해 clamp sampler 경계와 범위 밖 좌표 확인
+- CPU 5-tap mirror: HLSL과 같은 좌표·가중치·5개 bilinear sample·정규화
+- CPU 16-tap reference: separable Catmull-Rom 4×4 texel 합
+- CPU reference UV: 64×64, 총 4,096개
+
+2026-07-29, RTX 3060 Ti, DirectX 11, Release x64에서 얻은 결과는 다음과 같다.
+
+| 항목 | 결과 | 판정 |
+|---|---:|---|
+| cubic/effective 5-tap weight 합 최대 오차 | 0.000000119 | PASS |
+| mirror symmetry 최대 오차 | 0.000000060 | PASS |
+| GPU 상수 channel 최대 오차 | 0.000000238 | PASS |
+| GPU shader 대 CPU 5-tap 최대 오차 | 0.002946258 | PASS |
+| GPU shader 대 CPU 5-tap RMSE | 0.000403950 | 기록값 |
+| CPU 5-tap 대 CPU 16-tap 최대 오차 | 0.012019262 | 기록값 |
+| CPU 5-tap 대 CPU 16-tap RMSE | 0.001406755 | 기록값 |
+
+GPU 대 CPU 5-tap 최대 허용치는 texture unit의 선형 보간 정밀도 차이를 고려한 engineering
+tolerance `0.005`다. 상수 channel 보존 허용치는 `0.000020`, weight 합과 symmetry는
+`0.000002`다. CPU 5-tap 대 16-tap 수치는 5-tap 근사의 특성을 기록하는 값이므로 임의의
+품질 합격 threshold를 적용하지 않았다.
+
+sampler만 바꾸는 engineering capture도 수행했다. edge-selective bilinear 출력은 기존
+회귀 기준과 반복 일치했고 Catmull-Rom override에서 실제 sampler 분기를 사용하는 두
+mode의 해시가 다음과 같이 변경됐다.
+
+- `O-ET2X` bilinear: `CA3AB01FD2DEF99EB21ACF7820502DCBAC57646E67A9772EA9B6F283959D9ECE`
+- `O-ET2X-R` bilinear: `A0DE7204B3AA14AC409B512156DCB45D5901C3A14F5EDD0CA163B31243F7668D`
+- `O-ET2X` Catmull-Rom: `53C855E7B8232401A1F3DAAFAC8F0CFEE01EA6B7244B64625AE5A92C4C115E81`
+- `O-ET2X-R` Catmull-Rom: `D7C0FA2306B42E416DBE0AA0F932B6362B6C931D3F8308BF58FB775AC71154F1`
+
+Standard `O-T2X-R`은 override와 무관하게 기준 해시를 유지했다. 반면 four-mode capture의
+첫 mode인 `O-T2X`는 override Off/Bilinear/Catmull-Rom과 무관하게 동일 명령에서도
+`9F5B...`와 `74E9...` 두 해시가 관측됐다. 이는 sampler 효과가 아니라 시작
+프레임/history warm-up의 기존 비결정성으로 분리하며, 캡처 도구를 보완하기 전에는
+`O-T2X` 단일 프레임 hash를 deterministic 증거로 사용하지 않는다.
+
+이로써 shader 분기, 상수 보존, weight 합, 대칭성, clamp 경계와 CPU 16-tap reference
+비교를 확인했다. 다만 정확한 5-tap 좌표·가중치는 Intel 공개 문서에 없는 adaptation이므로
+공식 TSCMAA 식이라고 표현하지 않는다.
+
+다음 작업은 단계 5의 YCoCg variance clipping 불변 조건과 debug view 검증이다.

@@ -460,6 +460,25 @@ float4 TSCMAASampleHistoryCatmullRom5Tap(float2 uv, float2 textureSize) {
     return result / ((abs(totalWeight) > 1.0e-6) ? totalWeight : 1.0);
 }
 
+#define TSCMAA_CATMULL_ROM_DIAGNOSTIC_SIZE 16
+
+[numthreads(8, 8, 1)]
+void TSCMAACatmullRomDiagnosticCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    if (dispatchThreadID.x >= TSCMAA_CATMULL_ROM_DIAGNOSTIC_SIZE ||
+        dispatchThreadID.y >= TSCMAA_CATMULL_ROM_DIAGNOSTIC_SIZE)
+        return;
+
+    uint sourceWidth;
+    uint sourceHeight;
+    tscmaaHistoryColor.GetDimensions(sourceWidth, sourceHeight);
+
+    // Covers [-0.1, 1.1] so the diagnostic also exercises the clamp sampler
+    // outside the normalized texture domain.
+    float2 uv = (float2(dispatchThreadID.xy) - 1.25) / 12.5;
+    tscmaaOutput[dispatchThreadID.xy] =
+        TSCMAASampleHistoryCatmullRom5Tap(uv, float2(sourceWidth, sourceHeight));
+}
+
 float3 TSCMAARGBToYCoCg(float3 color) {
     float chromaOrange = color.r - color.b;
     float temporary = color.b + chromaOrange * 0.5;

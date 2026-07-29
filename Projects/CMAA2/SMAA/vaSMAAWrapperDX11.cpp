@@ -42,6 +42,7 @@
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
 
 #include <DirectXPackedVector.h>
+#include <array>
 #include <cmath>
 
 namespace VertexAsylum
@@ -61,6 +62,152 @@ namespace VertexAsylum
             && vaMath::NearEqual( actual[1], expected.y, 1e-6f )
             && vaMath::NearEqual( actual[2], expected.z, 1e-6f )
             && vaMath::NearEqual( actual[3], expected.w, 1e-6f );
+    }
+
+    struct SMAACatmullDiagnosticColor
+    {
+        float R;
+        float G;
+        float B;
+        float A;
+    };
+
+    static SMAACatmullDiagnosticColor SMAACatmullColorAdd(
+        const SMAACatmullDiagnosticColor & left, const SMAACatmullDiagnosticColor & right )
+    {
+        return { left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A };
+    }
+
+    static SMAACatmullDiagnosticColor SMAACatmullColorScale(
+        const SMAACatmullDiagnosticColor & value, float scale )
+    {
+        return { value.R * scale, value.G * scale, value.B * scale, value.A * scale };
+    }
+
+    static float SMAACatmullColorMaximumAbsoluteDifference(
+        const SMAACatmullDiagnosticColor & left, const SMAACatmullDiagnosticColor & right )
+    {
+        return vaMath::Max(
+            vaMath::Max( vaMath::Abs( left.R - right.R ), vaMath::Abs( left.G - right.G ) ),
+            vaMath::Max( vaMath::Abs( left.B - right.B ), vaMath::Abs( left.A - right.A ) ) );
+    }
+
+    static double SMAACatmullColorSquaredDifference(
+        const SMAACatmullDiagnosticColor & left, const SMAACatmullDiagnosticColor & right )
+    {
+        const double differenceR = (double)left.R - (double)right.R;
+        const double differenceG = (double)left.G - (double)right.G;
+        const double differenceB = (double)left.B - (double)right.B;
+        const double differenceA = (double)left.A - (double)right.A;
+        return differenceR * differenceR + differenceG * differenceG
+            + differenceB * differenceB + differenceA * differenceA;
+    }
+
+    static void SMAACatmullRomWeights( float fraction, float weights[4] )
+    {
+        weights[0] = fraction * (-0.5f + fraction * (1.0f - 0.5f * fraction));
+        weights[1] = 1.0f + fraction * fraction * (-2.5f + 1.5f * fraction);
+        weights[2] = fraction * (0.5f + fraction * (2.0f - 1.5f * fraction));
+        weights[3] = fraction * fraction * (-0.5f + 0.5f * fraction);
+    }
+
+    static const SMAACatmullDiagnosticColor & SMAACatmullReadClamped(
+        const SMAACatmullDiagnosticColor * source, int width, int height, int x, int y )
+    {
+        x = vaMath::Clamp( x, 0, width - 1 );
+        y = vaMath::Clamp( y, 0, height - 1 );
+        return source[y * width + x];
+    }
+
+    static SMAACatmullDiagnosticColor SMAACatmullSampleLinearClamp(
+        const SMAACatmullDiagnosticColor * source, int width, int height, float u, float v )
+    {
+        const float texelX = u * (float)width - 0.5f;
+        const float texelY = v * (float)height - 0.5f;
+        const int x0 = (int)std::floor( texelX );
+        const int y0 = (int)std::floor( texelY );
+        const float fractionX = texelX - (float)x0;
+        const float fractionY = texelY - (float)y0;
+
+        const SMAACatmullDiagnosticColor top = SMAACatmullColorAdd(
+            SMAACatmullColorScale( SMAACatmullReadClamped( source, width, height, x0, y0 ), 1.0f - fractionX ),
+            SMAACatmullColorScale( SMAACatmullReadClamped( source, width, height, x0 + 1, y0 ), fractionX ) );
+        const SMAACatmullDiagnosticColor bottom = SMAACatmullColorAdd(
+            SMAACatmullColorScale( SMAACatmullReadClamped( source, width, height, x0, y0 + 1 ), 1.0f - fractionX ),
+            SMAACatmullColorScale( SMAACatmullReadClamped( source, width, height, x0 + 1, y0 + 1 ), fractionX ) );
+        return SMAACatmullColorAdd(
+            SMAACatmullColorScale( top, 1.0f - fractionY ),
+            SMAACatmullColorScale( bottom, fractionY ) );
+    }
+
+    static SMAACatmullDiagnosticColor SMAACatmullSample5Tap(
+        const SMAACatmullDiagnosticColor * source, int width, int height, float u, float v )
+    {
+        const float samplePositionX = u * (float)width;
+        const float samplePositionY = v * (float)height;
+        const float texelPosition1X = std::floor( samplePositionX - 0.5f ) + 0.5f;
+        const float texelPosition1Y = std::floor( samplePositionY - 0.5f ) + 0.5f;
+        float weightsX[4];
+        float weightsY[4];
+        SMAACatmullRomWeights( samplePositionX - texelPosition1X, weightsX );
+        SMAACatmullRomWeights( samplePositionY - texelPosition1Y, weightsY );
+
+        const float weight12X = weightsX[1] + weightsX[2];
+        const float weight12Y = weightsY[1] + weightsY[2];
+        const float offset12X = weightsX[2] / vaMath::Max( weight12X, 1.0e-6f );
+        const float offset12Y = weightsY[2] / vaMath::Max( weight12Y, 1.0e-6f );
+        const float texelPosition0X = texelPosition1X - 1.0f;
+        const float texelPosition0Y = texelPosition1Y - 1.0f;
+        const float texelPosition3X = texelPosition1X + 2.0f;
+        const float texelPosition3Y = texelPosition1Y + 2.0f;
+        const float texelPosition12X = texelPosition1X + offset12X;
+        const float texelPosition12Y = texelPosition1Y + offset12Y;
+
+        const float topWeight = weight12X * weightsY[0];
+        const float leftWeight = weightsX[0] * weight12Y;
+        const float centerWeight = weight12X * weight12Y;
+        const float rightWeight = weightsX[3] * weight12Y;
+        const float bottomWeight = weight12X * weightsY[3];
+        const float totalWeight = topWeight + leftWeight + centerWeight + rightWeight + bottomWeight;
+
+        SMAACatmullDiagnosticColor result = { 0.0f, 0.0f, 0.0f, 0.0f };
+        result = SMAACatmullColorAdd( result, SMAACatmullColorScale(
+            SMAACatmullSampleLinearClamp( source, width, height,
+                texelPosition12X / (float)width, texelPosition0Y / (float)height ), topWeight ) );
+        result = SMAACatmullColorAdd( result, SMAACatmullColorScale(
+            SMAACatmullSampleLinearClamp( source, width, height,
+                texelPosition0X / (float)width, texelPosition12Y / (float)height ), leftWeight ) );
+        result = SMAACatmullColorAdd( result, SMAACatmullColorScale(
+            SMAACatmullSampleLinearClamp( source, width, height,
+                texelPosition12X / (float)width, texelPosition12Y / (float)height ), centerWeight ) );
+        result = SMAACatmullColorAdd( result, SMAACatmullColorScale(
+            SMAACatmullSampleLinearClamp( source, width, height,
+                texelPosition3X / (float)width, texelPosition12Y / (float)height ), rightWeight ) );
+        result = SMAACatmullColorAdd( result, SMAACatmullColorScale(
+            SMAACatmullSampleLinearClamp( source, width, height,
+                texelPosition12X / (float)width, texelPosition3Y / (float)height ), bottomWeight ) );
+        return SMAACatmullColorScale( result, (vaMath::Abs( totalWeight ) > 1.0e-6f)? (1.0f / totalWeight) : 1.0f );
+    }
+
+    static SMAACatmullDiagnosticColor SMAACatmullSample16Tap(
+        const SMAACatmullDiagnosticColor * source, int width, int height, float u, float v )
+    {
+        const float samplePositionX = u * (float)width;
+        const float samplePositionY = v * (float)height;
+        const int texelIndex1X = (int)std::floor( samplePositionX - 0.5f );
+        const int texelIndex1Y = (int)std::floor( samplePositionY - 0.5f );
+        float weightsX[4];
+        float weightsY[4];
+        SMAACatmullRomWeights( samplePositionX - ((float)texelIndex1X + 0.5f), weightsX );
+        SMAACatmullRomWeights( samplePositionY - ((float)texelIndex1Y + 0.5f), weightsY );
+
+        SMAACatmullDiagnosticColor result = { 0.0f, 0.0f, 0.0f, 0.0f };
+        for( int y = 0; y < 4; y++ )
+            for( int x = 0; x < 4; x++ )
+                result = SMAACatmullColorAdd( result, SMAACatmullColorScale(
+                    SMAACatmullReadClamped( source, width, height, texelIndex1X + x - 1, texelIndex1Y + y - 1 ),
+                    weightsX[x] * weightsY[y] ) );
+        return result;
     }
 
     struct TechniqueThingieDX11 : public SMAATechniqueInterface
@@ -136,6 +283,7 @@ namespace VertexAsylum
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaCatmullRomDiagnosticCS;
 
         shared_ptr<vaTexture>       m_tscmaaBaseEdgeMask             = nullptr;
         shared_ptr<vaTexture>       m_tscmaaCandidateMask            = nullptr;
@@ -179,6 +327,7 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination );
         void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
         void                            ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext * context, uint32 width, uint32 height );
+        void                            RunCatmullRomDiagnostics( ID3D11DeviceContext * context );
         vaDrawResultFlags               DrawTSCMAADebugView( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
         //void                            Reset( );
 
@@ -262,7 +411,7 @@ static HRESULT CreateSMAATemporalBufferAndUAV( ID3D11Device * device, const D3D1
 vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
     m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
     m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
-    m_tscmaaResolveCandidatesCS( params.RenderDevice )
+    m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice )
 {
     params; // unreferenced
 
@@ -273,6 +422,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaExtractCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAExtractCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
+    m_tscmaaCatmullRomDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAACatmullRomDiagnosticCS", tscmaaShaderMacros, true );
     HRESULT hr;
     {
         CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
@@ -581,6 +731,13 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         || ((GetTemporalDebugView( ) == TemporalDebugView::BaseEdges || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates)
             && !m_tscmaaDebugMaskPS->IsCreated( ))) )
         return vaDrawResultFlags::ShadersStillCompiling;
+
+    if( GetCatmullRomDiagnosticPending( ) )
+    {
+        if( !m_tscmaaCatmullRomDiagnosticCS->IsCreated( ) )
+            return vaDrawResultFlags::ShadersStillCompiling;
+        RunCatmullRomDiagnostics( dx11Context );
+    }
 
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
     const bool edgeSelectiveTemporalEnabled = GetEdgeSelectiveTemporalEnabled( );
@@ -1032,6 +1189,231 @@ void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext
         historyUVInBoundsCount, finitePixelCount,
         100.0f * m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ),
         m_temporalVelocityDiagnostics.Passed? "PASS" : "FAIL" );
+}
+
+void vaSMAAWrapperDX11::RunCatmullRomDiagnostics( ID3D11DeviceContext * context )
+{
+    static const int sourceWidth = 8;
+    static const int sourceHeight = 8;
+    static const int outputWidth = 16;
+    static const int outputHeight = 16;
+    static const int cpuReferenceGridSize = 64;
+    static_assert( sizeof( SMAACatmullDiagnosticColor ) == sizeof( float ) * 4, "Unexpected diagnostic color layout" );
+
+    m_catmullRomDiagnosticPending = false;
+    m_catmullRomDiagnostics = CatmullRomDiagnostics( );
+
+    std::array<SMAACatmullDiagnosticColor, sourceWidth * sourceHeight> sourceData;
+    for( int y = 0; y < sourceHeight; y++ )
+    {
+        for( int x = 0; x < sourceWidth; x++ )
+        {
+            const float pseudoRandom = (float)((x * 37 + y * 17 + x * y * 13) % 101) / 100.0f;
+            const float planarGradient = (float)(x + y * 2) / (float)((sourceWidth - 1) + (sourceHeight - 1) * 2);
+            sourceData[y * sourceWidth + x] = { pseudoRandom, planarGradient, 0.375f, 1.0f };
+        }
+    }
+
+    for( int fractionIndex = 0; fractionIndex <= 4096; fractionIndex++ )
+    {
+        const float fraction = (float)fractionIndex / 4096.0f;
+        float weights[4];
+        float mirroredWeights[4];
+        SMAACatmullRomWeights( fraction, weights );
+        SMAACatmullRomWeights( 1.0f - fraction, mirroredWeights );
+        const float weightSum = weights[0] + weights[1] + weights[2] + weights[3];
+        m_catmullRomDiagnostics.MaximumWeightSumError = vaMath::Max(
+            m_catmullRomDiagnostics.MaximumWeightSumError, vaMath::Abs( weightSum - 1.0f ) );
+        for( int weightIndex = 0; weightIndex < 4; weightIndex++ )
+        {
+            m_catmullRomDiagnostics.MaximumSymmetryError = vaMath::Max(
+                m_catmullRomDiagnostics.MaximumSymmetryError,
+                vaMath::Abs( weights[weightIndex] - mirroredWeights[3 - weightIndex] ) );
+        }
+    }
+    for( int fractionYIndex = 0; fractionYIndex <= 256; fractionYIndex++ )
+    {
+        float weightsY[4];
+        SMAACatmullRomWeights( (float)fractionYIndex / 256.0f, weightsY );
+        for( int fractionXIndex = 0; fractionXIndex <= 256; fractionXIndex++ )
+        {
+            float weightsX[4];
+            SMAACatmullRomWeights( (float)fractionXIndex / 256.0f, weightsX );
+            const float weight12X = weightsX[1] + weightsX[2];
+            const float weight12Y = weightsY[1] + weightsY[2];
+            const float topWeight = weight12X * weightsY[0];
+            const float leftWeight = weightsX[0] * weight12Y;
+            const float centerWeight = weight12X * weight12Y;
+            const float rightWeight = weightsX[3] * weight12Y;
+            const float bottomWeight = weight12X * weightsY[3];
+            const float totalWeight = topWeight + leftWeight + centerWeight + rightWeight + bottomWeight;
+            const float normalizedWeightSum = (vaMath::Abs( totalWeight ) > 1.0e-6f)?
+                ((topWeight + leftWeight + centerWeight + rightWeight + bottomWeight) / totalWeight) : 0.0f;
+            m_catmullRomDiagnostics.MaximumWeightSumError = vaMath::Max(
+                m_catmullRomDiagnostics.MaximumWeightSumError, vaMath::Abs( normalizedWeightSum - 1.0f ) );
+        }
+    }
+
+    double cpuReferenceSquaredError = 0.0;
+    for( int y = 0; y < cpuReferenceGridSize; y++ )
+    {
+        for( int x = 0; x < cpuReferenceGridSize; x++ )
+        {
+            const float u = ((float)x + 0.37f) / (float)cpuReferenceGridSize;
+            const float v = ((float)y + 0.63f) / (float)cpuReferenceGridSize;
+            const SMAACatmullDiagnosticColor approximation = SMAACatmullSample5Tap(
+                sourceData.data( ), sourceWidth, sourceHeight, u, v );
+            const SMAACatmullDiagnosticColor reference = SMAACatmullSample16Tap(
+                sourceData.data( ), sourceWidth, sourceHeight, u, v );
+            m_catmullRomDiagnostics.CPU5TapTo16TapMaximumError = vaMath::Max(
+                m_catmullRomDiagnostics.CPU5TapTo16TapMaximumError,
+                SMAACatmullColorMaximumAbsoluteDifference( approximation, reference ) );
+            cpuReferenceSquaredError += SMAACatmullColorSquaredDifference( approximation, reference );
+        }
+    }
+    m_catmullRomDiagnostics.CPUReferenceSampleCount = cpuReferenceGridSize * cpuReferenceGridSize;
+    m_catmullRomDiagnostics.CPU5TapTo16TapRMSE = (float)std::sqrt(
+        cpuReferenceSquaredError / (double)(m_catmullRomDiagnostics.CPUReferenceSampleCount * 4) );
+
+    ID3D11Device * device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice( );
+    ComPtr<ID3D11Texture2D> sourceTexture;
+    ComPtr<ID3D11ShaderResourceView> sourceSRV;
+    ComPtr<ID3D11Texture2D> outputTexture;
+    ComPtr<ID3D11UnorderedAccessView> outputUAV;
+    ComPtr<ID3D11Texture2D> outputReadback;
+
+    D3D11_TEXTURE2D_DESC sourceDesc;
+    ZeroMemory( &sourceDesc, sizeof( sourceDesc ) );
+    sourceDesc.Width = sourceWidth;
+    sourceDesc.Height = sourceHeight;
+    sourceDesc.MipLevels = 1;
+    sourceDesc.ArraySize = 1;
+    sourceDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    sourceDesc.SampleDesc.Count = 1;
+    sourceDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    sourceDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    D3D11_SUBRESOURCE_DATA sourceInitialData;
+    ZeroMemory( &sourceInitialData, sizeof( sourceInitialData ) );
+    sourceInitialData.pSysMem = sourceData.data( );
+    sourceInitialData.SysMemPitch = sourceWidth * sizeof( SMAACatmullDiagnosticColor );
+
+    HRESULT result = device->CreateTexture2D( &sourceDesc, &sourceInitialData, sourceTexture.GetAddressOf( ) );
+    if( SUCCEEDED( result ) )
+        result = device->CreateShaderResourceView( sourceTexture.Get( ), nullptr, sourceSRV.GetAddressOf( ) );
+
+    D3D11_TEXTURE2D_DESC outputDesc;
+    ZeroMemory( &outputDesc, sizeof( outputDesc ) );
+    outputDesc.Width = outputWidth;
+    outputDesc.Height = outputHeight;
+    outputDesc.MipLevels = 1;
+    outputDesc.ArraySize = 1;
+    outputDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    outputDesc.SampleDesc.Count = 1;
+    outputDesc.Usage = D3D11_USAGE_DEFAULT;
+    outputDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+    if( SUCCEEDED( result ) )
+        result = device->CreateTexture2D( &outputDesc, nullptr, outputTexture.GetAddressOf( ) );
+    if( SUCCEEDED( result ) )
+        result = device->CreateUnorderedAccessView( outputTexture.Get( ), nullptr, outputUAV.GetAddressOf( ) );
+
+    D3D11_TEXTURE2D_DESC readbackDesc = outputDesc;
+    readbackDesc.Usage = D3D11_USAGE_STAGING;
+    readbackDesc.BindFlags = 0;
+    readbackDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    if( SUCCEEDED( result ) )
+        result = device->CreateTexture2D( &readbackDesc, nullptr, outputReadback.GetAddressOf( ) );
+
+    ID3D11ComputeShader * diagnosticShader =
+        m_tscmaaCatmullRomDiagnosticCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    if( FAILED( result ) || diagnosticShader == nullptr )
+    {
+        m_catmullRomDiagnostics.Valid = true;
+        m_catmullRomDiagnostics.Passed = false;
+        VA_LOG_ERROR( "SMAA Catmull-Rom diagnostic resource/shader creation failed (HRESULT 0x%08X)", (uint32)result );
+        return;
+    }
+
+    ID3D11ShaderResourceView * sourceSRVPointer = sourceSRV.Get( );
+    ID3D11UnorderedAccessView * outputUAVPointer = outputUAV.Get( );
+    context->CSSetSamplers( 0, 1, &m_LinearSampler );
+    context->CSSetShaderResources( 11, 1, &sourceSRVPointer );
+    context->CSSetUnorderedAccessViews( 0, 1, &outputUAVPointer, nullptr );
+    context->CSSetShader( diagnosticShader, nullptr, 0 );
+    context->Dispatch( (outputWidth + 7) / 8, (outputHeight + 7) / 8, 1 );
+
+    ID3D11ShaderResourceView * nullSRV = nullptr;
+    ID3D11UnorderedAccessView * nullUAV = nullptr;
+    ID3D11SamplerState * nullSampler = nullptr;
+    context->CSSetShader( nullptr, nullptr, 0 );
+    context->CSSetShaderResources( 11, 1, &nullSRV );
+    context->CSSetUnorderedAccessViews( 0, 1, &nullUAV, nullptr );
+    context->CSSetSamplers( 0, 1, &nullSampler );
+    context->CopyResource( outputReadback.Get( ), outputTexture.Get( ) );
+
+    D3D11_MAPPED_SUBRESOURCE mapped;
+    ZeroMemory( &mapped, sizeof( mapped ) );
+    result = context->Map( outputReadback.Get( ), 0, D3D11_MAP_READ, 0, &mapped );
+    if( FAILED( result ) )
+    {
+        m_catmullRomDiagnostics.Valid = true;
+        m_catmullRomDiagnostics.Passed = false;
+        VA_LOG_ERROR( "SMAA Catmull-Rom diagnostic readback failed (HRESULT 0x%08X)", (uint32)result );
+        return;
+    }
+
+    double gpuSquaredError = 0.0;
+    bool gpuValuesFinite = true;
+    for( int y = 0; y < outputHeight; y++ )
+    {
+        const SMAACatmullDiagnosticColor * row = reinterpret_cast<const SMAACatmullDiagnosticColor *>(
+            reinterpret_cast<const uint8 *>( mapped.pData ) + y * mapped.RowPitch );
+        for( int x = 0; x < outputWidth; x++ )
+        {
+            const SMAACatmullDiagnosticColor & gpuValue = row[x];
+            gpuValuesFinite = gpuValuesFinite
+                && std::isfinite( gpuValue.R ) && std::isfinite( gpuValue.G )
+                && std::isfinite( gpuValue.B ) && std::isfinite( gpuValue.A );
+            const float u = ((float)x - 1.25f) / 12.5f;
+            const float v = ((float)y - 1.25f) / 12.5f;
+            const SMAACatmullDiagnosticColor cpuValue = SMAACatmullSample5Tap(
+                sourceData.data( ), sourceWidth, sourceHeight, u, v );
+            m_catmullRomDiagnostics.GPUToCPU5TapMaximumError = vaMath::Max(
+                m_catmullRomDiagnostics.GPUToCPU5TapMaximumError,
+                SMAACatmullColorMaximumAbsoluteDifference( gpuValue, cpuValue ) );
+            gpuSquaredError += SMAACatmullColorSquaredDifference( gpuValue, cpuValue );
+            m_catmullRomDiagnostics.GPUConstantMaximumError = vaMath::Max(
+                m_catmullRomDiagnostics.GPUConstantMaximumError,
+                vaMath::Max( vaMath::Abs( gpuValue.B - 0.375f ), vaMath::Abs( gpuValue.A - 1.0f ) ) );
+        }
+    }
+    context->Unmap( outputReadback.Get( ), 0 );
+
+    m_catmullRomDiagnostics.GPUComparisonSampleCount = outputWidth * outputHeight;
+    m_catmullRomDiagnostics.GPUToCPU5TapRMSE = (float)std::sqrt(
+        gpuSquaredError / (double)(m_catmullRomDiagnostics.GPUComparisonSampleCount * 4) );
+    const bool allMetricsFinite = std::isfinite( m_catmullRomDiagnostics.MaximumWeightSumError )
+        && std::isfinite( m_catmullRomDiagnostics.MaximumSymmetryError )
+        && std::isfinite( m_catmullRomDiagnostics.GPUConstantMaximumError )
+        && std::isfinite( m_catmullRomDiagnostics.GPUToCPU5TapMaximumError )
+        && std::isfinite( m_catmullRomDiagnostics.GPUToCPU5TapRMSE )
+        && std::isfinite( m_catmullRomDiagnostics.CPU5TapTo16TapMaximumError )
+        && std::isfinite( m_catmullRomDiagnostics.CPU5TapTo16TapRMSE );
+    m_catmullRomDiagnostics.Valid = true;
+    m_catmullRomDiagnostics.Passed = gpuValuesFinite && allMetricsFinite
+        && m_catmullRomDiagnostics.MaximumWeightSumError <= 2.0e-6f
+        && m_catmullRomDiagnostics.MaximumSymmetryError <= 2.0e-6f
+        && m_catmullRomDiagnostics.GPUConstantMaximumError <= 2.0e-5f
+        && m_catmullRomDiagnostics.GPUToCPU5TapMaximumError <= 5.0e-3f;
+
+    VA_LOG( "SMAA Catmull-Rom 5-tap validation: weightSumMax=%.9f, symmetryMax=%.9f, GPUConstantMax=%.9f, GPUvsCPU5 max=%.9f RMSE=%.9f, CPU5vs16 max=%.9f RMSE=%.9f => %s",
+        m_catmullRomDiagnostics.MaximumWeightSumError,
+        m_catmullRomDiagnostics.MaximumSymmetryError,
+        m_catmullRomDiagnostics.GPUConstantMaximumError,
+        m_catmullRomDiagnostics.GPUToCPU5TapMaximumError,
+        m_catmullRomDiagnostics.GPUToCPU5TapRMSE,
+        m_catmullRomDiagnostics.CPU5TapTo16TapMaximumError,
+        m_catmullRomDiagnostics.CPU5TapTo16TapRMSE,
+        m_catmullRomDiagnostics.Passed? "PASS" : "FAIL" );
 }
 
 void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height )

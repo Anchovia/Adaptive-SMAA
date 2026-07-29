@@ -2377,6 +2377,89 @@ protected:
     virtual float GetProgress( ) const override { return (float)(int)m_phase / (float)(int)Phase::Complete; }
 };
 
+class BenchItemValidateSMAACatmullRom : public AutoBenchToolWorkItem
+{
+    bool                m_started               = false;
+    bool                m_isDone                = false;
+
+public:
+    explicit BenchItemValidateSMAACatmullRom( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.RequestSMAACatmullRomDiagnostics( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA TSCMAA-inspired Catmull-Rom 5-tap engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "The exact 5-tap coordinates and weights are an explicit adaptation because the public Intel TSCMAA document does not publish them.\r\n" );
+            abTool.ReportAddText( "GPU validation uses an 8x8 RGBA32F source and a 16x16 UV grid spanning [-0.1, 1.1] to exercise clamp sampling.\r\n" );
+            abTool.ReportAddText( "CPU characterization compares the 5-tap approximation with a separable 16-tap Catmull-Rom reference on 4,096 UVs.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Metric", "Samples", "Value", "Acceptance / meaning", "Result" } );
+            return;
+        }
+
+        const vaSMAAWrapper::CatmullRomDiagnostics & diagnostics =
+            m_parent.GetSMAACatmullRomDiagnostics( );
+        if( !diagnostics.Valid )
+            return;
+
+        abTool.ReportAddRowValues( {
+            "Cubic/effective 5-tap weight sum maximum error", "4,097 fractions + 257x257 pairs",
+            vaStringTools::Format( "%.9f", diagnostics.MaximumWeightSumError ),
+            "<= 0.000002", diagnostics.MaximumWeightSumError <= 2.0e-6f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "Cubic mirror symmetry maximum error", "4,097 fractions",
+            vaStringTools::Format( "%.9f", diagnostics.MaximumSymmetryError ),
+            "<= 0.000002", diagnostics.MaximumSymmetryError <= 2.0e-6f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "GPU constant-channel maximum error",
+            vaStringTools::Format( "%u GPU samples", diagnostics.GPUComparisonSampleCount ),
+            vaStringTools::Format( "%.9f", diagnostics.GPUConstantMaximumError ),
+            "<= 0.000020", diagnostics.GPUConstantMaximumError <= 2.0e-5f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "GPU shader vs CPU 5-tap maximum error",
+            vaStringTools::Format( "%u GPU samples", diagnostics.GPUComparisonSampleCount ),
+            vaStringTools::Format( "%.9f", diagnostics.GPUToCPU5TapMaximumError ),
+            "<= 0.005000 (hardware linear-filter precision)", diagnostics.GPUToCPU5TapMaximumError <= 5.0e-3f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "GPU shader vs CPU 5-tap RMSE",
+            vaStringTools::Format( "%u GPU samples", diagnostics.GPUComparisonSampleCount ),
+            vaStringTools::Format( "%.9f", diagnostics.GPUToCPU5TapRMSE ),
+            "recorded characterization", "-" } );
+        abTool.ReportAddRowValues( {
+            "CPU 5-tap vs CPU 16-tap maximum error",
+            vaStringTools::Format( "%u CPU samples", diagnostics.CPUReferenceSampleCount ),
+            vaStringTools::Format( "%.9f", diagnostics.CPU5TapTo16TapMaximumError ),
+            "recorded approximation error", "-" } );
+        abTool.ReportAddRowValues( {
+            "CPU 5-tap vs CPU 16-tap RMSE",
+            vaStringTools::Format( "%u CPU samples", diagnostics.CPUReferenceSampleCount ),
+            vaStringTools::Format( "%.9f", diagnostics.CPU5TapTo16TapRMSE ),
+            "recorded approximation error", "-" } );
+        abTool.ReportAddText( diagnostics.Passed? "\r\nAggregate: PASS\r\n" : "\r\nAggregate: FAIL\r\n" );
+        abTool.ReportFinish( );
+        m_isDone = true;
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override { return m_isDone? 1.0f : 0.5f; }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -2470,6 +2553,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaCatmullRomReferenceTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAACatmullRom>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA Catmull-Rom 5-tap GPU/CPU reference validation");
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalVelocityTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalVelocity>(*this));

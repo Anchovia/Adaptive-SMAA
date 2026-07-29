@@ -183,6 +183,21 @@ namespace VertexAsylum
             }
         };
 
+        struct CatmullRomDiagnostics
+        {
+            bool                        Valid                       = false;
+            bool                        Passed                      = false;
+            uint32                      GPUComparisonSampleCount    = 0;
+            uint32                      CPUReferenceSampleCount     = 0;
+            float                       MaximumWeightSumError       = 0.0f;
+            float                       MaximumSymmetryError        = 0.0f;
+            float                       GPUConstantMaximumError     = 0.0f;
+            float                       GPUToCPU5TapMaximumError    = 0.0f;
+            float                       GPUToCPU5TapRMSE            = 0.0f;
+            float                       CPU5TapTo16TapMaximumError  = 0.0f;
+            float                       CPU5TapTo16TapRMSE          = 0.0f;
+        };
+
         struct TemporalSettings
         {
             TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
@@ -252,6 +267,8 @@ namespace VertexAsylum
                                     m_temporalVelocityDiagnosticMode    = TemporalVelocityDiagnosticMode::Disabled;
         TemporalVelocityDiagnostics m_temporalVelocityDiagnostics;
         bool                        m_temporalVelocityDiagnosticPending = false;
+        CatmullRomDiagnostics       m_catmullRomDiagnostics;
+        bool                        m_catmullRomDiagnosticPending    = false;
 
         //bool                        m_debugShowEdges;
 
@@ -359,6 +376,13 @@ namespace VertexAsylum
         TemporalVelocityDiagnosticMode GetTemporalVelocityDiagnosticMode( ) const { return m_temporalVelocityDiagnosticMode; }
         bool                        GetTemporalVelocityDiagnosticsEnabled( ) const { return m_temporalVelocityDiagnosticMode != TemporalVelocityDiagnosticMode::Disabled; }
         const TemporalVelocityDiagnostics & GetTemporalVelocityDiagnostics( ) const { return m_temporalVelocityDiagnostics; }
+        void                        RequestCatmullRomDiagnostics( )
+        {
+            m_catmullRomDiagnostics = CatmullRomDiagnostics( );
+            m_catmullRomDiagnosticPending = true;
+        }
+        bool                        GetCatmullRomDiagnosticPending( ) const { return m_catmullRomDiagnosticPending; }
+        const CatmullRomDiagnostics & GetCatmullRomDiagnostics( ) const { return m_catmullRomDiagnostics; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
