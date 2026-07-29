@@ -1050,16 +1050,18 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     const bool temporalSMAAJitterEnabled = m_SMAA->GetTemporalJitterEnabled( );
     if( IsOriginalSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
     {
-        VA_LOG( "SMAA profile '%s': coverage=%s, reprojection=%s, jitter=%s, sampler=%s, clipping=%s, candidates=%s, historyWeight=%.3f, nonDominantRemoval=%.3f",
+        VA_LOG( "SMAA profile '%s': coverage=%s, reprojection=%s, jitter=%s, sampler=%s, clipping=%s, candidates=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
             GetAAName( m_settings.CurrentAAOption ),
             GetTemporalCoverageName( temporalSMAASettings.Coverage ),
             GetReprojectionModeName( temporalSMAASettings.Reprojection ),
             GetJitterPolicyName( temporalSMAASettings.Jitter ),
             GetHistorySamplerName( temporalSMAASettings.Sampler ),
             GetHistoryClippingName( temporalSMAASettings.Clipping ),
-            GetCandidatePolicyName( temporalSMAASettings.Candidates ),
+            GetCandidatePolicyName( m_SMAA->GetEffectiveCandidatePolicy( ) ),
+            m_SMAA->GetCandidatePolicyOverrideEnabled( )? " [diagnostic override]" : "",
             temporalSMAASettings.HistoryWeight,
-            temporalSMAASettings.NonDominantRemovalAmount );
+            temporalSMAASettings.NonDominantRemovalAmount,
+            temporalSMAASettings.EdgeThreshold );
         m_lastLoggedSMAAOption = m_settings.CurrentAAOption;
     }
     else if( !IsOriginalSMAASingleSample( m_settings.CurrentAAOption ) )
@@ -2065,6 +2067,36 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
     if (m_commandLineCaptureProcessed)
         return;
     m_commandLineCaptureProcessed = true;
+
+    for (const auto& parameter : m_application.GetCommandLineParameters())
+    {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyOverride") == 0)
+        {
+            int policy = -1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> policy) || policy < -1 || policy > 2)
+            {
+                VA_LOG_ERROR("Invalid -smaaCandidatePolicyOverride value; expected -1 (disabled), 0 (all base), 1 (Intel-family), or 2 (experimental)");
+                return;
+            }
+            m_SMAA->SetCandidatePolicyOverride(policy >= 0,
+                policy >= 0? (vaSMAAWrapper::CandidatePolicy)policy : vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant);
+            VA_LOG("SMAA candidate policy diagnostic override: %s",
+                policy >= 0? GetCandidatePolicyName((vaSMAAWrapper::CandidatePolicy)policy) : "disabled");
+        }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalDebugView") == 0)
+        {
+            int debugView = 0;
+            std::wistringstream values(parameter.second);
+            if (!(values >> debugView) || debugView < 0 || debugView > 2)
+            {
+                VA_LOG_ERROR("Invalid -smaaTemporalDebugView value; expected 0 (off), 1 (base edges), or 2 (selected candidates)");
+                return;
+            }
+            m_SMAA->SetTemporalDebugView((vaSMAAWrapper::TemporalDebugView)debugView);
+            VA_LOG("SMAA temporal debug view: %d", debugView);
+        }
+    }
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {

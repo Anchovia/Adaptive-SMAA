@@ -44,6 +44,9 @@ struct SMAAReprojectionConstants
     // x: history weight, y: non-dominant removal amount,
     // z: camera reprojection enabled, w: output requires linear-to-sRGB conversion.
     float4 TSCMAAParams;
+    // x: base luma-edge threshold, y: candidate policy enum
+    // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3).
+    float4 TSCMAACandidateParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
@@ -51,6 +54,7 @@ struct SMAAReprojectionConstants
     VertexAsylum::vaVector4 TemporalResolution;
     // Matches the shader-side field description above.
     VertexAsylum::vaVector4 TSCMAAParams;
+    VertexAsylum::vaVector4 TSCMAACandidateParams;
 #endif
 };
 
@@ -245,6 +249,16 @@ float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
     return currentUnjitteredUV - previousUV;
 }
 
+#if !defined(SMAA_TSCMAA_COMPUTE)
+Texture2D<float> tscmaaDebugMask : register( t10 );
+
+float4 TSCMAADebugMaskPS(float4 position : SV_POSITION,
+                         float2 texcoord : TEXCOORD0) : SV_TARGET {
+    float mask = tscmaaDebugMask.Load(int3(int2(position.xy), 0));
+    return float4(mask, mask, mask, 1.0);
+}
+#endif
+
 #if defined(SMAA_TSCMAA_COMPUTE)
 
 // TSCMAA-inspired selective temporal resolve resources. The public Intel
@@ -259,6 +273,8 @@ RWTexture2D<float4>                  tscmaaOutput                        : regis
 RWStructuredBuffer<uint>             tscmaaCandidates                    : register( u1 );
 RWByteAddressBuffer                  tscmaaControl                       : register( u2 );
 RWByteAddressBuffer                  tscmaaDispatchArgs                  : register( u3 );
+RWTexture2D<float>                   tscmaaBaseEdgeMask                  : register( u4 );
+RWTexture2D<float>                   tscmaaCandidateMask                 : register( u5 );
 
 #define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
 #define TSCMAA_PROCESS_COUNT_OFFSET           4
@@ -269,7 +285,43 @@ int2 TSCMAAClampPixel(int2 pixel, int2 dimensions) {
     return clamp(pixel, int2(0, 0), dimensions - 1);
 }
 
-float TSCMAAEdgeStrength(int2 pixel, int2 dimensions) {
+float2 TSCMAABaseEdgeStrength(int2 pixel, int2 dimensions) {
+    pixel = TSCMAAClampPixel(pixel, dimensions);
+    float center = tscmaaLuma.Load(int3(pixel, 0));
+    float left = tscmaaLuma.Load(int3(TSCMAAClampPixel(pixel + int2(-1, 0), dimensions), 0));
+    float top = tscmaaLuma.Load(int3(TSCMAAClampPixel(pixel + int2(0, -1), dimensions), 0));
+    return float2(abs(center - left), abs(center - top));
+}
+
+bool TSCMAAIsBaseEdge(float2 directionalStrength) {
+    return any(directionalStrength > g_SMAAReprojection.TSCMAACandidateParams.x);
+}
+
+// Adaptation of the local-contrast structure in Intel's public CMAA2 shader:
+// each edge competes with connected perpendicular edges. The public TSCMAA
+// document supplies the 1/22 threshold and 0.5 removal defaults, but not the
+// lost sample's exact candidate-selection shader.
+bool TSCMAAIsIntelFamilyNonDominantCandidate(int2 pixel, int2 dimensions, float2 directionalStrength) {
+    float maximumPerpendicularForVertical = 0.0;
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel, dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel + int2(-1, 0), dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel + int2(0, 1), dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel + int2(-1, 1), dimensions).y);
+
+    float maximumPerpendicularForHorizontal = 0.0;
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel, dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel + int2(0, -1), dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel + int2(1, 0), dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel + int2(1, -1), dimensions).x);
+
+    float removalAmount = g_SMAAReprojection.TSCMAAParams.y;
+    float threshold = g_SMAAReprojection.TSCMAACandidateParams.x;
+    bool verticalDominant = directionalStrength.x - maximumPerpendicularForVertical * removalAmount > threshold;
+    bool horizontalDominant = directionalStrength.y - maximumPerpendicularForHorizontal * removalAmount > threshold;
+    return verticalDominant || horizontalDominant;
+}
+
+float TSCMAAExperimentalEdgeStrength(int2 pixel, int2 dimensions) {
     pixel = TSCMAAClampPixel(pixel, dimensions);
     float2 edge = edgesTex.Load(int3(pixel, 0)).rg;
     if (max(edge.x, edge.y) <= 0.0)
@@ -281,7 +333,7 @@ float TSCMAAEdgeStrength(int2 pixel, int2 dimensions) {
     return max(edge.x * abs(center - left), edge.y * abs(center - top));
 }
 
-bool TSCMAAIsLocallyDominantCandidate(int2 pixel, int2 dimensions, float strength) {
+bool TSCMAAIsExperimentalLocallyDominantCandidate(int2 pixel, int2 dimensions, float strength) {
     float localSum = 0.0;
     float localMaximum = 0.0;
 
@@ -289,7 +341,7 @@ bool TSCMAAIsLocallyDominantCandidate(int2 pixel, int2 dimensions, float strengt
     for (int y = -1; y <= 1; y++) {
         [unroll]
         for (int x = -1; x <= 1; x++) {
-            float neighbourStrength = TSCMAAEdgeStrength(pixel + int2(x, y), dimensions);
+            float neighbourStrength = TSCMAAExperimentalEdgeStrength(pixel + int2(x, y), dimensions);
             localSum += neighbourStrength;
             localMaximum = max(localMaximum, neighbourStrength);
         }
@@ -311,13 +363,28 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
     int2 pixel = int2(dispatchThreadID.xy);
     int2 dimensions = int2(width, height);
-    float strength = TSCMAAEdgeStrength(pixel, dimensions);
-    if (strength <= 0.0)
-        return;
+    float2 directionalStrength = TSCMAABaseEdgeStrength(pixel, dimensions);
+    bool baseEdge = TSCMAAIsBaseEdge(directionalStrength);
+    tscmaaBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
 
-    uint ignoredEdgeIndex;
-    tscmaaControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
-    if (!TSCMAAIsLocallyDominantCandidate(pixel, dimensions, strength))
+    if (baseEdge) {
+        uint ignoredEdgeIndex;
+        tscmaaControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
+    }
+
+    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
+    bool candidate = false;
+    if (policy == 0) {
+        candidate = baseEdge;
+    } else if (policy == 1) {
+        candidate = TSCMAAIsIntelFamilyNonDominantCandidate(pixel, dimensions, directionalStrength);
+    } else {
+        float experimentalStrength = TSCMAAExperimentalEdgeStrength(pixel, dimensions);
+        candidate = TSCMAAIsExperimentalLocallyDominantCandidate(pixel, dimensions, experimentalStrength);
+    }
+
+    tscmaaCandidateMask[pixel] = candidate ? 1.0 : 0.0;
+    if (!candidate)
         return;
 
     uint candidateIndex;

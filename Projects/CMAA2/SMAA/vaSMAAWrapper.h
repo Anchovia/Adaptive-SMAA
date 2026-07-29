@@ -75,6 +75,33 @@ namespace VertexAsylum
             ExperimentalLocalMeanMax3x3
         };
 
+        enum class TemporalDebugView : int32
+        {
+            None,
+            BaseEdges,
+            SelectedCandidates
+        };
+
+        struct TemporalCandidateStatistics
+        {
+            bool                        Valid                       = false;
+            uint32                      BaseEdgeCount               = 0;
+            uint32                      CandidateCount              = 0;
+            uint32                      ProcessCount                = 0;
+            uint32                      PixelCount                  = 0;
+            CandidatePolicy             Policy                      = CandidatePolicy::AllBaseEdges;
+
+            float GetCandidateToBaseRatio( ) const
+            {
+                return (BaseEdgeCount > 0)? (float)CandidateCount / (float)BaseEdgeCount : 0.0f;
+            }
+
+            float GetCandidateToPixelRatio( ) const
+            {
+                return (PixelCount > 0)? (float)CandidateCount / (float)PixelCount : 0.0f;
+            }
+        };
+
         struct TemporalSettings
         {
             TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
@@ -85,6 +112,7 @@ namespace VertexAsylum
             CandidatePolicy              Candidates                  = CandidatePolicy::AllBaseEdges;
             float                        HistoryWeight               = 0.5f;
             float                        NonDominantRemovalAmount    = 0.5f;
+            float                        EdgeThreshold               = 1.0f / 22.0f;
 
             bool operator == ( const TemporalSettings & other ) const
             {
@@ -95,7 +123,8 @@ namespace VertexAsylum
                     && Clipping == other.Clipping
                     && Candidates == other.Candidates
                     && HistoryWeight == other.HistoryWeight
-                    && NonDominantRemovalAmount == other.NonDominantRemovalAmount;
+                    && NonDominantRemovalAmount == other.NonDominantRemovalAmount
+                    && EdgeThreshold == other.EdgeThreshold;
             }
 
             bool operator != ( const TemporalSettings & other ) const
@@ -123,6 +152,10 @@ namespace VertexAsylum
 
         TemporalSettings            m_temporalSettings;
         int                         m_temporalFrameIndex                = 0;
+        TemporalCandidateStatistics m_temporalCandidateStatistics;
+        bool                        m_candidatePolicyOverrideEnabled    = false;
+        CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
+        TemporalDebugView           m_temporalDebugView                  = TemporalDebugView::None;
 
         //bool                        m_debugShowEdges;
 
@@ -155,6 +188,20 @@ namespace VertexAsylum
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatrices; }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
         bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }
+        CandidatePolicy             GetEffectiveCandidatePolicy( ) const { return m_candidatePolicyOverrideEnabled? m_candidatePolicyOverride : m_temporalSettings.Candidates; }
+        void                        SetCandidatePolicyOverride( bool enabled, CandidatePolicy policy )
+        {
+            if( m_candidatePolicyOverrideEnabled != enabled || m_candidatePolicyOverride != policy )
+            {
+                m_candidatePolicyOverrideEnabled = enabled;
+                m_candidatePolicyOverride = policy;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetCandidatePolicyOverrideEnabled( ) const { return m_candidatePolicyOverrideEnabled; }
+        const TemporalCandidateStatistics & GetTemporalCandidateStatistics( ) const { return m_temporalCandidateStatistics; }
+        TemporalDebugView           GetTemporalDebugView( ) const       { return m_temporalDebugView; }
+        void                        SetTemporalDebugView( TemporalDebugView value ) { m_temporalDebugView = value; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips

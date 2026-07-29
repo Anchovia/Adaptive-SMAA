@@ -43,7 +43,42 @@ void vaSMAAWrapper::UIPanelDraw( )
 
     ImGuiEx_Combo( "Quality preset", (int&)m_settings.Preset, { string("LOW"), string("MEDIUM"), string("HIGH"), string("ULTRA") } );
 
-    //ImGui::Checkbox( "Show edges", &m_debugShowEdges );
+    if( GetEdgeSelectiveTemporalEnabled( ) )
+    {
+        ImGui::Separator( );
+        ImGui::TextUnformatted( "TSCMAA candidate diagnostics" );
+
+        bool policyOverrideEnabled = m_candidatePolicyOverrideEnabled;
+        if( ImGui::Checkbox( "Override candidate policy", &policyOverrideEnabled ) )
+            SetCandidatePolicyOverride( policyOverrideEnabled, m_candidatePolicyOverride );
+
+        if( policyOverrideEnabled )
+        {
+            int policy = (int)m_candidatePolicyOverride;
+            if( ImGuiEx_Combo( "Candidate policy", policy,
+                { string("All base edges"), string("Intel-family non-dominant"), string("Experimental 3x3 mean/max") } ) )
+                SetCandidatePolicyOverride( true, (CandidatePolicy)policy );
+        }
+
+        int debugView = (int)m_temporalDebugView;
+        if( ImGuiEx_Combo( "Debug view", debugView, { string("Off"), string("Base edges"), string("Selected candidates") } ) )
+            SetTemporalDebugView( (TemporalDebugView)debugView );
+
+        const TemporalCandidateStatistics & statistics = GetTemporalCandidateStatistics( );
+        if( statistics.Valid )
+        {
+            ImGui::Text( "Base edges: %u (%.3f%% of pixels)", statistics.BaseEdgeCount,
+                statistics.PixelCount > 0? 100.0f * (float)statistics.BaseEdgeCount / (float)statistics.PixelCount : 0.0f );
+            ImGui::Text( "Candidates: %u (%.3f%% of pixels)", statistics.CandidateCount,
+                100.0f * statistics.GetCandidateToPixelRatio( ) );
+            ImGui::Text( "Candidate/base: %.3f%%", 100.0f * statistics.GetCandidateToBaseRatio( ) );
+            ImGui::Text( "Indirect processed: %u", statistics.ProcessCount );
+        }
+        else
+        {
+            ImGui::TextDisabled( "Candidate counters are waiting for GPU readback." );
+        }
+    }
 
     ImGui::PopItemWidth();
 #endif

@@ -184,8 +184,8 @@ Intel TSCMAA는 기본 조절값 `0.5`를 공개하지만 정확한 kernel은 �
 `IntelFamilyNonDominant` 정책은 다음 근거로 제한해 구현한다.
 
 - Intel CMAA2 공식 source의 방향별 local-contrast 구조를 출발점으로 사용 (`S`)
-- 중심 edge strength에서 같은 방향의 인접 edge 최댓값에 removal amount를 곱한 값을
-  빼고 base threshold와 비교하는 형태로 격리 (`A`)
+- 중심 edge strength에서 양 끝점에 연결된 **수직 방향 edge** 최댓값에 removal amount를
+  곱한 값을 빼고 base threshold와 비교하는 형태로 격리 (`A`)
 - 기본 removal amount는 `0.5` (`D`)
 - kernel 좌표, 경계 처리와 식을 shader 주석 및 실험 로그에 그대로 기록
 
@@ -316,7 +316,7 @@ history UV/velocity, variance clip delta다.
 - base luma edge, 세 candidate policy, compact buffer, counter 구현
 - indirect argument의 0개·1개·group 경계값 검증
 - debug mask와 비동기 통계 readback 구현
-- temporal resolve는 아직 기존 출력에 영향을 주지 않는 진단 모드로 확인
+- 기존 prototype 기본 출력은 유지하고, 명시적 diagnostic override에서만 정책을 바꿔 확인
 
 ### 단계 3: selective resolve 골격
 
@@ -406,15 +406,43 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-**단계 1: mode와 설정 직교화는 완료했다.**
+**단계 1과 단계 2의 후보 추출·기본 계측 구현은 완료했다.**
 
 - Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
 - `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
   candidate policy와 history weight를 명시적 설정으로 분리
 - `O-ET2X` no-reprojection prototype 실행 경로 추가
-- Release x64 build 및 네 mode engineering smoke capture 통과
+- threshold `1/22`인 별도 full-resolution base luma edge 검출 구현
+- `AllBaseEdges`, `IntelFamilyNonDominant`, `ExperimentalLocalMeanMax3x3` 정책 분리
+- candidate compact buffer와 indirect process count를 비동기 staging buffer로 readback
+- base edge와 selected candidate R8 debug mask 및 개발 UI 구현
+- 기존 prototype의 기본 정책은 `ExperimentalLocalMeanMax3x3`으로 유지하고, UI 또는
+  `-smaaCandidatePolicyOverride`에서만 다른 정책을 선택
+- Release x64 build 및 세 정책 engineering smoke capture 통과
 
-다음 작업은 본 측정이 아니라 **단계 2: 후보 추출과 계측**이다. 현재
-`ExperimentalLocalMeanMax3x3` 후보식을 ablation으로 격리하고, base luma edge,
-`AllBaseEdges`, `IntelFamilyNonDominant` 정책과 후보 counter/debug mask를 temporal
-출력에 영향을 주지 않는 진단 단계로 먼저 구현한다.
+### 17.1 단계 2 engineering smoke 결과
+
+2026-07-29, 1920×1017, 같은 deterministic 프레임에서 확인한 구현 검증 값은 다음과 같다.
+이 값은 한 프레임의 smoke 결과이며 최종 품질·성능 결과가 아니다.
+
+| 정책 | Base edge | Candidate | Candidate/Base | Indirect process |
+|---|---:|---:|---:|---:|
+| `AllBaseEdges` | 57,354 | 57,354 | 100.000% | 57,354 |
+| `IntelFamilyNonDominant` | 57,354 | 34,938 | 60.916% | 34,938 |
+| `ExperimentalLocalMeanMax3x3` | 57,354 | 44,266 | 77.180% | 44,266 |
+
+- 세 정책 모두 프로그램 종료·검은 화면·shader compile 오류 없이 자동 캡처 완료
+- `CandidateCount == ProcessCount` 확인
+- `AllBaseEdges`에서 `CandidateCount == BaseEdgeCount` 확인
+- base/candidate debug mask를 시각 확인
+- 기본 profile과 명시적 `ExperimentalLocalMeanMax3x3` override의 `O-ET2X`,
+  `O-ET2X-R` PNG SHA-256이 각각 일치해 기본 정책 회귀가 없음을 확인
+- Intel 문서의 약 50%는 강제 quota가 아니므로 60.916%를 실패나 성공으로 단정하지 않음
+- 0개·1개·64-thread group 경계와 중복/overflow stress는 아직 별도 검증이 필요
+
+다음 작업은 본 측정이 아니라 **단계 2의 경계·안전성 검증 마무리**다. 0개·1개·
+63/64/65개·최대 후보 조건에서 indirect group count, 중복, 범위와 overflow를 먼저
+검증한다. 이를 통과한 뒤 **단계 3: selective resolve 골격의 controlled 검증**으로
+넘어가 sampler를 bilinear, clipping을 Off로 실제 shader 분기하고, 같은 설정의
+full-screen ablation과 비교해 비후보가 현재 spatial 결과와 정확히 일치하는지 이미지
+diff로 확인한다.
