@@ -163,6 +163,10 @@ capture를 실행할 수 있다.
 - `-smaaOriginalFourPerformanceSmoke` 자동 검증: PNG를 저장하지 않고 Original 네
   mode의 WholeFrame, SMAA total과 spatial, camera velocity, candidate 준비·추출,
   indirect args, candidate resolve, output copy GPU timestamp를 같은 동적 경로에서 기록
+- `-smaaOriginalFourPerformanceBenchmark`: 기본 300프레임 warm-up, 4,800프레임 측정,
+  3회 반복. 정방향/역방향 mode 순서를 교차하고 UI·PNG·candidate readback을 끈 상태에서
+  wall frame interval, WholeFrame과 SMAA pass GPU timestamp, p95/p99, 1% low 및
+  run-mean 표준편차를 기록
 - `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
   성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
   수행
@@ -226,6 +230,12 @@ edge-selective mode의 readback Off/On PNG는 각각 byte-identical했다. 이 �
 120프레임 engineering smoke에서 네 mode 모두 `WholeFrame` GPU timestamp 120/120개를
 수집했다. `WholeFrame`은 BeginFrame부터 EndAndPresentFrame 직전까지의 GPU work이며
 Present 자체는 제외한다. temporal lifecycle과 네 mode 출력 hash 회귀도 통과했다.
+
+반복 본 측정용 `-smaaOriginalFourPerformanceBenchmark`도 3회×mode당 32프레임의
+축소 검증에서 모든 expected metric 96/96개, run mean 3/3개를 수집하고 PASS했다.
+`ApplicationFrameWall`은 동일 AutoBench tick 사이의 실제 CPU wall interval로
+Present와 OS scheduling을 포함한다. `WholeFrame` 기반 FPS는 GPU-equivalent throughput로
+별도 표기하며 실제 표시 FPS와 혼동하지 않는다.
 
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel

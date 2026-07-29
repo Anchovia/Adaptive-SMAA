@@ -953,3 +953,37 @@ SMAA Ultra, candidate counter readback Off, mode당 warm-up 60프레임과 측�
 timestamp를 활성화했으며, 검증한 렌더 출력에는 영향을 주지 않았다. counter readback
 분리와 WholeFrame 경로가 모두 준비됐으므로 다음 단계는 Original 네 case의 반복
 성능 측정 설계를 고정하고 최소 3회 실행하는 것이다.
+
+### 17.15 Original 네 case 반복 성능 벤치마크 도구
+
+`-smaaOriginalFourPerformanceBenchmark [startSeconds warmupFrames measureFrames repeats]`를
+추가했다. 인수를 생략할 때 연구 측정 규칙에 맞춰 start 1초, mode당 300프레임 warm-up,
+4,800프레임 측정, 3회 반복을 사용한다.
+
+측정 조건과 기록 항목은 다음과 같다.
+
+- Release x64, DirectX 11, SMAA Ultra, VSync Off
+- 동일 Bistro camera path, fixed 60 Hz simulation
+- UI 숨김, PNG capture 없음
+- candidate statistics readback 강제 Off
+- 반복 1은 `O-T2X → O-T2X-R → O-ET2X → O-ET2X-R`
+- 반복 2는 역순, 이후 정방향/역방향 교차
+- `ApplicationFrameWall`: 같은 AutoBench tick 사이의 실제 CPU wall interval
+- `WholeFrame`: BeginFrame부터 Present 직전까지 GPU timestamp
+- SMAA total 및 mode별 내부 pass GPU timestamp
+- 전체 frame 표본의 평균, 중앙값, 표준편차, p95, p99, 최댓값
+- 각 반복 평균의 표준편차
+- wall 평균 FPS와 `1000 / p99` 방식 1% low FPS
+- WholeFrame 기반 GPU-equivalent 평균/1% low FPS
+
+`ApplicationFrameWall`은 Present와 OS scheduling을 포함하므로 실제 앱 처리율에 가깝지만
+외부 PresentMon의 displayed FPS와 동일한 개념은 아니다. 반대로 WholeFrame 기반 FPS는
+Present를 제외한 GPU render throughput 환산값이다. 두 수치를 분리해 보고한다.
+
+도구 자체 검증은 2026-07-30에 warm-up 16프레임, 측정 32프레임, 3회 반복으로
+실행했다. 네 mode의 모든 expected timing metric은 96/96개, run mean은 3/3개가
+수집됐고 candidate counter 표본은 0으로 유지되어 PASS했다. 이 축소 실행 수치는
+벤치마크 기능 검증용이며 연구 성능 결과로 사용하지 않는다.
+
+다음 단계는 기본 조건인 300 warm-up, 4,800 measurement, 3 repeats를 실행하고, 원시
+AutoBench CSV는 Git에 넣지 않은 채 결과 요약과 반복 분산을 검토하는 것이다.
