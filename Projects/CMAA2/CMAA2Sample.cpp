@@ -72,8 +72,10 @@ namespace
             settings.Reprojection = (aaType == CMAA2Sample::AAType::SMAA_O_ET2X_R)?
                 vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices : vaSMAAWrapper::ReprojectionMode::Off;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
-            settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
-            settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
+            // Controlled selective-resolve skeleton: advanced sampling and
+            // clipping remain independently selectable diagnostic overrides.
+            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
+            settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
             settings.Candidates = vaSMAAWrapper::CandidatePolicy::ExperimentalLocalMeanMax3x3;
             settings.HistoryWeight = 0.8f;
             settings.NonDominantRemovalAmount = 0.5f;
@@ -1048,15 +1050,22 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     const vaSMAAWrapper::TemporalSettings temporalSMAASettings = GetSMAATemporalSettingsForAAType( m_settings.CurrentAAOption );
     m_SMAA->SetTemporalSettings( temporalSMAASettings );
     const bool temporalSMAAJitterEnabled = m_SMAA->GetTemporalJitterEnabled( );
+    const bool edgeSelectiveProfile = temporalSMAASettings.Coverage == vaSMAAWrapper::TemporalCoverage::EdgeSelective;
+    const vaSMAAWrapper::HistorySampler effectiveSampler = edgeSelectiveProfile?
+        m_SMAA->GetEffectiveHistorySampler( ) : temporalSMAASettings.Sampler;
+    const vaSMAAWrapper::HistoryClipping effectiveClipping = edgeSelectiveProfile?
+        m_SMAA->GetEffectiveHistoryClipping( ) : temporalSMAASettings.Clipping;
     if( IsOriginalSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
     {
-        VA_LOG( "SMAA profile '%s': coverage=%s, reprojection=%s, jitter=%s, sampler=%s, clipping=%s, candidates=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
+        VA_LOG( "SMAA profile '%s': coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, candidates=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
             GetAAName( m_settings.CurrentAAOption ),
             GetTemporalCoverageName( temporalSMAASettings.Coverage ),
             GetReprojectionModeName( temporalSMAASettings.Reprojection ),
             GetJitterPolicyName( temporalSMAASettings.Jitter ),
-            GetHistorySamplerName( temporalSMAASettings.Sampler ),
-            GetHistoryClippingName( temporalSMAASettings.Clipping ),
+            GetHistorySamplerName( effectiveSampler ),
+            edgeSelectiveProfile && m_SMAA->GetHistorySamplerOverrideEnabled( )? " [diagnostic override]" : "",
+            GetHistoryClippingName( effectiveClipping ),
+            edgeSelectiveProfile && m_SMAA->GetHistoryClippingOverrideEnabled( )? " [diagnostic override]" : "",
             GetCandidatePolicyName( m_SMAA->GetEffectiveCandidatePolicy( ) ),
             m_SMAA->GetCandidatePolicyOverrideEnabled( )? " [diagnostic override]" : "",
             temporalSMAASettings.HistoryWeight,
@@ -2084,13 +2093,41 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             VA_LOG("SMAA candidate policy diagnostic override: %s",
                 policy >= 0? GetCandidatePolicyName((vaSMAAWrapper::CandidatePolicy)policy) : "disabled");
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaHistorySamplerOverride") == 0)
+        {
+            int sampler = -1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> sampler) || sampler < -1 || sampler > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaHistorySamplerOverride value; expected -1 (disabled), 0 (bilinear), or 1 (Catmull-Rom 5-tap)");
+                return;
+            }
+            m_SMAA->SetHistorySamplerOverride(sampler >= 0,
+                sampler >= 0? (vaSMAAWrapper::HistorySampler)sampler : vaSMAAWrapper::HistorySampler::Bilinear);
+            VA_LOG("SMAA history sampler diagnostic override: %s",
+                sampler >= 0? GetHistorySamplerName((vaSMAAWrapper::HistorySampler)sampler) : "disabled");
+        }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaHistoryClippingOverride") == 0)
+        {
+            int clipping = -1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> clipping) || clipping < -1 || clipping > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaHistoryClippingOverride value; expected -1 (disabled), 0 (off), or 1 (YCoCg variance)");
+                return;
+            }
+            m_SMAA->SetHistoryClippingOverride(clipping >= 0,
+                clipping >= 0? (vaSMAAWrapper::HistoryClipping)clipping : vaSMAAWrapper::HistoryClipping::Off);
+            VA_LOG("SMAA history clipping diagnostic override: %s",
+                clipping >= 0? GetHistoryClippingName((vaSMAAWrapper::HistoryClipping)clipping) : "disabled");
+        }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalDebugView") == 0)
         {
             int debugView = 0;
             std::wistringstream values(parameter.second);
-            if (!(values >> debugView) || debugView < 0 || debugView > 2)
+            if (!(values >> debugView) || debugView < 0 || debugView > 3)
             {
-                VA_LOG_ERROR("Invalid -smaaTemporalDebugView value; expected 0 (off), 1 (base edges), or 2 (selected candidates)");
+                VA_LOG_ERROR("Invalid -smaaTemporalDebugView value; expected 0 (off), 1 (base edges), 2 (selected candidates), or 3 (current spatial)");
                 return;
             }
             m_SMAA->SetTemporalDebugView((vaSMAAWrapper::TemporalDebugView)debugView);

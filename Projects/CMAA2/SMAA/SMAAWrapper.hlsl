@@ -48,6 +48,9 @@ struct SMAAReprojectionConstants
     // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3),
     // z: forced candidate count, w: forced-count diagnostics enabled.
     float4 TSCMAACandidateParams;
+    // x: history sampler enum (0 bilinear, 1 Catmull-Rom 5-tap),
+    // y: history clipping enum (0 off, 1 YCoCg variance).
+    float4 TSCMAAResolveParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
@@ -56,6 +59,7 @@ struct SMAAReprojectionConstants
     // Matches the shader-side field description above.
     VertexAsylum::vaVector4 TSCMAAParams;
     VertexAsylum::vaVector4 TSCMAACandidateParams;
+    VertexAsylum::vaVector4 TSCMAAResolveParams;
 #endif
 };
 
@@ -546,8 +550,16 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     if (any(historyUV <= 0.0) || any(historyUV >= 1.0))
         return;
 
-    float4 historyColor = TSCMAASampleHistoryCatmullRom5Tap(historyUV, float2(dimensions));
-    historyColor.rgb = TSCMAAVarianceClip(pixel, dimensions, currentColor.rgb, historyColor.rgb);
+    float4 historyColor;
+    [branch]
+    if (g_SMAAReprojection.TSCMAAResolveParams.x > 0.5)
+        historyColor = TSCMAASampleHistoryCatmullRom5Tap(historyUV, float2(dimensions));
+    else
+        historyColor = tscmaaHistoryColor.SampleLevel(LinearSampler, historyUV, 0.0);
+
+    [branch]
+    if (g_SMAAReprojection.TSCMAAResolveParams.y > 0.5)
+        historyColor.rgb = TSCMAAVarianceClip(pixel, dimensions, currentColor.rgb, historyColor.rgb);
 
     float historyWeight = g_SMAAReprojection.TSCMAAParams.x;
     float4 resolvedColor = float4(lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);

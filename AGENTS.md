@@ -126,8 +126,8 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 |---|---|---|
 | `O-T2X` | 구현됨 | `SMAA_O_T2X`; 같은 좌표의 current/previous를 기본 0.5 weight로 결합 |
 | `O-T2X-R` | 구현됨 | `SMAA_O_T2X_R`; camera-motion velocity 사용 |
-| `O-ET2X` | prototype 구현 | `SMAA_O_ET2X`; 같은 좌표의 history를 사용하는 no-reprojection ablation |
-| `O-ET2X-R` | prototype 구현 | `SMAA_O_ET2X_R`; edge-selective + camera reprojection On 복합 실험 버전 |
+| `O-ET2X` | controlled resolve 골격 구현 | `SMAA_O_ET2X`; 같은 좌표의 history를 사용하는 no-reprojection ablation |
+| `O-ET2X-R` | controlled resolve 골격 구현 | `SMAA_O_ET2X_R`; edge-selective + camera reprojection On |
 | Adaptive 4개 | **미구현** | Original 4개를 검증한 뒤 `main`의 Adaptive SMAA와 통합해야 함 |
 
 Original 네 mode는 `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, history sampler,
@@ -143,7 +143,8 @@ capture를 실행할 수 있다.
   TSCMAA 공개 기본값과 결합한 adaptation이며 유실된 원본 식과 동일하다고 표현하지 않음
 - candidate compact/indirect process·group count와 비동기 GPU readback
 - base edge/candidate debug mask와 개발 UI
-- `-smaaCandidatePolicyOverride`, `-smaaTemporalDebugView`,
+- `-smaaCandidatePolicyOverride`, `-smaaHistorySamplerOverride`,
+  `-smaaHistoryClippingOverride`, `-smaaTemporalDebugView`,
   `-smaaCandidateForcedCount` 진단 옵션
 
 기존 prototype 출력 보존을 위해 기본 정책은 아직 `ExperimentalLocalMeanMax3x3`이다.
@@ -161,19 +162,21 @@ process count, `ceil(count/64)` group count가 기대값과 일치했고 중복�
 0이었다. 전체 candidate-list staging buffer는 진단 옵션이 켜진 경우에만 생성하며 본
 성능 측정에는 포함하지 않는다.
 
-현재 `O-ET2X`와 `O-ET2X-R` prototype은 다음 변경을 동시에 포함한다.
+현재 `O-ET2X`와 `O-ET2X-R` 기본 profile은 다음 controlled resolve 골격을 사용한다.
 
 - deliberate projection jitter 비활성화
 - SMAA 1X spatial input
 - locally dominant edge candidate 선택
-- camera-motion history reprojection
-- Catmull-Rom 5-tap history sampling
-- YCoCg variance clipping
+- `O-ET2X`는 같은 좌표 history, `O-ET2X-R`은 camera-motion history reprojection
+- bilinear history sampling
+- history clipping Off
 - history weight 0.8
 
-따라서 두 prototype은 현재 상태에서 최종 controlled 구현으로 간주하지 않는다. 설정
-구조와 candidate policy는 분리됐지만 sampler/clipping toggle의 실제 shader 분기 및
-공식 자료 기반 검증은 아직 완료되지 않았다.
+Catmull-Rom 5-tap과 YCoCg variance clipping은 실제 shader 분기와 diagnostic override로
+분리되어 있으며 둘을 동시에 켜면 이전 복합 prototype 출력을 정확히 재현한다. 비후보는
+현재 spatial 결과를 유지하고 후보만 indirect resolve가 덮어쓰는지 픽셀 단위로 검증했다.
+다만 candidate 정책 승인, sampler/clipping reference test, reprojection과 history
+lifecycle 검증이 남아 있으므로 두 mode를 최종 document profile로 간주하지 않는다.
 
 ## 5. 기존 측정의 정확한 범위
 
@@ -199,10 +202,10 @@ process count, `ceil(count/64)` group count가 기대값과 일치했고 중복�
 추가 본 측정을 진행하기 전에 다음 순서를 지킨다.
 
 1. **완료:** AA mode를 Standard/Edge-selective와 Reprojection Off/On의 직교 조합으로 정리한다.
-2. **진행 중:** 후보 정책 계측과 0/1/group/최대 경계 검증은 완료했다. 다음은
-   bilinear/no-clipping selective resolve 골격부터 Original SMAA 기반 `O-T2X`,
-   `O-T2X-R`, `O-ET2X`, `O-ET2X-R` 네 controlled mode를 구현한다.
-3. 네 mode에서 history 초기화, ping-pong, jitter, subsample index, scene/resize reset을 검증한다.
+2. **완료:** 후보 정책 계측과 0/1/group/최대 경계 검증, bilinear/no-clipping
+   selective resolve 골격 및 비후보/후보 픽셀 불변식 검증을 완료했다.
+3. **다음 작업:** 네 mode에서 history 초기화, ping-pong, jitter, subsample index,
+   scene/resize reset을 검증한다.
 4. 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경은 ablation toggle로 분리한다.
 5. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
 6. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.

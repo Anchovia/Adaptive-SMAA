@@ -325,6 +325,10 @@ history UV/velocity, variance clip delta다.
 - 비후보가 현재 spatial 결과와 정확히 일치하는지 이미지 diff 확인
 - matched full-screen/selective ablation으로 후보 선택 효과 분리
 
+현재 구현에서는 all-pixel 진단을 `-smaaCandidateForcedCount 9999999`로 실행한다.
+이는 `O-T2X`가 아니라 edge-selective pipeline의 jitter, sampler, clipping, weight와
+reprojection 설정을 그대로 유지한 채 모든 픽셀을 후보로 만드는 matched diagnostic이다.
+
 ### 단계 4: 5-tap sampler
 
 - `CatmullRom5Tap` 독립 구현
@@ -383,8 +387,8 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [ ] depth 및 현재·이전 matrix reprojection 검증
 - [ ] 5-tap Catmull–Rom reference 검증
 - [ ] YCoCg variance clipping 불변 조건 검증
-- [ ] 후보 history weight `0.8`
-- [ ] 비후보 history weight `0.0`
+- [x] 후보 history weight `0.8` 설정 및 resolve 경로 연결
+- [x] 비후보 history weight `0.0`, 즉 current spatial 유지 픽셀 검증
 - [ ] 최종 output의 history feedback
 - [ ] 첫 프레임·mode·scene·teleport·resize reset
 - [ ] static camera 떨림 없음
@@ -406,7 +410,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-**단계 1과 단계 2의 후보 추출·계측 및 경계 검증을 완료했다.**
+**단계 1, 단계 2와 단계 3의 controlled selective resolve 픽셀 검증을 완료했다.**
 
 - Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
 - `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
@@ -460,7 +464,40 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 진단을 끈 기본 실행은 기존과 같은 44,266 candidate와 692 indirect group을 기록했고,
 변경 전 기본 `O-ET2X`/`O-ET2X-R` 캡처와 PNG SHA-256이 각각 일치했다.
 
-다음 작업은 본 측정이 아니라 **단계 3: selective resolve 골격의 controlled 검증**이다.
-sampler를 bilinear, clipping을 Off로 실제 shader 분기하고, 같은 설정의 full-screen
-ablation과 비교해 비후보가 현재 spatial 결과와 정확히 일치하는지 이미지 diff로
-확인한다.
+### 17.3 단계 3 controlled selective resolve 결과
+
+edge-selective 기본 profile을 `Bilinear + Clipping Off`로 바꾸고 두 설정을 실제 compute
+shader 분기로 연결했다. `CatmullRom5Tap`과 `YCoCgVariance`는 독립 UI/명령줄 diagnostic
+override로 보존했다. `CurrentSpatial` debug view도 추가해 resolve 입력을 별도 캡처할 수
+있다.
+
+2026-07-29, Release x64, 1920×1017, 같은 deterministic capture 조건에서 다음 네 출력을
+분리했다.
+
+1. 기본 selective resolve
+2. current spatial SMAA debug view
+3. selected candidate mask
+4. 같은 resolve 설정으로 전체 1,952,640픽셀을 후보로 강제한 all-pixel diagnostic
+
+마스크의 흰 픽셀을 후보로 사용해 RGB PNG를 비교한 결과는 다음과 같다. 이 결과는
+coverage 구현의 engineering 검증이며 최종 품질·성능 결과가 아니다.
+
+| Mode | 후보 픽셀 | 비후보 `selective == spatial` | 후보 `selective == all-pixel` |
+|---|---:|---:|---:|
+| `O-ET2X` | 44,542 | 0 mismatch / 1,908,098 | 0 mismatch / 44,542 |
+| `O-ET2X-R` | 44,542 | 0 mismatch / 1,908,098 | 0 mismatch / 44,542 |
+
+두 mode 모두 selective와 current spatial 전체 비교에서는 실제 차이 픽셀이 존재했다
+(`O-ET2X` 33,556개, `O-ET2X-R` 35,798개). 따라서 0 mismatch 결과는 temporal resolve가
+꺼졌기 때문이 아니라, 후보 영역만 all-pixel temporal 결과로 덮어쓰고 비후보를 current
+spatial로 보존했기 때문이다.
+
+기존 복합 prototype의 회귀도 확인했다. sampler를 `CatmullRom5Tap`, clipping을
+`YCoCgVariance`로 override한 출력 SHA-256은 변경 전과 정확히 일치했다.
+
+- `O-ET2X`: `D39F9FBD3DA57D3EAE0E648657651F9FE5B3498450045F7E6AD0A88D00B963F5`
+- `O-ET2X-R`: `FCAEEE29310774501E2E3B37DEADA880A64062365974FBEBC8B8C35C2DCAF7C3`
+
+다음 작업은 본 측정이 아니다. history 초기화, ping-pong, mode/scene/resize reset과
+camera reprojection의 좌표·행렬 순서를 검증한 뒤, 단계 4의 Catmull-Rom 5-tap CPU
+reference test를 진행한다.

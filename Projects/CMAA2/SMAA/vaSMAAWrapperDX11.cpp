@@ -157,7 +157,7 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination );
         void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
-        vaDrawResultFlags               DrawTSCMAADebugMask( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
+        vaDrawResultFlags               DrawTSCMAADebugView( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
         //void                            Reset( );
 
         void                            SetGlobalStates( vaRenderDeviceContext & deviceContext );
@@ -529,7 +529,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     }
     if( GetEdgeSelectiveTemporalEnabled( ) && (!m_tscmaaExtractCandidatesCS->IsCreated( ) || !m_tscmaaComputeDispatchArgsCS->IsCreated( )
         || !m_tscmaaResolveCandidatesCS->IsCreated( )
-        || (GetTemporalDebugView( ) != TemporalDebugView::None && !m_tscmaaDebugMaskPS->IsCreated( ))) )
+        || ((GetTemporalDebugView( ) == TemporalDebugView::BaseEdges || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates)
+            && !m_tscmaaDebugMaskPS->IsCreated( ))) )
         return vaDrawResultFlags::ShadersStillCompiling;
 
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
@@ -550,6 +551,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             (uint32)(inputColor->GetSizeX( ) * inputColor->GetSizeY( )) );
         m_reprojectionConstants.TSCMAACandidateParams = vaVector4( temporalSettings.EdgeThreshold, (float)(int)GetEffectiveCandidatePolicy( ),
             (float)clampedForcedCandidateCount, GetForcedCandidateCountEnabled( )? 1.0f : 0.0f );
+        m_reprojectionConstants.TSCMAAResolveParams = vaVector4( (float)(int)GetEffectiveHistorySampler( ),
+            (float)(int)GetEffectiveHistoryClipping( ), 0.0f, 0.0f );
 
         if( temporalReprojectionEnabled )
         {
@@ -774,7 +777,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         dx11Context->CopyResource( destinationDX11->GetResource( ), outputHistoryDX11->GetResource( ) );
     }
 
-    return DrawTSCMAADebugMask( deviceContext, destination );
+    return DrawTSCMAADebugView( deviceContext, destination );
 }
 
 void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height )
@@ -929,10 +932,20 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
     }
 }
 
-vaDrawResultFlags vaSMAAWrapperDX11::DrawTSCMAADebugMask( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination )
+vaDrawResultFlags vaSMAAWrapperDX11::DrawTSCMAADebugView( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination )
 {
     if( GetTemporalDebugView( ) == TemporalDebugView::None )
         return vaDrawResultFlags::None;
+
+    if( GetTemporalDebugView( ) == TemporalDebugView::CurrentSpatial )
+    {
+        if( m_temporalSpatialCurrent == nullptr )
+            return vaDrawResultFlags::UnspecifiedError;
+        ID3D11DeviceContext * dx11Context = deviceContext.SafeCast<vaRenderDeviceContextDX11*>( )->GetDXContext( );
+        dx11Context->CopyResource( destination->SafeCast<vaTextureDX11*>( )->GetResource( ),
+            m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetResource( ) );
+        return vaDrawResultFlags::None;
+    }
 
     const shared_ptr<vaTexture> & debugMask = (GetTemporalDebugView( ) == TemporalDebugView::BaseEdges)?
         m_tscmaaBaseEdgeMask : m_tscmaaCandidateMask;

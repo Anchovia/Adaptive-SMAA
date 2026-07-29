@@ -60,6 +60,26 @@ void vaSMAAWrapper::UIPanelDraw( )
                 SetCandidatePolicyOverride( true, (CandidatePolicy)policy );
         }
 
+        bool samplerOverrideEnabled = m_historySamplerOverrideEnabled;
+        if( ImGui::Checkbox( "Override history sampler", &samplerOverrideEnabled ) )
+            SetHistorySamplerOverride( samplerOverrideEnabled, m_historySamplerOverride );
+        if( samplerOverrideEnabled )
+        {
+            int sampler = (int)m_historySamplerOverride;
+            if( ImGuiEx_Combo( "History sampler", sampler, { string("Bilinear"), string("Catmull-Rom 5-tap") } ) )
+                SetHistorySamplerOverride( true, (HistorySampler)sampler );
+        }
+
+        bool clippingOverrideEnabled = m_historyClippingOverrideEnabled;
+        if( ImGui::Checkbox( "Override history clipping", &clippingOverrideEnabled ) )
+            SetHistoryClippingOverride( clippingOverrideEnabled, m_historyClippingOverride );
+        if( clippingOverrideEnabled )
+        {
+            int clipping = (int)m_historyClippingOverride;
+            if( ImGuiEx_Combo( "History clipping", clipping, { string("Off"), string("YCoCg variance") } ) )
+                SetHistoryClippingOverride( true, (HistoryClipping)clipping );
+        }
+
         bool forcedCountEnabled = m_forcedCandidateCountEnabled;
         if( ImGui::Checkbox( "Force exact candidate count", &forcedCountEnabled ) )
             SetForcedCandidateCountForDiagnostics( forcedCountEnabled, m_forcedCandidateCount );
@@ -71,7 +91,8 @@ void vaSMAAWrapper::UIPanelDraw( )
         }
 
         int debugView = (int)m_temporalDebugView;
-        if( ImGuiEx_Combo( "Debug view", debugView, { string("Off"), string("Base edges"), string("Selected candidates") } ) )
+        if( ImGuiEx_Combo( "Debug view", debugView,
+            { string("Off"), string("Base edges"), string("Selected candidates"), string("Current spatial SMAA") } ) )
             SetTemporalDebugView( (TemporalDebugView)debugView );
 
         const TemporalCandidateStatistics & statistics = GetTemporalCandidateStatistics( );

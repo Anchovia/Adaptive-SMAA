@@ -79,7 +79,8 @@ namespace VertexAsylum
         {
             None,
             BaseEdges,
-            SelectedCandidates
+            SelectedCandidates,
+            CurrentSpatial
         };
 
         struct TemporalCandidateStatistics
@@ -168,6 +169,10 @@ namespace VertexAsylum
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_candidatePolicyOverrideEnabled    = false;
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
+        bool                        m_historySamplerOverrideEnabled     = false;
+        HistorySampler              m_historySamplerOverride            = HistorySampler::CatmullRom5Tap;
+        bool                        m_historyClippingOverrideEnabled    = false;
+        HistoryClipping             m_historyClippingOverride           = HistoryClipping::YCoCgVariance;
         bool                        m_forcedCandidateCountEnabled        = false;
         uint32                      m_forcedCandidateCount               = 65;
         TemporalDebugView           m_temporalDebugView                  = TemporalDebugView::None;
@@ -215,6 +220,28 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidatePolicyOverrideEnabled( ) const { return m_candidatePolicyOverrideEnabled; }
+        HistorySampler              GetEffectiveHistorySampler( ) const { return m_historySamplerOverrideEnabled? m_historySamplerOverride : m_temporalSettings.Sampler; }
+        HistoryClipping             GetEffectiveHistoryClipping( ) const { return m_historyClippingOverrideEnabled? m_historyClippingOverride : m_temporalSettings.Clipping; }
+        void                        SetHistorySamplerOverride( bool enabled, HistorySampler value )
+        {
+            if( m_historySamplerOverrideEnabled != enabled || m_historySamplerOverride != value )
+            {
+                m_historySamplerOverrideEnabled = enabled;
+                m_historySamplerOverride = value;
+                ResetTemporalHistory( );
+            }
+        }
+        void                        SetHistoryClippingOverride( bool enabled, HistoryClipping value )
+        {
+            if( m_historyClippingOverrideEnabled != enabled || m_historyClippingOverride != value )
+            {
+                m_historyClippingOverrideEnabled = enabled;
+                m_historyClippingOverride = value;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetHistorySamplerOverrideEnabled( ) const { return m_historySamplerOverrideEnabled; }
+        bool                        GetHistoryClippingOverrideEnabled( ) const { return m_historyClippingOverrideEnabled; }
         const TemporalCandidateStatistics & GetTemporalCandidateStatistics( ) const { return m_temporalCandidateStatistics; }
         void                        SetForcedCandidateCountForDiagnostics( bool enabled, uint32 count )
         {
