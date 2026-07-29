@@ -210,6 +210,125 @@ namespace VertexAsylum
         return result;
     }
 
+    static SMAACatmullDiagnosticColor SMAARGBToYCoCg( const SMAACatmullDiagnosticColor & color )
+    {
+        const float chromaOrange = color.R - color.B;
+        const float temporary = color.B + chromaOrange * 0.5f;
+        const float chromaGreen = color.G - temporary;
+        const float luma = temporary + chromaGreen * 0.5f;
+        return { luma, chromaOrange, chromaGreen, color.A };
+    }
+
+    static SMAACatmullDiagnosticColor SMAAYCoCgToRGB( const SMAACatmullDiagnosticColor & color )
+    {
+        const float temporary = color.R - color.B * 0.5f;
+        const float green = color.B + temporary;
+        const float blue = temporary - color.G * 0.5f;
+        const float red = blue + color.G;
+        return { red, green, blue, color.A };
+    }
+
+    struct SMAAVarianceBox
+    {
+        SMAACatmullDiagnosticColor Minimum;
+        SMAACatmullDiagnosticColor Maximum;
+        SMAACatmullDiagnosticColor Mean;
+    };
+
+    static SMAAVarianceBox SMAAComputeVarianceBox(
+        const SMAACatmullDiagnosticColor * current, int width, int height, int pixelX, int pixelY )
+    {
+        SMAACatmullDiagnosticColor firstMoment = { 0.0f, 0.0f, 0.0f, 0.0f };
+        SMAACatmullDiagnosticColor secondMoment = { 0.0f, 0.0f, 0.0f, 0.0f };
+        SMAACatmullDiagnosticColor neighbourhoodMinimum = { 1.0e20f, 1.0e20f, 1.0e20f, 1.0f };
+        SMAACatmullDiagnosticColor neighbourhoodMaximum = { -1.0e20f, -1.0e20f, -1.0e20f, 1.0f };
+        for( int y = -1; y <= 1; y++ )
+        {
+            for( int x = -1; x <= 1; x++ )
+            {
+                const SMAACatmullDiagnosticColor sample = SMAARGBToYCoCg(
+                    SMAACatmullReadClamped( current, width, height, pixelX + x, pixelY + y ) );
+                firstMoment.R += sample.R;
+                firstMoment.G += sample.G;
+                firstMoment.B += sample.B;
+                secondMoment.R += sample.R * sample.R;
+                secondMoment.G += sample.G * sample.G;
+                secondMoment.B += sample.B * sample.B;
+                neighbourhoodMinimum.R = vaMath::Min( neighbourhoodMinimum.R, sample.R );
+                neighbourhoodMinimum.G = vaMath::Min( neighbourhoodMinimum.G, sample.G );
+                neighbourhoodMinimum.B = vaMath::Min( neighbourhoodMinimum.B, sample.B );
+                neighbourhoodMaximum.R = vaMath::Max( neighbourhoodMaximum.R, sample.R );
+                neighbourhoodMaximum.G = vaMath::Max( neighbourhoodMaximum.G, sample.G );
+                neighbourhoodMaximum.B = vaMath::Max( neighbourhoodMaximum.B, sample.B );
+            }
+        }
+
+        SMAAVarianceBox box;
+        box.Mean = { firstMoment.R / 9.0f, firstMoment.G / 9.0f, firstMoment.B / 9.0f, 1.0f };
+        const SMAACatmullDiagnosticColor standardDeviation =
+        {
+            std::sqrt( vaMath::Max( secondMoment.R / 9.0f - box.Mean.R * box.Mean.R, 0.0f ) ),
+            std::sqrt( vaMath::Max( secondMoment.G / 9.0f - box.Mean.G * box.Mean.G, 0.0f ) ),
+            std::sqrt( vaMath::Max( secondMoment.B / 9.0f - box.Mean.B * box.Mean.B, 0.0f ) ),
+            0.0f
+        };
+        box.Minimum =
+        {
+            vaMath::Max( box.Mean.R - standardDeviation.R, neighbourhoodMinimum.R ),
+            vaMath::Max( box.Mean.G - standardDeviation.G, neighbourhoodMinimum.G ),
+            vaMath::Max( box.Mean.B - standardDeviation.B, neighbourhoodMinimum.B ),
+            1.0f
+        };
+        box.Maximum =
+        {
+            vaMath::Min( box.Mean.R + standardDeviation.R, neighbourhoodMaximum.R ),
+            vaMath::Min( box.Mean.G + standardDeviation.G, neighbourhoodMaximum.G ),
+            vaMath::Min( box.Mean.B + standardDeviation.B, neighbourhoodMaximum.B ),
+            1.0f
+        };
+        return box;
+    }
+
+    static SMAACatmullDiagnosticColor SMAAVarianceClipCPU(
+        const SMAACatmullDiagnosticColor * current, int width, int height, int pixelX, int pixelY,
+        const SMAACatmullDiagnosticColor & history, SMAAVarianceBox * outputBox = nullptr )
+    {
+        const SMAAVarianceBox box = SMAAComputeVarianceBox( current, width, height, pixelX, pixelY );
+        if( outputBox != nullptr )
+            *outputBox = box;
+        const SMAACatmullDiagnosticColor currentYCoCg = SMAARGBToYCoCg(
+            current[pixelY * width + pixelX] );
+        const SMAACatmullDiagnosticColor historyYCoCg = SMAARGBToYCoCg( history );
+        const float direction[3] =
+        {
+            historyYCoCg.R - currentYCoCg.R,
+            historyYCoCg.G - currentYCoCg.G,
+            historyYCoCg.B - currentYCoCg.B
+        };
+        const float minimum[3] = { box.Minimum.R, box.Minimum.G, box.Minimum.B };
+        const float maximum[3] = { box.Maximum.R, box.Maximum.G, box.Maximum.B };
+        const float currentComponents[3] = { currentYCoCg.R, currentYCoCg.G, currentYCoCg.B };
+        float clipAmount = 1.0f;
+        for( int component = 0; component < 3; component++ )
+        {
+            if( direction[component] > 1.0e-6f )
+                clipAmount = vaMath::Min( clipAmount,
+                    (maximum[component] - currentComponents[component]) / direction[component] );
+            else if( direction[component] < -1.0e-6f )
+                clipAmount = vaMath::Min( clipAmount,
+                    (minimum[component] - currentComponents[component]) / direction[component] );
+        }
+        clipAmount = vaMath::Saturate( clipAmount );
+        const SMAACatmullDiagnosticColor clippedYCoCg =
+        {
+            currentYCoCg.R + direction[0] * clipAmount,
+            currentYCoCg.G + direction[1] * clipAmount,
+            currentYCoCg.B + direction[2] * clipAmount,
+            history.A
+        };
+        return SMAAYCoCgToRGB( clippedYCoCg );
+    }
+
     struct TechniqueThingieDX11 : public SMAATechniqueInterface
     {
         // TechniqueThingieDX11( ) { }
@@ -280,13 +399,17 @@ namespace VertexAsylum
                                     m_reprojectionConstantsBuffer;
         vaAutoRMI<vaPixelShader>    m_generateCameraVelocityPS;
         vaAutoRMI<vaPixelShader>    m_tscmaaDebugMaskPS;
+        vaAutoRMI<vaPixelShader>    m_tscmaaDebugColorPS;
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaCatmullRomDiagnosticCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaVarianceDiagnosticCS;
 
         shared_ptr<vaTexture>       m_tscmaaBaseEdgeMask             = nullptr;
         shared_ptr<vaTexture>       m_tscmaaCandidateMask            = nullptr;
+        shared_ptr<vaTexture>       m_tscmaaClippingDebug            = nullptr;
+        bool                        m_clippingDebugResourcesEnabled  = false;
         ID3D11Buffer *              m_tscmaaCandidatesBuffer        = nullptr;
         ID3D11UnorderedAccessView * m_tscmaaCandidatesUAV           = nullptr;
         ID3D11Buffer *              m_tscmaaCandidatesReadback      = nullptr;
@@ -328,6 +451,7 @@ namespace VertexAsylum
         void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
         void                            ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext * context, uint32 width, uint32 height );
         void                            RunCatmullRomDiagnostics( ID3D11DeviceContext * context );
+        void                            RunVarianceClippingDiagnostics( ID3D11DeviceContext * context );
         vaDrawResultFlags               DrawTSCMAADebugView( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & destination );
         //void                            Reset( );
 
@@ -410,19 +534,23 @@ static HRESULT CreateSMAATemporalBufferAndUAV( ID3D11Device * device, const D3D1
 
 vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
     m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
+    m_tscmaaDebugColorPS( params.RenderDevice ),
     m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
-    m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice )
+    m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice ),
+    m_tscmaaVarianceDiagnosticCS( params.RenderDevice )
 {
     params; // unreferenced
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
     m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
     m_tscmaaDebugMaskPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "TSCMAADebugMaskPS", {}, true );
+    m_tscmaaDebugColorPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "TSCMAADebugColorPS", {}, true );
     const vector<pair<string, string>> tscmaaShaderMacros = { { "SMAA_TSCMAA_COMPUTE", "1" } };
     m_tscmaaExtractCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAExtractCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaCatmullRomDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAACatmullRomDiagnosticCS", tscmaaShaderMacros, true );
+    m_tscmaaVarianceDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAVarianceDiagnosticCS", tscmaaShaderMacros, true );
     HRESULT hr;
     {
         CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
@@ -508,9 +636,11 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     SAFE_RELEASE( m_temporalVelocityReadback );
     m_tscmaaBaseEdgeMask = nullptr;
     m_tscmaaCandidateMask = nullptr;
+    m_tscmaaClippingDebug = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
     m_velocityDiagnosticsResourcesEnabled = false;
+    m_clippingDebugResourcesEnabled = false;
     SAFE_RELEASE( m_tscmaaCandidatesUAV );
     SAFE_RELEASE( m_tscmaaCandidatesBuffer );
     SAFE_RELEASE( m_tscmaaCandidatesReadback );
@@ -570,9 +700,11 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeSelectiveEnabled != edgeSelective
         || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
+        || m_clippingDebugResourcesEnabled != GetClippingDebugViewsEnabled( )
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
             || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
+                || (GetClippingDebugViewsEnabled( ) && m_tscmaaClippingDebug == nullptr)
                 || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
                 || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
                 || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr)))) )
@@ -585,6 +717,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeSelectiveEnabled = edgeSelective;
         m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
+        m_clippingDebugResourcesEnabled = GetClippingDebugViewsEnabled( );
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -658,6 +791,14 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                     1, 1, 1, maskBindFlags, vaResourceAccessFlags::Default );
                 m_tscmaaCandidateMask = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R8_UNORM, inputColor->GetSizeX(), inputColor->GetSizeY(),
                     1, 1, 1, maskBindFlags, vaResourceAccessFlags::Default );
+                if( GetClippingDebugViewsEnabled( ) )
+                {
+                    const vaResourceBindSupportFlags clippingDebugBindFlags =
+                        vaResourceBindSupportFlags::ShaderResource | vaResourceBindSupportFlags::UnorderedAccess;
+                    m_tscmaaClippingDebug = vaTexture::Create2D( inputColor->GetRenderDevice(),
+                        vaResourceFormat::R16G16B16A16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(),
+                        1, 1, 1, clippingDebugBindFlags, vaResourceAccessFlags::Default );
+                }
 
                 ID3D11Device * d3d11Device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
                 HRESULT hr;
@@ -694,6 +835,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
                 || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
+                    || (GetClippingDebugViewsEnabled( ) && m_tscmaaClippingDebug == nullptr)
                     || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
                     || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
                     || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr
@@ -729,7 +871,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     if( GetEdgeSelectiveTemporalEnabled( ) && (!m_tscmaaExtractCandidatesCS->IsCreated( ) || !m_tscmaaComputeDispatchArgsCS->IsCreated( )
         || !m_tscmaaResolveCandidatesCS->IsCreated( )
         || ((GetTemporalDebugView( ) == TemporalDebugView::BaseEdges || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates)
-            && !m_tscmaaDebugMaskPS->IsCreated( ))) )
+            && !m_tscmaaDebugMaskPS->IsCreated( ))
+        || (GetClippingDebugViewsEnabled( ) && !m_tscmaaDebugColorPS->IsCreated( ))) )
         return vaDrawResultFlags::ShadersStillCompiling;
 
     if( GetCatmullRomDiagnosticPending( ) )
@@ -737,6 +880,12 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         if( !m_tscmaaCatmullRomDiagnosticCS->IsCreated( ) )
             return vaDrawResultFlags::ShadersStillCompiling;
         RunCatmullRomDiagnostics( dx11Context );
+    }
+    if( GetVarianceClippingDiagnosticPending( ) )
+    {
+        if( !m_tscmaaVarianceDiagnosticCS->IsCreated( ) )
+            return vaDrawResultFlags::ShadersStillCompiling;
+        RunVarianceClippingDiagnostics( dx11Context );
     }
 
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
@@ -792,7 +941,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.TSCMAACandidateParams = vaVector4( temporalSettings.EdgeThreshold, (float)(int)GetEffectiveCandidatePolicy( ),
             (float)clampedForcedCandidateCount, GetForcedCandidateCountEnabled( )? 1.0f : 0.0f );
         m_reprojectionConstants.TSCMAAResolveParams = vaVector4( (float)(int)GetEffectiveHistorySampler( ),
-            (float)(int)GetEffectiveHistoryClipping( ), 0.0f, 0.0f );
+            (float)(int)GetEffectiveHistoryClipping( ), GetClippingDebugViewsEnabled( )? 1.0f : 0.0f,
+            GetClippingDebugViewsEnabled( )? (float)((int)GetTemporalDebugView( ) - (int)TemporalDebugView::CurrentSpatial) : 0.0f );
 
         if( temporalReprojectionEnabled )
         {
@@ -1003,17 +1153,21 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     if( extractCandidatesShader == nullptr || computeDispatchArgsShader == nullptr || resolveCandidatesShader == nullptr )
         return vaDrawResultFlags::ShadersStillCompiling;
 
-    ID3D11UnorderedAccessView * UAVs[6] =
+    ID3D11UnorderedAccessView * UAVs[7] =
     {
         outputHistoryDX11->GetUAV( ),
         m_tscmaaCandidatesUAV,
         m_tscmaaControlBufferUAV,
         m_tscmaaDispatchArgsBufferUAV,
         m_tscmaaBaseEdgeMask->SafeCast<vaTextureDX11*>( )->GetUAV( ),
-        m_tscmaaCandidateMask->SafeCast<vaTextureDX11*>( )->GetUAV( )
+        m_tscmaaCandidateMask->SafeCast<vaTextureDX11*>( )->GetUAV( ),
+        (m_tscmaaClippingDebug != nullptr)?
+            m_tscmaaClippingDebug->SafeCast<vaTextureDX11*>( )->GetUAV( ) : nullptr
     };
-    ID3D11UnorderedAccessView * nullUAVs[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    ID3D11UnorderedAccessView * nullUAVs[7] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
     if( UAVs[0] == nullptr || UAVs[4] == nullptr || UAVs[5] == nullptr )
+        return vaDrawResultFlags::UnspecifiedError;
+    if( GetClippingDebugViewsEnabled( ) && UAVs[6] == nullptr )
         return vaDrawResultFlags::UnspecifiedError;
 
     ID3D11ShaderResourceView * SRVs[6] =
@@ -1033,6 +1187,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     dx11Context->ClearUnorderedAccessViewUint( m_tscmaaDispatchArgsBufferUAV, zeroes );
     dx11Context->ClearUnorderedAccessViewFloat( UAVs[4], maskZeroes );
     dx11Context->ClearUnorderedAccessViewFloat( UAVs[5], maskZeroes );
+    if( GetClippingDebugViewsEnabled( ) )
+        dx11Context->ClearUnorderedAccessViewFloat( UAVs[6], maskZeroes );
 
     ID3D11SamplerState * samplers[2] = { m_LinearSampler, m_PointSampler };
     dx11Context->CSSetSamplers( 0, 2, samplers );
@@ -1416,6 +1572,234 @@ void vaSMAAWrapperDX11::RunCatmullRomDiagnostics( ID3D11DeviceContext * context 
         m_catmullRomDiagnostics.Passed? "PASS" : "FAIL" );
 }
 
+void vaSMAAWrapperDX11::RunVarianceClippingDiagnostics( ID3D11DeviceContext * context )
+{
+    static const int width = 8;
+    static const int height = 8;
+    static const int caseCount = 3;
+
+    m_varianceClippingDiagnosticPending = false;
+    m_varianceClippingDiagnostics = VarianceClippingDiagnostics( );
+
+    ID3D11Device * device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice( );
+    ComPtr<ID3D11Texture2D> currentTexture;
+    ComPtr<ID3D11ShaderResourceView> currentSRV;
+    ComPtr<ID3D11Texture2D> historyTexture;
+    ComPtr<ID3D11ShaderResourceView> historySRV;
+    ComPtr<ID3D11Texture2D> outputTexture;
+    ComPtr<ID3D11UnorderedAccessView> outputUAV;
+    ComPtr<ID3D11Texture2D> outputReadback;
+
+    D3D11_TEXTURE2D_DESC textureDesc;
+    ZeroMemory( &textureDesc, sizeof( textureDesc ) );
+    textureDesc.Width = width;
+    textureDesc.Height = height;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    HRESULT result = device->CreateTexture2D( &textureDesc, nullptr, currentTexture.GetAddressOf( ) );
+    if( SUCCEEDED( result ) )
+        result = device->CreateShaderResourceView( currentTexture.Get( ), nullptr, currentSRV.GetAddressOf( ) );
+    if( SUCCEEDED( result ) )
+        result = device->CreateTexture2D( &textureDesc, nullptr, historyTexture.GetAddressOf( ) );
+    if( SUCCEEDED( result ) )
+        result = device->CreateShaderResourceView( historyTexture.Get( ), nullptr, historySRV.GetAddressOf( ) );
+
+    textureDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+    if( SUCCEEDED( result ) )
+        result = device->CreateTexture2D( &textureDesc, nullptr, outputTexture.GetAddressOf( ) );
+    if( SUCCEEDED( result ) )
+        result = device->CreateUnorderedAccessView( outputTexture.Get( ), nullptr, outputUAV.GetAddressOf( ) );
+
+    textureDesc.Usage = D3D11_USAGE_STAGING;
+    textureDesc.BindFlags = 0;
+    textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    if( SUCCEEDED( result ) )
+        result = device->CreateTexture2D( &textureDesc, nullptr, outputReadback.GetAddressOf( ) );
+
+    ID3D11ComputeShader * diagnosticShader =
+        m_tscmaaVarianceDiagnosticCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    if( FAILED( result ) || diagnosticShader == nullptr )
+    {
+        m_varianceClippingDiagnostics.Valid = true;
+        m_varianceClippingDiagnostics.Passed = false;
+        VA_LOG_ERROR( "SMAA variance-clipping diagnostic resource/shader creation failed (HRESULT 0x%08X)", (uint32)result );
+        return;
+    }
+
+    std::array<SMAACatmullDiagnosticColor, width * height> currentData;
+    std::array<SMAACatmullDiagnosticColor, width * height> historyData;
+    std::array<SMAACatmullDiagnosticColor, width * height> expectedData;
+    double gpuSquaredError = 0.0;
+    bool gpuValuesFinite = true;
+
+    for( int caseIndex = 0; caseIndex < caseCount; caseIndex++ )
+    {
+        for( int y = 0; y < height; y++ )
+        {
+            for( int x = 0; x < width; x++ )
+            {
+                if( caseIndex == 0 )
+                {
+                    currentData[y * width + x] = { 0.25f, 0.50f, 0.75f, 1.0f };
+                }
+                else
+                {
+                    currentData[y * width + x] =
+                    {
+                        0.20f + 0.030f * (float)x + 0.020f * (float)y,
+                        0.30f + 0.010f * (float)x - 0.015f * (float)y,
+                        0.10f + 0.005f * (float)x + 0.020f * (float)y,
+                        1.0f
+                    };
+                }
+            }
+        }
+
+        for( int y = 0; y < height; y++ )
+        {
+            for( int x = 0; x < width; x++ )
+            {
+                const int pixelIndex = y * width + x;
+                if( caseIndex == 0 )
+                {
+                    historyData[pixelIndex] = { 4.0f, -2.0f, 3.0f, 1.0f };
+                }
+                else
+                {
+                    const SMAAVarianceBox box = SMAAComputeVarianceBox( currentData.data( ), width, height, x, y );
+                    SMAACatmullDiagnosticColor historyYCoCg = box.Mean;
+                    if( caseIndex == 2 )
+                    {
+                        historyYCoCg.R += 2.0f;
+                        historyYCoCg.G -= 1.5f;
+                        historyYCoCg.B += 1.0f;
+                    }
+                    historyData[pixelIndex] = SMAAYCoCgToRGB( historyYCoCg );
+                    historyData[pixelIndex].A = 1.0f;
+                }
+
+                expectedData[pixelIndex] = SMAAVarianceClipCPU(
+                    currentData.data( ), width, height, x, y, historyData[pixelIndex] );
+                const SMAACatmullDiagnosticColor roundTrip = SMAAYCoCgToRGB(
+                    SMAARGBToYCoCg( currentData[pixelIndex] ) );
+                m_varianceClippingDiagnostics.RGBYCoCgRoundTripMaximumError = vaMath::Max(
+                    m_varianceClippingDiagnostics.RGBYCoCgRoundTripMaximumError,
+                    SMAACatmullColorMaximumAbsoluteDifference( currentData[pixelIndex], roundTrip ) );
+            }
+        }
+
+        context->UpdateSubresource( currentTexture.Get( ), 0, nullptr, currentData.data( ),
+            width * sizeof( SMAACatmullDiagnosticColor ), 0 );
+        context->UpdateSubresource( historyTexture.Get( ), 0, nullptr, historyData.data( ),
+            width * sizeof( SMAACatmullDiagnosticColor ), 0 );
+
+        ID3D11ShaderResourceView * SRVs[2] = { currentSRV.Get( ), historySRV.Get( ) };
+        ID3D11UnorderedAccessView * UAV = outputUAV.Get( );
+        context->CSSetShaderResources( 10, 2, SRVs );
+        context->CSSetUnorderedAccessViews( 0, 1, &UAV, nullptr );
+        context->CSSetShader( diagnosticShader, nullptr, 0 );
+        context->Dispatch( 1, 1, 1 );
+
+        ID3D11ShaderResourceView * nullSRVs[2] = { nullptr, nullptr };
+        ID3D11UnorderedAccessView * nullUAV = nullptr;
+        context->CSSetShader( nullptr, nullptr, 0 );
+        context->CSSetShaderResources( 10, 2, nullSRVs );
+        context->CSSetUnorderedAccessViews( 0, 1, &nullUAV, nullptr );
+        context->CopyResource( outputReadback.Get( ), outputTexture.Get( ) );
+
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        ZeroMemory( &mapped, sizeof( mapped ) );
+        result = context->Map( outputReadback.Get( ), 0, D3D11_MAP_READ, 0, &mapped );
+        if( FAILED( result ) )
+        {
+            m_varianceClippingDiagnostics.Valid = true;
+            m_varianceClippingDiagnostics.Passed = false;
+            VA_LOG_ERROR( "SMAA variance-clipping diagnostic readback failed (HRESULT 0x%08X)", (uint32)result );
+            return;
+        }
+
+        for( int y = 0; y < height; y++ )
+        {
+            const SMAACatmullDiagnosticColor * row = reinterpret_cast<const SMAACatmullDiagnosticColor *>(
+                reinterpret_cast<const uint8 *>( mapped.pData ) + y * mapped.RowPitch );
+            for( int x = 0; x < width; x++ )
+            {
+                const int pixelIndex = y * width + x;
+                const SMAACatmullDiagnosticColor & gpuValue = row[x];
+                const bool finite = std::isfinite( gpuValue.R ) && std::isfinite( gpuValue.G )
+                    && std::isfinite( gpuValue.B ) && std::isfinite( gpuValue.A );
+                gpuValuesFinite = gpuValuesFinite && finite;
+                if( finite )
+                    m_varianceClippingDiagnostics.FinitePixelCount++;
+                m_varianceClippingDiagnostics.GPUToCPUReferenceMaximumError = vaMath::Max(
+                    m_varianceClippingDiagnostics.GPUToCPUReferenceMaximumError,
+                    SMAACatmullColorMaximumAbsoluteDifference( gpuValue, expectedData[pixelIndex] ) );
+                gpuSquaredError += SMAACatmullColorSquaredDifference( gpuValue, expectedData[pixelIndex] );
+
+                if( caseIndex == 0 )
+                {
+                    m_varianceClippingDiagnostics.ConstantCaseMaximumError = vaMath::Max(
+                        m_varianceClippingDiagnostics.ConstantCaseMaximumError,
+                        SMAACatmullColorMaximumAbsoluteDifference( gpuValue, currentData[pixelIndex] ) );
+                }
+                else if( caseIndex == 1 )
+                {
+                    m_varianceClippingDiagnostics.InsideHistoryMaximumError = vaMath::Max(
+                        m_varianceClippingDiagnostics.InsideHistoryMaximumError,
+                        SMAACatmullColorMaximumAbsoluteDifference( gpuValue, historyData[pixelIndex] ) );
+                }
+                else
+                {
+                    if( SMAACatmullColorMaximumAbsoluteDifference( gpuValue, historyData[pixelIndex] ) > 1.0e-4f )
+                        m_varianceClippingDiagnostics.OutlierRejectedCount++;
+                    const SMAAVarianceBox box = SMAAComputeVarianceBox( currentData.data( ), width, height, x, y );
+                    const SMAACatmullDiagnosticColor gpuYCoCg = SMAARGBToYCoCg( gpuValue );
+                    const float tolerance = 1.0e-4f;
+                    if( gpuYCoCg.R < box.Minimum.R - tolerance || gpuYCoCg.R > box.Maximum.R + tolerance
+                        || gpuYCoCg.G < box.Minimum.G - tolerance || gpuYCoCg.G > box.Maximum.G + tolerance
+                        || gpuYCoCg.B < box.Minimum.B - tolerance || gpuYCoCg.B > box.Maximum.B + tolerance )
+                        m_varianceClippingDiagnostics.OutlierBoxViolationCount++;
+                }
+            }
+        }
+        context->Unmap( outputReadback.Get( ), 0 );
+    }
+
+    m_varianceClippingDiagnostics.PixelCount = width * height * caseCount;
+    m_varianceClippingDiagnostics.GPUToCPUReferenceRMSE = (float)std::sqrt(
+        gpuSquaredError / (double)(m_varianceClippingDiagnostics.PixelCount * 4) );
+    const bool metricsFinite = std::isfinite( m_varianceClippingDiagnostics.RGBYCoCgRoundTripMaximumError )
+        && std::isfinite( m_varianceClippingDiagnostics.ConstantCaseMaximumError )
+        && std::isfinite( m_varianceClippingDiagnostics.InsideHistoryMaximumError )
+        && std::isfinite( m_varianceClippingDiagnostics.GPUToCPUReferenceMaximumError )
+        && std::isfinite( m_varianceClippingDiagnostics.GPUToCPUReferenceRMSE );
+    m_varianceClippingDiagnostics.Valid = true;
+    m_varianceClippingDiagnostics.Passed = gpuValuesFinite && metricsFinite
+        && m_varianceClippingDiagnostics.FinitePixelCount == m_varianceClippingDiagnostics.PixelCount
+        && m_varianceClippingDiagnostics.RGBYCoCgRoundTripMaximumError <= 2.0e-6f
+        && m_varianceClippingDiagnostics.ConstantCaseMaximumError <= 2.0e-5f
+        && m_varianceClippingDiagnostics.InsideHistoryMaximumError <= 2.0e-5f
+        && m_varianceClippingDiagnostics.GPUToCPUReferenceMaximumError <= 5.0e-5f
+        && m_varianceClippingDiagnostics.OutlierRejectedCount == width * height
+        && m_varianceClippingDiagnostics.OutlierBoxViolationCount == 0;
+
+    VA_LOG( "SMAA YCoCg variance-clipping validation: finite=%u/%u, roundTripMax=%.9f, constantMax=%.9f, insideMax=%.9f, GPUvsCPU max=%.9f RMSE=%.9f, outliersRejected=%u/%u, boxViolations=%u => %s",
+        m_varianceClippingDiagnostics.FinitePixelCount, m_varianceClippingDiagnostics.PixelCount,
+        m_varianceClippingDiagnostics.RGBYCoCgRoundTripMaximumError,
+        m_varianceClippingDiagnostics.ConstantCaseMaximumError,
+        m_varianceClippingDiagnostics.InsideHistoryMaximumError,
+        m_varianceClippingDiagnostics.GPUToCPUReferenceMaximumError,
+        m_varianceClippingDiagnostics.GPUToCPUReferenceRMSE,
+        m_varianceClippingDiagnostics.OutlierRejectedCount, width * height,
+        m_varianceClippingDiagnostics.OutlierBoxViolationCount,
+        m_varianceClippingDiagnostics.Passed? "PASS" : "FAIL" );
+}
+
 void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height )
 {
     const uint32 pixelCount = width * height;
@@ -1583,6 +1967,20 @@ vaDrawResultFlags vaSMAAWrapperDX11::DrawTSCMAADebugView( vaRenderDeviceContext 
         return vaDrawResultFlags::None;
     }
 
+    if( GetClippingDebugViewsEnabled( ) )
+    {
+        if( m_tscmaaClippingDebug == nullptr || !m_tscmaaDebugColorPS->IsCreated( ) )
+            return vaDrawResultFlags::ShadersStillCompiling;
+        deviceContext.SetRenderTarget( destination, nullptr, true );
+        vaGraphicsItem debugRenderItem;
+        deviceContext.FillFullscreenPassRenderItem( debugRenderItem );
+        debugRenderItem.ShaderResourceViews[11] = m_tscmaaClippingDebug;
+        debugRenderItem.PixelShader = m_tscmaaDebugColorPS;
+        const vaDrawResultFlags result = deviceContext.ExecuteSingleItem( debugRenderItem );
+        deviceContext.SetRenderTarget( nullptr, nullptr, false );
+        return result;
+    }
+
     const shared_ptr<vaTexture> & debugMask = (GetTemporalDebugView( ) == TemporalDebugView::BaseEdges)?
         m_tscmaaBaseEdgeMask : m_tscmaaCandidateMask;
     if( debugMask == nullptr || !m_tscmaaDebugMaskPS->IsCreated( ) )
@@ -1611,7 +2009,7 @@ void vaSMAAWrapperDX11::UnsetGlobalStates( vaRenderDeviceContext & deviceContext
     ID3D11SamplerState * samplerState[2] = { nullptr, nullptr };
     dx11Context->PSSetSamplers( 0, 2, samplerState );
     m_constantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->UnsetFromAPISlot( deviceContext, 0 );
-    ID3D11ShaderResourceView * nullSRVs[11] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    ID3D11ShaderResourceView * nullSRVs[12] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
     dx11Context->PSSetShaderResources( 0, _countof( nullSRVs ), nullSRVs );
     dx11Context->OMSetBlendState( nullptr, nullptr, 0 );
     dx11Context->OMSetDepthStencilState( nullptr, 0 );

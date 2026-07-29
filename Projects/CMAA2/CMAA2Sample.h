@@ -257,6 +257,9 @@ namespace VertexAsylum
         void                                    RequestSMAACatmullRomDiagnostics( ) { m_SMAA->RequestCatmullRomDiagnostics( ); }
         const vaSMAAWrapper::CatmullRomDiagnostics &
                                                 GetSMAACatmullRomDiagnostics( ) const { return m_SMAA->GetCatmullRomDiagnostics( ); }
+        void                                    RequestSMAAVarianceClippingDiagnostics( ) { m_SMAA->RequestVarianceClippingDiagnostics( ); }
+        const vaSMAAWrapper::VarianceClippingDiagnostics &
+                                                GetSMAAVarianceClippingDiagnostics( ) const { return m_SMAA->GetVarianceClippingDiagnostics( ); }
         void                                    SetWindowClientAreaSizeForDiagnostics( const vaVector2i & size ) { m_application.SetWindowClientAreaSize( size ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }

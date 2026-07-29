@@ -92,7 +92,8 @@ void vaSMAAWrapper::UIPanelDraw( )
 
         int debugView = (int)m_temporalDebugView;
         if( ImGuiEx_Combo( "Debug view", debugView,
-            { string("Off"), string("Base edges"), string("Selected candidates"), string("Current spatial SMAA") } ) )
+            { string("Off"), string("Base edges"), string("Selected candidates"), string("Current spatial SMAA"),
+              string("History before clipping"), string("History after clipping"), string("Clipping delta (8x)") } ) )
             SetTemporalDebugView( (TemporalDebugView)debugView );
 
         bool lifecycleDiagnosticsEnabled = m_temporalLifecycleDiagnostics.Enabled;

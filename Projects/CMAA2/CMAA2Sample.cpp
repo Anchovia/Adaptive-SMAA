@@ -2460,6 +2460,87 @@ protected:
     virtual float GetProgress( ) const override { return m_isDone? 1.0f : 0.5f; }
 };
 
+class BenchItemValidateSMAAVarianceClipping : public AutoBenchToolWorkItem
+{
+    bool                m_started               = false;
+    bool                m_isDone                = false;
+
+public:
+    explicit BenchItemValidateSMAAVarianceClipping( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.RequestSMAAVarianceClippingDiagnostics( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA TSCMAA-inspired YCoCg variance-clipping engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "The public Intel document specifies YCoCg variance clipping; the 3x3 statistics, gamma=1.0, segment clipping formula and tolerances are explicit adaptation choices.\r\n" );
+            abTool.ReportAddText( "The actual GPU shader is compared with a CPU mirror for constant-neighbourhood, valid-history and outlier-history cases.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Metric", "Value", "Acceptance", "Result" } );
+            return;
+        }
+
+        const vaSMAAWrapper::VarianceClippingDiagnostics & diagnostics =
+            m_parent.GetSMAAVarianceClippingDiagnostics( );
+        if( !diagnostics.Valid )
+            return;
+
+        abTool.ReportAddRowValues( {
+            "Finite GPU pixels",
+            vaStringTools::Format( "%u / %u", diagnostics.FinitePixelCount, diagnostics.PixelCount ),
+            "all", diagnostics.FinitePixelCount == diagnostics.PixelCount? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "RGB-YCoCg-RGB round-trip maximum error",
+            vaStringTools::Format( "%.9f", diagnostics.RGBYCoCgRoundTripMaximumError ),
+            "<= 0.000002", diagnostics.RGBYCoCgRoundTripMaximumError <= 2.0e-6f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "Constant-neighbourhood maximum error",
+            vaStringTools::Format( "%.9f", diagnostics.ConstantCaseMaximumError ),
+            "<= 0.000020", diagnostics.ConstantCaseMaximumError <= 2.0e-5f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "Inside-history maximum error",
+            vaStringTools::Format( "%.9f", diagnostics.InsideHistoryMaximumError ),
+            "<= 0.000020", diagnostics.InsideHistoryMaximumError <= 2.0e-5f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "GPU shader vs CPU reference maximum error",
+            vaStringTools::Format( "%.9f", diagnostics.GPUToCPUReferenceMaximumError ),
+            "<= 0.000050", diagnostics.GPUToCPUReferenceMaximumError <= 5.0e-5f? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "GPU shader vs CPU reference RMSE",
+            vaStringTools::Format( "%.9f", diagnostics.GPUToCPUReferenceRMSE ),
+            "recorded characterization", "-" } );
+        abTool.ReportAddRowValues( {
+            "Outlier histories rejected",
+            vaStringTools::Format( "%u / 64", diagnostics.OutlierRejectedCount ),
+            "64 / 64", diagnostics.OutlierRejectedCount == 64? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "Clipped outlier box violations",
+            vaStringTools::Format( "%u", diagnostics.OutlierBoxViolationCount ),
+            "0", diagnostics.OutlierBoxViolationCount == 0? "PASS" : "FAIL" } );
+        abTool.ReportAddText( diagnostics.Passed? "\r\nAggregate: PASS\r\n" : "\r\nAggregate: FAIL\r\n" );
+        abTool.ReportFinish( );
+        m_isDone = true;
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override { return m_isDone? 1.0f : 0.5f; }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -2514,9 +2595,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         {
             int debugView = 0;
             std::wistringstream values(parameter.second);
-            if (!(values >> debugView) || debugView < 0 || debugView > 3)
+            if (!(values >> debugView) || debugView < 0 || debugView > 6)
             {
-                VA_LOG_ERROR("Invalid -smaaTemporalDebugView value; expected 0 (off), 1 (base edges), 2 (selected candidates), or 3 (current spatial)");
+                VA_LOG_ERROR("Invalid -smaaTemporalDebugView value; expected 0 (off), 1 (base edges), 2 (selected candidates), 3 (current spatial), 4 (history before clipping), 5 (history after clipping), or 6 (clipping delta)");
                 return;
             }
             m_SMAA->SetTemporalDebugView((vaSMAAWrapper::TemporalDebugView)debugView);
@@ -2553,6 +2634,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaVarianceClippingTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAVarianceClipping>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA YCoCg variance-clipping GPU/CPU validation");
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaCatmullRomReferenceTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAACatmullRom>(*this));

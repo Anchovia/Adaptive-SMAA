@@ -80,7 +80,10 @@ namespace VertexAsylum
             None,
             BaseEdges,
             SelectedCandidates,
-            CurrentSpatial
+            CurrentSpatial,
+            HistoryBeforeClipping,
+            HistoryAfterClipping,
+            ClippingDelta
         };
 
         struct TemporalCandidateStatistics
@@ -198,6 +201,21 @@ namespace VertexAsylum
             float                       CPU5TapTo16TapRMSE          = 0.0f;
         };
 
+        struct VarianceClippingDiagnostics
+        {
+            bool                        Valid                       = false;
+            bool                        Passed                      = false;
+            uint32                      PixelCount                  = 0;
+            uint32                      FinitePixelCount            = 0;
+            uint32                      OutlierRejectedCount        = 0;
+            uint32                      OutlierBoxViolationCount    = 0;
+            float                       RGBYCoCgRoundTripMaximumError = 0.0f;
+            float                       ConstantCaseMaximumError    = 0.0f;
+            float                       InsideHistoryMaximumError   = 0.0f;
+            float                       GPUToCPUReferenceMaximumError = 0.0f;
+            float                       GPUToCPUReferenceRMSE       = 0.0f;
+        };
+
         struct TemporalSettings
         {
             TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
@@ -269,6 +287,8 @@ namespace VertexAsylum
         bool                        m_temporalVelocityDiagnosticPending = false;
         CatmullRomDiagnostics       m_catmullRomDiagnostics;
         bool                        m_catmullRomDiagnosticPending    = false;
+        VarianceClippingDiagnostics m_varianceClippingDiagnostics;
+        bool                        m_varianceClippingDiagnosticPending = false;
 
         //bool                        m_debugShowEdges;
 
@@ -349,6 +369,12 @@ namespace VertexAsylum
         const TemporalCandidateValidation & GetTemporalCandidateValidation( ) const { return m_temporalCandidateValidation; }
         TemporalDebugView           GetTemporalDebugView( ) const       { return m_temporalDebugView; }
         void                        SetTemporalDebugView( TemporalDebugView value ) { m_temporalDebugView = value; }
+        bool                        GetClippingDebugViewsEnabled( ) const
+        {
+            return m_temporalDebugView == TemporalDebugView::HistoryBeforeClipping
+                || m_temporalDebugView == TemporalDebugView::HistoryAfterClipping
+                || m_temporalDebugView == TemporalDebugView::ClippingDelta;
+        }
         void                        SetTemporalLifecycleDiagnosticsEnabled( bool enabled )
         {
             if( enabled )
@@ -383,6 +409,13 @@ namespace VertexAsylum
         }
         bool                        GetCatmullRomDiagnosticPending( ) const { return m_catmullRomDiagnosticPending; }
         const CatmullRomDiagnostics & GetCatmullRomDiagnostics( ) const { return m_catmullRomDiagnostics; }
+        void                        RequestVarianceClippingDiagnostics( )
+        {
+            m_varianceClippingDiagnostics = VarianceClippingDiagnostics( );
+            m_varianceClippingDiagnosticPending = true;
+        }
+        bool                        GetVarianceClippingDiagnosticPending( ) const { return m_varianceClippingDiagnosticPending; }
+        const VarianceClippingDiagnostics & GetVarianceClippingDiagnostics( ) const { return m_varianceClippingDiagnostics; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips

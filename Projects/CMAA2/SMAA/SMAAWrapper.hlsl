@@ -256,11 +256,17 @@ float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
 
 #if !defined(SMAA_TSCMAA_COMPUTE)
 Texture2D<float> tscmaaDebugMask : register( t10 );
+Texture2D<float4> tscmaaDebugColor : register( t11 );
 
 float4 TSCMAADebugMaskPS(float4 position : SV_POSITION,
                          float2 texcoord : TEXCOORD0) : SV_TARGET {
     float mask = tscmaaDebugMask.Load(int3(int2(position.xy), 0));
     return float4(mask, mask, mask, 1.0);
+}
+
+float4 TSCMAADebugColorPS(float4 position : SV_POSITION,
+                          float2 texcoord : TEXCOORD0) : SV_TARGET {
+    return tscmaaDebugColor.Load(int3(int2(position.xy), 0));
 }
 #endif
 
@@ -280,6 +286,7 @@ RWByteAddressBuffer                  tscmaaControl                       : regis
 RWByteAddressBuffer                  tscmaaDispatchArgs                  : register( u3 );
 RWTexture2D<float>                   tscmaaBaseEdgeMask                  : register( u4 );
 RWTexture2D<float>                   tscmaaCandidateMask                 : register( u5 );
+RWTexture2D<float4>                  tscmaaClippingDebug                  : register( u6 );
 
 #define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
 #define TSCMAA_PROCESS_COUNT_OFFSET           4
@@ -541,6 +548,21 @@ float3 TSCMAAVarianceClip(int2 pixel, int2 dimensions, float3 currentColor, floa
     return TSCMAAYCoCgToRGB(clippedHistory);
 }
 
+[numthreads(8, 8, 1)]
+void TSCMAAVarianceDiagnosticCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaCurrentColor.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    int2 pixel = int2(dispatchThreadID.xy);
+    float3 currentColor = tscmaaCurrentColor.Load(int3(pixel, 0)).rgb;
+    float3 historyColor = tscmaaHistoryColor.Load(int3(pixel, 0)).rgb;
+    tscmaaOutput[pixel] = float4(
+        TSCMAAVarianceClip(pixel, int2(width, height), currentColor, historyColor), 1.0);
+}
+
 float3 TSCMAALinearToSRGB(float3 color) {
     color = max(color, 0.0);
     float3 lower = color * 12.92;
@@ -576,9 +598,21 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     else
         historyColor = tscmaaHistoryColor.SampleLevel(LinearSampler, historyUV, 0.0);
 
+    float3 historyBeforeClipping = historyColor.rgb;
     [branch]
     if (g_SMAAReprojection.TSCMAAResolveParams.y > 0.5)
         historyColor.rgb = TSCMAAVarianceClip(pixel, dimensions, currentColor.rgb, historyColor.rgb);
+
+    [branch]
+    if (g_SMAAReprojection.TSCMAAResolveParams.z > 0.5) {
+        if (g_SMAAReprojection.TSCMAAResolveParams.w < 1.5)
+            tscmaaClippingDebug[pixel] = float4(historyBeforeClipping, 1.0);
+        else if (g_SMAAReprojection.TSCMAAResolveParams.w < 2.5)
+            tscmaaClippingDebug[pixel] = float4(historyColor.rgb, 1.0);
+        else
+            tscmaaClippingDebug[pixel] = float4(
+                saturate(abs(historyColor.rgb - historyBeforeClipping) * 8.0), 1.0);
+    }
 
     float historyWeight = g_SMAAReprojection.TSCMAAParams.x;
     float4 resolvedColor = float4(lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);

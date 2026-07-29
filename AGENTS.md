@@ -152,6 +152,10 @@ capture를 실행할 수 있다.
   velocity 부호와 `historyUV = currentUV - velocity` 화면 범위 확인
 - `-smaaCatmullRomReferenceTest` GPU/CPU 검증: 실제 5-tap shader의 상수 보존,
   clamp 경계, CPU mirror 일치와 separable 16-tap reference 오차 기록
+- `-smaaVarianceClippingTest` GPU/CPU 검증: YCoCg 왕복, 상수 이웃, box 내부 history,
+  outlier 제한과 유한값 확인
+- temporal debug view 4/5/6: 후보 픽셀의 clipping 전 history, clipping 후 history,
+  8배 clipping delta. 이 R16G16B16A16 debug resource는 해당 view에서만 할당한다.
 
 기존 prototype 출력 보존을 위해 기본 정책은 아직 `ExperimentalLocalMeanMax3x3`이다.
 `IntelFamilyNonDominant`는 diagnostic override에서 검증 중이며 controlled
@@ -182,8 +186,9 @@ Catmull-Rom 5-tap과 YCoCg variance clipping은 실제 shader 분기와 diagnost
 분리되어 있으며 둘을 동시에 켜면 이전 복합 prototype 출력을 정확히 재현한다. 비후보는
 현재 spatial 결과를 유지하고 후보만 indirect resolve가 덮어쓰는지 픽셀 단위로 검증했다.
 history lifecycle, camera-motion GPU velocity/history UV 방향과 Catmull-Rom 5-tap
-GPU/CPU reference test를 완료했다. 다만 candidate 정책 승인과 clipping reference test가
-남아 있으므로 두 mode를 최종 document profile로 간주하지 않는다.
+GPU/CPU reference test, YCoCg variance clipping GPU/CPU 불변 조건과 debug view를
+검증했다. 다만 candidate 정책 승인과 document profile 조립이 남아 있으므로 두 mode를
+최종 document profile로 간주하지 않는다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
@@ -221,9 +226,9 @@ GPU/CPU reference test를 완료했다. 다만 candidate 정책 승인과 clippi
    mode/scene/명시적 camera-cut/resize reset을 자동 검증했다. RTX 3060 Ti의 실제 GPU
    readback에서 정적 카메라 velocity 0과 +right 0.01 m 이동의 음수 X velocity 및
    history UV 방향도 검증했다. 이는 camera motion만 검증하며 object motion은 미지원이다.
-4. **부분 완료:** 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경은
-   ablation toggle로 분리했다. Catmull-Rom 5-tap GPU/CPU reference 검증은 완료했고
-   YCoCg variance clipping 불변 조건 검증은 남아 있다.
+4. **완료:** 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경을
+   ablation toggle로 분리했다. Catmull-Rom 5-tap과 YCoCg variance clipping의 실제
+   GPU shader/CPU reference 및 불변 조건 검증을 완료했다.
 5. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
 6. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
 7. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.

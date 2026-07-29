@@ -335,7 +335,7 @@ reprojection 설정을 그대로 유지한 채 모든 픽셀을 후보로 만드
 - CPU 16-tap reference test와 GPU 불변 조건 검증
 - sampler 변경만 비교하는 ablation 캡처
 
-### 단계 5: variance clipping
+### 단계 5: variance clipping — 완료
 
 - YCoCg 변환과 variance clipping 독립 구현
 - 상수·유효 history·outlier test와 debug view 검증
@@ -386,7 +386,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] indirect dispatch count 검증
 - [x] depth 및 현재·이전 matrix reprojection 검증
 - [x] 5-tap Catmull–Rom reference 검증
-- [ ] YCoCg variance clipping 불변 조건 검증
+- [x] YCoCg variance clipping 불변 조건 검증
 - [x] 후보 history weight `0.8` 설정 및 resolve 경로 연결
 - [x] 비후보 history weight `0.0`, 즉 current spatial 유지 픽셀 검증
 - [ ] 최종 output의 history feedback
@@ -620,4 +620,51 @@ Standard `O-T2X-R`은 override와 무관하게 기준 해시를 유지했다. �
 비교를 확인했다. 다만 정확한 5-tap 좌표·가중치는 Intel 공개 문서에 없는 adaptation이므로
 공식 TSCMAA 식이라고 표현하지 않는다.
 
-다음 작업은 단계 5의 YCoCg variance clipping 불변 조건과 debug view 검증이다.
+### 17.7 YCoCg variance clipping GPU/CPU 검증 결과
+
+`-smaaVarianceClippingTest` 자동 진단을 추가했다. production resolve가 호출하는
+`TSCMAAVarianceClip`을 전용 8×8 compute test에서도 그대로 호출하고, 같은 3×3 통계와
+segment clipping을 구현한 CPU mirror와 비교한다.
+
+세 case는 다음과 같다.
+
+1. 상수 current 이웃 + 큰 history outlier: 분산 0에서 current 상수를 유지하는지 확인
+2. 평면 current 이웃 + variance box mean history: box 내부 history가 유지되는지 확인
+3. 평면 current 이웃 + 큰 YCoCg outlier: history 거부, box 제한과 CPU 결과 확인
+
+2026-07-29, RTX 3060 Ti, DirectX 11, Release x64 결과는 다음과 같다.
+
+| 항목 | 결과 | 판정 |
+|---|---:|---|
+| 유한 GPU pixel | 192 / 192 | PASS |
+| RGB→YCoCg→RGB 왕복 최대 오차 | 0.000000060 | PASS |
+| 상수 이웃 최대 오차 | 0.000000000 | PASS |
+| box 내부 history 최대 오차 | 0.000000030 | PASS |
+| GPU shader 대 CPU reference 최대 오차 | 0.000002086 | PASS |
+| GPU shader 대 CPU reference RMSE | 0.000000175 | 기록값 |
+| outlier history 거부 | 64 / 64 | PASS |
+| clipping box 위반 | 0 | PASS |
+
+`gamma=1.0`, current spatial 3×3 이웃, YCoCg 변환식, mean/variance 식과 current→history
+segment clipping은 공개 문서에 세부식이 없는 adaptation이다. Intel 공개 문서에서 확인한
+YCoCg variance clipping 사용과 이 세부 구현을 구분한다.
+
+temporal debug view도 다음과 같이 확장했다.
+
+- 4: 후보 픽셀의 history before clipping
+- 5: 후보 픽셀의 history after clipping
+- 6: `abs(after-before) * 8` clipping delta
+
+세 view는 `R16G16B16A16_FLOAT` debug texture 하나를 공유하며 view가 4~6일 때만
+resource를 할당한다. 비후보는 검은색이고, 후보 compute thread만 값을 기록한다.
+`O-ET2X-R`, YCoCg clipping On의 동일 프레임 캡처를 육안 확인했으며 해시는 다음과 같다.
+
+- before: `D72414938562B77415FC3B779AB6026F8AF5BC5634063ED4BDB258D3784EB626`
+- after: `1599A754806DD269039CDB4B109994C1117B626DE55F260F03EC42C3B1CC0430`
+- delta 8×: `0142F2364732550E3F784949C7C833E6A23A99F018F8404D1D02C1E04ED4439E`
+
+debug를 끈 기본 실행에서 `O-ET2X`와 `O-ET2X-R` 해시는 각각 기존
+`CA3AB0...`, `A0DE72...` 기준과 일치했다. 따라서 선택형 debug UAV와 shader write는
+기본 실행 및 본 성능 경로에 포함되지 않는다.
+
+다음 작업은 단계 6의 candidate 정책 승인과 Intel document profile 조립이다.
