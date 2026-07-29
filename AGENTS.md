@@ -120,14 +120,14 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 
 위 항목의 구현과 검증표가 완료되기 전에는 “TSCMAA core 완료”로 표시하지 않는다.
 
-## 4. 2026-07-29 현재 구현 상태
+## 4. 2026-07-30 현재 구현 상태
 
 | ID | 상태 | 현재 코드 대응 |
 |---|---|---|
 | `O-T2X` | 구현됨 | `SMAA_O_T2X`; 같은 좌표의 current/previous를 기본 0.5 weight로 결합 |
 | `O-T2X-R` | 구현됨 | `SMAA_O_T2X_R`; camera-motion velocity 사용 |
-| `O-ET2X` | controlled resolve 골격 구현 | `SMAA_O_ET2X`; 같은 좌표의 history를 사용하는 no-reprojection ablation |
-| `O-ET2X-R` | controlled resolve 골격 구현 | `SMAA_O_ET2X_R`; edge-selective + camera reprojection On |
+| `O-ET2X` | document profile 조립·engineering 검증 완료 | `SMAA_O_ET2X`; 같은 좌표의 history를 사용하는 no-reprojection ablation |
+| `O-ET2X-R` | document profile 조립·engineering 검증 완료 | `SMAA_O_ET2X_R`; edge-selective + camera reprojection On |
 | Adaptive 4개 | **미구현** | Original 4개를 검증한 뒤 `main`의 Adaptive SMAA와 통합해야 함 |
 
 Original 네 mode는 `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, history sampler,
@@ -159,10 +159,10 @@ capture를 실행할 수 있다.
 - temporal debug view 4/5/6: 후보 픽셀의 clipping 전 history, clipping 후 history,
   8배 clipping delta. 이 R16G16B16A16 debug resource는 해당 view에서만 할당한다.
 
-기존 prototype 출력 보존을 위해 기본 정책은 아직 `ExperimentalLocalMeanMax3x3`이다.
-`IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 다음
-document profile 조립에서 사용할 adaptation 정책으로 승인했다. 다만 유실된 Intel
-TSCMAA 원본 식과 동일하다고 표현하지 않는다.
+`IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
+profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
+동일하다고 표현하지 않는다. 이전 `ExperimentalLocalMeanMax3x3` 정책은 ablation
+override로 보존한다.
 
 동일 deterministic smoke 프레임에서 base edge 57,354개 중 AllBase 57,354개,
 Intel-family 34,938개(60.916%), Experimental 44,266개(77.180%)가 선택됐고 indirect
@@ -175,24 +175,24 @@ process count, `ceil(count/64)` group count가 기대값과 일치했고 중복�
 0이었다. 전체 candidate-list staging buffer는 진단 옵션이 켜진 경우에만 생성하며 본
 성능 측정에는 포함하지 않는다.
 
-현재 `O-ET2X`와 `O-ET2X-R` 기본 profile은 다음 controlled resolve 골격을 사용한다.
+현재 `O-ET2X`와 `O-ET2X-R` 기본 document profile은 다음 설정을 사용한다.
 
 - deliberate projection jitter 비활성화
 - SMAA 1X spatial input
-- locally dominant edge candidate 선택
+- `IntelFamilyNonDominant`, edge threshold `1/22`, removal `0.5`
 - `O-ET2X`는 같은 좌표 history, `O-ET2X-R`은 camera-motion history reprojection
-- bilinear history sampling
-- history clipping Off
+- Catmull-Rom 5-tap history sampling
+- YCoCg variance clipping
 - history weight 0.8
 
 Catmull-Rom 5-tap과 YCoCg variance clipping은 실제 shader 분기와 diagnostic override로
-분리되어 있으며 둘을 동시에 켜면 이전 복합 prototype 출력을 정확히 재현한다. 비후보는
-현재 spatial 결과를 유지하고 후보만 indirect resolve가 덮어쓰는지 픽셀 단위로 검증했다.
-history lifecycle, camera-motion GPU velocity/history UV 방향과 Catmull-Rom 5-tap
-GPU/CPU reference test, YCoCg variance clipping GPU/CPU 불변 조건과 debug view를
-검증했고 Intel-family candidate 정책도 내부 승인 조건을 통과했다. 다만 document
-profile 조립과 그 조립 결과의 회귀 검증이 남아 있으므로 두 mode를 최종 document
-profile로 간주하지 않는다.
+분리되어 있다. `ExperimentalLocalMeanMax3x3 + Bilinear + Clipping Off` override로
+이전 controlled skeleton 출력도 정확히 재현한다. 비후보는 현재 spatial 결과를 유지하고
+후보만 indirect resolve가 덮어쓰는지 픽셀 단위로 검증했다. history lifecycle,
+camera-motion GPU velocity/history UV 방향, Catmull-Rom 5-tap GPU/CPU reference,
+YCoCg variance clipping GPU/CPU 불변 조건과 Intel-family candidate 정책을 검증했다.
+document profile 조립 후 두 번의 engineering capture와 lifecycle 자동 검증도 통과했다.
+이는 기능·회귀 검증 완료를 의미하며 최종 품질·성능 결론은 아니다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
@@ -235,10 +235,12 @@ profile로 간주하지 않는다.
    GPU shader/CPU reference 및 불변 조건 검증을 완료했다.
 5. **완료:** Intel-family candidate의 두 장면 removal sweep, base 안정성, 단조성,
    candidate/process 일치를 검증하고 document adaptation 정책으로 승인했다.
-6. Intel document profile을 조립하고 lifecycle·회귀·성능 smoke를 통과시킨다.
-7. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
-8. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
-9. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.
+6. **완료:** Intel document profile을 조립하고 lifecycle·capture 회귀 smoke를
+   통과시켰다. 기존 controlled skeleton은 diagnostic override로 재현 가능하다.
+7. 네 mode의 pass별 GPU timing을 계측하고 성능 smoke를 통과시킨다.
+8. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.
+9. 그 이후에만 Adaptive SMAA를 결합하여 `A-*` 네 mode를 만든다.
+10. Adaptive 4개를 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 7. 측정 규칙
 

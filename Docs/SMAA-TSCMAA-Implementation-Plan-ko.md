@@ -410,19 +410,21 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-**단계 1, 단계 2와 단계 3의 controlled selective resolve·lifecycle·camera-motion
-reprojection 검증을 완료했다.**
+**단계 1~6의 직교 설정 분리, 개별 shader 검증과 Intel document profile 조립을
+완료했다.**
 
 - Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
 - `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
   candidate policy와 history weight를 명시적 설정으로 분리
-- `O-ET2X` no-reprojection prototype 실행 경로 추가
+- `O-ET2X` no-reprojection ablation 실행 경로 추가
 - threshold `1/22`인 별도 full-resolution base luma edge 검출 구현
 - `AllBaseEdges`, `IntelFamilyNonDominant`, `ExperimentalLocalMeanMax3x3` 정책 분리
 - candidate compact buffer와 indirect process/group count를 비동기 staging buffer로 readback
 - base edge와 selected candidate R8 debug mask 및 개발 UI 구현
-- 기존 prototype의 기본 정책은 `ExperimentalLocalMeanMax3x3`으로 유지하고, UI 또는
-  `-smaaCandidatePolicyOverride`에서만 다른 정책을 선택
+- `IntelFamilyNonDominant`, Catmull-Rom 5-tap, YCoCg variance clipping, history weight
+  0.8을 edge-selective document profile의 기본값으로 조립
+- 이전 `ExperimentalLocalMeanMax3x3 + Bilinear + Clipping Off` skeleton은 명시적
+  diagnostic override로 보존
 - Release x64 build 및 세 정책 engineering smoke capture 통과
 
 ### 17.1 단계 2 engineering smoke 결과
@@ -667,7 +669,8 @@ debug를 끈 기본 실행에서 `O-ET2X`와 `O-ET2X-R` 해시는 각각 기존
 `CA3AB0...`, `A0DE72...` 기준과 일치했다. 따라서 선택형 debug UAV와 shader write는
 기본 실행 및 본 성능 경로에 포함되지 않는다.
 
-다음 작업은 단계 6의 candidate 정책 승인과 Intel document profile 조립이다.
+이 검증 다음 단계로 candidate 정책 승인과 Intel document profile 조립을 진행했으며,
+결과는 17.8과 17.9에 기록한다.
 
 ### 17.8 Intel-family candidate removal sweep 결과
 
@@ -709,5 +712,47 @@ candidate 정책으로 내부 승인한다. 이는 공개 문서와 Intel CMAA2�
 removal override를 끈 기본 prototype 회귀에서 `O-ET2X`와 `O-ET2X-R` 해시는 기존
 `CA3AB0...`, `A0DE72...`와 일치했다.
 
-다음 작업은 승인한 candidate, Catmull-Rom 5-tap, YCoCg clipping과 history weight
-0.8을 하나의 Intel document profile로 조립하는 단계 6이다.
+### 17.9 Intel document profile 조립·회귀 결과
+
+2026-07-30에 검증된 구성요소를 `O-ET2X`와 `O-ET2X-R`의 기본 profile로 조립했다.
+
+| 설정 | `O-ET2X` | `O-ET2X-R` |
+|---|---|---|
+| Spatial input | Original SMAA 1X | Original SMAA 1X |
+| Temporal coverage | Edge-selective | Edge-selective |
+| Reprojection | Off, no-reprojection ablation | Camera depth + current/previous matrices |
+| Deliberate projection jitter | None | None |
+| Candidate | `IntelFamilyNonDominant` | `IntelFamilyNonDominant` |
+| Edge threshold / removal | `1/22` / `0.5` | `1/22` / `0.5` |
+| History sampler | Catmull-Rom 5-tap | Catmull-Rom 5-tap |
+| History clipping | YCoCg variance | YCoCg variance |
+| History weight | `0.8` | `0.8` |
+
+여기서 `O-ET2X-R`이 Intel 공개 문서 기반 adaptation의 중심 case이고, `O-ET2X`는
+reprojection 효과를 분리하는 연구용 ablation이다. 현재 reprojection은 camera motion만
+처리하며 object motion vector는 지원하지 않는다.
+
+Release x64, DirectX 11, RTX 3060 Ti, 1920×1017에서
+`-smaaOriginalFourCapture 1 1 6`을 두 번 독립 실행했다. 두 edge-selective document
+profile의 PNG SHA-256은 실행 간 일치했다.
+
+- `O-ET2X`: `86FA6CEC9A639DDDC89605663F633163E87F31F173EDBA3A057DB7961A7F4DBC`
+- `O-ET2X-R`: `95F619F2BA4CE3F0828767C88341A32F0DEADD9A1A46EF8E113CA84250075F99`
+
+동일 프레임에서 base edge 57,354개 중 34,938개(60.916%)가 후보였으며 indirect
+process count도 34,938개였다. 이 값은 구현 회귀용 한 프레임 결과로 최종 품질·성능
+수치가 아니다.
+
+`ExperimentalLocalMeanMax3x3 + Bilinear + Clipping Off` diagnostic override를 적용한
+캡처는 변경 전 controlled skeleton hash를 정확히 재현했다.
+
+- `O-ET2X`: `CA3AB01FD2DEF99EB21ACF7820502DCBAC57646E67A9772EA9B6F283959D9ECE`
+- `O-ET2X-R`: `A0DE7204B3AA14AC409B512156DCB45D5901C3A14F5EDD0CA163B31243F7668D`
+
+프로필 조립 뒤 lifecycle 자동 검증도 다시 실행했다. 총 80 temporal frame에서
+16 reset, 9 seed, 71 history resolve, 20 camera reprojection을 관측했고 failure는 0으로
+PASS했다.
+
+이 결과로 document profile의 기능 조립과 engineering 회귀 검증은 완료했다. 아직
+`TSCMAA core 최종 완료`나 품질·성능 개선을 주장하지 않는다. 다음 단계는 후보 추출,
+indirect temporal resolve와 전체 SMAA의 GPU time을 분리 계측하는 performance smoke다.

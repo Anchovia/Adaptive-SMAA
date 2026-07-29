@@ -72,11 +72,12 @@ namespace
             settings.Reprojection = (aaType == CMAA2Sample::AAType::SMAA_O_ET2X_R)?
                 vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices : vaSMAAWrapper::ReprojectionMode::Off;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
-            // Controlled selective-resolve skeleton: advanced sampling and
-            // clipping remain independently selectable diagnostic overrides.
-            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
-            settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
-            settings.Candidates = vaSMAAWrapper::CandidatePolicy::ExperimentalLocalMeanMax3x3;
+            // Intel-document-family SMAA adaptation. The exact candidate,
+            // Catmull-Rom and clipping equations remain documented adaptation
+            // choices and independently selectable diagnostic overrides.
+            settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
+            settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
+            settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
             settings.HistoryWeight = 0.8f;
             settings.NonDominantRemovalAmount = 0.5f;
             break;
@@ -338,8 +339,8 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
     case CMAA2Sample::AAType::SMAA:                 return "Original SMAA 1X";
     case CMAA2Sample::AAType::SMAA_O_T2X:           return "O-T2X - Original SMAA Standard T2X";
     case CMAA2Sample::AAType::SMAA_O_T2X_R:         return "O-T2X-R - Original SMAA Standard T2X + camera reprojection";
-    case CMAA2Sample::AAType::SMAA_O_ET2X:          return "O-ET2X - Original SMAA edge-selective temporal [prototype]";
-    case CMAA2Sample::AAType::SMAA_O_ET2X_R:        return "O-ET2X-R - Original SMAA edge-selective temporal + camera reprojection [prototype]";
+    case CMAA2Sample::AAType::SMAA_O_ET2X:          return "O-ET2X - Original SMAA TSCMAA-inspired edge-selective temporal [no-reprojection ablation]";
+    case CMAA2Sample::AAType::SMAA_O_ET2X_R:        return "O-ET2X-R - Original SMAA TSCMAA-inspired edge-selective temporal + camera reprojection";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -1984,15 +1985,17 @@ protected:
             abTool.ReportStart();
             m_outputDirs[0] = abTool.ReportGetDir() + L"O_T2X\\";
             m_outputDirs[1] = abTool.ReportGetDir() + L"O_T2X_R\\";
-            m_outputDirs[2] = abTool.ReportGetDir() + L"O_ET2X_Prototype\\";
-            m_outputDirs[3] = abTool.ReportGetDir() + L"O_ET2X_R_Prototype\\";
+            m_outputDirs[2] = abTool.ReportGetDir() + L"O_ET2X\\";
+            m_outputDirs[3] = abTool.ReportGetDir() + L"O_ET2X_R\\";
             for( int i = 0; i < c_modeCount; i++ )
                 vaFileTools::EnsureDirectoryExists(m_outputDirs[i]);
 
             abTool.ReportAddText("Original SMAA four-mode temporal capture\r\n\r\n");
             abTool.ReportAddText("Engineering comparison capture; this is not a formal quality or performance result.\r\n");
             abTool.ReportAddText("O-T2X and O-T2X-R use the official SMAA T2X jitter pattern.\r\n");
-            abTool.ReportAddText("O-ET2X and O-ET2X-R are the current edge-selective prototypes without deliberate projection jitter.\r\n\r\n");
+            abTool.ReportAddText("O-ET2X and O-ET2X-R use the Intel-document-family edge-selective SMAA adaptation without deliberate projection jitter.\r\n");
+            abTool.ReportAddText("O-ET2X is the no-reprojection ablation; O-ET2X-R uses camera-motion reprojection only.\r\n");
+            abTool.ReportAddText("Both use IntelFamilyNonDominant candidates, Catmull-Rom 5-tap history sampling, YCoCg variance clipping, and history weight 0.8.\r\n\r\n");
             abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
             abTool.ReportAddText("SMAA preset:   Ultra\r\n");
             abTool.ReportAddText(vaStringTools::Format("Start time:    %.3f s\r\n", m_captureStartTime));
@@ -2002,8 +2005,8 @@ protected:
             abTool.ReportAddRowValues({ "Mode", "AA implementation", "Output directory" });
             abTool.ReportAddRowValues({ "O-T2X", "Original SMAA Standard T2X", "O_T2X" });
             abTool.ReportAddRowValues({ "O-T2X-R", "Original SMAA Standard T2X + camera reprojection", "O_T2X_R" });
-            abTool.ReportAddRowValues({ "O-ET2X prototype", "Original SMAA edge-selective temporal, no-reprojection ablation", "O_ET2X_Prototype" });
-            abTool.ReportAddRowValues({ "O-ET2X-R prototype", "Original SMAA edge-selective temporal + camera reprojection", "O_ET2X_R_Prototype" });
+            abTool.ReportAddRowValues({ "O-ET2X", "Original SMAA TSCMAA-inspired edge-selective temporal, no-reprojection ablation", "O_ET2X" });
+            abTool.ReportAddRowValues({ "O-ET2X-R", "Original SMAA TSCMAA-inspired edge-selective temporal + camera reprojection", "O_ET2X_R" });
 
             m_currentMode = 0;
             m_currentFrame = -m_warmupFrameCount - 1;
@@ -2048,7 +2051,7 @@ protected:
         abTool; imageCompareTool; postProcess;
         if (m_currentMode < c_modeCount && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
         {
-            const char* modeNames[c_modeCount] = { "O_T2X", "O_T2X_R", "O_ET2X_Prototype", "O_ET2X_R_Prototype" };
+            const char* modeNames[c_modeCount] = { "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R" };
             const char* modeName = modeNames[m_currentMode];
             const wstring fileName = m_outputDirs[m_currentMode] + vaStringTools::SimpleWiden(
                 vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
