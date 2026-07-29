@@ -191,6 +191,10 @@ Original mode는 기존 edge target/shader path를 유지한다.
   strength와 대응 mode 차이를 계산. 움직이는 occluder 뒤 36픽셀의 trail darkness/width
   휴리스틱과 ROI 비교 GIF·6-frame difference sheet를 생성하며 절대 ghosting
   ground truth로 표현하지 않음
+- `Tools/SMAA/analyze_smaa_1x_controls.py`: `O-1X`/`A-1X` control과 기존 temporal
+  8-case stress capture를 같은 frame/ROI에서 검증·비교. 1X 대비 temporal MAE,
+  2차 시간 차분, edge strength와 trail 휴리스틱을 계산하고 1X/Standard/Edge-selective
+  3-way GIF·sequence sheet 생성
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -287,7 +291,8 @@ candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 �
 후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
 Original 네 mode의 한 Bistro 경로 품질 기준선은 이후 완료됐다. Adaptive 4개를 포함한
 정식 8-case visible-window 성능, Bistro 연속 품질과 전용 temporal stress 품질 측정도
-이후 완료됐다. 최종 연구 결론에는 추가 ablation과 SMAA 1X/reference control이 남아 있다.
+이후 완료됐다. SMAA 1X control도 이후 완료됐으며 최종 연구 결론에는 구성요소별
+ablation과 supersample/optical-flow reference 보강이 남아 있다.
 
 Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
@@ -392,6 +397,36 @@ variation/flicker 증가 가능성`의 trade-off 근거다. SMAA 1X 또는 super
 ground truth와 optical-flow 보정이 없으므로 최종 품질 우위나 절대 ghosting 점수로
 표현하지 않는다. 품질 PNG capture는 hidden-window로 실행했지만 저장된 render target
 검증용이며 FPS 결과로 사용하지 않는다.
+
+SMAA 1X 품질 control도 이후 완료했다. `O-1X`는 기존 원본 SMAA 1X를 그대로 사용하고,
+`A-1X`는 Adaptive 공간 탐색만 사용하며 두 control 모두 projection jitter, temporal
+history와 reprojection을 사용하지 않는다. 최종 8-case를 늘리는 mode가 아니라 temporal
+supersampling 효과가 유지되는지 확인하는 기준군이다.
+
+- `Projects/CMAA2/AutoBench/20260730_042245`: `thin-lines` 1X control
+- `Projects/CMAA2/AutoBench/20260730_042343`: `object-motion` 1X control
+- `Projects/CMAA2/AutoBench/20260730_042414`: `combined` 1X control
+
+각 실행은 `O-1X`/`A-1X` 각각 60 warm-up + 240 capture frame이고, 00000~00239
+연속 index와 1920×1017 해상도를 통과했다. 별도 순차 재실행과 최초 실행의 대응 PNG
+1,440장을 SHA-256으로 비교해 mismatch 0도 확인했다.
+
+`thin-lines`에서 Standard T2X no-reprojection은 1X 대비 2차 시간 차분을 Original
+28.535%, Adaptive 35.228% 줄였다. ET2X no-reprojection의 감소는 각각 7.374%,
+11.474%였고 ET2X-R은 24.595%, 26.690%였다. 즉 camera motion에서는 현재 ET2X가
+일부 temporal 안정화 효과를 유지하며 camera reprojection이 이를 보강했다.
+
+반면 고정 camera의 회전 rotor에서 Standard T2X는 1X 대비 인접 frame MAE를 Original
+21.417%, Adaptive 21.361% 줄였지만 눈에 보이는 이중 잔상을 만들었다. ET2X의 감소는
+각각 0.386%, 0.182%뿐이었고 1X와 same-frame MAE도 0.052451, 0.034190에 불과했다.
+Occluder에서도 ET2X와 1X의 same-frame MAE는 Original 0.084904, Adaptive
+0.074016이었다. 현재 ET2X는 object motion 고스팅을 줄이지만 움직이는 물체에서는
+출력과 시간 거동이 1X에 매우 가까워 temporal supersampling 효과를 상당 부분
+상실했을 가능성이 있다.
+
+이 결과는 Edge-selective의 종합적 성공이 아니라 다음 ablation의 근거다. Candidate
+선택, no-jitter, Catmull-Rom, variance clipping과 history weight 0.8 중 어떤 요소가
+object history를 사실상 제거하는지 분리하기 전에는 ET2X 품질 우위를 주장하지 않는다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은

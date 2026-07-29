@@ -1604,3 +1604,105 @@ occluder 뒤 trail을 줄일 가능성을 보여준다. 반면 여러 ROI에서 
    분리한 ablation으로 현재 trade-off의 원인 규명
 4. 현재 `-R`이 camera motion만 처리한다는 한계를 유지하고, object motion vector
    미지원 결과를 별도로 명시
+
+### 17.25 SMAA 1X spatial-only 품질 control
+
+2026-07-30에 temporal 방식이 실제로 SMAA 1X보다 시간적 안정성을 제공하는지, 그리고
+현재 ET2X의 ghosting 감소가 history를 사실상 제거해 1X로 돌아간 결과인지 확인하기
+위해 두 spatial-only control을 추가했다.
+
+| Control | 공간 처리 | Jitter | History | Reprojection |
+|---|---|---|---|---|
+| `O-1X` | Original SMAA | Off | Off | Off |
+| `A-1X` | Adaptive SMAA | Off | Off | Off |
+
+이 두 control은 최종 8-case를 10-case로 확장하는 새 연구 mode가 아니라, 기존 8개
+temporal mode의 효과를 판단하기 위한 외부 기준군이다. 캡처 명령은 다음과 같다.
+
+```powershell
+.\CMAA2.exe -smaaOneXStressCapture "thin-lines 240 60"
+.\CMAA2.exe -smaaOneXStressCapture "object-motion 240 60"
+.\CMAA2.exe -smaaOneXStressCapture "combined 240 60"
+```
+
+Release x64 빌드와 `3 warm-up + 3 capture` smoke를 통과했고, 리팩터링 전의
+`-smaaEightCaseStressCapture`도 8개 mode × 1-frame 회귀 smoke로 확인했다.
+
+정식 control 경로는 다음과 같다.
+
+| 시나리오 | 1X control 경로 | 대응 temporal 8-case 경로 |
+|---|---|---|
+| `thin-lines` | `Projects/CMAA2/AutoBench/20260730_042245` | `Projects/CMAA2/AutoBench/20260730_030857` |
+| `object-motion` | `Projects/CMAA2/AutoBench/20260730_042343` | `Projects/CMAA2/AutoBench/20260730_031939` |
+| `combined` | `Projects/CMAA2/AutoBench/20260730_042414` | `Projects/CMAA2/AutoBench/20260730_032435` |
+
+각 정식 control은 `O-1X`와 `A-1X`에 mode별 60-frame warm-up과 240 PNG를 저장했다.
+두 mode 모두 00000~00239 연속 index, 1920×1017 해상도를 통과했다. 별도 순차 재실행과
+최초 실행의 대응 PNG 총 1,440장을 SHA-256으로 비교했고 mismatch는 0이었다.
+
+전용 분석기 `Tools/SMAA/analyze_smaa_1x_controls.py`는 1X root와 기존 temporal
+8-case root를 함께 받아 동일 frame과 ROI에서 총 10개 출력을 비교한다. 프레임별
+temporal MAE, 2차 시간 차분, edge strength, trail 휴리스틱과 함께
+`1X / Standard T2X / ET2X` 3-way GIF 및 6-frame sequence sheet를 생성한다.
+
+#### Camera motion의 얇은 선
+
+`thin-lines`의 1X 대비 2차 시간 차분 변화는 다음과 같다.
+
+| 비교 | Original | Adaptive |
+|---|---:|---:|
+| Standard T2X no-reprojection | -28.535% | -35.228% |
+| Standard T2X camera reprojection | -18.405% | -21.391% |
+| ET2X no-reprojection | -7.374% | -11.474% |
+| ET2X camera reprojection | -24.595% | -26.690% |
+
+Standard T2X no-reprojection은 1X보다 불규칙 시간 변화를 크게 줄였다. ET2X
+no-reprojection의 감소 폭은 더 작았지만 0은 아니었고, camera reprojection이 있는
+ET2X-R에서는 감소 폭이 24.595~26.690%로 커졌다. 따라서 camera motion의 얇은
+선에서는 현재 ET2X가 일부 temporal 안정화 효과를 유지하며 reprojection이 이를
+보강하는 결과다.
+
+#### 독립 object motion의 회전 날개
+
+고정 camera의 rotor에서 1X 대비 결과는 다음과 같다.
+
+| 비교 | 인접 frame MAE 변화 | 1X와 same-frame MAE |
+|---|---:|---:|
+| `O-T2X` vs `O-1X` | -21.417% | 2.293902 |
+| `O-ET2X` vs `O-1X` | -0.386% | 0.052451 |
+| `A-T2X` vs `A-1X` | -21.361% | 2.285220 |
+| `A-ET2X` vs `A-1X` | -0.182% | 0.034190 |
+
+3-way sequence sheet에서 Standard T2X에는 이전 rotor 위치가 반투명하게 겹치는 이중
+잔상이 나타났다. ET2X는 그 잔상이 크게 줄었지만 출력 형상과 시간 변화량이 1X에
+거의 일치했다. Occluder ROI에서도 ET2X와 1X의 same-frame MAE는 Original
+0.084904, Adaptive 0.074016에 불과했다.
+
+Object-motion trailing-halo 휴리스틱도 같은 경향을 보였다.
+
+| Mode | Trail darkness | Trail width |
+|---|---:|---:|
+| `O-1X` | 0.561651 | 0.579 px |
+| `O-T2X` | 0.942147 | 1.442 px |
+| `O-ET2X` | 0.573162 | 0.600 px |
+| `A-1X` | 0.471003 | 0.275 px |
+| `A-T2X` | 0.870598 | 1.179 px |
+| `A-ET2X` | 0.516216 | 0.342 px |
+
+#### 현재 해석
+
+1X control은 Standard T2X와 현재 ET2X의 trade-off를 명확히 했다.
+
+- Standard T2X는 1X보다 시간 변화량을 줄이지만 object-motion 이중 잔상이 크다.
+- 현재 ET2X는 camera-motion thin-line에서는 일부 temporal 안정화를 유지한다.
+- 현재 ET2X는 독립 object motion에서 잔상을 줄이지만 1X와 거의 같은 출력·시간
+  거동을 보여 temporal supersampling 효과를 상당 부분 상실했을 가능성이 있다.
+- 따라서 현재 결과는 `ET2X가 성공했다`는 결론이 아니라, candidate selection,
+  no-jitter, Catmull-Rom, variance clipping, history weight 0.8을 분리해야 한다는
+  ablation 근거다.
+
+다음 단계에서는 우선 Original SMAA와 camera reprojection 경로에서 Standard T2X의
+jitter, bilinear sampler, clipping Off, history weight 0.5를 그대로 유지하고
+coverage만 Edge-selective로 변경한 candidate-only profile을 만든다. 이후
+Catmull-Rom, clipping, weight와 jitter를 하나씩 추가해 object history 제거와
+temporal 안정성 변화의 원인을 분리한다.
