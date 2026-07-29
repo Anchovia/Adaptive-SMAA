@@ -1055,3 +1055,35 @@ SMAA 1X, 후보 준비·추출과 copy/indirect 작업의 추가 비용이 더 �
 이 결과는 Original 네 case의 첫 반복 성능 결과다. 아직 필요한 다음 단계는 같은 네
 mode의 연속 프레임 품질 비교(ghosting, shimmer, crawling, flicker, blur,
 disocclusion)이며, 그 뒤에만 Adaptive 네 mode 통합·측정을 진행한다.
+
+### 17.17 Original 네 case 품질 분석기
+
+`Tools/SMAA/analyze_original_four_quality.py`를 추가했다. 입력은
+`-smaaOriginalFourCapture`가 만든 다음 네 디렉터리다.
+
+- `O_T2X`
+- `O_T2X_R`
+- `O_ET2X`
+- `O_ET2X_R`
+
+분석기는 네 sequence의 frame 수, 연속 index, 해상도와 고유 파일 hash를 먼저
+검증한 뒤 다음을 계산한다.
+
+- mode별 인접 frame RGB MAE/RMSE와 차이 임계 픽셀 비율
+- mode별 Luma 2차 시간 차분과 두 frame 간 차이
+- 공간 edge strength 대용값
+- 짝수·홀수 frame temporal MAE gap
+- Standard/Edge-selective 및 reprojection Off/On 대응 pair 차이
+- ±2 frame 범위의 축소 luma 정렬 검사
+
+자동 산출물은 frame별 CSV, JSON 요약, 한글 Markdown 보고서, 네 mode contact sheet,
+대표 4-column PNG와 Standard/Edge-selective pair GIF다. 보고서에는 optical-flow
+보정 없는 시간 차이가 장면 motion을 포함하고, 작은 temporal difference가 blur 때문일
+수 있으며, edge strength가 단독 품질 순위가 아니라는 제한을 자동 기록한다.
+
+2026-07-30, mode당 warm-up 8프레임과 capture 16프레임의 축소 검증에서 네 sequence
+각각 16개 연속·고유 PNG를 확인했고 모든 산출물을 정상 생성했다. 이 축소 결과는
+분석기 smoke validation일 뿐 품질 연구 결과가 아니다.
+
+다음 단계는 mode당 warm-up 60프레임, capture 300프레임의 실제 Original 4-case
+sequence를 생성해 이 분석기로 처리하고 대표 GIF를 수동 검토하는 것이다.

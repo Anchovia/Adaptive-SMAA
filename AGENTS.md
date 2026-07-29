@@ -167,6 +167,9 @@ capture를 실행할 수 있다.
   3회 반복. 정방향/역방향 mode 순서를 교차하고 UI·PNG·candidate readback을 끈 상태에서
   wall frame interval, WholeFrame과 SMAA pass GPU timestamp, p95/p99, 1% low 및
   run-mean 표준편차를 기록
+- `Tools/SMAA/analyze_original_four_quality.py`: Original 네 mode의 정렬된 PNG
+  sequence를 검증하고 temporal MAE, 2차 시간 차분, edge strength, 짝·홀 위상 gap,
+  대응 mode 차이와 ±2프레임 정렬을 계산하며 contact sheet, 대표 PNG와 pair GIF 생성
 - `-smaaCandidateStatisticsReadback 0|1`: 후보 카운터용 비동기 GPU→CPU readback을
   성능 측정과 분리. forced-count 진단에서는 정확성 검증을 위해 설정과 무관하게 readback
   수행
@@ -257,6 +260,11 @@ candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 �
 각각 11.376%, 7.728%다. Intel 문서의 약 50% 기본 목표보다 높은 장면 결과이며,
 후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
 아직 Original 네 mode의 최종 품질 비교와 Adaptive 4개 측정은 완료되지 않았다.
+
+Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
+고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
+축소 수치는 도구 검증용이며 품질 연구 결과로 사용하지 않는다. 다음 실제 품질 capture는
+mode당 60프레임 warm-up과 300프레임 저장으로 실행한다.
 
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
