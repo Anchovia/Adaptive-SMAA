@@ -127,6 +127,7 @@ SamplerState                        PointSampler                        : regist
   */                                                                    
  Texture2D                          edgesTex                            : register( t8 );
  Texture2D                          blendTex                            : register( t9 );
+ Texture2D                          metaTex                             : register( t16 );
                                                                         
  /**
  * Function wrappers
@@ -168,9 +169,9 @@ void DX10_SMAASeparateVS(float4 position : POSITION,
     svPosition = position;
 }
 
-float2 DX10_SMAALumaRawEdgeDetectionPS(float4 position : SV_POSITION,
+SMAA_EDGE_OUTPUT DX10_SMAALumaRawEdgeDetectionPS(float4 position : SV_POSITION,
                                     float2 texcoord : TEXCOORD0,
-                                    float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                    float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {
     #if SMAA_PREDICATION
     return SMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
@@ -178,9 +179,9 @@ float2 DX10_SMAALumaRawEdgeDetectionPS(float4 position : SV_POSITION,
     #endif
 }
 
-float2 DX10_SMAALumaEdgeDetectionPS(float4 position : SV_POSITION,
+SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionPS(float4 position : SV_POSITION,
                                     float2 texcoord : TEXCOORD0,
-                                    float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                    float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {
     #if SMAA_PREDICATION
     return SMAALumaEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
@@ -188,9 +189,9 @@ float2 DX10_SMAALumaEdgeDetectionPS(float4 position : SV_POSITION,
     #endif
 }
 
-float2 DX10_SMAAColorEdgeDetectionPS(float4 position : SV_POSITION,
+SMAA_EDGE_OUTPUT DX10_SMAAColorEdgeDetectionPS(float4 position : SV_POSITION,
                                      float2 texcoord : TEXCOORD0,
-                                     float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                     float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {
     #if SMAA_PREDICATION
     return SMAAColorEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
@@ -198,9 +199,9 @@ float2 DX10_SMAAColorEdgeDetectionPS(float4 position : SV_POSITION,
     #endif
 }
 
-float2 DX10_SMAADepthEdgeDetectionPS(float4 position : SV_POSITION,
+SMAA_EDGE_OUTPUT DX10_SMAADepthEdgeDetectionPS(float4 position : SV_POSITION,
                                      float2 texcoord : TEXCOORD0,
-                                     float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                     float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {
     return SMAADepthEdgeDetectionPS(texcoord, offset, depthTex);
 }
 
@@ -208,7 +209,11 @@ float4 DX10_SMAABlendingWeightCalculationPS(float4 position : SV_POSITION,
                                             float2 texcoord : TEXCOORD0,
                                             float2 pixcoord : TEXCOORD1,
                                             float4 offset[3] : TEXCOORD2) : SV_TARGET {
-    return SMAABlendingWeightCalculationPS(texcoord, pixcoord, offset, edgesTex, areaTex, searchTex, g_SMAA.subsampleIndices);
+    return SMAABlendingWeightCalculationPS(texcoord, pixcoord, offset, edgesTex,
+        #if defined(SMAA_ADAPTIVE_SEARCH)
+        metaTex,
+        #endif
+        areaTex, searchTex, g_SMAA.subsampleIndices);
 }
 
 float4 DX10_SMAANeighborhoodBlendingPS(float4 position : SV_POSITION,

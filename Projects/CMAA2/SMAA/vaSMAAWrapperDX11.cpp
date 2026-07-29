@@ -393,6 +393,7 @@ namespace VertexAsylum
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeSelectiveEnabled      = false;
+        bool                        m_smaaAdaptiveSearchEnabled     = false;
         bool                        m_velocityDiagnosticsResourcesEnabled = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
 
@@ -479,6 +480,7 @@ namespace VertexAsylum
         virtual void                    SetResource_velocityTex    ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         virtual void                    SetResource_edgesTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         virtual void                    SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
+        virtual void                    SetResource_metaTex        ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) override;
         // SMAATechniqueManagerInterface impl
         virtual SMAATechniqueInterface* CreateTechnique( const char * name, const std::vector<D3D_SHADER_MACRO> & defines ) override;
         virtual void                    DestroyAllTechniques( ) override;
@@ -648,6 +650,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_tscmaaClippingDebug = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
+    m_smaaAdaptiveSearchEnabled = false;
     m_velocityDiagnosticsResourcesEnabled = false;
     m_clippingDebugResourcesEnabled = false;
     SAFE_RELEASE( m_tscmaaCandidatesUAV );
@@ -704,11 +707,13 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaPredication = false;   // search for SMAA_PREDICATION - this is for additional edge detection (depth-based, or etc.)
     bool smaaProjection = GetTemporalReprojectionEnabled( );
     bool edgeSelective = GetEdgeSelectiveTemporalEnabled( );
+    bool adaptiveSearch = GetAdaptiveSpatialSearchEnabled( );
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeSelectiveEnabled != edgeSelective
+        || m_smaaAdaptiveSearchEnabled != adaptiveSearch
         || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
         || m_clippingDebugResourcesEnabled != GetClippingDebugViewsEnabled( )
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
@@ -723,9 +728,10 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         CleanupTemporaryResources( );
         SetGlobalStates( deviceContext );
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
-            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection );
+            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, nullptr, SMAA::ExternalStorage( ), adaptiveSearch );
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeSelectiveEnabled = edgeSelective;
+        m_smaaAdaptiveSearchEnabled = adaptiveSearch;
         m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
         m_clippingDebugResourcesEnabled = GetClippingDebugViewsEnabled( );
         UnsetGlobalStates( deviceContext );
@@ -2231,7 +2237,7 @@ void vaSMAAWrapperDX11::UnsetGlobalStates( vaRenderDeviceContext & deviceContext
     ID3D11SamplerState * samplerState[2] = { nullptr, nullptr };
     dx11Context->PSSetSamplers( 0, 2, samplerState );
     m_constantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->UnsetFromAPISlot( deviceContext, 0 );
-    ID3D11ShaderResourceView * nullSRVs[12] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    ID3D11ShaderResourceView * nullSRVs[17] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
     dx11Context->PSSetShaderResources( 0, _countof( nullSRVs ), nullSRVs );
     dx11Context->OMSetBlendState( nullptr, nullptr, 0 );
     dx11Context->OMSetDepthStencilState( nullptr, 0 );
@@ -2301,6 +2307,10 @@ void vaSMAAWrapperDX11::SetResource_edgesTex       ( ID3D11DeviceContext * conte
 void vaSMAAWrapperDX11::SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) 
 {
     context->PSSetShaderResources( 9, 1, &pResource );
+}
+void vaSMAAWrapperDX11::SetResource_metaTex        ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource )
+{
+    context->PSSetShaderResources( 16, 1, &pResource );
 }
 
 // SMAATechniqueManagerInterface impl

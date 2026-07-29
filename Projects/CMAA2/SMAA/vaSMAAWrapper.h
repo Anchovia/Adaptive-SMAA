@@ -37,6 +37,12 @@ namespace VertexAsylum
         // enum Mode { MODE_SMAA_1X, MODE_SMAA_T2X, MODE_SMAA_S2X, MODE_SMAA_4X, MODE_SMAA_COUNT = MODE_SMAA_4X };
         enum Preset { PRESET_LOW, PRESET_MEDIUM, PRESET_HIGH, PRESET_ULTRA, PRESET_CUSTOM, PRESET_COUNT = PRESET_CUSTOM };
 
+        enum class SpatialSearch : int32
+        {
+            Original,
+            AdaptiveContrast
+        };
+
         enum class TemporalCoverage : int32
         {
             Disabled,
@@ -265,10 +271,12 @@ namespace VertexAsylum
         struct Settings
         {
             Preset                          Preset;
+            SpatialSearch                   Search;
 
             Settings( )
             {
                 this->Preset        = PRESET_HIGH;
+                this->Search        = SpatialSearch::Original;
             }
         };
 
@@ -326,6 +334,16 @@ namespace VertexAsylum
             }
         }
         Preset                      GetPreset( ) const                    { return m_settings.Preset; }
+        void                        SetSpatialSearch( SpatialSearch search )
+        {
+            if( m_settings.Search != search )
+            {
+                m_settings.Search = search;
+                ResetTemporalHistory( );
+            }
+        }
+        SpatialSearch               GetSpatialSearch( ) const             { return m_settings.Search; }
+        bool                        GetAdaptiveSpatialSearchEnabled( ) const { return m_settings.Search == SpatialSearch::AdaptiveContrast; }
 
         void                        SetTemporalSettings( const TemporalSettings & settings )
         {

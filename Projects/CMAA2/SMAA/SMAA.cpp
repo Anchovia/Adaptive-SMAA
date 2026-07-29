@@ -102,7 +102,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage, bool adaptiveSearch)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -112,7 +112,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
           cornerRounding(0.25f),
           maxSearchSteps(16),
           maxSearchStepsDiag(8),
-          frameIndex(0) 
+          frameIndex(0),
+          metaRT(nullptr),
+          adaptiveSearch(adaptiveSearch)
 {
     //HRESULT hr;
     // // Check for DirectX 10.1 support:
@@ -155,6 +157,11 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
         defines.push_back(reprojectionMacro);
     }
 
+    if (adaptiveSearch) {
+        D3D_SHADER_MACRO adaptiveSearchMacro = { "SMAA_ADAPTIVE_SEARCH", "1" };
+        defines.push_back(adaptiveSearchMacro);
+    }
+
     // Setup the target macro:
     //if (dx10_1) {
         D3D_SHADER_MACRO dx101Macro = { "SMAA_HLSL_4_1", "1" };
@@ -185,13 +192,21 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
 
     // In NVIDIA cards R8G8 is slower, avoid it:
     bool isNVIDIACard = adapterDesc? adapterDesc->VendorId == 0x10DE : false;
-    DXGI_FORMAT format = isNVIDIACard? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    DXGI_FORMAT format = adaptiveSearch? DXGI_FORMAT_R8G8_UNORM :
+        (isNVIDIACard? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R8G8_UNORM);
 
     // If storage for the edges is not specified we will create it:
     if (storage.edgesRTV != nullptr && storage.edgesSRV != nullptr)
         edgesRT = new RenderTarget(device, storage.edgesRTV, storage.edgesSRV);
     else
         edgesRT = new RenderTarget(device, width, height, format);
+
+    if (adaptiveSearch) {
+        if (storage.metaRTV != nullptr && storage.metaSRV != nullptr)
+            metaRT = new RenderTarget(device, storage.metaRTV, storage.metaSRV);
+        else
+            metaRT = new RenderTarget(device, width, height, DXGI_FORMAT_R8_UNORM);
+    }
 
     // Same for blending weights:
     if (storage.weightsRTV != nullptr && storage.weightsSRV != nullptr)
@@ -250,6 +265,7 @@ SMAA::~SMAA() {
     SAFE_DELETE(triangle);
     SAFE_DELETE(edgesRT);
     SAFE_DELETE(blendRT);
+    SAFE_DELETE(metaRT);
     SAFE_RELEASE(areaTex);
     SAFE_RELEASE(areaTexSRV);
     SAFE_RELEASE(searchTex);
@@ -301,6 +317,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     // Clear render targets:
     float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     context->ClearRenderTargetView(*edgesRT, clearColor);
+    if (adaptiveSearch)
+        context->ClearRenderTargetView(*metaRT, clearColor);
     context->ClearRenderTargetView(*blendRT, clearColor);
 
     // Get the subsample index:
@@ -339,6 +357,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     // And here we go!
     edgesDetectionPass(context, dsv, input);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
+    if (adaptiveSearch)
+        texturesInterface->SetResource_metaTex(context, *metaRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
     texturesInterface->SetResource_blendTex(context, *blendRT);
     neighborhoodBlendingPass(context, dstRTV, dsv);
@@ -354,6 +374,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_velocityTex( context, nullptr );
     texturesInterface->SetResource_edgesTex( context, nullptr );
     texturesInterface->SetResource_blendTex( context, nullptr );
+    if (adaptiveSearch)
+        texturesInterface->SetResource_metaTex( context, nullptr );
 
     // V(resolveTechnique->GetPassByIndex(0)->Apply(0));
     resolveTechnique->ApplyStates(context);
@@ -527,7 +549,12 @@ void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilV
     edgeDetectionTechniques[int(input)]->ApplyStates(context);
 
     // Do it!
-    context->OMSetRenderTargets(1, *edgesRT, dsv);
+    if (adaptiveSearch) {
+        ID3D11RenderTargetView * renderTargets[2] = { *edgesRT, *metaRT };
+        context->OMSetRenderTargets(2, renderTargets, dsv);
+    } else {
+        context->OMSetRenderTargets(1, *edgesRT, dsv);
+    }
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
 }

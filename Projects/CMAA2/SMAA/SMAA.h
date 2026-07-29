@@ -68,6 +68,7 @@ public:
     virtual void                        SetResource_velocityTex    ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_edgesTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
+    virtual void                        SetResource_metaTex        ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
 };
 
 class SMAATechniqueInterface
@@ -105,7 +106,7 @@ class SMAA {
          */
         SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, 
              Preset preset=PRESET_HIGH, bool predication=false, bool reprojection=false, const DXGI_ADAPTER_DESC *adapterDesc=NULL,
-             const ExternalStorage &storage=ExternalStorage());
+             const ExternalStorage &storage=ExternalStorage(), bool adaptiveSearch=false);
         ~SMAA();
 
         /**
@@ -244,14 +245,18 @@ class SMAA {
                 ExternalStorage(ID3D11ShaderResourceView *edgesSRV=nullptr,
                                 ID3D11RenderTargetView *edgesRTV=nullptr,
                                 ID3D11ShaderResourceView *weightsSRV=nullptr,
-                                ID3D11RenderTargetView *weightsRTV=nullptr)
+                                ID3D11RenderTargetView *weightsRTV=nullptr,
+                                ID3D11ShaderResourceView *metaSRV=nullptr,
+                                ID3D11RenderTargetView *metaRTV=nullptr)
                     : edgesSRV(edgesSRV),
                       edgesRTV(edgesRTV), 
                       weightsSRV(weightsSRV),
-                      weightsRTV(weightsRTV) {}
+                      weightsRTV(weightsRTV),
+                      metaSRV(metaSRV),
+                      metaRTV(metaRTV) {}
 
-            ID3D11ShaderResourceView *edgesSRV, *weightsSRV;
-            ID3D11RenderTargetView *edgesRTV, *weightsRTV;
+            ID3D11ShaderResourceView *edgesSRV, *weightsSRV, *metaSRV;
+            ID3D11RenderTargetView *edgesRTV, *weightsRTV, *metaRTV;
         };
 
     private:
@@ -280,6 +285,7 @@ class SMAA {
 
         RenderTarget *edgesRT;
         RenderTarget *blendRT;
+        RenderTarget *metaRT;
 
         ID3D11Texture2D *areaTex;
         ID3D11ShaderResourceView *areaTexSRV;
@@ -321,6 +327,7 @@ class SMAA {
         int msaaOrderMap[2];
 
         bool orderDetected = false;
+        bool adaptiveSearch = false;
 };
 
 #endif
