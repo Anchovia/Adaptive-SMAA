@@ -319,6 +319,23 @@ camera reprojection On +14.07%였다. 숨김 engineering 실행의 -10.66%, +76.
 +14.39%와 방향이 모두 재현됐다. 현재 Edge-selective adaptation은 이 장면에서
 Standard T2X보다 느리며, 품질 이득 검증 전에는 종합적인 성공/실패 결론을 내리지 않는다.
 
+같은 Bistro path의 정식 8-case 품질 capture도 완료했다.
+`Projects/CMAA2/AutoBench/20260730_023009`에 mode별 60-frame warm-up 뒤
+300 PNG, 총 2,400 PNG를 저장했고 8개 mode 모두 연속 index 00000~00299와 고유
+hash 300개를 통과했다. 12개 대응 pair의 ±2 frame 정렬에서 모두 300/300 same-index가
+최적이었다. 이전 Original 기준선 `20260730_010741`과 새 capture의 Original
+1,200 PNG를 SHA-256으로 대조해 mismatch 0을 확인했다.
+
+Adaptive와 Original 대응 case의 same-frame RGB MAE는 0.008164~0.008875,
+최대 채널 차이 >8 픽셀 비율은 0.008907~0.009663%로 매우 작았고 temporal MAE 변화도
+-0.010~+0.041%였다. 이 Bistro 경로에서는 Adaptive 통합이 대응 Original temporal
+출력을 사실상 유지했다. 반면 Edge-selective document profile은 대응 Standard보다
+edge strength가 5.309~8.987% 높았지만 temporal MAE와 2차 차분이 감소하지 않았다.
+화면 전체 깨짐이나 심한 떨림 회귀는 보이지 않았으나, object-motion ghosting과
+disocclusion은 이 경로로 결론내리지 않는다. Edge-selective 비교에는 candidate 선택뿐
+아니라 no deliberate jitter, Catmull-Rom, variance clipping, history weight 0.8이
+함께 포함되므로 candidate selection 단독 효과라고 표현하지 않는다.
+
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
 sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8개 mode의 본
@@ -375,8 +392,10 @@ sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8
    8-mode lifecycle, 축소 성능/capture/analysis smoke를 통과시켰다.
 10. **완료:** 전체 8개를 visible-window 정식 조건으로 3회 반복 성능 측정하고
     세 독립 축의 성능 차이를 분석했다.
-11. **다음:** 전체 8개 품질 sequence를 같은 정식 조건으로 캡처하고, 독립 object
-    motion과 disocclusion 장면을 추가해 최종 품질 결론을 작성한다.
+11. **완료:** 전체 8개 품질 sequence를 같은 Bistro 경로에서 캡처하고 정량·시각
+    분석 및 Original deterministic regression 검증을 완료했다.
+12. **다음:** 독립 object motion, 얇은 선과 disocclusion 전용 장면을 추가해
+    ghosting·shimmer·crawling 최종 품질 결론을 작성한다.
 
 ## 7. 측정 규칙
 

@@ -1377,3 +1377,103 @@ SMAA 시간이 55.44~83.12% 증가했다. WholeFrame도 대응 case에서 4.53~1
 이 결론은 성능에 한정된다. Edge-selective 방식이 ghosting, shimmer, crawling 등에서
 품질 이득을 제공하는지는 8-case 연속 PNG sequence와 object-motion/disocclusion
 전용 장면으로 별도 검증해야 한다. 다음 작업은 정식 8-case 품질 캡처와 분석이다.
+
+### 17.22 Bistro 8-case 연속 프레임 품질 본 측정
+
+2026-07-30에 기존 Original 품질 기준선과 동일한 camera 구간에서 전체 8개 mode를
+캡처했다.
+
+- RTX 3060 Ti / DirectX 11 / Release x64
+- 1920×1017 windowed / SMAA Ultra / VSync Off
+- Lumberyard Bistro fixed 60 Hz flythrough
+- start 1초 / mode별 warm-up 60프레임
+- mode별 PNG 300장, 총 2,400장
+- PNG 저장 중 FPS는 성능 결과로 사용하지 않음
+- 원본 용량 약 4.0GB
+
+원본과 분석 산출물은 Git에 포함하지 않는
+`Projects/CMAA2/AutoBench/20260730_023009`에 있다. 8개 mode 모두 00000~00299
+연속 index, 1920×1017 해상도와 고유 파일 hash 300개를 통과했다. 12개 대응 pair의
+±2프레임 축소 luma 정렬 검사에서도 모두 300/300 same-index가 최적이었다.
+
+#### Original deterministic regression
+
+이전 Original 기준선 `Projects/CMAA2/AutoBench/20260730_010741`과 새 8-case
+capture의 Original 4개 디렉터리를 파일별 SHA-256으로 대조했다.
+
+| 항목 | 결과 |
+|---|---:|
+| 비교한 PNG pair | 1,200 |
+| hash mismatch | 0 |
+| 결과 | PASS |
+
+따라서 Adaptive 네 mode를 추가한 뒤에도 대응 Original 4개 출력은 이전 기준선과
+byte 단위로 동일했다.
+
+#### Mode별 시간·공간 대용 지표
+
+| Mode | 인접 frame RGB MAE | 2차 시간 차분 Luma MAE | Edge strength | 짝·홀 temporal gap |
+|---|---:|---:|---:|---:|
+| `O-T2X` | 1.216633 | 1.445442 | 2.095559 | 0.001201 |
+| `O-T2X-R` | 1.461848 | 2.029758 | 2.171057 | 0.077666 |
+| `O-ET2X` | 1.492503 | 2.124981 | 2.283882 | 0.000738 |
+| `O-ET2X-R` | 1.508738 | 2.111518 | 2.287209 | 0.000625 |
+| `A-T2X` | 1.217134 | 1.446437 | 2.097672 | 0.001225 |
+| `A-T2X-R` | 1.462363 | 2.032444 | 2.173170 | 0.077701 |
+| `A-ET2X` | 1.492353 | 2.125176 | 2.285311 | 0.000681 |
+| `A-ET2X-R` | 1.508687 | 2.112713 | 2.288546 | 0.000556 |
+
+#### Adaptive 공간 처리의 품질 영향
+
+| 비교 | 같은 frame RGB MAE | 차이 >8 픽셀 | Temporal MAE 변화 | 2차 차분 변화 | Edge strength 변화 |
+|---|---:|---:|---:|---:|---:|
+| `A-T2X` vs `O-T2X` | 0.008875 | 0.008907% | +0.041% | +0.069% | +0.101% |
+| `A-T2X-R` vs `O-T2X-R` | 0.008862 | 0.009663% | +0.035% | +0.132% | +0.097% |
+| `A-ET2X` vs `O-ET2X` | 0.008164 | 0.009305% | -0.010% | +0.009% | +0.063% |
+| `A-ET2X-R` vs `O-ET2X-R` | 0.008216 | 0.009419% | -0.003% | +0.057% | +0.058% |
+
+Adaptive/Original 차이는 최대 채널 차이 8을 넘는 픽셀이 약 0.009%뿐이고 시간 지표
+변화도 약 ±0.1% 이내였다. 이 한 Bistro path에서는 Adaptive 공간 탐색이 대응
+Original temporal 결과를 사실상 유지하면서, 17.21에서 측정한 SMAA GPU 시간을
+대응 case 평균 10.06% 줄였다.
+
+#### Edge-selective document profile의 품질 영향
+
+| 비교 | 같은 frame RGB MAE | 차이 >8 픽셀 | Temporal MAE 변화 | 2차 차분 변화 | Edge strength 변화 |
+|---|---:|---:|---:|---:|---:|
+| `O-ET2X` vs `O-T2X` | 1.077730 | 2.631774% | +22.675% | +47.013% | +8.987% |
+| `O-ET2X-R` vs `O-T2X-R` | 0.776444 | 1.912337% | +3.208% | +4.028% | +5.350% |
+| `A-ET2X` vs `A-T2X` | 1.077396 | 2.645783% | +22.612% | +46.925% | +8.945% |
+| `A-ET2X-R` vs `A-T2X-R` | 0.776273 | 1.926304% | +3.168% | +3.949% | +5.309% |
+
+Edge-selective profile은 대응 Standard보다 edge strength가 5.309~8.987% 높아 창틀,
+실내 고대비 세부선, 스쿠터 윤곽과 밝은 광원에서 더 선명한 경향을 보였다. 그러나
+temporal MAE와 2차 차분은 감소하지 않았다. 특히 no-reprojection ablation의 변화가
+컸고 camera reprojection을 사용하면 차이가 약 +3~4%로 줄었다.
+
+이 비교는 candidate selection만의 단독 ablation이 아니다. document profile에는
+no deliberate projection jitter, SMAA 1X spatial input, Catmull-Rom 5-tap,
+YCoCg variance clipping과 history weight 0.8이 함께 포함된다. 따라서 위 차이를
+“edge 후보 선택만의 효과”라고 표현하지 않는다.
+
+contact sheet와 6-frame sequence/difference sheet에서 화면 전체 깨짐이나 과거의
+심각한 떨림 회귀는 보이지 않았다. 하지만 한 camera flythrough와 optical-flow 보정
+없는 지표만으로 ghosting 길이, 독립 object motion, disocclusion 또는 shimmer 개선을
+확정할 수 없다.
+
+주요 산출물:
+
+- `Analysis/SMAA-Eight-Case-Quality-Analysis-ko.md`
+- `Analysis/temporal_metrics_eight_case.csv`
+- `Analysis/analysis_summary_eight_case.json`
+- `Analysis/contact_sheet_eight_case.png`
+- `Analysis/comparison_edge_vs_standard_no_reprojection_00270_00299.gif`
+- `Analysis/comparison_edge_vs_standard_reprojected_00162_00191.gif`
+- `Analysis/comparison_adaptive_edge_vs_standard_no_reprojection_00270_00299.gif`
+- `Analysis/comparison_adaptive_edge_vs_standard_reprojected_00162_00191.gif`
+- `Analysis/sequence_sheet_edge_vs_standard_no_reprojection_00270_00295.png`
+- `Analysis/sequence_sheet_edge_vs_standard_reprojected_00162_00187.png`
+
+이 시점에서 동일 Bistro path의 8-case 성능·품질 표는 확보됐다. 다음 단계는 풍차 날개,
+얇은 선/울타리, 정지 카메라의 독립 object motion과 명시적 disocclusion 장면을
+추가해 ghosting, shimmer, crawling과 flicker를 검증하는 것이다.
