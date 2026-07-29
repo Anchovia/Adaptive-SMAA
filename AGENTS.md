@@ -152,6 +152,8 @@ capture를 실행할 수 있다.
   velocity 부호와 `historyUV = currentUV - velocity` 화면 범위 확인
 - `-smaaTemporalFeedbackTest` GPU 검증: 최종 output history와 화면 destination의
   byte 일치, 다음 프레임 previous history와 직전 resolve hash의 일치 확인
+- `-smaaStaticStabilityTest` GPU 검증: 고정 카메라·노출에서 `O-ET2X`와
+  `O-ET2X-R`를 각각 120프레임 warm-up한 뒤 32개 연속 resolve hash 일치 확인
 - `-smaaCatmullRomReferenceTest` GPU/CPU 검증: 실제 5-tap shader의 상수 보존,
   clamp 경계, CPU mirror 일치와 separable 16-tap reference 오차 기록
 - `-smaaVarianceClippingTest` GPU/CPU 검증: YCoCg 왕복, 상수 이웃, box 내부 history,
@@ -204,6 +206,11 @@ Original 네 mode의 내부 pass GPU timestamp도 mode당 60프레임 warm-up, 1
 engineering smoke에서 모두 120/120개 수집했다. 이 smoke는 비동기 candidate counter
 readback을 켠 현재 경로를 측정하며 전체 frame GPU time은 포함하지 않는다. 단일 실행
 값은 최종 성능 우열이나 통계적 유의성 주장에 사용하지 않는다.
+
+Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
+`TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
+sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original 네 mode의
+본 품질·성능 측정 전에 전체 frame timing과 counter readback overhead를 분리해야 한다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은

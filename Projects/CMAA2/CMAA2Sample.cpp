@@ -2530,6 +2530,168 @@ protected:
     }
 };
 
+class BenchItemValidateSMAAStaticStability : public AutoBenchToolWorkItem
+{
+    static const int c_modeCount = 2;
+    static const int c_warmupFrames = 120;
+    static const int c_measureFrames = 32;
+    static constexpr float c_fixedPlayTime = 1.0f;
+
+    bool m_started = false;
+    bool m_diagnosticsStarted = false;
+    bool m_isDone = false;
+    bool m_passed = true;
+    int m_currentMode = 0;
+    int m_phaseFrame = 0;
+    uint32 m_sampleCount[c_modeCount] = { 0, 0 };
+    uint32 m_hashMismatchCount[c_modeCount] = { 0, 0 };
+    uint64 m_firstHash[c_modeCount] = { 0, 0 };
+    uint64 m_lastHash[c_modeCount] = { 0, 0 };
+
+    static const char * GetModeID( int mode )
+    {
+        return mode == 0? "O-ET2X" : "O-ET2X-R";
+    }
+
+    static CMAA2Sample::AAType GetModeAAType( int mode )
+    {
+        return mode == 0? CMAA2Sample::AAType::SMAA_O_ET2X : CMAA2Sample::AAType::SMAA_O_ET2X_R;
+    }
+
+    static string FormatHash( uint64 value )
+    {
+        std::ostringstream stream;
+        stream << "0x" << std::hex << std::uppercase << std::setw( 16 ) << std::setfill( '0' ) << value;
+        return stream.str( );
+    }
+
+    void Finish( AutoBenchTool & abTool )
+    {
+        abTool.ReportAddRowValues( { "Mode", "Measured hashes", "Hash changes", "First hash", "Last hash", "Result" } );
+        for( int mode = 0; mode < c_modeCount; mode++ )
+        {
+            const bool modePassed = m_sampleCount[mode] == c_measureFrames
+                && m_hashMismatchCount[mode] == 0 && m_firstHash[mode] != 0;
+            m_passed &= modePassed;
+            abTool.ReportAddRowValues( {
+                GetModeID( mode ),
+                vaStringTools::Format( "%u", m_sampleCount[mode] ),
+                vaStringTools::Format( "%u", m_hashMismatchCount[mode] ),
+                FormatHash( m_firstHash[mode] ),
+                FormatHash( m_lastHash[mode] ),
+                modePassed? "PASS" : "FAIL"
+            } );
+        }
+        abTool.ReportAddText( m_passed? "\r\nAggregate: PASS\r\n" : "\r\nAggregate: FAIL\r\n" );
+        abTool.ReportFinish( );
+        VA_LOG( "SMAA static-camera temporal stability: O-ET2X changes=%u/%u, O-ET2X-R changes=%u/%u => %s",
+            m_hashMismatchCount[0], m_sampleCount[0], m_hashMismatchCount[1], m_sampleCount[1],
+            m_passed? "PASS" : "FAIL" );
+        m_parent.SetSMAATemporalFeedbackDiagnosticsEnabled( false );
+        m_isDone = true;
+    }
+
+public:
+    explicit BenchItemValidateSMAAStaticStability( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity( );
+            m_parent.GetFlythroughCameraController( )->SetPlayTime( c_fixedPlayTime );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA TSCMAA-inspired static-camera temporal stability validation\r\n\r\n" );
+            abTool.ReportAddText( "O-ET2X and O-ET2X-R are tested separately with fixed camera time, fixed exposure, SMAA Ultra and no PNG capture.\r\n" );
+            abTool.ReportAddText( "After 120 diagnostic warm-up frames, 32 consecutive resolved-history FNV-1a hashes must remain byte-identical.\r\n" );
+            abTool.ReportAddText( "This test uses diagnostic-only staging readback and does not measure performance.\r\n\r\n" );
+
+            m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
+        }
+
+        m_parent.GetFlythroughCameraController( )->SetPlayTime( c_fixedPlayTime );
+
+        if( !m_diagnosticsStarted )
+        {
+            if( m_parent.HasPendingShadowmapUpdates( ) )
+                return;
+            m_parent.SetSMAATemporalFeedbackDiagnosticsEnabled( true );
+            m_diagnosticsStarted = true;
+            m_phaseFrame = -c_warmupFrames;
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalFeedbackDiagnostics & diagnostics =
+            m_parent.GetSMAATemporalFeedbackDiagnostics( );
+        if( diagnostics.ReadbackFailureCount > 0 )
+        {
+            m_passed = false;
+            Finish( abTool );
+            return;
+        }
+
+        if( m_phaseFrame < 0 )
+        {
+            m_phaseFrame++;
+            return;
+        }
+
+        const uint64 resolvedHash = diagnostics.LastResolvedHistoryHash;
+        if( resolvedHash == 0 )
+        {
+            m_passed = false;
+            Finish( abTool );
+            return;
+        }
+
+        if( m_sampleCount[m_currentMode] == 0 )
+            m_firstHash[m_currentMode] = resolvedHash;
+        else if( resolvedHash != m_lastHash[m_currentMode] )
+            m_hashMismatchCount[m_currentMode]++;
+        m_lastHash[m_currentMode] = resolvedHash;
+        m_sampleCount[m_currentMode]++;
+
+        if( m_sampleCount[m_currentMode] >= c_measureFrames )
+        {
+            m_parent.SetSMAATemporalFeedbackDiagnosticsEnabled( false );
+            m_currentMode++;
+            if( m_currentMode >= c_modeCount )
+            {
+                Finish( abTool );
+                return;
+            }
+
+            m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
+            m_diagnosticsStarted = false;
+            m_phaseFrame = 0;
+        }
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override { return false; }
+    virtual float GetProgress( ) const override
+    {
+        const int framesPerMode = c_warmupFrames + c_measureFrames;
+        const int currentProgress = m_currentMode * framesPerMode
+            + vaMath::Max( 0, m_phaseFrame + c_warmupFrames )
+            + (int)m_sampleCount[vaMath::Min( m_currentMode, c_modeCount - 1 )];
+        return vaMath::Clamp( (float)currentProgress / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f );
+    }
+};
+
 class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 {
     enum class Phase : int
@@ -3220,6 +3382,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaStaticStabilityTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAStaticStability>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA O-ET2X/O-ET2X-R static-camera temporal stability validation");
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalFeedbackTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalFeedback>(*this));

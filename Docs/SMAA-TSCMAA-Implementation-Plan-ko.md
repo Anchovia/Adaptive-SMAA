@@ -391,7 +391,7 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 - [x] 비후보 history weight `0.0`, 즉 current spatial 유지 픽셀 검증
 - [x] 최종 output의 history feedback
 - [x] 첫 프레임·mode·scene·명시적 camera-cut·resize reset
-- [ ] static camera 떨림 없음
+- [x] static camera 떨림 없음
 - [x] object motion 미지원 사실 명시
 - [x] 각 SMAA 내부 pass GPU time과 후보 비율 기록 가능
 - [x] Release x64 build 및 동적 장면 engineering smoke test
@@ -829,3 +829,34 @@ readback했다. 이 resource와 stall은 진단이 명시적으로 활성화된 
 진단을 끈 일반 네 mode capture를 다시 실행했다. `O-T2X-R`, `O-ET2X`,
 `O-ET2X-R`은 기존 회귀 hash와 일치했고 `O-T2X`는 이미 기록된 두 시작 hash 중 하나를
 보였다. 따라서 feedback readback 분기는 일반 shader 출력에 영향을 주지 않았다.
+
+### 17.12 고정 카메라 temporal 안정성 GPU 검증
+
+`-smaaStaticStabilityTest`를 추가했다. Bistro에서 camera play time과 exposure를
+고정하고 `O-ET2X`, `O-ET2X-R`를 각각 독립적으로 reset한다. diagnostic-only staging
+readback으로 resolved-history FNV-1a hash를 읽고 warm-up 이후 연속 32개 hash가
+byte-identical인지 확인한다.
+
+첫 실행의 16프레임 warm-up에서는 앱 시작 직후 첫 mode인 `O-ET2X`가 32개 측정 중
+7회 변했고 `O-ET2X-R`은 0회였다. mode 차이로 단정하지 않고 시작 shader·장면 안정화가
+부족한 조건으로 분리했다. 연구 측정 규칙에 맞춰 warm-up을 120프레임으로 늘려 다시
+실행했다.
+
+2026-07-30, RTX 3060 Ti, DirectX 11, Release x64, 1920×1017, VSync Off,
+SMAA Ultra 결과는 다음과 같다.
+
+| Mode | Warm-up | 측정 hash | Hash 변화 | First/last | 판정 |
+|---|---:|---:|---:|---|---|
+| `O-ET2X` | 120 | 32 | 0 | `0xE6B9D9720906E286` / 동일 | PASS |
+| `O-ET2X-R` | 120 | 32 | 0 | `0x6615D4369B223F95` / 동일 | PASS |
+
+따라서 충분한 안정화 이후 고정 camera·scene 입력에서 두 document profile 모두
+frame-to-frame byte 변화가 없었다. 이 검증은 static camera 떨림 부재를 강하게
+뒷받침하지만, 움직이는 camera·object의 shimmer, ghosting, disocclusion 품질을
+대신 평가하지 않는다.
+
+이 결과로 15절의 Intel 공개 문서 기반 core 기능 체크리스트가 모두 통과했다.
+`TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있으나, 공식 Intel sample
+포팅이나 최종 8-case 품질·성능 연구 완료를 의미하지 않는다. 다음 단계는 전체 frame
+GPU timing과 candidate counter readback overhead를 정리한 뒤 Original 네 case의
+반복 본 측정을 시작하는 것이다.
