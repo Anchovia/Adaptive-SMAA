@@ -41,12 +41,15 @@ struct SMAAReprojectionConstants
     float4x4 CurrentUnjitteredViewProj;
     float4x4 PreviousViewProj;
     float4 TemporalResolution;
+    // x: history weight, y: non-dominant removal amount,
+    // z: camera reprojection enabled, w: output requires linear-to-sRGB conversion.
     float4 TSCMAAParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
     VertexAsylum::vaMatrix4x4 PreviousViewProj;
     VertexAsylum::vaVector4 TemporalResolution;
+    // Matches the shader-side field description above.
     VertexAsylum::vaVector4 TSCMAAParams;
 #endif
 };
@@ -460,8 +463,10 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
     float4 currentColor = tscmaaCurrentColor.Load(int3(pixel, 0));
     float2 currentUV = (float2(pixel) + 0.5) * inverseDimensions;
-    float2 velocity = velocityTex.Load(int3(pixel, 0)).xy;
-    float2 historyUV = currentUV - velocity;
+    float2 historyUV = currentUV;
+    [branch]
+    if (g_SMAAReprojection.TSCMAAParams.z > 0.5)
+        historyUV -= velocityTex.Load(int3(pixel, 0)).xy;
 
     if (any(historyUV <= 0.0) || any(historyUV >= 1.0))
         return;

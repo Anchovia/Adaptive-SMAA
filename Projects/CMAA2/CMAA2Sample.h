@@ -87,9 +87,10 @@ namespace VertexAsylum
 
             SuperSampleReference,   // also used as the max value for automatic comparisons & benchmarking - options below will be ignored by the autobench
 
-            SMAA_T2x,               // naive temporal baseline; intentionally excluded from the legacy still-image autobench
-            SMAA_T2x_Reprojected,   // camera-motion reprojection baseline; also excluded from the legacy still-image autobench
-            SMAA_T2x_TSCMAAInspired,// Intel TSCMAA public pipeline adapted to SMAA; excluded from still-image autobench
+            SMAA_O_T2X,             // O-T2X: Original SMAA Standard T2X, reprojection Off
+            SMAA_O_T2X_R,           // O-T2X-R: Original SMAA Standard T2X, camera reprojection On
+            SMAA_O_ET2X_R,          // O-ET2X-R prototype: edge-selective temporal, camera reprojection On
+            SMAA_O_ET2X,            // O-ET2X prototype: edge-selective temporal, reprojection Off
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
@@ -200,6 +201,7 @@ namespace VertexAsylum
 
         shared_ptr<vaCMAA2>                     m_CMAA2;
         shared_ptr<vaSMAAWrapper>               m_SMAA;
+        AAType                                  m_lastLoggedSMAAOption                 = AAType::MaxValue;
         shared_ptr<vaFXAAWrapper>               m_FXAA;
 
         shared_ptr<vaZoomTool>                  m_zoomTool;

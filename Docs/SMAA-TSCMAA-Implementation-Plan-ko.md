@@ -13,7 +13,7 @@ Intel TSCMAA는 본래 `CMAA + edge-selective TAA`이고 공개 sample source는
 `공식 TSCMAA 포팅`, `완전한 TSCMAA 재현`, `Intel 원본 코드와 동일한 구현`이라고
 표현하지 않는다.
 
-이 문서는 기존의 복합 `SMAA_T2x_TSCMAAInspired` 구현을 최종안으로 승인하는 문서가
+이 문서는 기존의 복합 edge-selective temporal prototype을 최종안으로 승인하는 문서가
 아니다. 현재 구현을 직교 설정으로 분해하고, 출처가 있는 동작과 연구 가정을 구분해
 다시 검증하기 위한 작업 기준이다.
 
@@ -89,8 +89,9 @@ Intel TSCMAA는 본래 `CMAA + edge-selective TAA`이고 공개 sample source는
 3. `projection jitter를 사용하지 않는다`는 내용도 Intel 문서가 직접 확정한 사실이
    아니다. selective temporal 처리와 SMAA T2X의 차이를 해결하기 위한 adaptation
    결정으로 명시한다.
-4. 현재 `SMAA_T2x_TSCMAAInspired`는 후보 선택, jitter, reprojection, history sampler,
-   clipping과 weight를 동시에 바꾼 복합 버전이다. 최종 `O-ET2X-R`로 간주하지 않는다.
+4. 현재 `O-ET2X-R` prototype은 후보 선택, jitter, reprojection, history sampler,
+   clipping과 weight를 동시에 포함한 복합 버전이다. 최종 controlled `O-ET2X-R`로
+   간주하지 않는다.
 5. 기존 복합 구현의 캡처는 디버깅 자료로만 보존하고 최종 8-case 결론에 사용하지 않는다.
 
 ## 6. 최종 8-case 의미
@@ -405,8 +406,15 @@ Original과 같은 조건으로 측정해 최종 8-case 표를 작성한다.
 
 ## 17. 현재 시점의 다음 작업
 
-다음 작업은 본 측정이 아니라 **단계 1: mode와 설정 직교화**다.
+**단계 1: mode와 설정 직교화는 완료했다.**
 
-기존 `O-T2X`와 `O-T2X-R`의 화면 및 동작을 유지하면서 `TemporalCoverage`와
-`ReprojectionMode`를 분리하고, 아직 없는 `O-ET2X`를 표현할 수 있는 구조를 먼저 만든다.
-그 다음 후보 추출을 temporal output과 분리된 진단 단계로 구현한다.
+- Original 네 semantic mode를 UI, 로그와 deterministic capture에 연결
+- `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, sampler, clipping,
+  candidate policy와 history weight를 명시적 설정으로 분리
+- `O-ET2X` no-reprojection prototype 실행 경로 추가
+- Release x64 build 및 네 mode engineering smoke capture 통과
+
+다음 작업은 본 측정이 아니라 **단계 2: 후보 추출과 계측**이다. 현재
+`ExperimentalLocalMeanMax3x3` 후보식을 ablation으로 격리하고, base luma edge,
+`AllBaseEdges`, `IntelFamilyNonDominant` 정책과 후보 counter/debug mask를 temporal
+출력에 영향을 주지 않는 진단 단계로 먼저 구현한다.

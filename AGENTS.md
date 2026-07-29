@@ -63,9 +63,9 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 - 기존 Catmull-Rom 5-tap과 YCoCg variance clipping 코드는 초기 구현으로 재사용할 수
   있지만, 공식 자료로 확인되지 않은 세부식은 독립 toggle로 분리하고 reference test를
   통과해야 한다.
-- 현재 복합 `SMAA_T2x_TSCMAAInspired`는 구현 가능성을 확인한 prototype이지 최종
+- 현재 `O-ET2X-R` prototype은 구현 가능성을 확인한 단계이지 최종 controlled
   `O-ET2X-R`이 아니다. 코드를 삭제하기보다 후보 선택, reprojection, jitter, sampling,
-  clipping과 history weight를 직교 설정으로 분해한다.
+  clipping과 history weight를 직교 설정으로 분해·검증한다.
 - 기존 3x3 local mean/max 후보식은 공식 TSCMAA 후보식으로 사용하지 않고
   `ExperimentalLocalMeanMax3x3` ablation으로만 보존한다.
 - 기존 복합 구현의 캡처와 측정은 디버깅·도구 검증 자료로 보존하되 최종 8-case 결론에는
@@ -124,13 +124,18 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 
 | ID | 상태 | 현재 코드 대응 |
 |---|---|---|
-| `O-T2X` | 구현됨 | `SMAA_T2x`; 같은 좌표의 current/previous를 기본 0.5 weight로 결합 |
-| `O-T2X-R` | 구현됨 | `SMAA_T2x_Reprojected`; camera-motion velocity 사용 |
-| `O-ET2X` | **미구현** | edge-selective + reprojection Off mode가 없음 |
-| `O-ET2X-R` | 부분 구현 | `SMAA_T2x_TSCMAAInspired`, 그러나 controlled case가 아닌 복합 실험 버전 |
+| `O-T2X` | 구현됨 | `SMAA_O_T2X`; 같은 좌표의 current/previous를 기본 0.5 weight로 결합 |
+| `O-T2X-R` | 구현됨 | `SMAA_O_T2X_R`; camera-motion velocity 사용 |
+| `O-ET2X` | prototype 구현 | `SMAA_O_ET2X`; 같은 좌표의 history를 사용하는 no-reprojection ablation |
+| `O-ET2X-R` | prototype 구현 | `SMAA_O_ET2X_R`; edge-selective + camera reprojection On 복합 실험 버전 |
 | Adaptive 4개 | **미구현** | Original 4개를 검증한 뒤 `main`의 Adaptive SMAA와 통합해야 함 |
 
-현재 `SMAA_T2x_TSCMAAInspired`는 다음 변경을 동시에 포함한다.
+Original 네 mode는 `TemporalCoverage`, `ReprojectionMode`, `JitterPolicy`, history sampler,
+clipping, candidate policy와 history weight를 명시적으로 기록하는 설정 구조로 연결되어
+있다. `-smaaOriginalFourCapture`로 네 mode를 같은 조건에서 순회하는 engineering smoke
+capture를 실행할 수 있다.
+
+현재 `O-ET2X`와 `O-ET2X-R` prototype은 다음 변경을 동시에 포함한다.
 
 - deliberate projection jitter 비활성화
 - SMAA 1X spatial input
@@ -140,16 +145,16 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 - YCoCg variance clipping
 - history weight 0.8
 
-따라서 이 모드는 현재 상태에서 `O-ET2X-R`의 최종 controlled 구현으로 간주하지 않는다.
-후보 선택, reprojection, jitter, sampling, clipping, history weight를 분리 가능한 설정으로
-리팩터링해야 한다.
+따라서 두 prototype은 현재 상태에서 최종 controlled 구현으로 간주하지 않는다. 설정
+구조는 분리됐지만 candidate shader와 sampler/clipping toggle의 실제 shader 분기 및
+공식 자료 기반 검증은 아직 완료되지 않았다.
 
 ## 5. 기존 측정의 정확한 범위
 
 `Projects/CMAA2/AutoBench/20260729_002704` 데이터는 다음 두 복합 구현의 1차 품질 비교다.
 
 - `O-T2X-R`에 해당하는 Reprojected SMAA T2X
-- 현재 복합 `SMAA_T2x_TSCMAAInspired`
+- 현재 `O-ET2X-R` 복합 prototype
 
 이 데이터는 실제 캡처 데이터지만 다음 용도로만 사용한다.
 
@@ -167,8 +172,8 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 
 추가 본 측정을 진행하기 전에 다음 순서를 지킨다.
 
-1. AA mode를 Standard/Edge-selective와 Reprojection Off/On의 직교 조합으로 정리한다.
-2. Original SMAA 기반 `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R` 네 mode를 구현한다.
+1. **완료:** AA mode를 Standard/Edge-selective와 Reprojection Off/On의 직교 조합으로 정리한다.
+2. Original SMAA 기반 `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R` 네 controlled mode를 구현한다.
 3. 네 mode에서 history 초기화, ping-pong, jitter, subsample index, scene/resize reset을 검증한다.
 4. 후보 선택 외의 Catmull-Rom, variance clipping, history weight 변경은 ablation toggle로 분리한다.
 5. Original 4개에 대한 동일 조건 품질·성능 결과를 확보한다.

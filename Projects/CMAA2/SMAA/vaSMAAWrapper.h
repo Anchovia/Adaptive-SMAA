@@ -37,6 +37,73 @@ namespace VertexAsylum
         // enum Mode { MODE_SMAA_1X, MODE_SMAA_T2X, MODE_SMAA_S2X, MODE_SMAA_4X, MODE_SMAA_COUNT = MODE_SMAA_4X };
         enum Preset { PRESET_LOW, PRESET_MEDIUM, PRESET_HIGH, PRESET_ULTRA, PRESET_CUSTOM, PRESET_COUNT = PRESET_CUSTOM };
 
+        enum class TemporalCoverage : int32
+        {
+            Disabled,
+            FullScreen,
+            EdgeSelective
+        };
+
+        enum class ReprojectionMode : int32
+        {
+            Off,
+            CameraDepthMatrices
+        };
+
+        enum class JitterPolicy : int32
+        {
+            None,
+            SMAAT2X
+        };
+
+        enum class HistorySampler : int32
+        {
+            Bilinear,
+            CatmullRom5Tap
+        };
+
+        enum class HistoryClipping : int32
+        {
+            Off,
+            YCoCgVariance
+        };
+
+        enum class CandidatePolicy : int32
+        {
+            AllBaseEdges,
+            IntelFamilyNonDominant,
+            ExperimentalLocalMeanMax3x3
+        };
+
+        struct TemporalSettings
+        {
+            TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
+            ReprojectionMode             Reprojection                = ReprojectionMode::Off;
+            JitterPolicy                 Jitter                      = JitterPolicy::None;
+            HistorySampler               Sampler                     = HistorySampler::Bilinear;
+            HistoryClipping              Clipping                    = HistoryClipping::Off;
+            CandidatePolicy              Candidates                  = CandidatePolicy::AllBaseEdges;
+            float                        HistoryWeight               = 0.5f;
+            float                        NonDominantRemovalAmount    = 0.5f;
+
+            bool operator == ( const TemporalSettings & other ) const
+            {
+                return Coverage == other.Coverage
+                    && Reprojection == other.Reprojection
+                    && Jitter == other.Jitter
+                    && Sampler == other.Sampler
+                    && Clipping == other.Clipping
+                    && Candidates == other.Candidates
+                    && HistoryWeight == other.HistoryWeight
+                    && NonDominantRemovalAmount == other.NonDominantRemovalAmount;
+            }
+
+            bool operator != ( const TemporalSettings & other ) const
+            {
+                return !( *this == other );
+            }
+        };
+
         struct Settings
         {
             Preset                          Preset;
@@ -54,9 +121,7 @@ namespace VertexAsylum
         vaTypedConstantBufferWrapper<SMAAShaderConstants>
                                     m_constantsBuffer;
 
-        bool                        m_temporalModeEnabled               = false;
-        bool                        m_temporalReprojectionEnabled       = false;
-        bool                        m_tscmaaInspiredEnabled             = false;
+        TemporalSettings            m_temporalSettings;
         int                         m_temporalFrameIndex                = 0;
 
         //bool                        m_debugShowEdges;
@@ -77,33 +142,19 @@ namespace VertexAsylum
         }
         Preset                      GetPreset( ) const                    { return m_settings.Preset; }
 
-        void                        SetTemporalModeEnabled( bool enabled )
+        void                        SetTemporalSettings( const TemporalSettings & settings )
         {
-            if( m_temporalModeEnabled != enabled )
+            if( m_temporalSettings != settings )
             {
-                m_temporalModeEnabled = enabled;
+                m_temporalSettings = settings;
                 ResetTemporalHistory( );
             }
         }
-        bool                        GetTemporalModeEnabled( ) const      { return m_temporalModeEnabled; }
-        void                        SetTemporalReprojectionEnabled( bool enabled )
-        {
-            if( m_temporalReprojectionEnabled != enabled )
-            {
-                m_temporalReprojectionEnabled = enabled;
-                ResetTemporalHistory( );
-            }
-        }
-        bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
-        void                        SetTSCMAAInspiredEnabled( bool enabled )
-        {
-            if( m_tscmaaInspiredEnabled != enabled )
-            {
-                m_tscmaaInspiredEnabled = enabled;
-                ResetTemporalHistory( );
-            }
-        }
-        bool                        GetTSCMAAInspiredEnabled( ) const    { return m_tscmaaInspiredEnabled; }
+        const TemporalSettings &    GetTemporalSettings( ) const       { return m_temporalSettings; }
+        bool                        GetTemporalModeEnabled( ) const      { return m_temporalSettings.Coverage != TemporalCoverage::Disabled; }
+        bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatrices; }
+        bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
+        bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
