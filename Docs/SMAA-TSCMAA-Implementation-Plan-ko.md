@@ -1305,3 +1305,75 @@ visible-window 실행으로 재현하기 전에는 최종 성능 결론으로 �
 다음 작업은 동일 실행 파일과 설정으로 창을 보이는 상태에서 8-case 반복 벤치마크를
 재실행하고, `visible/formal` 분석 결과가 숨김 engineering 결과와 같은 GPU timing
 방향을 재현하는지 확인하는 것이다.
+
+### 17.21 visible-window 8-case 성능 본 측정
+
+2026-07-30에 운영체제 수준에서 CMAA2 렌더 창이 보이는 상태로 8-case 반복 성능
+벤치마크를 실행했다. 앱 내부 ImGui UI는 기존 벤치마크 구현대로 측정 중 숨겼지만,
+Windows 렌더 창 자체는 visible/windowed 상태를 유지했다.
+
+실행 조건:
+
+- AMD Ryzen 5 5600 / NVIDIA GeForce RTX 3060 Ti
+- Release x64 / DirectX 11
+- 1920×1017 windowed / VSync Off / SMAA Ultra
+- Bistro fixed 60 Hz camera path, start 1초
+- mode당 300 warm-up + 4,800 measurement
+- 3 repeats, 정방향/역방향/정방향
+- PNG capture Off / candidate readback Off
+- mode당 timing 표본 14,400개
+
+자동화 환경에서는 GUI 앱에 명령행 인수를 직접 전달할 수 없어, 기존
+`BenchItemSMAATemporalPerformanceBenchmark`를 앱 초기화 시 한 번 등록하는 임시
+startup flag를 사용했다. 이 flag는 측정 직후 기본값 `false`로 복원했고 최종 코드에는
+자동 실행 상태가 남아 있지 않다. temporal 알고리즘, benchmark class, mode 순서,
+warm-up/measurement/repeat 조건은 명령행 실행과 동일했다. 향후 수동 재현을 위해
+Benchmarking UI의 `Run SMAA eight-case performance benchmark` 버튼과 `F8` 단축키를
+추가했다.
+
+원본과 분석 산출물:
+
+- `Projects/CMAA2/AutoBench/20260730_021435/20260730_021435_results.csv`
+- `Projects/CMAA2/AutoBench/20260730_021435/PerformanceAnalysis/SMAA-Eight-Case-Performance-Analysis-ko.md`
+- `Projects/CMAA2/AutoBench/20260730_021435/PerformanceAnalysis/smaa_eight_case_performance_modes.csv`
+- `Projects/CMAA2/AutoBench/20260730_021435/PerformanceAnalysis/smaa_eight_case_performance_comparisons.csv`
+- `Projects/CMAA2/AutoBench/20260730_021435/PerformanceAnalysis/smaa_eight_case_performance_analysis.json`
+
+내부 benchmark validation과 `visible/formal` 분석 validation은 모두 PASS했다.
+
+| Mode | Wall 평균 | Wall 1% low | WholeFrame 평균 | SMAA 평균 | SMAA run σ |
+|---|---:|---:|---:|---:|---:|
+| `O-T2X` | 3.294510 ms | 236.967 FPS | 3.187142 ms | 0.239521 ms | 0.002811 ms |
+| `O-T2X-R` | 3.342563 ms | 233.618 FPS | 3.239933 ms | 0.283395 ms | 0.001114 ms |
+| `O-ET2X` | 3.508584 ms | 152.458 FPS | 3.440512 ms | 0.408391 ms | 0.001245 ms |
+| `O-ET2X-R` | 3.773257 ms | 132.114 FPS | 3.674302 ms | 0.440497 ms | 0.000505 ms |
+| `A-T2X` | 3.296973 ms | 235.444 FPS | 3.165971 ms | 0.206022 ms | 0.000065 ms |
+| `A-T2X-R` | 3.306381 ms | 235.089 FPS | 3.198469 ms | 0.250192 ms | 0.000318 ms |
+| `A-ET2X` | 3.359188 ms | 206.364 FPS | 3.309388 ms | 0.377269 ms | 0.000197 ms |
+| `A-ET2X-R` | 3.571518 ms | 144.970 FPS | 3.494936 ms | 0.409989 ms | 0.001135 ms |
+
+세 독립 축의 대응 case 결과:
+
+| 축 | 대응 case 평균 SMAA 변화 | 관측 범위 |
+|---|---:|---:|
+| Original → Adaptive | -10.06% | -6.93% ~ -13.99% |
+| Standard → Edge-selective | +68.23% | +55.44% ~ +83.12% |
+| Reprojection Off → On | +14.07% | +7.86% ~ +21.44% |
+
+숨김 engineering 실행과 visible formal 실행의 축별 평균은 각각 다음과 같았다.
+
+| 축 | Hidden engineering | Visible formal | 방향 재현 |
+|---|---:|---:|---|
+| Adaptive | -10.66% | -10.06% | 예 |
+| Edge-selective | +76.93% | +68.23% | 예 |
+| Reprojection | +14.39% | +14.07% | 예 |
+
+따라서 Adaptive 공간 탐색의 SMAA pass 시간 감소와 reprojection 비용 증가는 visible
+실행에서도 재현됐다. 현재 document-based Edge-selective 구현은 후보 수를 줄이지만,
+후보 준비·추출·copy·indirect resolve의 고정 비용 때문에 대응 Standard T2X보다
+SMAA 시간이 55.44~83.12% 증가했다. WholeFrame도 대응 case에서 4.53~13.41%
+증가했다. 이 장면의 현재 구현을 성능 최적화 성공으로 주장할 수 없다.
+
+이 결론은 성능에 한정된다. Edge-selective 방식이 ghosting, shimmer, crawling 등에서
+품질 이득을 제공하는지는 8-case 연속 PNG sequence와 object-motion/disocclusion
+전용 장면으로 별도 검증해야 한다. 다음 작업은 정식 8-case 품질 캡처와 분석이다.

@@ -310,6 +310,15 @@ edge-selective 네 mode의 candidate 표본 32개를 수집해 PASS했다.
 으로 분류한다. 이 결과는 계측과 분석 경로 검증 및 예비 GPU pass 비교에만 사용하고,
 논문용 FPS·WholeFrame 결과는 visible-window formal 실행으로 재현한 뒤 확정한다.
 
+이후 운영체제 수준에서 CMAA2 창이 보이는 상태로 같은 8-case benchmark를 재실행했다.
+앱 내부 ImGui UI만 측정 중 숨겼고 렌더 창은 visible/windowed 상태를 유지했다.
+`Projects/CMAA2/AutoBench/20260730_021435`에서 mode별 14,400 timing 표본과 내부
+validation PASS를 확인했으며 `--window-state visible --classification formal` 분석도
+PASS했다. 대응 case 평균 SMAA 변화는 Adaptive -10.06%, Edge-selective +68.23%,
+camera reprojection On +14.07%였다. 숨김 engineering 실행의 -10.66%, +76.93%,
++14.39%와 방향이 모두 재현됐다. 현재 Edge-selective adaptation은 이 장면에서
+Standard T2X보다 느리며, 품질 이득 검증 전에는 종합적인 성공/실패 결론을 내리지 않는다.
+
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
 sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8개 mode의 본
@@ -364,8 +373,10 @@ sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. 전체 8
 8. **완료:** Original 4개에 대한 동일 Bistro 경로 품질·성능 기준선을 확보했다.
 9. **완료:** Adaptive SMAA를 독립 공간 축으로 결합해 `A-*` 네 mode를 만들고,
    8-mode lifecycle, 축소 성능/capture/analysis smoke를 통과시켰다.
-10. **다음:** 전체 8개를 같은 정식 조건으로 반복 측정하고, 독립 object motion과
-   disocclusion 장면을 추가해 최종 8-case 표와 품질 결론을 작성한다.
+10. **완료:** 전체 8개를 visible-window 정식 조건으로 3회 반복 성능 측정하고
+    세 독립 축의 성능 차이를 분석했다.
+11. **다음:** 전체 8개 품질 sequence를 같은 정식 조건으로 캡처하고, 독립 object
+    motion과 disocclusion 장면을 추가해 최종 품질 결론을 작성한다.
 
 ## 7. 측정 규칙
 
