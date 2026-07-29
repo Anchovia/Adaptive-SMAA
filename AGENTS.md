@@ -237,6 +237,27 @@ Present 자체는 제외한다. temporal lifecycle과 네 mode 출력 hash 회�
 Present와 OS scheduling을 포함한다. `WholeFrame` 기반 FPS는 GPU-equivalent throughput로
 별도 표기하며 실제 표시 FPS와 혼동하지 않는다.
 
+2026-07-30 Original 네 mode의 첫 반복 본 성능 측정을 완료했다. RTX 3060 Ti,
+1920×1017, 기본 조건(300 warm-up, 4,800 measurement, 3 repeats)에서 mode별
+14,400 표본과 run mean 3개를 모두 수집했고 validation은 PASS했다. candidate readback
+Off 성능 결과는 다음과 같다.
+
+| ID | WholeFrame GPU 평균 | SMAA GPU 평균 | Wall 평균 FPS |
+|---|---:|---:|---:|
+| `O-T2X` | 2.779183 ms | 0.236075 ms | 305.817 |
+| `O-T2X-R` | 2.835895 ms | 0.281633 ms | 308.068 |
+| `O-ET2X` | 2.966339 ms | 0.406816 ms | 305.250 |
+| `O-ET2X-R` | 3.014272 ms | 0.441845 ms | 302.602 |
+
+현재 edge-selective adaptation은 대응 Standard T2X보다 빠르지 않았다.
+`O-ET2X`는 `O-T2X` 대비 SMAA +72.33%, WholeFrame +6.73%였고,
+`O-ET2X-R`은 `O-T2X-R` 대비 SMAA +56.89%, WholeFrame +6.29%였다.
+성능과 분리한 readback On 4,800프레임 특성화에서 평균 base edge 222,123.076개,
+candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 픽셀의
+각각 11.376%, 7.728%다. Intel 문서의 약 50% 기본 목표보다 높은 장면 결과이며,
+후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
+아직 Original 네 mode의 최종 품질 비교와 Adaptive 4개 측정은 완료되지 않았다.
+
 Intel 공개 문서 기반 core의 기능 체크리스트는 모두 통과했다. 따라서
 `TSCMAA-inspired SMAA core 기능 검증 완료`라고 표시할 수 있다. 이는 공식 Intel
 sample 포팅 인증이나 8-case 연구 완료를 뜻하지 않는다. Original 네 mode의

@@ -987,3 +987,71 @@ Present를 제외한 GPU render throughput 환산값이다. 두 수치를 분리
 
 다음 단계는 기본 조건인 300 warm-up, 4,800 measurement, 3 repeats를 실행하고, 원시
 AutoBench CSV는 Git에 넣지 않은 채 결과 요약과 반복 분산을 검토하는 것이다.
+
+### 17.16 Original 네 case 반복 성능 측정 결과
+
+2026-07-30에 기본 반복 벤치마크를 실제 실행했다.
+
+- GPU: NVIDIA GeForce RTX 3060 Ti
+- CPU: AMD Ryzen 5 5600
+- 해상도: 1920×1017 windowed
+- API/빌드: DirectX 11, Release x64
+- SMAA: Ultra
+- VSync/UI/PNG/candidate counter readback: Off
+- camera: Bistro 동일 동적 path, fixed 60 Hz simulation, start 1초
+- mode당 매 반복: warm-up 300프레임, 측정 4,800프레임
+- 반복: 3회, 정방향/역방향/정방향
+- mode당 총 timing 표본: 14,400
+
+모든 expected metric은 14,400/14,400개, run mean은 3/3개 수집됐고 benchmark
+validation은 PASS했다. 결과 원본은 Git에 포함하지 않는
+`Projects/CMAA2/AutoBench/20260730_005402/20260730_005402_results.csv`에 있다.
+
+| Mode | Wall 평균 | Wall p99 | Wall 평균 FPS | Wall 1% low | WholeFrame 평균 | WholeFrame p99 | SMAA 평균 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `O-T2X` | 3.269926 ms | 4.157800 ms | 305.817 | 240.512 | 2.779183 ms | 3.435520 ms | 0.236075 ms |
+| `O-T2X-R` | 3.246035 ms | 4.017700 ms | 308.068 | 248.899 | 2.835895 ms | 3.502080 ms | 0.281633 ms |
+| `O-ET2X` | 3.275998 ms | 4.159800 ms | 305.250 | 240.396 | 2.966339 ms | 3.642368 ms | 0.406816 ms |
+| `O-ET2X-R` | 3.304674 ms | 4.163100 ms | 302.602 | 240.206 | 3.014272 ms | 3.696640 ms | 0.441845 ms |
+
+WholeFrame 반복 평균 표준편차는 `O-T2X` 0.028973 ms, `O-T2X-R`
+0.025554 ms, `O-ET2X` 0.015333 ms, `O-ET2X-R` 0.010409 ms였다. SMAA 반복 평균
+표준편차는 각각 0.003863, 0.004581, 0.002899, 0.002216 ms였다.
+
+대응 mode의 평균 차이는 다음과 같다.
+
+| 비교 | Wall 평균 변화 | WholeFrame 평균 변화 | SMAA 평균 변화 |
+|---|---:|---:|---:|
+| `O-T2X-R` vs `O-T2X` | -0.73% | +2.04% | +19.30% |
+| `O-ET2X` vs `O-T2X` | +0.19% | +6.73% | +72.33% |
+| `O-ET2X-R` vs `O-T2X-R` | +1.81% | +6.29% | +56.89% |
+| `O-ET2X-R` vs `O-ET2X` | +0.88% | +1.62% | +8.61% |
+
+Wall 평균 FPS는 CPU scheduling과 Present 영향을 함께 받으므로 작은 차이의 알고리즘
+원인으로 사용하지 않는다. GPU timestamp에서는 현재 document-based edge-selective
+adaptation이 대응 Standard T2X보다 명확히 느렸다. 후보 resolve 자체보다 full-screen
+SMAA 1X, 후보 준비·추출과 copy/indirect 작업의 추가 비용이 더 큰 현재 구조로
+해석할 수 있다. 이는 측정에 근거한 구현 분석이며, quality 결과 없이 기법 전체의
+유효성을 결론내리는 것은 아니다.
+
+#### 분리된 후보 픽셀 특성화
+
+성능 실행과 분리해 candidate readback On, warm-up 300프레임, 측정 4,800프레임을
+동일 동적 경로에서 실행했다. 결과 원본은
+`Projects/CMAA2/AutoBench/20260730_005902/20260730_005902_results.csv`에 있다.
+
+| 항목 | 평균 | 전체 픽셀/기준 대비 |
+|---|---:|---:|
+| 전체 픽셀 | 1,952,640 | 100% |
+| base edge | 222,123.076 | 전체의 11.376% |
+| temporal candidate | 150,908.285 | 전체의 7.728% |
+| indirect process | 150,908.285 | candidate와 일치 |
+| candidate/base | — | 67.939% |
+
+문서의 약 50%는 기본 목표이지 모든 장면의 보장값이 아니다. 이 Bistro 동적 경로에서는
+평균 67.939%가 선택됐다. 후보 수는 감소했지만 실제 SMAA/WholeFrame GPU 시간은
+증가했으므로 현재 구현을 성능 최적화 성공으로 주장할 수 없다.
+
+이 결과는 Original 네 case의 첫 반복 성능 결과다. 아직 필요한 다음 단계는 같은 네
+mode의 연속 프레임 품질 비교(ghosting, shimmer, crawling, flicker, blur,
+disocclusion)이며, 그 뒤에만 Adaptive 네 mode 통합·측정을 진행한다.
