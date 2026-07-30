@@ -107,6 +107,9 @@ namespace VertexAsylum
             SMAA_A_ET2X_R,          // A-ET2X-R: Adaptive SMAA edge-selective temporal, camera reprojection On
             SMAA_A_1X,              // A-1X: Adaptive SMAA spatial-only quality control
             SMAA_O_ABLATION_CANDIDATE_ONLY_R, // Diagnostic: O-T2X-R settings with edge-selective candidates as the only temporal change
+            SMAA_O_ABLATION_CANDIDATE_CATMULL_R, // Diagnostic: Candidate-only + Catmull-Rom 5-tap
+            SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R, // Diagnostic: previous step + YCoCg variance clipping
+            SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R, // Diagnostic: previous step + history weight 0.8
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,

@@ -47,7 +47,10 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_A_ET2X
             || aaType == CMAA2Sample::AAType::SMAA_A_ET2X_R
             || aaType == CMAA2Sample::AAType::SMAA_A_1X
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -90,18 +93,30 @@ namespace
             settings.HistoryWeight = 0.5f;
             break;
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R:
             // Controlled ablation against O-T2X-R: preserve reprojection,
-            // deliberate T2X jitter, bilinear sampling, no clipping and the
-            // 0.5 history weight. Only temporal coverage changes from
-            // full-screen to Intel-family edge candidates.
+            // deliberate T2X jitter and the Intel-family candidate policy,
+            // then cumulatively enable one document-profile component at a
+            // time so every adjacent profile has exactly one changed factor.
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::EdgeSelective;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
-            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
-            settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
             settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
-            settings.HistoryWeight = 0.5f;
             settings.NonDominantRemovalAmount = 0.5f;
+            settings.Sampler =
+                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R?
+                vaSMAAWrapper::HistorySampler::Bilinear :
+                vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
+            settings.Clipping =
+                (aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R
+                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R)?
+                vaSMAAWrapper::HistoryClipping::YCoCgVariance :
+                vaSMAAWrapper::HistoryClipping::Off;
+            settings.HistoryWeight =
+                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R?
+                0.8f : 0.5f;
             break;
         case CMAA2Sample::AAType::SMAA_O_ET2X:
         case CMAA2Sample::AAType::SMAA_O_ET2X_R:
@@ -393,6 +408,12 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
     case CMAA2Sample::AAType::SMAA_A_1X:            return "A-1X - Adaptive SMAA spatial-only quality control";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R:
         return "ABL-CandidateOnly-R - O-T2X-R with edge-selective candidates as the only temporal change";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R:
+        return "ABL-Candidate+Catmull-R - Candidate-only plus Catmull-Rom 5-tap";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R:
+        return "ABL-Candidate+Catmull+Clip-R - Previous ablation plus YCoCg variance clipping";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R:
+        return "ABL-Candidate+Catmull+Clip+W0.8-R - Previous ablation plus history weight 0.8";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -433,6 +454,10 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_A_ET2X_R:        return 1;
     case CMAA2Sample::AAType::SMAA_A_1X:            return 1;
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R:
+        return 1;
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R:
         return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
@@ -2575,20 +2600,36 @@ protected:
 class BenchItemRecordSMAACandidateOnlyAblation : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
-    static const int    c_modeCount = 4;
+    static const int    c_modeCapacity = 7;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SMAATemporalStressScenario m_scenario;
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
+    const bool          m_fullComponentMatrix;
+    const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
     bool                m_started = false;
     bool                m_isDone = false;
-    wstring             m_outputDirs[c_modeCount];
+    wstring             m_outputDirs[c_modeCapacity];
 
-    static const char * GetModeID(int mode)
+    const char * GetModeID(int mode) const
     {
-        static const char * c_modeIDs[c_modeCount] =
+        if(m_fullComponentMatrix)
+        {
+            static const char * c_componentModeIDs[c_modeCapacity] =
+            {
+                "O-1X",
+                "O-T2X-R",
+                "ABL-CandidateOnly-R",
+                "ABL-Candidate+Catmull-R",
+                "ABL-Candidate+Catmull+Clip-R",
+                "ABL-Candidate+Catmull+Clip+W0.8-R",
+                "O-ET2X-R-Document"
+            };
+            return c_componentModeIDs[mode];
+        }
+        static const char * c_modeIDs[4] =
         {
             "O-1X",
             "O-T2X-R",
@@ -2598,9 +2639,23 @@ class BenchItemRecordSMAACandidateOnlyAblation : public AutoBenchToolWorkItem
         return c_modeIDs[mode];
     }
 
-    static const char * GetModeDirectory(int mode)
+    const char * GetModeDirectory(int mode) const
     {
-        static const char * c_modeDirectories[c_modeCount] =
+        if(m_fullComponentMatrix)
+        {
+            static const char * c_componentModeDirectories[c_modeCapacity] =
+            {
+                "O_1X",
+                "O_T2X_R",
+                "ABL_CandidateOnly_R",
+                "ABL_Candidate_Catmull_R",
+                "ABL_Candidate_Catmull_Clip_R",
+                "ABL_Candidate_Catmull_Clip_Weight08_R",
+                "O_ET2X_R_Document"
+            };
+            return c_componentModeDirectories[mode];
+        }
+        static const char * c_modeDirectories[4] =
         {
             "O_1X",
             "O_T2X_R",
@@ -2610,9 +2665,23 @@ class BenchItemRecordSMAACandidateOnlyAblation : public AutoBenchToolWorkItem
         return c_modeDirectories[mode];
     }
 
-    static CMAA2Sample::AAType GetModeAAType(int mode)
+    CMAA2Sample::AAType GetModeAAType(int mode) const
     {
-        static const CMAA2Sample::AAType c_modes[c_modeCount] =
+        if(m_fullComponentMatrix)
+        {
+            static const CMAA2Sample::AAType c_componentModes[c_modeCapacity] =
+            {
+                CMAA2Sample::AAType::SMAA,
+                CMAA2Sample::AAType::SMAA_O_T2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R
+            };
+            return c_componentModes[mode];
+        }
+        static const CMAA2Sample::AAType c_modes[4] =
         {
             CMAA2Sample::AAType::SMAA,
             CMAA2Sample::AAType::SMAA_O_T2X_R,
@@ -2625,11 +2694,14 @@ class BenchItemRecordSMAACandidateOnlyAblation : public AutoBenchToolWorkItem
 public:
     BenchItemRecordSMAACandidateOnlyAblation(CMAA2Sample& parent,
         CMAA2Sample::SMAATemporalStressScenario scenario,
-        int captureFrameCount, int warmupFrameCount)
+        int captureFrameCount, int warmupFrameCount,
+        bool fullComponentMatrix = false)
         : AutoBenchToolWorkItem(parent),
         m_scenario(scenario),
         m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
-        m_warmupFrameCount(vaMath::Max(1, warmupFrameCount))
+        m_warmupFrameCount(vaMath::Max(1, warmupFrameCount)),
+        m_fullComponentMatrix(fullComponentMatrix),
+        m_modeCount(fullComponentMatrix? c_modeCapacity : 4)
     {
     }
 
@@ -2652,14 +2724,16 @@ protected:
                 std::numeric_limits<float>::infinity();
 
             abTool.ReportStart();
-            for(int mode = 0; mode < c_modeCount; mode++)
+            for(int mode = 0; mode < m_modeCount; mode++)
             {
                 m_outputDirs[mode] = abTool.ReportGetDir()
                     + vaStringTools::SimpleWiden(GetModeDirectory(mode)) + L"\\";
                 vaFileTools::EnsureDirectoryExists(m_outputDirs[mode]);
             }
 
-            abTool.ReportAddText("SMAA candidate-only controlled ablation capture\r\n\r\n");
+            abTool.ReportAddText(m_fullComponentMatrix?
+                "SMAA edge-selective temporal component ablation capture\r\n\r\n" :
+                "SMAA candidate-only controlled ablation capture\r\n\r\n");
             abTool.ReportAddText(vaStringTools::Format("Scenario:       %s\r\n",
                 CMAA2Sample::GetSMAATemporalStressScenarioName(m_scenario)));
             abTool.ReportAddText("Scene:          procedural thin lines, moving occluder, rotating blades\r\n");
@@ -2673,9 +2747,11 @@ protected:
             abTool.ReportAddText("Classification: controlled component ablation; PNG capture is not a performance measurement\r\n\r\n");
             abTool.ReportAddText("ABL-CandidateOnly-R is identical to O-T2X-R except that temporal resolve is restricted to IntelFamilyNonDominant edge candidates.\r\n");
             abTool.ReportAddText("Both use SMAA T2X jitter, bilinear history sampling, clipping Off, history weight 0.5, and camera reprojection.\r\n");
+            if(m_fullComponentMatrix)
+                abTool.ReportAddText("Subsequent profiles cumulatively add Catmull-Rom 5-tap, YCoCg variance clipping, history weight 0.8, then disable deliberate jitter; every adjacent pair changes one component.\r\n");
             abTool.ReportAddText("O-ET2X-R-Document is the existing compound document profile and is included only as an endpoint reference.\r\n\r\n");
             abTool.ReportAddRowValues({ "Mode", "Output directory" });
-            for(int mode = 0; mode < c_modeCount; mode++)
+            for(int mode = 0; mode < m_modeCount; mode++)
                 abTool.ReportAddRowValues({ GetModeID(mode), GetModeDirectory(mode) });
 
             m_currentMode = 0;
@@ -2686,7 +2762,7 @@ protected:
         if(m_currentFrame >= m_captureFrameCount)
         {
             m_currentMode++;
-            if(m_currentMode >= c_modeCount)
+            if(m_currentMode >= m_modeCount)
             {
                 m_isDone = true;
                 abTool.ReportFinish();
@@ -2708,7 +2784,7 @@ protected:
         shared_ptr<vaPostProcess>& postProcess) override
     {
         abTool; imageCompareTool; postProcess;
-        if(m_currentMode < c_modeCount && m_currentFrame >= 0
+        if(m_currentMode < m_modeCount && m_currentFrame >= 0
             && m_currentFrame < m_captureFrameCount)
         {
             const char* modeName = GetModeDirectory(m_currentMode);
@@ -2726,7 +2802,7 @@ protected:
     virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
     virtual bool IsCapturingFrame() const override
     {
-        return m_currentMode < c_modeCount && m_currentFrame >= 0
+        return m_currentMode < m_modeCount && m_currentFrame >= 0
             && m_currentFrame < m_captureFrameCount;
     }
     virtual float GetProgress() const override
@@ -2735,7 +2811,7 @@ protected:
         const int completedFrames = m_currentMode * framesPerMode
             + m_currentFrame + m_warmupFrameCount;
         return vaMath::Clamp((float)completedFrames
-            / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f);
+            / (float)(framesPerMode * m_modeCount), 0.0f, 1.0f);
     }
 };
 
@@ -2779,6 +2855,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const int m_measureFrameCount;
     const int m_repeatCount;
     const bool m_candidateAblation;
+    const bool m_fullComponentAblation;
     const int m_modeCount;
     const float m_frameDeltaTime = 1.0f / (float)c_framePerSecond;
 
@@ -2803,6 +2880,19 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( m_candidateAblation )
         {
+            if( m_fullComponentAblation )
+            {
+                static const char * c_componentModeIDs[6] =
+                {
+                    "O-T2X-R",
+                    "ABL-CandidateOnly-R",
+                    "ABL-Candidate+Catmull-R",
+                    "ABL-Candidate+Catmull+Clip-R",
+                    "ABL-Candidate+Catmull+Clip+W0.8-R",
+                    "O-ET2X-R-Document"
+                };
+                return c_componentModeIDs[mode];
+            }
             static const char * c_ablationModeIDs[3] =
             {
                 "O-T2X-R",
@@ -2823,6 +2913,19 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( m_candidateAblation )
         {
+            if( m_fullComponentAblation )
+            {
+                static const CMAA2Sample::AAType c_componentModes[6] =
+                {
+                    CMAA2Sample::AAType::SMAA_O_T2X_R,
+                    CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                    CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R,
+                    CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R,
+                    CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R,
+                    CMAA2Sample::AAType::SMAA_O_ET2X_R
+                };
+                return c_componentModes[mode];
+            }
             static const CMAA2Sample::AAType c_ablationModes[3] =
             {
                 CMAA2Sample::AAType::SMAA_O_T2X_R,
@@ -3094,14 +3197,16 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 public:
     BenchItemSMAATemporalPerformanceBenchmark( CMAA2Sample & parent, float startTime,
         int warmupFrameCount, int measureFrameCount, int repeatCount, bool includeAdaptive,
-        bool candidateAblation = false )
+        bool candidateAblation = false, bool fullComponentAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
         m_warmupFrameCount( vaMath::Max( 8, warmupFrameCount ) ),
         m_measureFrameCount( vaMath::Max( 16, measureFrameCount ) ),
         m_repeatCount( vaMath::Clamp( repeatCount, 1, 9 ) ),
         m_candidateAblation( candidateAblation ),
-        m_modeCount( candidateAblation? 3 : (includeAdaptive? c_modeCapacity : c_originalModeCount) )
+        m_fullComponentAblation( fullComponentAblation ),
+        m_modeCount( candidateAblation? (fullComponentAblation? 6 : 3) :
+            (includeAdaptive? c_modeCapacity : c_originalModeCount) )
     {
     }
 
@@ -3126,20 +3231,29 @@ protected:
 
             abTool.ReportStart( );
             abTool.ReportAddText( m_candidateAblation?
-                (m_repeatCount > 1? "SMAA candidate-only controlled repeated performance benchmark\r\n\r\n" :
-                    "SMAA candidate-only controlled GPU performance smoke\r\n\r\n") :
+                (m_fullComponentAblation?
+                    (m_repeatCount > 1? "SMAA temporal component ablation repeated performance benchmark\r\n\r\n" :
+                        "SMAA temporal component ablation GPU performance smoke\r\n\r\n") :
+                    (m_repeatCount > 1? "SMAA candidate-only controlled repeated performance benchmark\r\n\r\n" :
+                        "SMAA candidate-only controlled GPU performance smoke\r\n\r\n")) :
                 (m_modeCount == c_modeCapacity?
                 (m_repeatCount > 1? "SMAA eight-case repeated performance benchmark\r\n\r\n" :
                     "SMAA eight-case GPU performance smoke\r\n\r\n") :
                 (m_repeatCount > 1? "Original SMAA four-mode repeated performance benchmark\r\n\r\n" :
                     "Original SMAA four-mode GPU performance smoke\r\n\r\n")) );
             abTool.ReportAddText( m_candidateAblation?
-                "This compares O-T2X-R, the candidate-only controlled ablation, and the existing compound O-ET2X-R document endpoint.\r\n" :
+                (m_fullComponentAblation?
+                    "This cumulatively compares candidate coverage, Catmull-Rom 5-tap, YCoCg variance clipping, history weight 0.8, and the final no-jitter document endpoint.\r\n" :
+                    "This compares O-T2X-R, the candidate-only controlled ablation, and the existing compound O-ET2X-R document endpoint.\r\n") :
                 (m_modeCount == c_modeCapacity?
                 "This measures the full Original/Adaptive, Standard/Edge-selective, reprojection Off/On matrix.\r\n" :
                 "This measures the Original four cases only; it is not the final Adaptive-inclusive 8-case benchmark.\r\n") );
             if( m_candidateAblation )
+            {
                 abTool.ReportAddText( "O-T2X-R and ABL-CandidateOnly-R keep camera reprojection, SMAA T2X jitter/subsample pattern, bilinear history sampling, clipping Off, and history weight 0.5 identical; only temporal coverage changes.\r\n" );
+                if( m_fullComponentAblation )
+                    abTool.ReportAddText( "Each subsequent adjacent profile changes exactly one factor: Catmull-Rom, YCoCg clipping, history weight 0.8, then deliberate jitter Off.\r\n" );
+            }
             abTool.ReportAddText( "Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, UI hidden, no PNG capture.\r\n" );
             abTool.ReportAddText( "GPU pass timings use the built-in timestamp-query profiler; values are milliseconds.\r\n" );
             abTool.ReportAddText( "WholeFrame covers GPU work between BeginFrame and EndAndPresentFrame, excluding Present itself.\r\n" );
@@ -3784,6 +3898,9 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         A_ET2X,
         A_ET2X_R,
         CandidateOnlyR,
+        CandidateCatmullR,
+        CandidateCatmullClipR,
+        CandidateCatmullClipWeight08R,
         ExplicitCameraCutReset,
         SceneChange,
         SceneRestore,
@@ -3817,6 +3934,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::A_ET2X:                 return "A-ET2X mode change";
         case Phase::A_ET2X_R:               return "A-ET2X-R mode change";
         case Phase::CandidateOnlyR:          return "ABL-CandidateOnly-R mode change";
+        case Phase::CandidateCatmullR:       return "ABL-Candidate+Catmull-R mode change";
+        case Phase::CandidateCatmullClipR:   return "ABL-Candidate+Catmull+Clip-R mode change";
+        case Phase::CandidateCatmullClipWeight08R:
+            return "ABL-Candidate+Catmull+Clip+W0.8-R mode change";
         case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
         case Phase::SceneChange:            return "scene change";
         case Phase::SceneRestore:           return "scene restore";
@@ -3838,7 +3959,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 
     int RequiredTargetFrames( ) const
     {
-        return (int)m_phase <= (int)Phase::CandidateOnlyR? 3 : 2;
+        return (int)m_phase <= (int)Phase::CandidateCatmullClipWeight08R? 3 : 2;
     }
 
     void EnterPhase( Phase phase )
@@ -3883,6 +4004,18 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::CandidateOnlyR:
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R;
+            break;
+        case Phase::CandidateCatmullR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R;
+            break;
+        case Phase::CandidateCatmullClipR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R;
+            break;
+        case Phase::CandidateCatmullClipWeight08R:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R;
             break;
         case Phase::ExplicitCameraCutReset:
             // LoadCamera and other known camera cuts use this same history-reset
@@ -3929,7 +4062,7 @@ protected:
             m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
 
             abTool.ReportStart( );
-            abTool.ReportAddText( "SMAA eight-case plus candidate-only ablation temporal lifecycle engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "SMAA eight-case plus controlled component ablation temporal lifecycle engineering validation\r\n\r\n" );
             abTool.ReportAddText( "Validates seed/resolve state, ping-pong indices, jitter/subsample pairing,\r\n" );
             abTool.ReportAddText( "first-frame reprojection matrices, mode/scene/camera-cut reset, and resize recreation.\r\n" );
             abTool.ReportAddText( "This is not a formal quality or performance measurement.\r\n\r\n" );
@@ -3942,7 +4075,7 @@ protected:
         if( m_phase == Phase::Complete )
         {
             const bool aggregatePassed = diagnostics.Passed && m_allTransitionsPassed
-                && diagnostics.SeedFrameCount >= 14
+                && diagnostics.SeedFrameCount >= 17
                 && diagnostics.ResolvedFrameCount > diagnostics.SeedFrameCount
                 && diagnostics.ReprojectionFrameCount > 0;
             VA_LOG( "SMAA temporal lifecycle validation: resets=%u, frames=%u, seed=%u, resolve=%u, reprojection=%u, failures=%u => %s",
@@ -4522,12 +4655,19 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaCandidateOnlyAblationPerformanceSmoke") == 0;
         const bool candidateAblationPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaCandidateOnlyAblationPerformanceBenchmark") == 0;
+        const bool componentAblationPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaTemporalComponentAblationPerformanceSmoke") == 0;
+        const bool componentAblationPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaTemporalComponentAblationPerformanceBenchmark") == 0;
+        const bool fullComponentAblationPerformance =
+            componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
-            candidateAblationPerformanceSmoke || candidateAblationPerformanceBenchmark;
+            candidateAblationPerformanceSmoke || candidateAblationPerformanceBenchmark
+            || fullComponentAblationPerformance;
         const bool performanceSmoke = originalPerformanceSmoke || eightCasePerformanceSmoke
-            || candidateAblationPerformanceSmoke;
+            || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
-            || candidateAblationPerformanceBenchmark;
+            || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -4555,11 +4695,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(false);
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(
                 *this, startTime, warmupFrameCount, measureFrameCount, repeatCount,
-                includeAdaptive, candidateAblationPerformance));
+                includeAdaptive, candidateAblationPerformance,
+                fullComponentAblationPerformance));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA %s %s: start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
-                candidateAblationPerformance? "candidate-only controlled ablation" :
-                    (includeAdaptive? "eight-case" : "Original four-mode"),
+                fullComponentAblationPerformance? "temporal component ablation" :
+                    (candidateAblationPerformance? "candidate-only controlled ablation" :
+                    (includeAdaptive? "eight-case" : "Original four-mode")),
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
                 startTime, repeatCount, warmupFrameCount, measureFrameCount,
                 m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled()? "On" : "Off");
@@ -4631,7 +4773,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
-        if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateOnlyAblationCapture") == 0)
+        const bool candidateOnlyAblationCapture =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidateOnlyAblationCapture") == 0;
+        const bool temporalComponentAblationCapture =
+            _wcsicmp(parameter.first.c_str(), L"smaaTemporalComponentAblationCapture") == 0;
+        if (candidateOnlyAblationCapture || temporalComponentAblationCapture)
         {
             wstring scenarioToken = L"object-motion";
             int frameCount = 180;
@@ -4663,9 +4809,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             warmupFrameCount = vaMath::Clamp(warmupFrameCount, 1, 600);
             m_autoBench->AddTask(
                 std::make_shared<BenchItemRecordSMAACandidateOnlyAblation>(
-                    *this, scenario, frameCount, warmupFrameCount));
+                    *this, scenario, frameCount, warmupFrameCount,
+                    temporalComponentAblationCapture));
             m_quitAfterCommandLineCapture = true;
-            VA_LOG("Queued SMAA candidate-only controlled ablation '%s': %d capture frames, %d warm-up frames",
+            VA_LOG("Queued SMAA %s controlled ablation '%s': %d capture frames, %d warm-up frames",
+                temporalComponentAblationCapture? "temporal component" : "candidate-only",
                 GetSMAATemporalStressScenarioName(scenario),
                 frameCount, warmupFrameCount);
             return;
