@@ -2815,6 +2815,205 @@ protected:
     }
 };
 
+class BenchItemRecordSMAACandidatePolicyJitterAblation : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 4;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const CMAA2Sample::SMAATemporalStressScenario m_scenario;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    int                 m_currentMode = 0;
+    int                 m_currentFrame = 0;
+    bool                m_started = false;
+    bool                m_isDone = false;
+    wstring             m_outputDirs[c_modeCount];
+
+    static const char * GetModeID( int mode )
+    {
+        static const char * c_modeIDs[c_modeCount] =
+        {
+            "O-1X",
+            "O-T2X-R",
+            "ABL-Candidate-Intel-R",
+            "ABL-Candidate-AllBase-R"
+        };
+        return c_modeIDs[mode];
+    }
+
+    static const char * GetModeDirectory( int mode )
+    {
+        static const char * c_modeDirectories[c_modeCount] =
+        {
+            "O_1X",
+            "O_T2X_R",
+            "ABL_Candidate_Intel_R",
+            "ABL_Candidate_AllBase_R"
+        };
+        return c_modeDirectories[mode];
+    }
+
+    static CMAA2Sample::AAType GetModeAAType( int mode )
+    {
+        static const CMAA2Sample::AAType c_modes[c_modeCount] =
+        {
+            CMAA2Sample::AAType::SMAA,
+            CMAA2Sample::AAType::SMAA_O_T2X_R,
+            CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+            CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R
+        };
+        return c_modes[mode];
+    }
+
+    void SetModeCandidatePolicy( int mode )
+    {
+        if( mode == 2 )
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+        else if( mode == 3 )
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::AllBaseEdges );
+        else
+            m_parent.SetSMAACandidatePolicyOverride(
+                false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+    }
+
+public:
+    BenchItemRecordSMAACandidatePolicyJitterAblation(
+        CMAA2Sample & parent,
+        CMAA2Sample::SMAATemporalStressScenario scenario,
+        int captureFrameCount,
+        int warmupFrameCount )
+        : AutoBenchToolWorkItem( parent ),
+        m_scenario( scenario ),
+        m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
+        m_warmupFrameCount( vaMath::Max( 1, warmupFrameCount ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( c_frameDeltaTime );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( false );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity( );
+
+            abTool.ReportStart( );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+            {
+                m_outputDirs[mode] = abTool.ReportGetDir( )
+                    + vaStringTools::SimpleWiden( GetModeDirectory( mode ) ) + L"\\";
+                vaFileTools::EnsureDirectoryExists( m_outputDirs[mode] );
+            }
+
+            abTool.ReportAddText(
+                "SMAA candidate-policy under T2X jitter ablation capture\r\n\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Scenario:       %s\r\n",
+                CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ) ) );
+            abTool.ReportAddText(
+                "Scene:          procedural thin lines, moving occluder, rotating blades\r\n" );
+            abTool.ReportAddText(
+                "API/preset:     DirectX 11, SMAA Ultra\r\n" );
+            abTool.ReportAddText(
+                "Timeline:       fixed 60 Hz and identical per mode\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Warm-up:        %d frames\r\n", m_warmupFrameCount ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Capture:        %d frames per mode\r\n", m_captureFrameCount ) );
+            abTool.ReportAddText(
+                "Motion scope:   camera reprojection only; object motion vectors are not connected\r\n" );
+            abTool.ReportAddText(
+                "Classification: candidate-policy quality ablation; PNG capture is not a performance measurement\r\n\r\n" );
+            abTool.ReportAddText(
+                "Both candidate modes preserve O-T2X-R camera reprojection, full-screen SMAA T2X jitter/subsample pattern, bilinear history sampling, clipping Off, and history weight 0.5.\r\n" );
+            abTool.ReportAddText(
+                "The only difference between ABL-Candidate-Intel-R and ABL-Candidate-AllBase-R is IntelFamilyNonDominant versus AllBaseEdges candidate selection.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Mode", "Candidate policy", "Output directory" } );
+            abTool.ReportAddRowValues( { GetModeID( 0 ), "N/A", GetModeDirectory( 0 ) } );
+            abTool.ReportAddRowValues( { GetModeID( 1 ), "FullScreen", GetModeDirectory( 1 ) } );
+            abTool.ReportAddRowValues( { GetModeID( 2 ), "IntelFamilyNonDominant", GetModeDirectory( 2 ) } );
+            abTool.ReportAddRowValues( { GetModeID( 3 ), "AllBaseEdges", GetModeDirectory( 3 ) } );
+
+            m_currentMode = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if( m_currentFrame >= m_captureFrameCount )
+        {
+            m_currentMode++;
+            if( m_currentMode >= c_modeCount )
+            {
+                m_parent.SetSMAACandidatePolicyOverride(
+                    false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+                m_isDone = true;
+                abTool.ReportFinish( );
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        SetModeCandidatePolicy( m_currentMode );
+        m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
+        m_parent.SetSMAATemporalStressTestState(
+            m_scenario, (float)m_currentFrame * c_frameDeltaTime );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+
+    virtual void OnRenderComparePoint(
+        AutoBenchTool & abTool,
+        vaImageCompareTool & imageCompareTool,
+        vaRenderDeviceContext & renderContext,
+        const shared_ptr<vaTexture> & colorInOut,
+        shared_ptr<vaPostProcess> & postProcess ) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if( m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount )
+        {
+            const char * modeName = GetModeDirectory( m_currentMode );
+            const wstring fileName = m_outputDirs[m_currentMode]
+                + vaStringTools::SimpleWiden( vaStringTools::Format(
+                    "%s_%s_frame_%05d.png",
+                    CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ),
+                    modeName, m_currentFrame ) );
+            if( !colorInOut->SaveToPNGFile( renderContext, fileName ) )
+                VA_LOG_ERROR(
+                    L"Failed to save SMAA candidate-policy jitter ablation frame '%s'",
+                    fileName.c_str( ) );
+        }
+    }
+
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override
+    {
+        return m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount;
+    }
+    virtual float GetProgress( ) const override
+    {
+        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int completedFrames = m_currentMode * framesPerMode
+            + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp(
+            (float)completedFrames / (float)(framesPerMode * c_modeCount),
+            0.0f, 1.0f );
+    }
+};
+
 class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 {
     static const int c_originalModeCount = 4;
@@ -4773,11 +4972,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
+        const bool candidatePolicyJitterAblationCapture =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyJitterAblationCapture") == 0;
         const bool candidateOnlyAblationCapture =
             _wcsicmp(parameter.first.c_str(), L"smaaCandidateOnlyAblationCapture") == 0;
         const bool temporalComponentAblationCapture =
             _wcsicmp(parameter.first.c_str(), L"smaaTemporalComponentAblationCapture") == 0;
-        if (candidateOnlyAblationCapture || temporalComponentAblationCapture)
+        if (candidatePolicyJitterAblationCapture
+            || candidateOnlyAblationCapture || temporalComponentAblationCapture)
         {
             wstring scenarioToken = L"object-motion";
             int frameCount = 180;
@@ -4787,7 +4989,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 std::wistringstream values(parameter.second);
                 if(!(values >> scenarioToken >> frameCount >> warmupFrameCount))
                 {
-                    VA_LOG_ERROR("Invalid SMAA candidate-only ablation capture values; expected: <thin-lines|object-motion|combined> <captureFrames> <warmupFrames>");
+                    VA_LOG_ERROR("Invalid SMAA candidate ablation capture values; expected: <thin-lines|object-motion|combined> <captureFrames> <warmupFrames>");
                     return;
                 }
             }
@@ -4801,19 +5003,25 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 scenario = SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
             else
             {
-                VA_LOG_ERROR("Invalid SMAA candidate-only ablation scenario; expected thin-lines, object-motion, or combined");
+                VA_LOG_ERROR("Invalid SMAA candidate ablation scenario; expected thin-lines, object-motion, or combined");
                 return;
             }
 
             frameCount = vaMath::Clamp(frameCount, 1, 1800);
             warmupFrameCount = vaMath::Clamp(warmupFrameCount, 1, 600);
-            m_autoBench->AddTask(
-                std::make_shared<BenchItemRecordSMAACandidateOnlyAblation>(
-                    *this, scenario, frameCount, warmupFrameCount,
-                    temporalComponentAblationCapture));
+            if( candidatePolicyJitterAblationCapture )
+                m_autoBench->AddTask(
+                    std::make_shared<BenchItemRecordSMAACandidatePolicyJitterAblation>(
+                        *this, scenario, frameCount, warmupFrameCount ) );
+            else
+                m_autoBench->AddTask(
+                    std::make_shared<BenchItemRecordSMAACandidateOnlyAblation>(
+                        *this, scenario, frameCount, warmupFrameCount,
+                        temporalComponentAblationCapture ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA %s controlled ablation '%s': %d capture frames, %d warm-up frames",
-                temporalComponentAblationCapture? "temporal component" : "candidate-only",
+                candidatePolicyJitterAblationCapture? "candidate-policy jitter" :
+                    (temporalComponentAblationCapture? "temporal component" : "candidate-only"),
                 GetSMAATemporalStressScenarioName(scenario),
                 frameCount, warmupFrameCount);
             return;
