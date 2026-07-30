@@ -238,6 +238,17 @@ def safe_percent_delta(current: float, baseline: float) -> float:
     return percent_delta(current, baseline)
 
 
+def aggregate_alignment_gain(
+    summary: dict[str, dict[str, float]],
+    prefix: str,
+) -> float:
+    unaligned = summary[f"{prefix}_unaligned_rgb_mae"]["mean"]
+    aligned = summary[f"{prefix}_flow_aligned_rgb_mae"]["mean"]
+    if not math.isfinite(unaligned) or unaligned == 0.0:
+        return float("nan")
+    return 100.0 * (unaligned - aligned) / unaligned
+
+
 def make_flow_diagnostic(
     output: Path,
     roi_name: str,
@@ -246,6 +257,7 @@ def make_flow_diagnostic(
     current_reference: np.ndarray,
     warped_reference: np.ndarray,
     fields: dict[str, np.ndarray],
+    reference_label: str = "O-1X",
 ) -> str:
     library = require_opencv()
     valid = fields["valid"]
@@ -269,8 +281,8 @@ def make_flow_diagnostic(
     ).astype(np.uint8)
 
     panels = (
-        ("previous O-1X", previous_reference),
-        ("current O-1X", current_reference),
+        (f"previous {reference_label}", previous_reference),
+        (f"current {reference_label}", current_reference),
         ("warped previous", np.clip(warped_reference, 0, 255).astype(np.uint8)),
         ("aligned difference x4", difference),
         ("backward flow magnitude", magnitude_color),
@@ -456,13 +468,14 @@ def main() -> None:
     flow_checks: dict[str, Any] = {}
     for roi_name in boxes:
         valid_ratio = summary[f"{roi_name}_flow_valid_ratio"]["mean"]
-        reference_gain = summary[
-            f"{roi_name}_{FLOW_REFERENCE_KEY}_alignment_gain_percent"
-        ]["mean"]
+        reference_gain = aggregate_alignment_gain(
+            summary,
+            f"{roi_name}_{FLOW_REFERENCE_KEY}",
+        )
         flow_checks[roi_name] = {
             "pass": valid_ratio >= 0.50 and reference_gain >= 0.0,
             "valid_ratio_mean": valid_ratio,
-            "o_1x_alignment_gain_percent_mean": reference_gain,
+            "o_1x_aggregate_alignment_gain_percent": reference_gain,
         }
 
     result = {
@@ -533,10 +546,10 @@ def main() -> None:
                 f"## `{roi_name}` flow 검증",
                 "",
                 f"- 유효 픽셀 비율 평균: {check['valid_ratio_mean']:.3%}",
-                f"- O-1X 정렬 오차 감소 평균: {check['o_1x_alignment_gain_percent_mean']:.3f}%",
+                f"- O-1X 전체 평균 MAE 기준 정렬 오차 감소: {check['o_1x_aggregate_alignment_gain_percent']:.3f}%",
                 f"- 보조 검증 판정: `{'PASS' if check['pass'] else 'WARN'}`",
                 "",
-                "| Mode | 정렬 전 RGB MAE | Flow 정렬 RGB MAE | 정렬 감소율 | O-1X 대비 초과 | 정렬 P95 |",
+                "| Mode | 정렬 전 RGB MAE | Flow 정렬 RGB MAE | 전체 평균 기준 정렬 감소율 | O-1X 대비 초과 | 정렬 P95 |",
                 "|---|---:|---:|---:|---:|---:|",
             ]
         )
@@ -546,7 +559,7 @@ def main() -> None:
                 f"| `{semantic_id}` | "
                 f"{summary[f'{prefix}_unaligned_rgb_mae']['mean']:.6f} | "
                 f"{summary[f'{prefix}_flow_aligned_rgb_mae']['mean']:.6f} | "
-                f"{summary[f'{prefix}_alignment_gain_percent']['mean']:.3f}% | "
+                f"{aggregate_alignment_gain(summary, prefix):.3f}% | "
                 f"{summary[f'{roi_name}_{key}_aligned_excess_vs_1x']['mean']:+.6f} | "
                 f"{summary[f'{prefix}_flow_aligned_rgb_p95']['mean']:.6f} |"
             )
