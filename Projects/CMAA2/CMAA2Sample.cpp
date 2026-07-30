@@ -4156,6 +4156,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         CandidateCatmullR,
         CandidateCatmullClipR,
         CandidateCatmullClipWeight08R,
+        CandidateNoJitterR,
         ExplicitCameraCutReset,
         SceneChange,
         SceneRestore,
@@ -4193,6 +4194,8 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::CandidateCatmullClipR:   return "ABL-Candidate+Catmull+Clip-R mode change";
         case Phase::CandidateCatmullClipWeight08R:
             return "ABL-Candidate+Catmull+Clip+W0.8-R mode change";
+        case Phase::CandidateNoJitterR:
+            return "ABL-CandidateOnly-NoJitter-R mode change";
         case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
         case Phase::SceneChange:            return "scene change";
         case Phase::SceneRestore:           return "scene restore";
@@ -4214,7 +4217,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 
     int RequiredTargetFrames( ) const
     {
-        return (int)m_phase <= (int)Phase::CandidateCatmullClipWeight08R? 3 : 2;
+        return (int)m_phase <= (int)Phase::CandidateNoJitterR? 3 : 2;
     }
 
     void EnterPhase( Phase phase )
@@ -4271,6 +4274,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::CandidateCatmullClipWeight08R:
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R;
+            break;
+        case Phase::CandidateNoJitterR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER;
             break;
         case Phase::ExplicitCameraCutReset:
             // LoadCamera and other known camera cuts use this same history-reset
@@ -4330,7 +4337,7 @@ protected:
         if( m_phase == Phase::Complete )
         {
             const bool aggregatePassed = diagnostics.Passed && m_allTransitionsPassed
-                && diagnostics.SeedFrameCount >= 17
+                && diagnostics.SeedFrameCount >= 18
                 && diagnostics.ResolvedFrameCount > diagnostics.SeedFrameCount
                 && diagnostics.ReprojectionFrameCount > 0;
             VA_LOG( "SMAA temporal lifecycle validation: resets=%u, frames=%u, seed=%u, resolve=%u, reprojection=%u, failures=%u => %s",
