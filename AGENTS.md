@@ -672,9 +672,19 @@ de-jitter pass의 정식 성능 본 측정은 생략했다. 상세 결과는
     screen-space de-jitter spatial base를 제공하는 hybrid를 ablation했다. Jitter
     candidate보다 부분 개선됐지만 NoJitter와 O-1X보다 일관되게 나쁘고 blur가 남아
     최종 방식으로 채택하지 않았다.
-18. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
-    object motion vector 지원을 현재 8-case와 분리한 후속 연구로 다룬다. 우선
-    현재 엔진에서 object motion vector를 생성·전달할 수 있는지 조사한다.
+18. **완료:** 현재 8-case와 분리한 `ABL-O-T2X-R-ObjectMotion` 진단에서
+    `vaSceneObject`의 이전/current rigid transform, Forward opaque velocity+mask MRT,
+    camera/object velocity merge를 구현했다. Release build와 lifecycle failure 0,
+    object-motion 60 warm-up + 120-frame 및 combined smoke를 통과했다. Rotor의
+    O-1X 대비 same-frame MAE는 camera-only T2X-R 2.307124에서 object-motion 진단
+    0.602932로 감소했다. 이는 rigid opaque engineering ablation이며 기존 8개 `-R`의
+    camera-only 의미를 변경하지 않는다. 상세 결과는
+    `Docs/SMAA-Object-Motion-Vector-Results-ko.md`를 기준으로 한다.
+19. **남음:** Object velocity/mask GPU readback으로 정적·이동 rigid object의 부호와
+    유효 범위를 수치 검증하고, supersample spatial reference 연결과 depth 기반
+    disocclusion rejection을 별도 ablation으로 진행한다. Candidate-aware
+    stabilization band와 별도 unjittered scene base도 이 후속 연구와 독립적으로
+    유지한다.
 
 ## 7. 측정 규칙
 

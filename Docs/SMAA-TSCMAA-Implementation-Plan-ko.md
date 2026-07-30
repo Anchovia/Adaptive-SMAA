@@ -1810,3 +1810,30 @@ flow-aligned residual을 4.809~15.254%, supersample reference MAE를
 엔진에서 object motion vector를 생성하고 SMAA temporal resolve에 전달할 수 있는지
 조사하는 것이다. 현재 `-R`은 camera motion만 보정하므로 독립 object-motion
 ghosting의 구조적 한계를 해결하지 못한다.
+
+### 17.30 Rigid opaque object-motion vector controlled diagnostic
+
+2026-07-30에 위 조사를 완료하고, 기존 최종 8개 mode와 분리된
+`ABL-O-T2X-R-ObjectMotion` 진단을 구현했다. `O-T2X-R`의 Original spatial,
+Standard full-screen T2X, projection jitter, bilinear sampler, clipping Off,
+history weight 0.5와 camera reprojection을 그대로 유지하고 rigid opaque mesh의
+object transform motion만 추가한다.
+
+`vaSceneObject`와 mesh draw-list가 이전 world transform을 보존하고, Forward opaque
+MRT가 현재/이전 object+camera clip position으로 `currentUV - previousUV`와 mask를
+기록한다. SMAA wrapper는 object mask가 있는 픽셀에는 전체 object velocity를,
+그 외에는 기존 depth 기반 camera velocity를 선택한다. Reset 뒤 첫 프레임은
+previous=current로 seed한다.
+
+Release x64 build와 확장 lifecycle은 reset 39, frame 174, seed 20, resolve 154,
+reprojection 59, failure 0으로 PASS했다. RTX 3060 Ti, 1920×1017,
+`object-motion` fixed 60 Hz에서 mode별 60 warm-up + 120 PNG를 캡처했다.
+Rotor의 O-1X 대비 same-frame MAE는 camera-only `O-T2X-R` 2.307124에서 object-motion
+진단 0.602932로 73.87% 감소했고, 대표 연속 프레임의 이중 날개 잔상이 제거됐다.
+Occluder trail 휴리스틱도 camera-only 대비 darkness 51.57%, width 74.61%
+감소했다.
+
+이 진단은 rigid opaque mesh에만 해당하며 skinning/deformation, transparency와
+disocclusion rejection을 지원하지 않는다. 기존 8개 `-R` mode는 계속 camera-motion
+reprojection만 의미하고 정의를 변경하지 않는다. 상세 구현·수치·산출물은
+`Docs/SMAA-Object-Motion-Vector-Results-ko.md`를 기준으로 한다.
