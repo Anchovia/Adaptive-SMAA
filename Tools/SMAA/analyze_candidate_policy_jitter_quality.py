@@ -30,7 +30,7 @@ from analyze_original_four_quality import aggregate, load_rgb, percent_delta
 from analyze_temporal_stress_quality import roi_boxes
 
 
-MODES = (
+CANDIDATE_POLICY_MODES = (
     ("o_1x", "O-1X", "O_1X"),
     ("standard", "O-T2X-R", "O_T2X_R"),
     (
@@ -45,11 +45,41 @@ MODES = (
     ),
 )
 
-COMPARISONS = (
+CANDIDATE_POLICY_COMPARISONS = (
     ("standard_vs_1x", "o_1x", "standard"),
     ("intel_vs_standard", "standard", "candidate_intel"),
     ("allbase_vs_standard", "standard", "candidate_allbase"),
     ("allbase_vs_intel", "candidate_intel", "candidate_allbase"),
+)
+
+JITTER_ISOLATION_MODES = (
+    ("o_1x", "O-1X", "O_1X"),
+    ("standard", "O-T2X-R", "O_T2X_R"),
+    (
+        "candidate_jitter",
+        "ABL-Candidate-Jitter-R",
+        "ABL_Candidate_Jitter_R",
+    ),
+    (
+        "candidate_no_jitter",
+        "ABL-Candidate-NoJitter-R",
+        "ABL_Candidate_NoJitter_R",
+    ),
+)
+
+JITTER_ISOLATION_COMPARISONS = (
+    ("standard_vs_1x", "o_1x", "standard"),
+    ("candidate_jitter_vs_standard", "standard", "candidate_jitter"),
+    (
+        "candidate_no_jitter_vs_standard",
+        "standard",
+        "candidate_no_jitter",
+    ),
+    (
+        "no_jitter_vs_jitter",
+        "candidate_jitter",
+        "candidate_no_jitter",
+    ),
 )
 
 FLOW_REFERENCE_KEY = "o_1x"
@@ -71,6 +101,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expected-frames", type=int, default=240)
     parser.add_argument("--warmup-frames", type=int, default=60)
     parser.add_argument("--fb-threshold", type=float, default=1.0)
+    parser.add_argument(
+        "--profile",
+        choices=("candidate-policy", "jitter-isolation"),
+        default="candidate-policy",
+    )
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -96,17 +131,85 @@ def main() -> None:
         raise SystemExit("--fb-threshold must be positive")
 
     root = args.capture_root.resolve()
+    if args.profile == "jitter-isolation":
+        modes = JITTER_ISOLATION_MODES
+        comparisons = JITTER_ISOLATION_COMPARISONS
+        primary_key = "candidate_jitter"
+        secondary_key = "candidate_no_jitter"
+        primary_label = "Jitter On"
+        secondary_label = "Jitter Off"
+        report_title = "SMAA candidate-only projection jitter 분리 분석"
+        controlled_difference = (
+            "SMAAT2X deliberate projection jitter On versus Off; both use "
+            "IntelFamilyNonDominant candidates, camera reprojection, "
+            "bilinear history, clipping Off, and weight 0.5"
+        )
+        profile_lines = [
+            "Intel-family candidate와 나머지 temporal 설정을 유지한 상태에서",
+            "전역 SMAA T2X projection jitter만 끄면 비후보 픽셀의 temporal",
+            "variation이 감소하는지 분리한다.",
+            "",
+            "- `O-1X`: spatial-only 품질 control",
+            "- `O-T2X-R`: 전체 화면 Standard T2X + camera reprojection",
+            "- `ABL-Candidate-Jitter-R`: 후보에만 temporal, projection jitter On",
+            "- `ABL-Candidate-NoJitter-R`: 후보에만 temporal, projection jitter Off",
+            "- 두 candidate mode의 유일한 설정 차이는 projection jitter",
+        ]
+        profile_invariant_lines = [
+            "- 두 candidate mode 모두 Intel-family 후보, camera reprojection,",
+            "  bilinear sampler, clipping Off, history weight 0.5를 동일하게 유지",
+        ]
+        profile_limit_lines = [
+            "- Jitter Off는 candidate-aware jitter가 아니라 전역 deliberate jitter 비활성화 진단이다.",
+            "- Jitter를 끄면 temporal subpixel sample diversity도 줄 수 있어 안정성만으로 품질 우위를 정할 수 없다.",
+        ]
+        default_output_name = "CandidateJitterIsolationAnalysis"
+        artifact_prefix = "candidate_jitter_isolation"
+        report_name = "SMAA-Candidate-Jitter-Isolation-Analysis-ko.md"
+    else:
+        modes = CANDIDATE_POLICY_MODES
+        comparisons = CANDIDATE_POLICY_COMPARISONS
+        primary_key = "candidate_intel"
+        secondary_key = "candidate_allbase"
+        primary_label = "Intel 후보"
+        secondary_label = "AllBase 후보"
+        report_title = "SMAA candidate 정책·T2X jitter 분리 분석"
+        controlled_difference = (
+            "IntelFamilyNonDominant versus AllBaseEdges candidate policy; "
+            "both use O-T2X-R jitter, camera reprojection, bilinear "
+            "history, clipping Off, and weight 0.5"
+        )
+        profile_lines = [
+            "전역 SMAA T2X projection jitter를 유지한 상태에서 candidate 누락이",
+            "Edge-selective temporal variation의 원인인지 분리한다.",
+            "",
+            "- `O-1X`: spatial-only 품질 control",
+            "- `O-T2X-R`: 전체 화면 Standard T2X + camera reprojection",
+            "- `ABL-Candidate-Intel-R`: Intel-family non-dominant 후보만 temporal 적용",
+            "- `ABL-Candidate-AllBase-R`: 검출된 모든 base edge에 temporal 적용",
+            "- 두 candidate mode의 유일한 설정 차이는 candidate policy",
+        ]
+        profile_invariant_lines = [
+            "- 두 candidate mode 모두 jitter/subsample, reprojection, bilinear sampler,",
+            "  clipping Off, history weight 0.5를 동일하게 유지",
+        ]
+        profile_limit_lines = [
+            "- AllBase도 전체 화면이 아니라 검출된 base edge만 temporal 처리한다.",
+        ]
+        default_output_name = "CandidatePolicyJitterAnalysis"
+        artifact_prefix = "candidate_policy_jitter"
+        report_name = "SMAA-Candidate-Policy-Jitter-Analysis-ko.md"
     output = (
         args.output.resolve()
         if args.output is not None
-        else root / "CandidatePolicyJitterAnalysis"
+        else root / default_output_name
     )
     output.mkdir(parents=True, exist_ok=True)
     paths, resolution, input_validation = validate_inputs(
-        root, args.expected_frames, MODES
+        root, args.expected_frames, modes
     )
     boxes = roi_boxes(args.scenario, resolution)
-    labels = {key: semantic_id for key, semantic_id, _ in MODES}
+    labels = {key: semantic_id for key, semantic_id, _ in modes}
 
     self_test = run_self_test()
     if not self_test["pass"]:
@@ -119,7 +222,7 @@ def main() -> None:
 
     for frame in range(args.expected_frames):
         current_full = {
-            key: load_rgb(paths[key][frame]) for key, _, _ in MODES
+            key: load_rgb(paths[key][frame]) for key, _, _ in modes
         }
         if previous_full is None:
             previous_full = current_full
@@ -128,10 +231,10 @@ def main() -> None:
         row: dict[str, Any] = {"frame": frame}
         for roi_name, box in boxes.items():
             previous_rois = {
-                key: crop_half(previous_full[key], box) for key, _, _ in MODES
+                key: crop_half(previous_full[key], box) for key, _, _ in modes
             }
             current_rois = {
-                key: crop_half(current_full[key], box) for key, _, _ in MODES
+                key: crop_half(current_full[key], box) for key, _, _ in modes
             }
             previous_reference = previous_rois[FLOW_REFERENCE_KEY]
             current_reference = current_rois[FLOW_REFERENCE_KEY]
@@ -152,7 +255,7 @@ def main() -> None:
             )
 
             warped_reference: np.ndarray | None = None
-            for key, _, _ in MODES:
+            for key, _, _ in modes:
                 warped = remap_array(
                     previous_rois[key].astype(np.float32),
                     fields["map_x"],
@@ -177,13 +280,13 @@ def main() -> None:
                 if key == FLOW_REFERENCE_KEY:
                     warped_reference = warped
 
-            for key in ("candidate_intel", "candidate_allbase"):
+            for key in (primary_key, secondary_key):
                 row[f"{roi_name}_{key}_same_frame_mae_vs_standard"] = rgb_mae(
                     current_rois[key], current_rois["standard"]
                 )
-            row[f"{roi_name}_allbase_same_frame_mae_vs_intel"] = rgb_mae(
-                current_rois["candidate_allbase"],
-                current_rois["candidate_intel"],
+            row[f"{roi_name}_{secondary_key}_same_frame_mae_vs_{primary_key}"] = rgb_mae(
+                current_rois[secondary_key],
+                current_rois[primary_key],
             )
 
             if frame == min(center, args.expected_frames - 1):
@@ -211,7 +314,7 @@ def main() -> None:
     if not rows:
         raise RuntimeError("At least two frames are required")
 
-    csv_name = "candidate_policy_jitter_metrics.csv"
+    csv_name = f"{artifact_prefix}_metrics.csv"
     with (output / csv_name).open(
         "w", newline="", encoding="utf-8-sig"
     ) as stream:
@@ -223,7 +326,7 @@ def main() -> None:
         key: aggregate(rows, key) for key in rows[0] if key != "frame"
     }
     flow_checks: dict[str, Any] = {}
-    policy_effects: dict[str, Any] = {}
+    isolated_effects: dict[str, Any] = {}
     for roi_name in boxes:
         valid_ratio = summary[f"{roi_name}_flow_valid_ratio"]["mean"]
         o1x_unaligned = summary[
@@ -246,23 +349,27 @@ def main() -> None:
         standard = summary[
             f"{roi_name}_standard_flow_aligned_rgb_mae"
         ]["mean"]
-        intel = summary[
-            f"{roi_name}_candidate_intel_flow_aligned_rgb_mae"
+        primary = summary[
+            f"{roi_name}_{primary_key}_flow_aligned_rgb_mae"
         ]["mean"]
-        allbase = summary[
-            f"{roi_name}_candidate_allbase_flow_aligned_rgb_mae"
+        secondary = summary[
+            f"{roi_name}_{secondary_key}_flow_aligned_rgb_mae"
         ]["mean"]
-        intel_distance = abs(intel - standard)
-        allbase_distance = abs(allbase - standard)
-        policy_effects[roi_name] = {
-            "allbase_vs_intel_aligned_mae_percent": safe_percent_delta(
-                allbase, intel
+        primary_distance = abs(primary - standard)
+        secondary_distance = abs(secondary - standard)
+        isolated_effects[roi_name] = {
+            "primary_key": primary_key,
+            "secondary_key": secondary_key,
+            "secondary_vs_primary_aligned_mae_percent": safe_percent_delta(
+                secondary, primary
             ),
-            "intel_distance_to_standard": intel_distance,
-            "allbase_distance_to_standard": allbase_distance,
-            "allbase_distance_reduction_vs_intel_percent": (
-                100.0 * (intel_distance - allbase_distance) / intel_distance
-                if intel_distance > 0.0
+            "primary_distance_to_standard": primary_distance,
+            "secondary_distance_to_standard": secondary_distance,
+            "secondary_distance_reduction_vs_primary_percent": (
+                100.0
+                * (primary_distance - secondary_distance)
+                / primary_distance
+                if primary_distance > 0.0
                 else float("nan")
             ),
         }
@@ -280,8 +387,8 @@ def main() -> None:
                 boxes[roi_name],
                 center,
                 args.expected_frames,
-                MODES,
-                "candidate_policy_jitter",
+                modes,
+                artifact_prefix,
             )
         )
         artifact_names.append(
@@ -293,13 +400,14 @@ def main() -> None:
                 boxes[roi_name],
                 center,
                 args.expected_frames,
-                MODES,
-                "candidate_policy_jitter",
+                modes,
+                artifact_prefix,
             )
         )
 
     result = {
         "scenario": args.scenario,
+        "profile": args.profile,
         "conditions": {
             "resolution": list(resolution),
             "analysis_resolution": "each ROI at half width/height",
@@ -310,16 +418,12 @@ def main() -> None:
             "flow_algorithm": "Farneback dense optical flow",
             "farneback_parameters": DEFAULT_FARNEBACK,
             "forward_backward_threshold_px": args.fb_threshold,
-            "controlled_difference": (
-                "IntelFamilyNonDominant versus AllBaseEdges candidate policy; "
-                "both use O-T2X-R jitter, camera reprojection, bilinear "
-                "history, clipping Off, and weight 0.5"
-            ),
+            "controlled_difference": controlled_difference,
         },
         "input_validation": input_validation,
         "synthetic_self_test": self_test,
         "flow_checks": flow_checks,
-        "policy_effects": policy_effects,
+        "isolated_effects": isolated_effects,
         "roi_boxes": {name: list(box) for name, box in boxes.items()},
         "summary": summary,
         "artifacts": {
@@ -328,26 +432,18 @@ def main() -> None:
             "comparisons": artifact_names,
         },
     }
-    json_name = "candidate_policy_jitter_summary.json"
+    json_name = f"{artifact_prefix}_summary.json"
     (output / json_name).write_text(
         json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
     report = [
-        "# SMAA candidate 정책·T2X jitter 분리 분석",
+        f"# {report_title}",
         "",
         "## 목적",
         "",
-        "전역 SMAA T2X projection jitter를 유지한 상태에서 candidate 누락이",
-        "Edge-selective temporal variation의 원인인지 분리한다.",
-        "",
-        "- `O-1X`: spatial-only 품질 control",
-        "- `O-T2X-R`: 전체 화면 Standard T2X + camera reprojection",
-        "- `ABL-Candidate-Intel-R`: Intel-family non-dominant 후보만 temporal 적용",
-        "- `ABL-Candidate-AllBase-R`: 검출된 모든 base edge에 temporal 적용",
-        "- 두 candidate mode의 유일한 설정 차이는 candidate policy",
-        "- 두 candidate mode 모두 jitter/subsample, reprojection, bilinear sampler,",
-        "  clipping Off, history weight 0.5를 동일하게 유지",
+        *profile_lines,
+        *profile_invariant_lines,
         "",
         "## 입력 및 검증",
         "",
@@ -361,7 +457,7 @@ def main() -> None:
 
     for roi_name in boxes:
         check = flow_checks[roi_name]
-        effect = policy_effects[roi_name]
+        effect = isolated_effects[roi_name]
         report.extend(
             [
                 f"## `{roi_name}`",
@@ -374,7 +470,7 @@ def main() -> None:
                 "|---|---:|---:|---:|",
             ]
         )
-        for key, semantic_id, _ in MODES:
+        for key, semantic_id, _ in modes:
             prefix = f"{roi_name}_{key}"
             report.append(
                 f"| `{semantic_id}` | "
@@ -389,7 +485,7 @@ def main() -> None:
                 "|---|---:|",
             ]
         )
-        for _, baseline_key, current_key in COMPARISONS:
+        for _, baseline_key, current_key in comparisons:
             baseline = summary[
                 f"{roi_name}_{baseline_key}_flow_aligned_rgb_mae"
             ]["mean"]
@@ -403,10 +499,10 @@ def main() -> None:
         report.extend(
             [
                 "",
-                f"- Intel 후보의 Standard 거리: {effect['intel_distance_to_standard']:.6f}",
-                f"- AllBase 후보의 Standard 거리: {effect['allbase_distance_to_standard']:.6f}",
-                "- AllBase 전환에 따른 Standard 거리 감소율: "
-                f"{effect['allbase_distance_reduction_vs_intel_percent']:+.3f}%",
+                f"- {primary_label}의 Standard 거리: {effect['primary_distance_to_standard']:.6f}",
+                f"- {secondary_label}의 Standard 거리: {effect['secondary_distance_to_standard']:.6f}",
+                f"- {secondary_label} 전환에 따른 Standard 거리 감소율: "
+                f"{effect['secondary_distance_reduction_vs_primary_percent']:+.3f}%",
                 "",
             ]
         )
@@ -415,8 +511,8 @@ def main() -> None:
         [
             "## 해석 제한",
             "",
-            "- 이 결과는 candidate coverage의 효과만 분리하는 ablation이며 최종 8-case가 아니다.",
-            "- AllBase도 전체 화면이 아니라 검출된 base edge만 temporal 처리한다.",
+            "- 이 결과는 한 설정 요소만 분리하는 진단 ablation이며 최종 8-case가 아니다.",
+            *profile_limit_lines,
             "- 작은 optical-flow residual은 blur로도 발생할 수 있어 단독 품질 순위가 아니다.",
             "- Forward/backward 불일치 영역은 제외되어 disocclusion ghost를 완전히 재지 않는다.",
             "- `-R`은 camera-motion reprojection이며 object motion vector는 연결되지 않았다.",
@@ -431,11 +527,10 @@ def main() -> None:
     report.extend(f"- 비교 자료: `{name}`" for name in artifact_names)
     report.append("")
 
-    report_name = "SMAA-Candidate-Policy-Jitter-Analysis-ko.md"
     (output / report_name).write_text(
         "\n".join(report), encoding="utf-8"
     )
-    print(f"Candidate-policy jitter analysis complete: {output}", flush=True)
+    print(f"{report_title} complete: {output}", flush=True)
 
 
 if __name__ == "__main__":

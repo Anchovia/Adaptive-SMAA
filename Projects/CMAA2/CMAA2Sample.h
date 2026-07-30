@@ -110,6 +110,7 @@ namespace VertexAsylum
             SMAA_O_ABLATION_CANDIDATE_CATMULL_R, // Diagnostic: Candidate-only + Catmull-Rom 5-tap
             SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R, // Diagnostic: previous step + YCoCg variance clipping
             SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R, // Diagnostic: previous step + history weight 0.8
+            SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER, // Diagnostic: Candidate-only with deliberate projection jitter disabled
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
