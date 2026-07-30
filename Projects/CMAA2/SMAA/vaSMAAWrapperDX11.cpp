@@ -405,6 +405,7 @@ namespace VertexAsylum
         vaAutoRMI<vaPixelShader>    m_tscmaaDebugColorPS;
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaDeJitterSpatialCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaCatmullRomDiagnosticCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaVarianceDiagnosticCS;
@@ -544,7 +545,8 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
     m_tscmaaDebugColorPS( params.RenderDevice ),
     m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
-    m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice ),
+    m_tscmaaDeJitterSpatialCS( params.RenderDevice ), m_tscmaaResolveCandidatesCS( params.RenderDevice ),
+    m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice ),
     m_tscmaaVarianceDiagnosticCS( params.RenderDevice )
 {
     params; // unreferenced
@@ -556,6 +558,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     const vector<pair<string, string>> tscmaaShaderMacros = { { "SMAA_TSCMAA_COMPUTE", "1" } };
     m_tscmaaExtractCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAExtractCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
+    m_tscmaaDeJitterSpatialCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADeJitterSpatialCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaCatmullRomDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAACatmullRomDiagnosticCS", tscmaaShaderMacros, true );
     m_tscmaaVarianceDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAVarianceDiagnosticCS", tscmaaShaderMacros, true );
@@ -885,6 +888,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return vaDrawResultFlags::ShadersStillCompiling; }
     }
     if( GetEdgeSelectiveTemporalEnabled( ) && (!m_tscmaaExtractCandidatesCS->IsCreated( ) || !m_tscmaaComputeDispatchArgsCS->IsCreated( )
+        || (GetDeJitteredNonCandidateBaseEnabled( ) && !m_tscmaaDeJitterSpatialCS->IsCreated( ))
         || !m_tscmaaResolveCandidatesCS->IsCreated( )
         || ((GetTemporalDebugView( ) == TemporalDebugView::BaseEdges || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates)
             && !m_tscmaaDebugMaskPS->IsCreated( ))
@@ -959,6 +963,12 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.TSCMAAResolveParams = vaVector4( (float)(int)GetEffectiveHistorySampler( ),
             (float)(int)GetEffectiveHistoryClipping( ), GetClippingDebugViewsEnabled( )? 1.0f : 0.0f,
             GetClippingDebugViewsEnabled( )? (float)((int)GetTemporalDebugView( ) - (int)TemporalDebugView::CurrentSpatial) : 0.0f );
+        vaVector2 currentProjectionJitter( 0.0f, 0.0f );
+        if( optionalCamera != nullptr )
+            currentProjectionJitter = const_cast<vaCameraBase *>( optionalCamera )->GetSubpixelOffset( );
+        m_reprojectionConstants.TSCMAAHybridParams = vaVector4(
+            currentProjectionJitter.x, currentProjectionJitter.y,
+            (float)(int)temporalSettings.NonCandidate, 0.0f );
 
         if( temporalReprojectionEnabled )
         {
@@ -1165,8 +1175,46 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     vaTextureDX11 * outputHistoryDX11 = outputHistory->SafeCast<vaTextureDX11*>( );
     vaTextureDX11 * destinationDX11 = destination->SafeCast<vaTextureDX11*>( );
 
-    // Non-candidate pixels keep the current spatial SMAA value. Candidate
-    // threads overwrite only their own pixels below.
+    // Non-candidate pixels normally keep the current spatial SMAA value.
+    // The hybrid diagnostic instead reconstructs an unjittered spatial base
+    // with a full-screen inverse-jitter sample before candidate threads
+    // overwrite only their own pixels below.
+    if( GetDeJitteredNonCandidateBaseEnabled( ) )
+    {
+        ID3D11ComputeShader * deJitterSpatialShader =
+            m_tscmaaDeJitterSpatialCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+        if( deJitterSpatialShader == nullptr )
+            return vaDrawResultFlags::ShadersStillCompiling;
+
+        ID3D11UnorderedAccessView * outputUAV = outputHistoryDX11->GetUAV( );
+        ID3D11ShaderResourceView * currentSpatialSRV = currentSpatialDX11->GetSRV( );
+        ID3D11Buffer * reprojectionConstants =
+            m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>( )->GetBuffer( );
+        if( outputUAV == nullptr || currentSpatialSRV == nullptr || reprojectionConstants == nullptr )
+            return vaDrawResultFlags::UnspecifiedError;
+
+        {
+            VA_SCOPE_CPUGPU_TIMER( TSCMAADeJitterNonCandidates, deviceContext );
+            dx11Context->CSSetShader( deJitterSpatialShader, nullptr, 0 );
+            dx11Context->CSSetConstantBuffers( 1, 1, &reprojectionConstants );
+            dx11Context->CSSetUnorderedAccessViews( 0, 1, &outputUAV, nullptr );
+            dx11Context->CSSetShaderResources( 10, 1, &currentSpatialSRV );
+            dx11Context->CSSetSamplers( 0, 1, &m_LinearSampler );
+            dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8,
+                (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
+        }
+
+        ID3D11UnorderedAccessView * nullUAV = nullptr;
+        ID3D11ShaderResourceView * nullSRV = nullptr;
+        ID3D11Buffer * nullConstantBuffer = nullptr;
+        ID3D11SamplerState * nullSampler = nullptr;
+        dx11Context->CSSetShader( nullptr, nullptr, 0 );
+        dx11Context->CSSetUnorderedAccessViews( 0, 1, &nullUAV, nullptr );
+        dx11Context->CSSetShaderResources( 10, 1, &nullSRV );
+        dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
+        dx11Context->CSSetSamplers( 0, 1, &nullSampler );
+    }
+    else
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAACopySpatialToHistory, deviceContext );
         dx11Context->CopyResource( outputHistoryDX11->GetResource( ), currentSpatialDX11->GetResource( ) );

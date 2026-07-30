@@ -51,6 +51,9 @@ struct SMAAReprojectionConstants
     // x: history sampler enum (0 bilinear, 1 Catmull-Rom 5-tap),
     // y: history clipping enum (0 off, 1 YCoCg variance).
     float4 TSCMAAResolveParams;
+    // xy: current projection jitter in pixel units,
+    // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial).
+    float4 TSCMAAHybridParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
@@ -60,6 +63,7 @@ struct SMAAReprojectionConstants
     VertexAsylum::vaVector4 TSCMAAParams;
     VertexAsylum::vaVector4 TSCMAACandidateParams;
     VertexAsylum::vaVector4 TSCMAAResolveParams;
+    VertexAsylum::vaVector4 TSCMAAHybridParams;
 #endif
 };
 
@@ -573,6 +577,29 @@ float3 TSCMAALinearToSRGB(float3 color) {
     float3 lower = color * 12.92;
     float3 upper = 1.055 * pow(color, 1.0 / 2.4) - 0.055;
     return lerp(lower, upper, step(0.0031308, color));
+}
+
+[numthreads(8, 8, 1)]
+void TSCMAADeJitterSpatialCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaCurrentColor.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    float2 inverseDimensions = 1.0 / float2(width, height);
+    float2 outputUV = (float2(dispatchThreadID.xy) + 0.5) * inverseDimensions;
+
+    // vaCameraBase shifts projected geometry by the configured subpixel
+    // offset in screen-pixel coordinates. Sampling the jittered image at
+    // outputUV + jitter reconstructs the unjittered pixel-center location.
+    float2 sourceUV = outputUV
+        + g_SMAAReprojection.TSCMAAHybridParams.xy * inverseDimensions;
+    float4 spatialColor =
+        tscmaaCurrentColor.SampleLevel(LinearSampler, sourceUV, 0.0);
+    if (g_SMAAReprojection.TSCMAAParams.w > 0.5)
+        spatialColor.rgb = TSCMAALinearToSRGB(spatialColor.rgb);
+    tscmaaOutput[dispatchThreadID.xy] = spatialColor;
 }
 
 [numthreads(TSCMAA_RESOLVE_NUM_THREADS, 1, 1)]

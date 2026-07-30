@@ -82,6 +82,34 @@ JITTER_ISOLATION_COMPARISONS = (
     ),
 )
 
+HYBRID_RESOLVE_MODES = JITTER_ISOLATION_MODES + (
+    (
+        "candidate_dejitter",
+        "ABL-Candidate-DeJitter-R",
+        "ABL_Candidate_DeJitter_R",
+    ),
+)
+
+HYBRID_RESOLVE_COMPARISONS = (
+    ("standard_vs_1x", "o_1x", "standard"),
+    ("candidate_jitter_vs_standard", "standard", "candidate_jitter"),
+    (
+        "candidate_no_jitter_vs_candidate_jitter",
+        "candidate_jitter",
+        "candidate_no_jitter",
+    ),
+    (
+        "candidate_dejitter_vs_candidate_jitter",
+        "candidate_jitter",
+        "candidate_dejitter",
+    ),
+    (
+        "candidate_dejitter_vs_candidate_no_jitter",
+        "candidate_no_jitter",
+        "candidate_dejitter",
+    ),
+)
+
 FLOW_REFERENCE_KEY = "o_1x"
 
 
@@ -103,7 +131,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fb-threshold", type=float, default=1.0)
     parser.add_argument(
         "--profile",
-        choices=("candidate-policy", "jitter-isolation"),
+        choices=("candidate-policy", "jitter-isolation", "hybrid-resolve"),
         default="candidate-policy",
     )
     parser.add_argument("--output", type=Path)
@@ -131,7 +159,44 @@ def main() -> None:
         raise SystemExit("--fb-threshold must be positive")
 
     root = args.capture_root.resolve()
-    if args.profile == "jitter-isolation":
+    if args.profile == "hybrid-resolve":
+        modes = HYBRID_RESOLVE_MODES
+        comparisons = HYBRID_RESOLVE_COMPARISONS
+        primary_key = "candidate_jitter"
+        secondary_key = "candidate_dejitter"
+        primary_label = "Jittered spatial base"
+        secondary_label = "De-jittered spatial base"
+        report_title = "SMAA candidate/noncandidate hybrid resolve 분석"
+        controlled_difference = (
+            "CurrentSpatial versus DeJitteredSpatial noncandidate base; "
+            "both use SMAA T2X jitter/subsample, IntelFamilyNonDominant "
+            "candidates, camera reprojection, bilinear history, clipping "
+            "Off, and weight 0.5"
+        )
+        profile_lines = [
+            "후보 temporal 경로의 jitter sample diversity를 유지하면서",
+            "비후보의 current spatial base만 inverse-jitter 재구성했을 때",
+            "전역 jitter와 후보 한정 resolve의 범위 불일치가 줄어드는지 검증한다.",
+            "",
+            "- `O-1X`: spatial-only 품질 control",
+            "- `O-T2X-R`: 전체 화면 Standard T2X + camera reprojection",
+            "- `ABL-Candidate-Jitter-R`: 후보 temporal + jittered current spatial base",
+            "- `ABL-Candidate-NoJitter-R`: prior global no-jitter control",
+            "- `ABL-Candidate-DeJitter-R`: 후보 jitter 유지 + 비후보 inverse-jitter base",
+            "- Candidate Jitter와 Candidate DeJitter의 유일한 차이는 noncandidate base",
+        ]
+        profile_invariant_lines = [
+            "- 두 matched candidate mode 모두 Intel-family 후보, T2X jitter/subsample,",
+            "  camera reprojection, bilinear sampler, clipping Off, history weight 0.5를 유지",
+        ]
+        profile_limit_lines = [
+            "- DeJitter는 현재 spatial SMAA 결과의 bilinear screen-space 재구성이며 별도 unjittered scene render가 아니다.",
+            "- 이 hybrid는 Intel 공개 TSCMAA 필수 항목이 아닌 후속 연구용 ablation이다.",
+        ]
+        default_output_name = "HybridResolveAnalysis"
+        artifact_prefix = "hybrid_resolve"
+        report_name = "SMAA-Hybrid-Resolve-Analysis-ko.md"
+    elif args.profile == "jitter-isolation":
         modes = JITTER_ISOLATION_MODES
         comparisons = JITTER_ISOLATION_COMPARISONS
         primary_key = "candidate_jitter"

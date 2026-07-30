@@ -74,6 +74,12 @@ namespace VertexAsylum
             YCoCgVariance
         };
 
+        enum class NonCandidateBase : int32
+        {
+            CurrentSpatial,
+            DeJitteredSpatial
+        };
+
         enum class CandidatePolicy : int32
         {
             AllBaseEdges,
@@ -244,6 +250,7 @@ namespace VertexAsylum
             JitterPolicy                 Jitter                      = JitterPolicy::None;
             HistorySampler               Sampler                     = HistorySampler::Bilinear;
             HistoryClipping              Clipping                    = HistoryClipping::Off;
+            NonCandidateBase             NonCandidate                = NonCandidateBase::CurrentSpatial;
             CandidatePolicy              Candidates                  = CandidatePolicy::AllBaseEdges;
             float                        HistoryWeight               = 0.5f;
             float                        NonDominantRemovalAmount    = 0.5f;
@@ -256,6 +263,7 @@ namespace VertexAsylum
                     && Jitter == other.Jitter
                     && Sampler == other.Sampler
                     && Clipping == other.Clipping
+                    && NonCandidate == other.NonCandidate
                     && Candidates == other.Candidates
                     && HistoryWeight == other.HistoryWeight
                     && NonDominantRemovalAmount == other.NonDominantRemovalAmount
@@ -358,6 +366,10 @@ namespace VertexAsylum
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatrices; }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
         bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }
+        bool                        GetDeJitteredNonCandidateBaseEnabled( ) const
+        {
+            return m_temporalSettings.NonCandidate == NonCandidateBase::DeJitteredSpatial;
+        }
         CandidatePolicy             GetEffectiveCandidatePolicy( ) const { return m_candidatePolicyOverrideEnabled? m_candidatePolicyOverride : m_temporalSettings.Candidates; }
         void                        SetCandidatePolicyOverride( bool enabled, CandidatePolicy policy )
         {

@@ -22,7 +22,7 @@ from analyze_original_four_quality import aggregate, load_rgb, percent_delta
 from analyze_temporal_stress_quality import roi_boxes
 
 
-MODES = (
+BASE_MODES = (
     ("o_1x", "O-1X", "O_1X"),
     ("standard", "O-T2X-R", "O_T2X_R"),
     (
@@ -36,6 +36,14 @@ MODES = (
         "ABL_Candidate_NoJitter_R",
     ),
 )
+
+HYBRID_MODE = (
+    "candidate_dejitter",
+    "ABL-Candidate-DeJitter-R",
+    "ABL_Candidate_DeJitter_R",
+)
+
+MODES = BASE_MODES
 
 REFERENCE_KEY = "ss_reference"
 REFERENCE_LABEL = "SS-Reference"
@@ -58,6 +66,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expected-frames", type=int, default=240)
     parser.add_argument("--reference-warmup-frames", type=int, default=10)
     parser.add_argument("--comparison-warmup-frames", type=int, default=60)
+    parser.add_argument(
+        "--include-hybrid",
+        action="store_true",
+        help="Include ABL-Candidate-DeJitter-R from a hybrid capture root.",
+    )
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -341,7 +354,9 @@ def make_difference_sheet(
 
 
 def main() -> None:
+    global MODES
     args = parse_args()
+    MODES = BASE_MODES + ((HYBRID_MODE,) if args.include_hybrid else ())
     require_opencv()
     if args.expected_frames < 2:
         raise SystemExit("--expected-frames must be at least 2")
@@ -446,7 +461,7 @@ def main() -> None:
             key: summary[f"{roi_name}_{key}_rgb_mae_vs_reference"]["mean"]
             for key, _, _ in MODES
         }
-        comparisons[roi_name] = {
+        comparison = {
             "mae_rank_best_to_worst": sorted(
                 mode_errors, key=mode_errors.get
             ),
@@ -467,6 +482,26 @@ def main() -> None:
                 )
             ),
         }
+        if args.include_hybrid:
+            comparison["candidate_dejitter_vs_o_1x_percent"] = (
+                safe_percent_delta(
+                    mode_errors["candidate_dejitter"],
+                    mode_errors["o_1x"],
+                )
+            )
+            comparison[
+                "candidate_dejitter_vs_candidate_jitter_percent"
+            ] = safe_percent_delta(
+                mode_errors["candidate_dejitter"],
+                mode_errors["candidate_jitter"],
+            )
+            comparison[
+                "candidate_dejitter_vs_candidate_no_jitter_percent"
+            ] = safe_percent_delta(
+                mode_errors["candidate_dejitter"],
+                mode_errors["candidate_no_jitter"],
+            )
+        comparisons[roi_name] = comparison
 
     center = visual_center_frame(args.scenario)
     artifact_names: list[str] = []
@@ -517,6 +552,7 @@ def main() -> None:
             "capture_frames": args.expected_frames,
             "same_frame_metric_frames": args.expected_frames,
             "adjacent_metric_frames": max(0, args.expected_frames - 1),
+            "hybrid_mode_included": args.include_hybrid,
             "ssim": (
                 "luma SSIM, 11x11 Gaussian window, sigma 1.5, "
                 "K1 0.01, K2 0.03, data range 255"
@@ -595,6 +631,14 @@ def main() -> None:
                 f"- Jitter Off vs Jitter On candidate: {comparison['candidate_no_jitter_vs_candidate_jitter_percent']:+.3f}%",
             ]
         )
+        if args.include_hybrid:
+            report.extend(
+                [
+                    f"- DeJitter candidate vs `O-1X`: {comparison['candidate_dejitter_vs_o_1x_percent']:+.3f}%",
+                    f"- DeJitter vs Jitter On candidate: {comparison['candidate_dejitter_vs_candidate_jitter_percent']:+.3f}%",
+                    f"- DeJitter vs Jitter Off candidate: {comparison['candidate_dejitter_vs_candidate_no_jitter_percent']:+.3f}%",
+                ]
+            )
 
     report.extend(
         [
