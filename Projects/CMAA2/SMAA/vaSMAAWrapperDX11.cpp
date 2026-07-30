@@ -386,12 +386,14 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalSpatialCurrent        = nullptr;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_temporalCombinedVelocity      = nullptr;
         ID3D11Texture2D *           m_temporalVelocityReadback      = nullptr;
         ID3D11Texture2D *           m_temporalFeedbackReadback[2]   = { nullptr, nullptr };
         bool                        m_temporalFeedbackExpectedHashValid = false;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
+        bool                        m_smaaObjectMotionEnabled        = false;
         bool                        m_smaaEdgeSelectiveEnabled      = false;
         bool                        m_smaaAdaptiveSearchEnabled     = false;
         bool                        m_velocityDiagnosticsResourcesEnabled = false;
@@ -401,6 +403,7 @@ namespace VertexAsylum
         vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
                                     m_reprojectionConstantsBuffer;
         vaAutoRMI<vaPixelShader>    m_generateCameraVelocityPS;
+        vaAutoRMI<vaPixelShader>    m_mergeObjectVelocityPS;
         vaAutoRMI<vaPixelShader>    m_tscmaaDebugMaskPS;
         vaAutoRMI<vaPixelShader>    m_tscmaaDebugColorPS;
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
@@ -443,9 +446,17 @@ namespace VertexAsylum
 
     private:
         virtual vaDrawResultFlags       Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
-                                                const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
+                                                const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
+                                                const shared_ptr<vaTexture> & optionalObjectMotion = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool                    TryGetPreviousUnjitteredViewProj( vaMatrix4x4 & outMatrix ) const override
+        {
+            if( !m_previousViewProjValid )
+                return false;
+            outMatrix = m_previousViewProj;
+            return true;
+        }
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
@@ -498,10 +509,11 @@ namespace VertexAsylum
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
-                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
+                                            const shared_ptr<vaTexture> & optionalObjectMotion = nullptr ) override
         { 
             // NOT IMPLEMENTED IN DX12
-            deviceContext; inputColor, optionalInLuma, optionalDepth, optionalCamera;
+            deviceContext; inputColor, optionalInLuma, optionalDepth, optionalCamera, optionalObjectMotion;
             deviceContext.GetRenderTarget()->ClearRTV( deviceContext, vaVector4( 1.0f, 0.0f, 1.0f, 0.0f ) );
             return vaDrawResultFlags::None;  
         }
@@ -542,7 +554,8 @@ static HRESULT CreateSMAATemporalBufferAndUAV( ID3D11Device * device, const D3D1
 }
 
 vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
-    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
+    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ),
+    m_mergeObjectVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
     m_tscmaaDebugColorPS( params.RenderDevice ),
     m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
     m_tscmaaDeJitterSpatialCS( params.RenderDevice ), m_tscmaaResolveCandidatesCS( params.RenderDevice ),
@@ -553,6 +566,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
     m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
+    m_mergeObjectVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAMergeObjectVelocityPS", {}, true );
     m_tscmaaDebugMaskPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "TSCMAADebugMaskPS", {}, true );
     m_tscmaaDebugColorPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "TSCMAADebugColorPS", {}, true );
     const vector<pair<string, string>> tscmaaShaderMacros = { { "SMAA_TSCMAA_COMPUTE", "1" } };
@@ -644,6 +658,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[1] = nullptr;
     m_temporalSpatialCurrent = nullptr;
     m_temporalVelocity = nullptr;
+    m_temporalCombinedVelocity = nullptr;
     SAFE_RELEASE( m_temporalVelocityReadback );
     SAFE_RELEASE( m_temporalFeedbackReadback[0] );
     SAFE_RELEASE( m_temporalFeedbackReadback[1] );
@@ -652,6 +667,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_tscmaaCandidateMask = nullptr;
     m_tscmaaClippingDebug = nullptr;
     m_smaaReprojectionEnabled = false;
+    m_smaaObjectMotionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
     m_smaaAdaptiveSearchEnabled = false;
     m_velocityDiagnosticsResourcesEnabled = false;
@@ -709,17 +725,20 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     // this should go to UpdateResources
     bool smaaPredication = false;   // search for SMAA_PREDICATION - this is for additional edge detection (depth-based, or etc.)
     bool smaaProjection = GetTemporalReprojectionEnabled( );
+    bool objectMotion = GetObjectMotionReprojectionEnabled( );
     bool edgeSelective = GetEdgeSelectiveTemporalEnabled( );
     bool adaptiveSearch = GetAdaptiveSpatialSearchEnabled( );
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
+        || m_smaaObjectMotionEnabled != objectMotion
         || m_smaaEdgeSelectiveEnabled != edgeSelective
         || m_smaaAdaptiveSearchEnabled != adaptiveSearch
         || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
         || m_clippingDebugResourcesEnabled != GetClippingDebugViewsEnabled( )
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
+            || (objectMotion && m_temporalCombinedVelocity == nullptr)
             || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                 || (GetClippingDebugViewsEnabled( ) && m_tscmaaClippingDebug == nullptr)
@@ -733,6 +752,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
             ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, nullptr, SMAA::ExternalStorage( ), adaptiveSearch );
         m_smaaReprojectionEnabled = smaaProjection;
+        m_smaaObjectMotionEnabled = objectMotion;
         m_smaaEdgeSelectiveEnabled = edgeSelective;
         m_smaaAdaptiveSearchEnabled = adaptiveSearch;
         m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
@@ -777,6 +797,11 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             if( smaaProjection || edgeSelective )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
+            if( objectMotion )
+                m_temporalCombinedVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT,
+                    inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource,
+                    vaResourceAccessFlags::Default );
 
             if( GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocity != nullptr )
             {
@@ -852,6 +877,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             for( int i = 0; i < c_tscmaaReadbackBufferCount; i++ )
                 readbackBuffersReady = readbackBuffersReady && (m_tscmaaControlReadback[i] != nullptr);
             if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
+                || (objectMotion && m_temporalCombinedVelocity == nullptr)
                 || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                     || (GetClippingDebugViewsEnabled( ) && m_tscmaaClippingDebug == nullptr)
@@ -867,7 +893,8 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
 }
 
 vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma,
-    const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera )
+    const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera,
+    const shared_ptr<vaTexture> & optionalObjectMotion )
 {
     vaRenderDeviceContext::RenderOutputsState rtState = deviceContext.GetOutputs( );
 
@@ -878,6 +905,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     deviceContext.SetRenderTarget( nullptr, nullptr, false );
 
     ID3D11DeviceContext * dx11Context = vaSaferStaticCast< vaRenderDeviceContextDX11 * >( &deviceContext )->GetDXContext( );
+
+    if( GetObjectMotionReprojectionEnabled( )
+        && (optionalObjectMotion == nullptr
+            || optionalObjectMotion->GetSizeX( ) != inputColor->GetSizeX( )
+            || optionalObjectMotion->GetSizeY( ) != inputColor->GetSizeY( )
+            || optionalObjectMotion->GetSampleCount( ) != 1) )
+    {
+        assert( false );
+        return vaDrawResultFlags::UnspecifiedError;
+    }
 
     if( !UpdateResources( deviceContext, inputColor ) )
     { assert( false ); return vaDrawResultFlags::UnspecifiedError; }
@@ -893,6 +930,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         || ((GetTemporalDebugView( ) == TemporalDebugView::BaseEdges || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates)
             && !m_tscmaaDebugMaskPS->IsCreated( ))
         || (GetClippingDebugViewsEnabled( ) && !m_tscmaaDebugColorPS->IsCreated( ))) )
+        return vaDrawResultFlags::ShadersStillCompiling;
+    if( GetObjectMotionReprojectionEnabled( ) && !m_mergeObjectVelocityPS->IsCreated( ) )
         return vaDrawResultFlags::ShadersStillCompiling;
 
     if( GetCatmullRomDiagnosticPending( ) )
@@ -1023,6 +1062,22 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         if( GetTemporalVelocityDiagnosticsEnabled( ) )
             ReadbackTemporalVelocityDiagnostics( dx11Context, (uint32)inputColor->GetSizeX( ), (uint32)inputColor->GetSizeY( ) );
 
+        if( GetObjectMotionReprojectionEnabled( ) )
+        {
+            VA_SCOPE_CPUGPU_TIMER( SMAAMergeObjectVelocity, deviceContext );
+            assert( m_temporalCombinedVelocity != nullptr && optionalObjectMotion != nullptr );
+            deviceContext.SetRenderTarget( m_temporalCombinedVelocity, nullptr, true );
+            vaGraphicsItem mergeRenderItem;
+            deviceContext.FillFullscreenPassRenderItem( mergeRenderItem );
+            mergeRenderItem.ShaderResourceViews[7] = m_temporalVelocity;
+            mergeRenderItem.ShaderResourceViews[17] = optionalObjectMotion;
+            mergeRenderItem.PixelShader = m_mergeObjectVelocityPS;
+            const vaDrawResultFlags mergeResult = deviceContext.ExecuteSingleItem( mergeRenderItem );
+            deviceContext.SetRenderTarget( nullptr, nullptr, false );
+            if( mergeResult != vaDrawResultFlags::None )
+                return mergeResult;
+        }
+
         m_previousViewProj = currentUnjitteredViewProjForHistory;
         m_previousViewProjValid = true;
     }
@@ -1047,7 +1102,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
-            ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
+            const shared_ptr<vaTexture> effectiveVelocity =
+                GetObjectMotionReprojectionEnabled( )? m_temporalCombinedVelocity : m_temporalVelocity;
+            ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )?
+                effectiveVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
             if( GetEdgeSelectiveTemporalEnabled( ) )
             {
                 assert( m_temporalSpatialCurrent != nullptr );

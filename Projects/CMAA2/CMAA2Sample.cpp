@@ -52,7 +52,8 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_T2X_R_OBJECT_MOTION;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -89,6 +90,17 @@ namespace
         case CMAA2Sample::AAType::SMAA_A_T2X_R:
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
+            settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
+            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
+            settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
+            settings.HistoryWeight = 0.5f;
+            break;
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_T2X_R_OBJECT_MOTION:
+            // Controlled comparison against O-T2X-R. The only additional
+            // temporal input is the rigid opaque object-motion velocity target.
+            settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
+            settings.Reprojection =
+                vaSMAAWrapper::ReprojectionMode::CameraDepthMatricesAndObjectMotion;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
             settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
@@ -173,7 +185,17 @@ namespace
 
     const char * GetReprojectionModeName( vaSMAAWrapper::ReprojectionMode value )
     {
-        return (value == vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices)? "CameraDepthMatrices" : "Off";
+        switch( value )
+        {
+        case vaSMAAWrapper::ReprojectionMode::Off:
+            return "Off";
+        case vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices:
+            return "CameraDepthMatrices";
+        case vaSMAAWrapper::ReprojectionMode::CameraDepthMatricesAndObjectMotion:
+            return "CameraDepthMatrices+RigidOpaqueObjectMotion";
+        default:
+            return "Unknown";
+        }
     }
 
     const char * GetJitterPolicyName( vaSMAAWrapper::JitterPolicy value )
@@ -436,6 +458,8 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
         return "ABL-CandidateOnly-NoJitter-R - Candidate-only with deliberate projection jitter disabled";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE:
         return "ABL-Candidate-DeJitter-R - Candidate-only jitter path with de-jittered noncandidate spatial base";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_T2X_R_OBJECT_MOTION:
+        return "ABL-O-T2X-R-ObjectMotion - O-T2X-R plus rigid opaque object motion vectors";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -482,6 +506,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_T2X_R_OBJECT_MOTION:
         return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
@@ -1101,7 +1126,8 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     mainContext.SetRenderTarget(gbufferColorScratch, nullptr, true);
                     colorScratchContainsFinal = true;
                     //m_SMAA->Draw( mainContext, mainColorRT ); //, m_exportedLuma );
-                    drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
+                    drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma,
+                        mainDepthRT, &camera, m_smaaObjectMotionVectors);
                 }
                 VA_SCOPE_MAKE_LAST_SELECTED();
             }
@@ -1149,14 +1175,44 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
         // clear light accumulation (radiance) RT
         gbufferOutput.GetRadiance()->ClearRTV(mainContext, vaVector4(0.0f, 0.0f, 0.0f, 0.0f));
 
+        const bool objectMotionVectorsEnabled =
+            m_SMAA->GetObjectMotionReprojectionEnabled( )
+            && m_smaaObjectMotionVectors != nullptr;
+        bool objectMotionHistoryValid = false;
+        vaMatrix4x4 currentUnjitteredViewProj = vaMatrix4x4::Identity;
+        vaMatrix4x4 previousUnjitteredViewProj = vaMatrix4x4::Identity;
+        if( objectMotionVectorsEnabled )
+        {
+            vaCameraBase unjitteredCamera = camera;
+            unjitteredCamera.SetSubpixelOffset( vaVector2( 0.0f, 0.0f ) );
+            unjitteredCamera.Tick( 0.0f, false );
+            currentUnjitteredViewProj =
+                unjitteredCamera.GetViewMatrix( ) * unjitteredCamera.GetProjMatrix( );
+            objectMotionHistoryValid =
+                m_SMAA->TryGetPreviousUnjitteredViewProj( previousUnjitteredViewProj );
+            if( !objectMotionHistoryValid )
+                previousUnjitteredViewProj = currentUnjitteredViewProj;
+        }
+
         // Forward opaque
         {
             VA_SCOPE_CPUGPU_TIMER(Forward, mainContext);
 
             vaSceneDrawContext drawContext(mainContext, camera, vaDrawContextOutputType::Forward, vaDrawContextFlags::None, m_lighting.get());
             drawContext.GlobalMIPOffset = globalMIPOffset; drawContext.GlobalPixelScale = globalPixelScale;
+            drawContext.ObjectMotionVectorsEnabled = objectMotionVectorsEnabled;
+            drawContext.TemporalMotionHistoryValid = objectMotionHistoryValid;
+            drawContext.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
+            drawContext.PreviousUnjitteredViewProj = previousUnjitteredViewProj;
 
-            mainContext.SetRenderTarget(gbufferOutput.GetRadiance(), mainDepthRT, true);
+            if( objectMotionVectorsEnabled )
+            {
+                const shared_ptr<vaTexture> renderTargets[2] =
+                    { gbufferOutput.GetRadiance(), m_smaaObjectMotionVectors };
+                mainContext.SetRenderTargets( _countof(renderTargets), renderTargets, mainDepthRT, true );
+            }
+            else
+                mainContext.SetRenderTarget(gbufferOutput.GetRadiance(), mainDepthRT, true);
 
             vaRenderMeshDrawFlags drawFlags = vaRenderMeshDrawFlags::SkipTransparencies | vaRenderMeshDrawFlags::EnableDepthTest | vaRenderMeshDrawFlags::EnableDepthWrite;
             if (m_settings.ZPrePass)
@@ -1287,7 +1343,8 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     colorScratchContainsFinal = true;
                     if (IsSMAASingleSample(m_settings.CurrentAAOption))
                         //m_SMAA->Draw( mainContext, mainColorRT ); 
-                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
+                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma,
+                            mainDepthRT, &camera, m_smaaObjectMotionVectors);
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
                         drawResults |= m_SMAA->Draw(mainContext, m_MSTonemappedColor);
                     ppAAApplied = true;
@@ -1405,6 +1462,29 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
         m_settings.MSAADebugSampleIndex = vaMath::Clamp(m_settings.MSAADebugSampleIndex, -1, msaaSampleCount - 1);
 
         m_GBuffer->UpdateResources(mainViewport.Width, mainViewport.Height, msaaSampleCount, m_GBufferFormats);
+
+        const bool objectMotionVectorsEnabled =
+            temporalSMAASettings.Reprojection ==
+            vaSMAAWrapper::ReprojectionMode::CameraDepthMatricesAndObjectMotion;
+        if( objectMotionVectorsEnabled )
+        {
+            if( m_smaaObjectMotionVectors == nullptr
+                || m_smaaObjectMotionVectors->GetSizeX( ) != m_GBuffer->GetOutputColor()->GetSizeX( )
+                || m_smaaObjectMotionVectors->GetSizeY( ) != m_GBuffer->GetOutputColor()->GetSizeY( ) )
+            {
+                m_smaaObjectMotionVectors = vaTexture::Create2D(
+                    GetRenderDevice(), vaResourceFormat::R16G16B16A16_FLOAT,
+                    m_GBuffer->GetOutputColor()->GetSizeX( ),
+                    m_GBuffer->GetOutputColor()->GetSizeY( ), 1, 1, 1,
+                    vaResourceBindSupportFlags::RenderTarget
+                        | vaResourceBindSupportFlags::ShaderResource,
+                    vaResourceAccessFlags::Default );
+            }
+            m_smaaObjectMotionVectors->ClearRTV(
+                mainContext, vaVector4( 0.0f, 0.0f, 0.0f, 0.0f ) );
+        }
+        else
+            m_smaaObjectMotionVectors = nullptr;
 
         if (m_scratchPostProcessColor == nullptr || m_scratchPostProcessColor->GetSizeX() != m_GBuffer->GetOutputColor()->GetSizeX() || m_scratchPostProcessColor->GetSizeY() != m_GBuffer->GetOutputColor()->GetSizeY() || m_scratchPostProcessColor->GetResourceFormat() != m_GBuffer->GetOutputColor()->GetResourceFormat())
         {
@@ -3071,6 +3151,169 @@ protected:
     }
 };
 
+class BenchItemRecordSMAAObjectMotionVectorCapture : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 3;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const CMAA2Sample::SMAATemporalStressScenario m_scenario;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    int                 m_currentMode = 0;
+    int                 m_currentFrame = 0;
+    bool                m_started = false;
+    bool                m_isDone = false;
+    wstring             m_outputDirs[c_modeCount];
+
+    static const char * GetModeID( int mode )
+    {
+        static const char * c_modeIDs[c_modeCount] =
+        {
+            "O-1X",
+            "O-T2X-R-CameraOnly",
+            "ABL-O-T2X-R-ObjectMotion"
+        };
+        return c_modeIDs[mode];
+    }
+
+    static const char * GetModeDirectory( int mode )
+    {
+        static const char * c_modeDirectories[c_modeCount] =
+        {
+            "O_1X",
+            "O_T2X_R_CameraOnly",
+            "ABL_O_T2X_R_ObjectMotion"
+        };
+        return c_modeDirectories[mode];
+    }
+
+    static CMAA2Sample::AAType GetModeAAType( int mode )
+    {
+        static const CMAA2Sample::AAType c_modes[c_modeCount] =
+        {
+            CMAA2Sample::AAType::SMAA,
+            CMAA2Sample::AAType::SMAA_O_T2X_R,
+            CMAA2Sample::AAType::SMAA_O_ABLATION_T2X_R_OBJECT_MOTION
+        };
+        return c_modes[mode];
+    }
+
+public:
+    BenchItemRecordSMAAObjectMotionVectorCapture(
+        CMAA2Sample & parent,
+        CMAA2Sample::SMAATemporalStressScenario scenario,
+        int captureFrameCount,
+        int warmupFrameCount )
+        : AutoBenchToolWorkItem( parent ),
+        m_scenario( scenario ),
+        m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
+        m_warmupFrameCount( vaMath::Max( 1, warmupFrameCount ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( c_frameDeltaTime );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( false );
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity();
+
+            abTool.ReportStart( );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+            {
+                m_outputDirs[mode] = abTool.ReportGetDir( )
+                    + vaStringTools::SimpleWiden( GetModeDirectory( mode ) ) + L"\\";
+                vaFileTools::EnsureDirectoryExists( m_outputDirs[mode] );
+            }
+
+            abTool.ReportAddText( "SMAA rigid opaque object-motion vector controlled capture\r\n\r\n" );
+            abTool.ReportAddText( vaStringTools::Format( "Scenario:       %s\r\n",
+                CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ) ) );
+            abTool.ReportAddText( "API/preset:     DirectX 11, SMAA Ultra\r\n" );
+            abTool.ReportAddText( "Timeline:       fixed 60 Hz and identical per mode\r\n" );
+            abTool.ReportAddText( vaStringTools::Format( "Warm-up:        %d frames\r\n",
+                m_warmupFrameCount ) );
+            abTool.ReportAddText( vaStringTools::Format( "Capture:        %d frames per mode\r\n",
+                m_captureFrameCount ) );
+            abTool.ReportAddText( "Controlled pair: O-T2X-R-CameraOnly and ABL-O-T2X-R-ObjectMotion keep Standard T2X jitter, bilinear history, clipping Off, and history weight 0.5 identical.\r\n" );
+            abTool.ReportAddText( "Changed factor: visible rigid opaque mesh velocity from previous/current object transforms is merged with camera velocity.\r\n" );
+            abTool.ReportAddText( "Unsupported in this diagnostic: skinned/deforming geometry, transparent object motion, and general engine object-motion validation.\r\n" );
+            abTool.ReportAddText( "Classification: engineering quality capture; not a performance measurement and not an additional final 8-case mode.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Mode", "Output directory" } );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+                abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
+
+            m_currentMode = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if( m_currentFrame >= m_captureFrameCount )
+        {
+            m_currentMode++;
+            if( m_currentMode >= c_modeCount )
+            {
+                m_isDone = true;
+                abTool.ReportFinish( );
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        m_parent.Settings().CurrentAAOption = GetModeAAType( m_currentMode );
+        m_parent.SetSMAATemporalStressTestState(
+            m_scenario, (float)m_currentFrame * c_frameDeltaTime );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+
+    virtual void OnRenderComparePoint( AutoBenchTool & abTool,
+        vaImageCompareTool & imageCompareTool, vaRenderDeviceContext & renderContext,
+        const shared_ptr<vaTexture> & colorInOut,
+        shared_ptr<vaPostProcess> & postProcess ) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if( m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount )
+        {
+            const char * modeName = GetModeDirectory( m_currentMode );
+            const wstring fileName = m_outputDirs[m_currentMode]
+                + vaStringTools::SimpleWiden( vaStringTools::Format(
+                    "%s_%s_frame_%05d.png",
+                    CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ),
+                    modeName, m_currentFrame ) );
+            if( !colorInOut->SaveToPNGFile( renderContext, fileName ) )
+                VA_LOG_ERROR( L"Failed to save SMAA object-motion vector frame '%s'",
+                    fileName.c_str( ) );
+        }
+    }
+
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override
+    {
+        return m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount;
+    }
+    virtual float GetProgress( ) const override
+    {
+        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int completedFrames = m_currentMode * framesPerMode
+            + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp( (float)completedFrames
+            / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f );
+    }
+};
+
 class BenchItemRecordSMAACandidatePolicyJitterAblation : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
@@ -4358,6 +4601,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         CandidateCatmullClipWeight08R,
         CandidateNoJitterR,
         CandidateDeJitterR,
+        ObjectMotionR,
         ExplicitCameraCutReset,
         SceneChange,
         SceneRestore,
@@ -4399,6 +4643,8 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
             return "ABL-CandidateOnly-NoJitter-R mode change";
         case Phase::CandidateDeJitterR:
             return "ABL-Candidate-DeJitter-R mode change";
+        case Phase::ObjectMotionR:
+            return "ABL-O-T2X-R-ObjectMotion mode change";
         case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
         case Phase::SceneChange:            return "scene change";
         case Phase::SceneRestore:           return "scene restore";
@@ -4420,7 +4666,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 
     int RequiredTargetFrames( ) const
     {
-        return (int)m_phase <= (int)Phase::CandidateDeJitterR? 3 : 2;
+        return (int)m_phase <= (int)Phase::ObjectMotionR? 3 : 2;
     }
 
     void EnterPhase( Phase phase )
@@ -4486,6 +4732,15 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE;
             break;
+        case Phase::ObjectMotionR:
+            m_parent.Settings().SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_T2X_R_OBJECT_MOTION;
+            m_parent.SetSMAATemporalStressTestState(
+                CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion,
+                0.0f );
+            break;
         case Phase::ExplicitCameraCutReset:
             // LoadCamera and other known camera cuts use this same history-reset
             // entry point; no arbitrary motion threshold is introduced.
@@ -4531,7 +4786,7 @@ protected:
             m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
 
             abTool.ReportStart( );
-            abTool.ReportAddText( "SMAA eight-case plus controlled component and hybrid resolve ablation temporal lifecycle engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "SMAA eight-case plus controlled component, hybrid resolve, and rigid object-motion ablation temporal lifecycle engineering validation\r\n\r\n" );
             abTool.ReportAddText( "Validates seed/resolve state, ping-pong indices, jitter/subsample pairing,\r\n" );
             abTool.ReportAddText( "first-frame reprojection matrices, mode/scene/camera-cut reset, and resize recreation.\r\n" );
             abTool.ReportAddText( "This is not a formal quality or performance measurement.\r\n\r\n" );
@@ -4544,7 +4799,7 @@ protected:
         if( m_phase == Phase::Complete )
         {
             const bool aggregatePassed = diagnostics.Passed && m_allTransitionsPassed
-                && diagnostics.SeedFrameCount >= 19
+                && diagnostics.SeedFrameCount >= 20
                 && diagnostics.ResolvedFrameCount > diagnostics.SeedFrameCount
                 && diagnostics.ReprojectionFrameCount > 0;
             VA_LOG( "SMAA temporal lifecycle validation: resets=%u, frames=%u, seed=%u, resolve=%u, reprojection=%u, failures=%u => %s",
@@ -5282,6 +5537,45 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA supersample stress reference '%s': %d capture frames, %d warm-up frames",
+                GetSMAATemporalStressScenarioName( scenario ),
+                frameCount, warmupFrameCount );
+            return;
+        }
+
+        if( _wcsicmp( parameter.first.c_str( ),
+            L"smaaObjectMotionVectorCapture" ) == 0 )
+        {
+            wstring scenarioToken = L"object-motion";
+            int frameCount = 180;
+            int warmupFrameCount = 60;
+            if( !parameter.second.empty( ) )
+            {
+                std::wistringstream values( parameter.second );
+                if( !(values >> scenarioToken >> frameCount >> warmupFrameCount) )
+                {
+                    VA_LOG_ERROR( "Invalid SMAA object-motion vector capture values; expected: <object-motion|combined> <captureFrames> <warmupFrames>" );
+                    return;
+                }
+            }
+
+            SMAATemporalStressScenario scenario = SMAATemporalStressScenario::MaxValue;
+            if( _wcsicmp( scenarioToken.c_str( ), L"object-motion" ) == 0 )
+                scenario = SMAATemporalStressScenario::ObjectMotionDisocclusion;
+            else if( _wcsicmp( scenarioToken.c_str( ), L"combined" ) == 0 )
+                scenario = SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+            else
+            {
+                VA_LOG_ERROR( "Invalid SMAA object-motion vector scenario; expected object-motion or combined" );
+                return;
+            }
+
+            frameCount = vaMath::Clamp( frameCount, 1, 1800 );
+            warmupFrameCount = vaMath::Clamp( warmupFrameCount, 1, 600 );
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemRecordSMAAObjectMotionVectorCapture>(
+                    *this, scenario, frameCount, warmupFrameCount ) );
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG( "Queued SMAA rigid opaque object-motion vector capture '%s': %d capture frames, %d warm-up frames",
                 GetSMAATemporalStressScenarioName( scenario ),
                 frameCount, warmupFrameCount );
             return;

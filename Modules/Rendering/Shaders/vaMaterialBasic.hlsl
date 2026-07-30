@@ -529,7 +529,13 @@ float4 PS_CustomShadow( const in RenderMaterialShaderInterpolants interpolants, 
     // return float4( 0.0, 1.0, 0.0, 1.0 );
 }
 
-float4 PS_Forward( const in RenderMaterialShaderInterpolants interpolants, const bool isFrontFace : SV_IsFrontFace ) : SV_Target
+struct ForwardOutput
+{
+    float4  Color               : SV_Target0;
+    float4  ObjectVelocityMask  : SV_Target1;
+};
+
+ForwardOutput PS_Forward( const in RenderMaterialShaderInterpolants interpolants, const bool isFrontFace : SV_IsFrontFace )
 {
     BasicSurfaceMaterialValues material = FillBasicMaterialValues( interpolants, isFrontFace );
 
@@ -537,7 +543,22 @@ float4 PS_Forward( const in RenderMaterialShaderInterpolants interpolants, const
 
     finalColor.rgb = finalColor.rgb * interpolants.Color.aaa + interpolants.Color.rgb;
 
-    return finalColor;
+    ForwardOutput output;
+    output.Color = finalColor;
+
+    float currentW = interpolants.CurrentUnjitteredClip.w;
+    float previousW = interpolants.PreviousUnjitteredClip.w;
+    currentW = abs(currentW) > 1e-6? currentW : (currentW < 0.0? -1e-6 : 1e-6);
+    previousW = abs(previousW) > 1e-6? previousW : (previousW < 0.0? -1e-6 : 1e-6);
+    float2 currentNDC = interpolants.CurrentUnjitteredClip.xy / currentW;
+    float2 previousNDC = interpolants.PreviousUnjitteredClip.xy / previousW;
+    float2 currentUV = float2(currentNDC.x * 0.5 + 0.5, 0.5 - currentNDC.y * 0.5);
+    float2 previousUV = float2(previousNDC.x * 0.5 + 0.5, 0.5 - previousNDC.y * 0.5);
+    float2 objectVelocity = currentUV - previousUV;
+    if(!all(isfinite(objectVelocity)))
+        objectVelocity = 0.0;
+    output.ObjectVelocityMask = float4(objectVelocity, 1.0, 0.0);
+    return output;
 }
 
 

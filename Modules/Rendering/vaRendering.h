@@ -134,6 +134,10 @@ namespace VertexAsylum
         vaVector4                       ViewspaceDepthOffsets   = vaVector4( 0.0f, 1.0f, 0.0f, 1.0f );      // used for depth bias for shadow maps and similar
         float                           GlobalMIPOffset         = 0.0f;                                     // global texture mip offset for those subsystems that support it
         vaVector2                       GlobalPixelScale        = vaVector2( 1.0f, 1.0f );                  // global pixel scaling for various effect that depend on pixel size - used to maintain consistency when supersampling using higher resolution (and effectively smaller pixel)
+        bool                            ObjectMotionVectorsEnabled = false;                                 // controlled rigid opaque object-motion diagnostic
+        bool                            TemporalMotionHistoryValid = false;
+        vaMatrix4x4                     CurrentUnjitteredViewProj = vaMatrix4x4::Identity;
+        vaMatrix4x4                     PreviousUnjitteredViewProj = vaMatrix4x4::Identity;
     };
 
     // This is a platform-independent layer for -immediate- rendering of a single draw call - it's not fully featured or designed

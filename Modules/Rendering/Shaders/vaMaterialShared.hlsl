@@ -31,6 +31,8 @@ struct RenderMaterialShaderInterpolants
     /*centroid*/ float4 ViewspacePos        : TEXCOORD0;
     /*centroid*/ float4 ViewspaceNormal     : NORMAL0;
     /*centroid*/ float4 Texcoord01          : TEXCOORD1;
+    /*centroid*/ float4 CurrentUnjitteredClip : TEXCOORD2;
+    /*centroid*/ float4 PreviousUnjitteredClip : TEXCOORD3;
 //  /*centroid*/ float4 Texcoord23          : TEXCOORD2;      // currently commented out - texcoords 2 and 3 are probably never going to be needed but just in case (maybe lightmaps + object space shading or something?)
 };
 

@@ -53,7 +53,8 @@ namespace VertexAsylum
         enum class ReprojectionMode : int32
         {
             Off,
-            CameraDepthMatrices
+            CameraDepthMatrices,
+            CameraDepthMatricesAndObjectMotion
         };
 
         enum class JitterPolicy : int32
@@ -363,7 +364,15 @@ namespace VertexAsylum
         }
         const TemporalSettings &    GetTemporalSettings( ) const       { return m_temporalSettings; }
         bool                        GetTemporalModeEnabled( ) const      { return m_temporalSettings.Coverage != TemporalCoverage::Disabled; }
-        bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatrices; }
+        bool                        GetTemporalReprojectionEnabled( ) const
+        {
+            return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatrices
+                || m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatricesAndObjectMotion;
+        }
+        bool                        GetObjectMotionReprojectionEnabled( ) const
+        {
+            return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatricesAndObjectMotion;
+        }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
         bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }
         bool                        GetDeJitteredNonCandidateBaseEnabled( ) const
@@ -517,9 +526,20 @@ namespace VertexAsylum
                 m_temporalLifecycleDiagnostics.ResetCount++;
         }
 
+        // Returns the previous frame's unjittered camera view-projection only
+        // while the temporal history lifecycle is valid. The sample uses this
+        // before opaque rendering to generate a controlled rigid-object motion
+        // vector target.
+        virtual bool                TryGetPreviousUnjitteredViewProj( vaMatrix4x4 & outMatrix ) const
+        {
+            outMatrix = vaMatrix4x4::Identity;
+            return false;
+        }
+
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
-                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr )  = 0;
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
+                                            const shared_ptr<vaTexture> & optionalObjectMotion = nullptr )  = 0;
 
         // if SMAA is no longer used make sure it's not reserving any memory
         virtual void                CleanupTemporaryResources( )                                                            = 0;

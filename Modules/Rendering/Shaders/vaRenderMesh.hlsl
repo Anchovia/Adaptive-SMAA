@@ -45,6 +45,8 @@ RenderMaterialShaderInterpolants VS_Standard( const in RenderMeshStandardVertexI
 
     ret.ViewspacePos        = mul( g_RenderMeshGlobal.WorldView, float4( input.Position.xyz, 1) );
     ret.ViewspaceNormal.xyz = normalize( mul( (float3x3)g_RenderMeshGlobal.NormalWorldView, input.Normal.xyz ).xyz );
+    ret.CurrentUnjitteredClip = mul( g_RenderMeshGlobal.CurrentUnjitteredWorldViewProj, float4( input.Position.xyz, 1) );
+    ret.PreviousUnjitteredClip = mul( g_RenderMeshGlobal.PreviousUnjitteredWorldViewProj, float4( input.Position.xyz, 1) );
 
     {
         float viewspaceLength = length( ret.ViewspacePos.xyz );

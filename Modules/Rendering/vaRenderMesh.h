@@ -196,6 +196,7 @@ namespace VertexAsylum
             shared_ptr<vaRenderMesh>                    Mesh;
             // shared_ptr<vaRenderMaterial>                OverrideMaterial;    // was not needed so far
             vaMatrix4x4                                 Transform;
+            vaMatrix4x4                                 PreviousTransform;
 
             float                                       SortDistance;
 
@@ -204,7 +205,11 @@ namespace VertexAsylum
             uint64                                      CustomPayload;  // per-entry payload
 
             Entry( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, float sortDistance = 0.0f,
-                    vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0 ) : Mesh( mesh ), Transform( transform ), SortDistance( sortDistance ), CustomHandler( customHandler ), CustomPayload( customPayload ) { }
+                    vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0,
+                    const vaMatrix4x4 * previousTransform = nullptr )
+                : Mesh( mesh ), Transform( transform ),
+                  PreviousTransform( previousTransform != nullptr? *previousTransform : transform ),
+                  SortDistance( sortDistance ), CustomHandler( customHandler ), CustomPayload( customPayload ) { }
         };
 
     private:
@@ -223,7 +228,7 @@ namespace VertexAsylum
         void                                            Reset( )                            { Event_PreReset.Invoke( *this ); Event_PreReset.RemoveAll(); m_drawList.clear(); }
         int                                             Count( ) const                      { return (int)m_drawList.size(); }
         
-        void                                            Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, const vaVector3 & sortFromReference, vaSortType sortType = vaSortType::FrontToBack, vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0 );
+        void                                            Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, const vaVector3 & sortFromReference, vaSortType sortType = vaSortType::FrontToBack, vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0, const vaMatrix4x4 * previousTransform = nullptr );
 
         const Entry &                                   operator[] ( int index ) const      { return m_drawList[index]; }
     };
@@ -286,7 +291,7 @@ namespace VertexAsylum
         virtual void                                    UIPanelDraw( );
     };
 
-    inline void vaRenderMeshDrawList::Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, const vaVector3 & sortFromReference, vaSortType sortType, vaRenderMeshCustomHandler * customHandler, uint64 customPayload )
+    inline void vaRenderMeshDrawList::Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, const vaVector3 & sortFromReference, vaSortType sortType, vaRenderMeshCustomHandler * customHandler, uint64 customPayload, const vaMatrix4x4 * previousTransform )
     {
         if( mesh == nullptr )
         {
@@ -295,7 +300,7 @@ namespace VertexAsylum
         }
         float distance = ( vaVector3::TransformCoord( mesh->GetAABB().Center(), transform ) - sortFromReference ).Length();
         
-        Entry newEntry( mesh, transform, distance, customHandler, customPayload );
+        Entry newEntry( mesh, transform, distance, customHandler, customPayload, previousTransform );
 
         if( sortType != vaSortType::None )
         {

@@ -50,6 +50,16 @@ vaMatrix4x4 vaSceneObject::GetWorldTransform( ) const
     return m_computedWorldTransform;
 }
 
+vaMatrix4x4 vaSceneObject::GetPreviousWorldTransform( ) const
+{
+#ifdef _DEBUG
+    shared_ptr<vaScene> scene = GetScene();
+    assert( scene != nullptr );
+    assert( m_lastSceneTickIndex == scene->GetTickIndex( ) );
+#endif
+    return m_previousComputedWorldTransform;
+}
+
 void vaSceneObject::FindClosestRecursive( const vaVector3 & worldLocation, shared_ptr<vaSceneObject> & currentClosest, float & currentDistance )
 {
     // can't get any closer than this
@@ -82,11 +92,19 @@ void vaSceneObject::TickRecursive( vaScene & scene, float deltaTime )
         UpdateLocalBoundingBox();
     }
 
+    // Preserve the previous completed scene-tick transform before updating the
+    // current one. On the first tick, seed previous=current to avoid a
+    // synthetic object velocity.
+    const bool hadPreviousTick = m_lastSceneTickIndex >= 0;
+    const vaMatrix4x4 previousWorldTransform = m_computedWorldTransform;
+
     // Update transforms (OK to rely on parent's transforms, they've already been updated)
     if( m_parent == nullptr )
         m_computedWorldTransform = GetLocalTransform();
     else
         m_computedWorldTransform = GetLocalTransform() * m_parent->GetWorldTransform();
+    m_previousComputedWorldTransform = hadPreviousTick?
+        previousWorldTransform : m_computedWorldTransform;
 
     // Update tick index (transforms ok, but beware, bounding boxes not yet)
     m_lastSceneTickIndex = scene.GetTickIndex();
@@ -186,6 +204,7 @@ bool vaSceneObject::Serialize( vaXMLSerializer & serializer )
     {
         m_lastSceneTickIndex = -1;
         m_computedWorldTransform = vaMatrix4x4::Identity;
+        m_previousComputedWorldTransform = vaMatrix4x4::Identity;
         m_computedLocalBoundingBox = vaBoundingBox::Degenerate;
         m_computedGlobalBoundingBox = vaBoundingBox::Degenerate;
         m_cachedRenderMeshes.resize( m_renderMeshes.size() );
@@ -297,11 +316,13 @@ vaDrawResultFlags vaSceneObject::SelectForRendering( vaRenderSelection & renderS
     vaDrawResultFlags drawResults = vaDrawResultFlags::None;
 
     vaMatrix4x4 worldTransform = GetWorldTransform( );
+    vaMatrix4x4 previousWorldTransform = GetPreviousWorldTransform( );
     for( int i = 0; i < m_renderMeshes.size(); i++ )
     {
         auto renderMesh = GetRenderMesh(i);
         if( renderMesh != nullptr )
-            renderSelection.MeshList->Insert( renderMesh, worldTransform, renderSelection.Filter.SortCenter, renderSelection.Filter.SortCenterType );
+            renderSelection.MeshList->Insert( renderMesh, worldTransform, renderSelection.Filter.SortCenter,
+                renderSelection.Filter.SortCenterType, nullptr, 0, &previousWorldTransform );
         else
             drawResults |= vaDrawResultFlags::AssetsStillLoading;
 

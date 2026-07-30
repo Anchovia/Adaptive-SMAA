@@ -52,6 +52,7 @@ namespace VertexAsylum
         // derived/computed variable cache
         mutable int64                               m_lastSceneTickIndex                    = -1;                           // Updated each frame in TickRecursive - this way you can know if an object was already updated
         mutable vaMatrix4x4                         m_computedWorldTransform                = vaMatrix4x4::Identity;        // Updated each frame in TickRecursive
+        mutable vaMatrix4x4                         m_previousComputedWorldTransform        = vaMatrix4x4::Identity;        // Previous scene tick; used by controlled object-motion diagnostics
         mutable vaBoundingBox                       m_computedLocalBoundingBox              = vaBoundingBox::Degenerate;    // Updated in UpdateLocalBoundingBox from RenderMesh-es and other stuff
         mutable vaBoundingBox                       m_computedGlobalBoundingBox             = vaBoundingBox::Degenerate;    // Updated each frame in TickRecursive
 
@@ -92,6 +93,7 @@ namespace VertexAsylum
         void                                        SetLocalTransform( const vaMatrix4x4 & newTransform )       { m_localTransform = newTransform; }
 
         vaMatrix4x4                                 GetWorldTransform( ) const;
+        vaMatrix4x4                                 GetPreviousWorldTransform( ) const;
         
         // does not include children BB or any transformation - just represents combined vaRenderMesh-es
         const vaBoundingBox &                       GetLocalAABB( ) const                                       { return m_computedLocalBoundingBox; }

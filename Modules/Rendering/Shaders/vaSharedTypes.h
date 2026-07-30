@@ -201,6 +201,12 @@ struct RenderMeshConstants
     //vaMatrix4x4         NormalWorld;
     vaMatrix4x4         NormalWorldView;    
 
+    // Used by the controlled rigid opaque object-motion diagnostic. These are
+    // populated for every draw so the shared forward shader remains valid when
+    // only SV_Target0 is bound.
+    vaMatrix4x4         CurrentUnjitteredWorldViewProj;
+    vaMatrix4x4         PreviousUnjitteredWorldViewProj;
+
     vaVector4           ColorOverride;          // used for highlights, wireframe, etc - finalColor = finalColor * ColorOverride.aaa + ColorOverride.rgb
 };
 

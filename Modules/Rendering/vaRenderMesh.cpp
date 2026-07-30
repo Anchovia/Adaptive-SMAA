@@ -667,6 +667,21 @@ vaDrawResultFlags vaRenderMeshManager::Draw( vaSceneDrawContext & drawContext, c
                 instanceConsts.ShadowWorldViewProj = vaMatrix4x4::Identity;
 
                 instanceConsts.NormalWorldView = normalWorld * drawContext.Camera.GetViewMatrix( );
+
+                const vaMatrix4x4 & previousTransform =
+                    drawContext.TemporalMotionHistoryValid? entry.PreviousTransform : entry.Transform;
+                const vaMatrix4x4 currentUnjitteredViewProj =
+                    drawContext.ObjectMotionVectorsEnabled?
+                    drawContext.CurrentUnjitteredViewProj :
+                    drawContext.Camera.GetViewMatrix( ) * drawContext.Camera.GetProjMatrix( );
+                const vaMatrix4x4 previousUnjitteredViewProj =
+                    drawContext.ObjectMotionVectorsEnabled?
+                    drawContext.PreviousUnjitteredViewProj :
+                    currentUnjitteredViewProj;
+                instanceConsts.CurrentUnjitteredWorldViewProj =
+                    entry.Transform * currentUnjitteredViewProj;
+                instanceConsts.PreviousUnjitteredWorldViewProj =
+                    previousTransform * previousUnjitteredViewProj;
             }
         }
 

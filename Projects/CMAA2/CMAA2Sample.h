@@ -112,6 +112,7 @@ namespace VertexAsylum
             SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R, // Diagnostic: previous step + history weight 0.8
             SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER, // Diagnostic: Candidate-only with deliberate projection jitter disabled
             SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE, // Diagnostic: Candidate-only jitter path with de-jittered noncandidate spatial base
+            SMAA_O_ABLATION_T2X_R_OBJECT_MOTION, // Diagnostic: O-T2X-R plus rigid opaque object motion vectors
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
@@ -230,6 +231,7 @@ namespace VertexAsylum
 
         shared_ptr<vaCMAA2>                     m_CMAA2;
         shared_ptr<vaSMAAWrapper>               m_SMAA;
+        shared_ptr<vaTexture>                   m_smaaObjectMotionVectors;
         AAType                                  m_lastLoggedSMAAOption                 = AAType::MaxValue;
         vaVector2i                              m_lastSMAATemporalViewportSize         = vaVector2i( 0, 0 );
         shared_ptr<vaFXAAWrapper>               m_FXAA;

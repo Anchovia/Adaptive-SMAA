@@ -125,6 +125,7 @@ SamplerState                        PointSampler                        : regist
  Texture2DMS<float4, 2>             colorTexMS                          : register( t5 );
  Texture2D                          depthTex                            : register( t6 );
  Texture2D                          velocityTex                         : register( t7 );
+ Texture2D                          objectVelocityTex                   : register( t17 );
                                                                         
  /**                                                                    
   * Temporal textures                                                   
@@ -261,6 +262,14 @@ float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
     // Official SMAA resolve negates this value before adding it to the current
     // UV, so store currentUV - previousUV (the motion-blur convention).
     return currentUnjitteredUV - previousUV;
+}
+
+float2 DX10_SMAAMergeObjectVelocityPS(float4 position : SV_POSITION,
+                                      float2 texcoord : TEXCOORD0) : SV_TARGET {
+    int3 loadPosition = int3(int2(position.xy), 0);
+    float2 cameraVelocity = velocityTex.Load(loadPosition).xy;
+    float4 objectVelocityMask = objectVelocityTex.Load(loadPosition);
+    return objectVelocityMask.z > 0.5? objectVelocityMask.xy : cameraVelocity;
 }
 
 #if !defined(SMAA_TSCMAA_COMPUTE)
