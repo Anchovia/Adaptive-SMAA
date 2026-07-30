@@ -434,9 +434,8 @@ def main() -> None:
         for row in rows:
             writer.writerow({key: row.get(key, "") for key in fieldnames})
 
-    aggregate_rows = rows[1:] if len(rows) > 1 else rows
     summary = {
-        key: aggregate(aggregate_rows, key)
+        key: aggregate(rows, key)
         for key in fieldnames
         if key != "frame"
     }
@@ -516,6 +515,8 @@ def main() -> None:
             "reference_warmup_frames": args.reference_warmup_frames,
             "comparison_warmup_frames": args.comparison_warmup_frames,
             "capture_frames": args.expected_frames,
+            "same_frame_metric_frames": args.expected_frames,
+            "adjacent_metric_frames": max(0, args.expected_frames - 1),
             "ssim": (
                 "luma SSIM, 11x11 Gaussian window, sigma 1.5, "
                 "K1 0.01, K2 0.03, data range 255"
@@ -543,6 +544,8 @@ def main() -> None:
         f"- 해상도: {reference_resolution[0]}×{reference_resolution[1]}",
         f"- reference warm-up {args.reference_warmup_frames}프레임, comparison warm-up {args.comparison_warmup_frames}프레임",
         f"- 저장 프레임: mode별 {args.expected_frames}",
+        f"- same-frame reference 지표: {args.expected_frames}프레임 전체, "
+        f"adjacent-frame 지표: {max(0, args.expected_frames - 1)}쌍",
         f"- reference: {provenance['linear_resolution_scale']}× 선형 해상도, "
         f"{provenance['subpixel_grid'][0]}×{provenance['subpixel_grid'][1]} "
         f"within-frame grid, {provenance['msaa_samples']}×MSAA",
