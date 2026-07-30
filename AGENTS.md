@@ -582,6 +582,23 @@ supersampling을 대부분 잃는다는 해석을 함께 지지한다. 따라서
 성공으로 확정하지 않는다. 상세 결과는
 `Docs/SMAA-Supersample-Reference-Results-ko.md`를 기준으로 한다.
 
+후보에는 SMAA T2X jitter와 temporal resolve를 유지하고 비후보에는 screen-space
+de-jitter spatial base를 제공하는 `ABL-Candidate-DeJitter-R`도 별도 diagnostic으로
+구현했다. Bilinear history, clipping Off, weight 0.5와 Intel-family 후보를 유지해
+`ABL-Candidate-Jitter-R`과 비후보 base만 다르게 비교했다. Release x64 build와
+temporal lifecycle(reset 36, seed 19, resolve 92, reprojection 44, failure 0)을
+통과했다.
+
+3개 stress 시나리오의 mode별 60 warm-up + 240-frame 정식 품질 capture에서 DeJitter는
+Candidate Jitter 대비 flow-aligned residual을 4.809~15.254%, supersample
+spatial-reference MAE를 7.956~15.908% 줄였다. 그러나 모든 ROI에서 Candidate
+NoJitter보다 reference MAE가 8.831~29.242% 높고 O-1X보다도 16.063~35.011%
+높았으며, bilinear inverse-jitter의 경계 연화가 관측됐다. 따라서 부분 개선은
+확인됐지만 최종 해법으로 채택하지 않는다. 이 diagnostic은 최종 8-case를 변경하지
+않으며 Intel 공식 TSCMAA로 표현하지 않는다. 품질상 채택 근거가 없어 full-screen
+de-jitter pass의 정식 성능 본 측정은 생략했다. 상세 결과는
+`Docs/SMAA-Hybrid-Resolve-Ablation-Results-ko.md`를 기준으로 한다.
+
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
 반복 일치했으며 이 현상은 sampler override와 무관하다. 시작 프레임/history warm-up
@@ -651,10 +668,13 @@ supersampling을 대부분 잃는다는 해석을 함께 지지한다. 따라서
     `O-1X`, `O-T2X-R`, candidate jitter On/Off를 3개 시나리오에서 240프레임씩
     비교했다. Standard의 object ghost와 global no-jitter의 O-1X 유사성을
     reference MAE/PSNR/SSIM 및 difference sheet로 보강했다.
-17. **남음:** 후보에는 temporal sample diversity를 유지하면서 비후보에는 별도
-    unjittered spatial base 또는 de-jitter resolve를 제공하는 hybrid를 ablation한다.
-    Candidate-aware stabilization band와 object motion vector 지원도 현재 8-case와
-    분리한 후속 연구로 다룬다.
+17. **완료:** 후보에는 temporal sample diversity를 유지하면서 비후보에는
+    screen-space de-jitter spatial base를 제공하는 hybrid를 ablation했다. Jitter
+    candidate보다 부분 개선됐지만 NoJitter와 O-1X보다 일관되게 나쁘고 blur가 남아
+    최종 방식으로 채택하지 않았다.
+18. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+    object motion vector 지원을 현재 8-case와 분리한 후속 연구로 다룬다. 우선
+    현재 엔진에서 object motion vector를 생성·전달할 수 있는지 조사한다.
 
 ## 7. 측정 규칙
 

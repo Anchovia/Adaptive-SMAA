@@ -1772,3 +1772,41 @@ blur도 residual을 낮출 수 있으므로 절대 품질 순위로 사용하지
 `Docs/SMAA-Optical-Flow-Temporal-Results-ko.md`에 기록한다. 다음 구현 후보는
 candidate-aware jitter 또는 비후보 안정화이며, 필요 시 supersample ground truth를
 먼저 추가한다.
+
+### 17.28 Supersample spatial-reference proxy
+
+2026-07-30에 같은 stress timeline을 선형 2배 해상도, frame 내부 3×3 subpixel
+grid와 각 render의 8×MSAA로 렌더하는 spatial-reference proxy를 추가했다.
+Temporal history가 없는 현재 프레임 reference이며 path-traced 또는 temporal
+ground truth로 표현하지 않는다.
+
+3개 시나리오의 60 warm-up + 240-frame reference와 `O-1X`, `O-T2X-R`,
+Candidate Jitter/NoJitter를 비교했다. Object-motion rotor에서 `O-T2X-R`의
+reference MAE는 `O-1X`보다 349.136% 높고 이중 잔상이 명확했다. Candidate
+NoJitter는 모든 ROI에서 O-1X 대비 -4.993~+10.171% 범위로 가까워, 안정화와 함께
+temporal supersampling 손실이 발생했다는 해석을 보강했다. 상세 결과는
+`Docs/SMAA-Supersample-Reference-Results-ko.md`를 기준으로 한다.
+
+### 17.29 Candidate temporal·비후보 de-jitter hybrid
+
+후보에는 T2X projection jitter와 camera-reprojected temporal resolve를 유지하고
+비후보에는 현재 jitter를 bilinear inverse sample한 spatial base를 제공하는
+`ABL-Candidate-DeJitter-R`을 별도 diagnostic으로 구현했다. 최종 8-case나 Intel
+공식 TSCMAA mode가 아니다.
+
+Release x64 build와 temporal lifecycle을 통과한 뒤 3개 stress 시나리오를 mode별
+60 warm-up + 240-frame으로 캡처했다. DeJitter는 Candidate Jitter보다
+flow-aligned residual을 4.809~15.254%, supersample reference MAE를
+7.956~15.908% 줄였다. 그러나 Candidate NoJitter보다 reference MAE가
+8.831~29.242%, O-1X보다 16.063~35.011% 높고 bilinear 역이동의 경계 연화가
+남았다.
+
+따라서 screen-space de-jitter 가설은 부분적으로만 지지됐고 최종 방식으로 채택하지
+않는다. 품질상 채택 근거가 없어 추가 full-screen compute pass의 정식 성능 본
+측정은 진행하지 않았다. 상세 구현·표·산출물은
+`Docs/SMAA-Hybrid-Resolve-Ablation-Results-ko.md`를 기준으로 한다.
+
+다음 우선순위는 candidate-aware stabilization band를 바로 추가하기 전에 현재
+엔진에서 object motion vector를 생성하고 SMAA temporal resolve에 전달할 수 있는지
+조사하는 것이다. 현재 `-R`은 camera motion만 보정하므로 독립 object-motion
+ghosting의 구조적 한계를 해결하지 못한다.
