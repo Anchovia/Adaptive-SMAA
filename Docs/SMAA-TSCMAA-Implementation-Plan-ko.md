@@ -1743,3 +1743,32 @@ variation을 줄였다. 특히 no-jitter는 직전 단계 대비 2차 차분을 
 `Docs/SMAA-Temporal-Component-Ablation-Results-ko.md`에 기록한다. 다음 연구 단계는
 supersample 또는 optical-flow reference로 ghost trail과 실제 temporal instability를
 분리하는 것이다.
+
+### 17.27 Optical-flow 정렬 보조 품질 분석
+
+2026-07-30에 Farneback dense optical flow 기반 motion-compensated residual 분석을
+component ablation과 최종 8-case에 적용했다. Spatial-only O-1X/A-1X에서 flow를
+추정해 대응 temporal mode에 공통 적용하고, forward/backward consistency 1.0px와
+화면 경계 검사를 통과한 픽셀만 사용한다.
+
+알려진 `(3,-2)px` 합성 이동 self-test는 backward vector error 0.000108px,
+정렬 MAE 99.877% 감소로 PASS했다. 정식 stress ROI의 flow valid ratio는
+78.166~92.763%였고 각 spatial 1X의 정렬 MAE도 29.474~43.080% 감소했다.
+
+Motion 보정 후 Candidate-only는 Standard보다 aligned residual이 `thin-lines`
++32.304%, object occluder +310.764%, rotor +49.881% 높았다. Object-motion
+FB threshold 0.5/1.0/2.0px sweep에서도 같은 방향이 유지돼 candidate+jitter
+instability가 기존 unaligned 지표만의 현상이 아님을 확인했다.
+
+최종 8-case에서 camera-motion thin-lines의 Edge-selective는 대응 Standard보다
+aligned residual이 9.365~14.055% 낮았고 camera reprojection On도 Off보다
+4.561~9.500% 낮았다. 반면 고정-camera rotor의 Standard는 대응 1X보다 약
+16.25~16.52% 낮았지만 visible double ghost를 동반했고, Edge-selective는 1X 대비
+-0.090~+0.043%로 거의 동일했다. 이는 현재 ET2X가 object ghost를 줄이는 대신
+temporal supersampling을 상당 부분 잃었다는 기존 해석을 보강한다.
+
+Flow metric도 ground truth는 아니다. 불일치 mask가 disocclusion 경계를 제외하고,
+blur도 residual을 낮출 수 있으므로 절대 품질 순위로 사용하지 않는다. 상세 결과는
+`Docs/SMAA-Optical-Flow-Temporal-Results-ko.md`에 기록한다. 다음 구현 후보는
+candidate-aware jitter 또는 비후보 안정화이며, 필요 시 supersample ground truth를
+먼저 추가한다.

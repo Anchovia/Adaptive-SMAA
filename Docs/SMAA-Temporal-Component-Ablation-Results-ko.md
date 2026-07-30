@@ -225,8 +225,14 @@ candidate texture 준비, compact와 indirect dispatch를 포함한 edge-selecti
 따라서 현재 결과는 `O-ET2X-R`이 종합적으로 성공했다는 결론이 아니다. 더 정확한
 결론을 위해 다음이 남아 있다.
 
-- supersample reference 또는 optical-flow 정렬 지표로 ghosting과 temporal
-  variation을 분리
+- **완료:** optical-flow 정렬 지표로 장면 motion과 temporal residual을 추가 분리
+- 필요 시 supersample ground truth로 disocclusion과 blur/ghosting 구분 보강
 - jitter를 후보에만 공간적으로 적용하거나 비후보를 안정화할 수 있는 구조 검토
 - 필요하면 object motion vector를 camera reprojection과 별도 연구 축으로 구현
 - 개선안을 만들 경우 현재 8-case 결과와 섞지 않고 별도 실험으로 검증
+
+Optical-flow 정렬 뒤에도 Candidate-only residual은 Standard보다 `thin-lines`
++32.304%, object occluder +310.764%, rotor +49.881% 높았다. Forward/backward
+threshold 0.5/1.0/2.0px 민감도에서도 같은 방향이 유지됐다. 따라서 candidate+jitter
+단계의 큰 temporal variation은 장면 motion이 섞인 기존 차분만의 현상이 아니다.
+상세 내용은 `Docs/SMAA-Optical-Flow-Temporal-Results-ko.md`에 기록한다.

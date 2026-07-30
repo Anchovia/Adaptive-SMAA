@@ -195,6 +195,13 @@ Original mode는 기존 edge target/shader path를 유지한다.
   8-case stress capture를 같은 frame/ROI에서 검증·비교. 1X 대비 temporal MAE,
   2차 시간 차분, edge strength와 trail 휴리스틱을 계산하고 1X/Standard/Edge-selective
   3-way GIF·sequence sheet 생성
+- `Tools/SMAA/analyze_optical_flow_temporal_quality.py`: `O-1X`에서 Farneback
+  dense flow를 계산해 Original component ablation mode의 이전 frame을 현재 frame으로
+  정렬. forward/backward consistency로 불일치·화면 밖 좌표를 제외하고 motion-compensated
+  residual, 유효 비율과 flow 진단 이미지를 생성
+- `Tools/SMAA/analyze_eight_case_optical_flow_quality.py`: 별도 1X control과 temporal
+  8-case stress capture를 연결해 Original에는 O-1X flow, Adaptive에는 A-1X flow를
+  공통 적용. spatial 1X 대비와 세 독립 축의 aligned residual을 분리
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -291,9 +298,9 @@ candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 �
 후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
 Original 네 mode의 한 Bistro 경로 품질 기준선은 이후 완료됐다. Adaptive 4개를 포함한
 정식 8-case visible-window 성능, Bistro 연속 품질과 전용 temporal stress 품질 측정도
-이후 완료됐다. SMAA 1X control과 Original camera-reprojection 경로의 구성요소별
-ablation도 이후 완료됐으며 최종 연구 결론에는 supersample/optical-flow reference
-보강이 남아 있다.
+이후 완료됐다. SMAA 1X control, Original camera-reprojection 경로의 구성요소별
+ablation과 optical-flow 정렬 보조 분석도 이후 완료됐다. 최종 연구 결론에는 필요 시
+supersample ground-truth 보강이 남아 있다.
 
 Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
@@ -484,6 +491,49 @@ ground-truth가 아니므로 최종 품질 우위는 supersample 또는 optical-
 보강하기 전까지 보류한다. 상세 결과는
 `Docs/SMAA-Temporal-Component-Ablation-Results-ko.md`를 기준으로 한다.
 
+이후 Farneback dense optical flow 기반 motion-compensated 보조 분석도 완료했다.
+OpenCV의 `calcOpticalFlowFarneback`으로 spatial-only 1X control의 current→previous
+backward flow를 계산하고, 같은 flow로 대응 temporal mode의 previous frame을
+`remap`했다. Forward/backward consistency error가 1.0px를 넘거나 화면 밖인 픽셀은
+제외했다. 알려진 `(3,-2)px` 합성 이동 self-test는 backward flow vector error
+0.000108px, 정렬 MAE 99.877% 감소로 PASS했다.
+
+Original component ablation의 세 정식 capture에 적용한 결과 모든 ROI에서 valid
+ratio 78.166~92.763%, O-1X 정렬 MAE 감소 29.474~43.080%로 보조 검증을 통과했다.
+Motion 보정 뒤에도 Candidate-only는 Standard보다 aligned residual이 `thin-lines`
++32.304%, object occluder +310.764%, rotor +49.881% 높았다. Object-motion의
+forward/backward threshold를 0.5/1.0/2.0px로 바꿔도 Candidate-only 증가는 occluder
++273.06~363.67%, rotor +47.48~52.50%로 유지됐다. 따라서 candidate+jitter 단계의
+큰 변화는 장면 motion이 섞인 기존 지표만의 현상이 아니다.
+
+최종 8-case에도 대응 1X flow를 적용했다. 정식 경로는 다음과 같다.
+
+- `Projects/CMAA2/AutoBench/20260730_042245/EightCaseOpticalFlowAnalysis`:
+  `thin-lines`
+- `Projects/CMAA2/AutoBench/20260730_042343/EightCaseOpticalFlowAnalysis`:
+  `object-motion`
+- `Projects/CMAA2/AutoBench/20260730_042414/EightCaseOpticalFlowAnalysis`:
+  `combined`
+
+Camera-motion `thin-lines`에서 Edge-selective는 대응 Standard보다 aligned residual을
+Original Off/On -12.103/-11.984%, Adaptive Off/On -14.055/-9.365% 줄였고,
+camera reprojection On도 각 temporal 방식에서 -4.561~-9.500% 방향으로 줄였다.
+Combined의 thin-line/occluder도 Edge-selective -8.692~-12.196%, reprojection
+-2.808~-7.242%로 같은 방향이었다.
+
+반면 고정-camera rotor에서 Standard는 대응 1X보다 aligned residual이 약
+16.25~16.52% 낮았지만 기존 sequence에서 이중 잔상이 보였다. Edge-selective는
+1X 대비 -0.090~+0.043%로 사실상 1X와 같고 Standard보다 19.29~19.84% 높았다.
+이는 Standard의 낮은 residual이 temporal smoothing/ghost blur를 포함할 수 있고,
+Edge-selective의 ghost 감소가 temporal supersampling 상실과 함께 일어났다는 기존
+해석을 강화한다.
+
+Optical-flow residual도 ground truth는 아니다. Forward/backward 불일치 영역을
+제외하므로 disocclusion ghost를 완전히 재지 않고, 작은 residual은 blur로도 발생할 수
+있다. 따라서 trailing-halo, 1X same-frame 비교와 sequence sheet를 함께 사용하며
+절대 품질 순위로 표현하지 않는다. 상세 결과는
+`Docs/SMAA-Optical-Flow-Temporal-Results-ko.md`를 기준으로 한다.
+
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
 반복 일치했으며 이 현상은 sampler override와 무관하다. 시작 프레임/history warm-up
@@ -542,9 +592,11 @@ ground-truth가 아니므로 최종 품질 우위는 supersample 또는 optical-
 13. **완료:** Original camera-reprojection 경로에서 candidate coverage,
     Catmull-Rom, variance clipping, history weight 0.8과 no-jitter를 인접 한 요소씩
     추가하는 품질·성능 ablation을 완료했다.
-14. **남음:** supersample reference 또는 optical-flow 정렬 지표로 현재 trail과
-    temporal variation 해석을 보강한다. 필요하면 object motion vector 지원을 별도
-    확장 연구로 분리한다.
+14. **완료:** Farneback optical-flow 정렬 보조 지표를 component ablation과 최종
+    8-case에 적용하고 합성 이동 self-test, 유효 비율, threshold 민감도를 검증했다.
+15. **남음:** 필요 시 supersample ground truth로 flow가 제외하는 disocclusion과
+    blur/ghosting 구분을 보강한다. Candidate-aware jitter 또는 비후보 안정화 개선과
+    object motion vector 지원은 현재 8-case와 분리한 후속 연구로 다룬다.
 
 ## 7. 측정 규칙
 
