@@ -310,6 +310,9 @@ namespace VertexAsylum
         int                                     GetSSResScale( ) const              { return m_SSResScale; }
         int                                     GetSSGridRes( ) const               { return m_SSGridRes; }
         int                                     GetSSMSAASampleCount( ) const       { return m_SSMSAASampleCount; }
+        float                                   GetSSMIPBias( ) const               { return m_SSMIPBias; }
+        float                                   GetSSSharpen( ) const               { return m_SSSharpen; }
+        float                                   GetSSDDXDDYBias( ) const            { return m_SSDDXDDYBias; }
 
         const shared_ptr<vaCameraControllerFlythrough> & 
                                                 GetFlythroughCameraController()     { return m_flythroughCameraController; }

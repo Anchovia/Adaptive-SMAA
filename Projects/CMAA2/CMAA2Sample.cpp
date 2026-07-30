@@ -2606,6 +2606,142 @@ protected:
     }
 };
 
+class BenchItemRecordSMAASupersampleStressReference : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const CMAA2Sample::SMAATemporalStressScenario m_scenario;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    int                 m_currentFrame = 0;
+    bool                m_started = false;
+    bool                m_isDone = false;
+    wstring             m_outputDir;
+
+public:
+    BenchItemRecordSMAASupersampleStressReference(
+        CMAA2Sample & parent,
+        CMAA2Sample::SMAATemporalStressScenario scenario,
+        int captureFrameCount,
+        int warmupFrameCount )
+        : AutoBenchToolWorkItem( parent ),
+        m_scenario( scenario ),
+        m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
+        m_warmupFrameCount( vaMath::Max( 0, warmupFrameCount ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.Settings( ).CurrentAAOption =
+                CMAA2Sample::AAType::SuperSampleReference;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( c_frameDeltaTime );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity( );
+
+            abTool.ReportStart( );
+            m_outputDir = abTool.ReportGetDir( ) + L"SS_Reference\\";
+            vaFileTools::EnsureDirectoryExists( m_outputDir );
+
+            abTool.ReportAddText(
+                "SMAA temporal stress supersample spatial-reference capture\r\n\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Scenario:       %s\r\n",
+                CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ) ) );
+            abTool.ReportAddText(
+                "Scene:          procedural thin lines, moving occluder, rotating blades\r\n" );
+            abTool.ReportAddText(
+                "API:            DirectX 11\r\n" );
+            abTool.ReportAddText(
+                "Timeline:       fixed 60 Hz and identical to SMAA stress captures\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Warm-up:        %d frames\r\n", m_warmupFrameCount ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Capture:        %d frames\r\n", m_captureFrameCount ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Reference:      %dx linear resolution, %dx%d within-frame subpixel grid, %dx MSAA\r\n",
+                m_parent.GetSSResScale( ),
+                m_parent.GetSSGridRes( ), m_parent.GetSSGridRes( ),
+                m_parent.GetSSMSAASampleCount( ) ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Reference tune: MIP bias %.3f, sharpen %.3f, ddx/ddy bias %.3f\r\n",
+                m_parent.GetSSMIPBias( ),
+                m_parent.GetSSSharpen( ),
+                m_parent.GetSSDDXDDYBias( ) ) );
+            abTool.ReportAddText(
+                "Temporal state: none; all subpixel samples share one output frame's scene state\r\n" );
+            abTool.ReportAddText(
+                "Classification: high-quality spatial reference proxy, not an absolute ground truth and not a performance measurement\r\n\r\n" );
+            abTool.ReportAddRowValues(
+                { "Mode", "Output directory" } );
+            abTool.ReportAddRowValues(
+                { "SS-Reference", "SS_Reference" } );
+
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if( m_currentFrame >= m_captureFrameCount )
+        {
+            m_isDone = true;
+            abTool.ReportFinish( );
+            return;
+        }
+
+        m_parent.Settings( ).CurrentAAOption =
+            CMAA2Sample::AAType::SuperSampleReference;
+        m_parent.SetSMAATemporalStressTestState(
+            m_scenario, (float)m_currentFrame * c_frameDeltaTime );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+
+    virtual void OnRenderComparePoint(
+        AutoBenchTool & abTool,
+        vaImageCompareTool & imageCompareTool,
+        vaRenderDeviceContext & renderContext,
+        const shared_ptr<vaTexture> & colorInOut,
+        shared_ptr<vaPostProcess> & postProcess ) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if( m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount )
+        {
+            const wstring fileName = m_outputDir
+                + vaStringTools::SimpleWiden( vaStringTools::Format(
+                    "%s_SS_Reference_frame_%05d.png",
+                    CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ),
+                    m_currentFrame ) );
+            if( !colorInOut->SaveToPNGFile( renderContext, fileName ) )
+                VA_LOG_ERROR(
+                    L"Failed to save SMAA supersample stress reference frame '%s'",
+                    fileName.c_str( ) );
+        }
+    }
+
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override
+    {
+        return m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount;
+    }
+    virtual float GetProgress( ) const override
+    {
+        return vaMath::Clamp(
+            (float)(m_currentFrame + m_warmupFrameCount)
+                / (float)(m_warmupFrameCount + m_captureFrameCount),
+            0.0f, 1.0f );
+    }
+};
+
 class BenchItemRecordSMAACandidateOnlyAblation : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
@@ -5032,6 +5168,51 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA temporal lifecycle engineering validation");
+            return;
+        }
+
+        if( _wcsicmp( parameter.first.c_str( ),
+            L"smaaSupersampleStressReferenceCapture" ) == 0 )
+        {
+            wstring scenarioToken = L"object-motion";
+            int frameCount = 240;
+            int warmupFrameCount = 10;
+            if( !parameter.second.empty( ) )
+            {
+                std::wistringstream values( parameter.second );
+                if( !(values >> scenarioToken >> frameCount >> warmupFrameCount) )
+                {
+                    VA_LOG_ERROR(
+                        "Invalid SMAA supersample stress reference values; expected: <thin-lines|object-motion|combined> <captureFrames> <warmupFrames>" );
+                    return;
+                }
+            }
+
+            SMAATemporalStressScenario scenario =
+                SMAATemporalStressScenario::MaxValue;
+            if( _wcsicmp( scenarioToken.c_str( ), L"thin-lines" ) == 0 )
+                scenario = SMAATemporalStressScenario::ThinLinesCameraPan;
+            else if( _wcsicmp( scenarioToken.c_str( ), L"object-motion" ) == 0 )
+                scenario = SMAATemporalStressScenario::ObjectMotionDisocclusion;
+            else if( _wcsicmp( scenarioToken.c_str( ), L"combined" ) == 0 )
+                scenario = SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+            else
+            {
+                VA_LOG_ERROR(
+                    "Invalid SMAA supersample stress reference scenario; expected thin-lines, object-motion, or combined" );
+                return;
+            }
+
+            frameCount = vaMath::Clamp( frameCount, 1, 1800 );
+            warmupFrameCount = vaMath::Clamp( warmupFrameCount, 0, 600 );
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemRecordSMAASupersampleStressReference>(
+                    *this, scenario, frameCount, warmupFrameCount ) );
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG(
+                "Queued SMAA supersample stress reference '%s': %d capture frames, %d warm-up frames",
+                GetSMAATemporalStressScenarioName( scenario ),
+                frameCount, warmupFrameCount );
             return;
         }
 
