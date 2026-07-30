@@ -534,6 +534,23 @@ Optical-flow residual도 ground truth는 아니다. Forward/backward 불일치 �
 절대 품질 순위로 표현하지 않는다. 상세 결과는
 `Docs/SMAA-Optical-Flow-Temporal-Results-ko.md`를 기준으로 한다.
 
+Candidate-only + 전역 SMAA T2X jitter의 높은 temporal variation 원인도 후속
+ablation으로 분리했다. Intel-family와 AllBase 후보를 제외한 temporal 설정을 모두
+동일하게 유지한 정식 3-scenario capture에서 AllBase의 flow-aligned residual 변화는
+모든 ROI에서 `0.000%~-0.124%`뿐이었다. 따라서 Intel non-dominant 제거가 주원인이라는
+가설은 지지되지 않았다.
+
+반면 Intel-family 후보, camera reprojection, bilinear, clipping Off와 weight 0.5를
+유지하고 deliberate projection jitter만 끈 ablation은 Jitter On 대비 residual을
+thin-lines 40.522%, object-motion occluder 75.676%, rotor 20.106%, combined ROI
+11.803~35.609% 줄였다. 이는 화면 전체 jitter와 후보 한정 resolve의 범위 불일치가
+주원인이라는 해석을 강하게 지지한다. 다만 no-jitter 결과는 object-motion rotor에서
+O-1X 대비 residual이 +0.290%에 불과해 temporal supersampling 효과도 상당 부분
+잃었을 가능성이 있다. 따라서 global no-jitter를 최종 개선 성공으로 주장하지 않는다.
+새 diagnostic을 포함한 lifecycle 검증은 reset 35회, seed 18회, resolve 89회,
+reprojection 41회, failure 0으로 PASS했다.
+상세 결과는 `Docs/SMAA-Candidate-Jitter-Stabilization-Results-ko.md`를 기준으로 한다.
+
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
 반복 일치했으며 이 현상은 sampler override와 무관하다. 시작 프레임/history warm-up
@@ -594,9 +611,14 @@ Optical-flow residual도 ground truth는 아니다. Forward/backward 불일치 �
     추가하는 품질·성능 ablation을 완료했다.
 14. **완료:** Farneback optical-flow 정렬 보조 지표를 component ablation과 최종
     8-case에 적용하고 합성 이동 self-test, 유효 비율, threshold 민감도를 검증했다.
-15. **남음:** 필요 시 supersample ground truth로 flow가 제외하는 disocclusion과
-    blur/ghosting 구분을 보강한다. Candidate-aware jitter 또는 비후보 안정화 개선과
-    object motion vector 지원은 현재 8-case와 분리한 후속 연구로 다룬다.
+15. **완료:** Intel-family와 AllBase 후보 정책, projection jitter On/Off를 각각
+    단일요소로 분리해 candidate-only variation의 주원인이 후보 제거가 아니라 전역
+    jitter와 후보 한정 resolve의 범위 불일치임을 확인했다. Global no-jitter의
+    O-1X 유사성도 기록해 안정화와 temporal 효과 손실을 구분했다.
+16. **남음:** 필요 시 supersample ground truth로 flow가 제외하는 disocclusion과
+    blur/ghosting 구분을 보강한다. Candidate-aware jitter, 별도 unjittered spatial
+    base 또는 비후보 안정화와 object motion vector 지원은 현재 8-case와 분리한
+    후속 연구로 다룬다.
 
 ## 7. 측정 규칙
 
