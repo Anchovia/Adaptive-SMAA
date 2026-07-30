@@ -291,8 +291,9 @@ candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 �
 후보 감소만으로 성능 향상을 주장하지 않는다는 연구 원칙에 부합하게 그대로 기록한다.
 Original 네 mode의 한 Bistro 경로 품질 기준선은 이후 완료됐다. Adaptive 4개를 포함한
 정식 8-case visible-window 성능, Bistro 연속 품질과 전용 temporal stress 품질 측정도
-이후 완료됐다. SMAA 1X control도 이후 완료됐으며 최종 연구 결론에는 구성요소별
-ablation과 supersample/optical-flow reference 보강이 남아 있다.
+이후 완료됐다. SMAA 1X control과 Original camera-reprojection 경로의 구성요소별
+ablation도 이후 완료됐으며 최종 연구 결론에는 supersample/optical-flow reference
+보강이 남아 있다.
 
 Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
@@ -428,6 +429,61 @@ Occluder에서도 ET2X와 1X의 same-frame MAE는 Original 0.084904, Adaptive
 선택, no-jitter, Catmull-Rom, variance clipping과 history weight 0.8 중 어떤 요소가
 object history를 사실상 제거하는지 분리하기 전에는 ET2X 품질 우위를 주장하지 않는다.
 
+Original camera-reprojection 경로에서 다음 누적 구성요소 ablation도 완료했다.
+
+| 순서 | 진단 ID | 직전 단계에서 추가되는 요소 |
+|---|---|---|
+| 0 | `O-T2X-R` | Standard full-screen 기준선 |
+| 1 | `ABL-CandidateOnly-R` | Intel-family edge candidate coverage |
+| 2 | `ABL-Candidate+Catmull-R` | Catmull-Rom 5-tap |
+| 3 | `ABL-Candidate+Catmull+Clip-R` | YCoCg variance clipping |
+| 4 | `ABL-Candidate+Catmull+Clip+W0.8-R` | history weight 0.8 |
+| 5 | `O-ET2X-R-Document` | deliberate projection jitter 비활성화 |
+
+Candidate-only 단계는 `O-T2X-R`과 Original spatial, camera reprojection, T2X
+jitter/subsample, bilinear sampler, clipping Off, history weight 0.5를 동일하게
+유지하고 full-screen resolve를 candidate compact/indirect resolve로 바꾼 통제
+비교다. Edge-selective T2X mode에서 jitter가 켜진 경우에도 `MODE_SMAA_T2X`와 올바른
+subsample index를 사용하도록 수정했고, resize reset 전에 이전 viewport jitter가
+선택되지 않도록 lifecycle 순서도 교정했다. 확장된 lifecycle 자동 검증은 reset 34회,
+completed frame 104개, seed 17개, resolve 87개, reprojection 39개, failure 0으로
+PASS했다.
+
+정식 품질 capture는 다음 세 경로에서 mode별 60-frame warm-up과 240 PNG로 완료했다.
+
+- `Projects/CMAA2/AutoBench/20260730_125659`: `thin-lines`
+- `Projects/CMAA2/AutoBench/20260730_125853`: `object-motion`
+- `Projects/CMAA2/AutoBench/20260730_130049`: `combined`
+
+Candidate-only는 Standard `O-T2X-R`보다 `thin-lines` 2차 시간 차분이 52.761%,
+object-motion occluder가 209.269%, rotor가 140.795% 증가했다. 반면 occluder trail
+대용값은 darkness `0.942569 → 0.682631`, width `1.462 → 0.579 px`로 감소했다.
+따라서 candidate coverage 단독은 Standard의 object trail을 줄이지만, T2X jitter가
+남은 비후보가 temporal resolve를 받지 못해 강한 temporal variation을 만든다.
+
+인접 단계에서 Catmull-Rom은 세 stress ROI의 temporal 지표를 거의 바꾸지 않았다.
+Clipping은 object-motion trail을 추가로 줄였지만 temporal variation을 조금
+증가시켰다. History weight 0.8은 variation을 일부 줄였고, no-jitter 단계는
+`thin-lines` 2차 차분 33.320%, occluder 48.047%, rotor 49.383%를 직전 단계보다
+줄여 현재 selective 구조에서 가장 큰 안정화 요소였다. 이는 current document profile이
+object motion에서 1X에 가까워진 원인을 candidate selection 하나로 돌릴 수 없고,
+candidate coverage와 deliberate jitter의 부조화가 핵심이라는 통제 근거다.
+
+정식 visible-window 성능 ablation은
+`Projects/CMAA2/AutoBench/20260730_130441`에서 300-frame warm-up,
+4,800-frame measurement, 3 repeats, candidate readback Off로 완료했다. 내부 validation은
+PASS했고 mode별 14,400 timing 표본을 확보했다. Candidate-only는 Standard보다 SMAA
+GPU 평균이 `0.283675 → 0.442705 ms`(+56.061%), WholeFrame이
+`3.035608 → 3.099416 ms`(+2.102%)였다. Catmull-Rom의 SMAA 추가 비용은
++0.708%, clipping은 +0.885%, weight와 no-jitter는 각각 +0.058%, +0.091%였다.
+따라서 현재 성능 병목은 history sample 세부식보다 candidate 준비·compact·indirect
+실행 구조의 추가 비용이며, edge-selective는 Standard보다 빠르지 않다.
+
+이 ablation은 최종 8-case mode를 늘리지 않는 원인 분석용 진단 경로다. 품질 지표는
+ground-truth가 아니므로 최종 품질 우위는 supersample 또는 optical-flow reference로
+보강하기 전까지 보류한다. 상세 결과는
+`Docs/SMAA-Temporal-Component-Ablation-Results-ko.md`를 기준으로 한다.
+
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
 반복 일치했으며 이 현상은 sampler override와 무관하다. 시작 프레임/history warm-up
@@ -481,9 +537,14 @@ object history를 사실상 제거하는지 분리하기 전에는 ET2X 품질 �
     세 독립 축의 성능 차이를 분석했다.
 11. **완료:** 전체 8개 품질 sequence를 같은 Bistro 경로에서 캡처하고 정량·시각
     분석 및 Original deterministic regression 검증을 완료했다.
-12. **진행 중:** 독립 object motion, 얇은 선과 disocclusion 전용 장면 및 8-case
-    캡처 자동화를 추가하고 축소 smoke를 통과했다. 충분한 길이의 세 시나리오 capture와
-    ghosting·shimmer·crawling 정량·시각 분석이 남아 있다.
+12. **완료:** 독립 object motion, 얇은 선과 disocclusion 전용 장면의 전체 8-case
+    정식 capture와 전용 ROI 분석, SMAA 1X control을 완료했다.
+13. **완료:** Original camera-reprojection 경로에서 candidate coverage,
+    Catmull-Rom, variance clipping, history weight 0.8과 no-jitter를 인접 한 요소씩
+    추가하는 품질·성능 ablation을 완료했다.
+14. **남음:** supersample reference 또는 optical-flow 정렬 지표로 현재 trail과
+    temporal variation 해석을 보강한다. 필요하면 object motion vector 지원을 별도
+    확장 연구로 분리한다.
 
 ## 7. 측정 규칙
 

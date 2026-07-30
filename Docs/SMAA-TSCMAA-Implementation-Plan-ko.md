@@ -1706,3 +1706,40 @@ jitter, bilinear sampler, clipping Off, history weight 0.5를 그대로 유지�
 coverage만 Edge-selective로 변경한 candidate-only profile을 만든다. 이후
 Catmull-Rom, clipping, weight와 jitter를 하나씩 추가해 object history 제거와
 temporal 안정성 변화의 원인을 분리한다.
+
+### 17.26 Edge-selective temporal 구성요소별 ablation
+
+2026-07-30에 위 계획의 candidate-only 및 누적 구성요소 ablation을 구현하고 정식
+품질·성능 측정을 완료했다. 최종 8-case mode는 변경하지 않았으며 아래 mode는 원인
+분석용 진단 설정이다.
+
+```text
+O-T2X-R
+→ ABL-CandidateOnly-R
+→ ABL-Candidate+Catmull-R
+→ ABL-Candidate+Catmull+Clip-R
+→ ABL-Candidate+Catmull+Clip+W0.8-R
+→ O-ET2X-R-Document
+```
+
+첫 인접 비교는 Standard와 reprojection, T2X jitter/subsample, bilinear sampler,
+clipping Off, history weight 0.5를 모두 동일하게 유지하고 temporal coverage만
+full-screen에서 Intel-family edge candidate로 바꾼다. 이후에는 Catmull-Rom,
+YCoCg clipping, weight 0.8, no-jitter를 하나씩 누적한다.
+
+세 stress scenario의 mode별 60 warm-up + 240 PNG 정식 capture와 visible-window
+300 warm-up + 4,800 measurement × 3회 성능 측정을 완료했다. Candidate-only는
+Standard보다 occluder trail을 줄였지만 2차 시간 차분을 thin-lines +52.761%,
+occluder +209.269%, rotor +140.795% 늘렸다. Catmull-Rom 영향은 작았고 clipping은
+trail을 더 줄이는 대신 variation을 조금 늘렸으며, weight 0.8과 no-jitter가
+variation을 줄였다. 특히 no-jitter는 직전 단계 대비 2차 차분을 대표 ROI에서
+33.320~49.383% 줄였다.
+
+성능에서는 Candidate-only가 Standard보다 SMAA GPU +56.061%, WholeFrame GPU
++2.102%였고, 후속 Catmull-Rom과 clipping의 SMAA 증가는 각각 +0.708%, +0.885%였다.
+현재 병목은 history sample 세부식보다 candidate 준비·compact·indirect 실행 구조다.
+
+상세 조건, 표와 해석 제한은
+`Docs/SMAA-Temporal-Component-Ablation-Results-ko.md`에 기록한다. 다음 연구 단계는
+supersample 또는 optical-flow reference로 ghost trail과 실제 temporal instability를
+분리하는 것이다.
