@@ -202,6 +202,14 @@ Original mode는 기존 edge target/shader path를 유지한다.
 - `Tools/SMAA/analyze_eight_case_optical_flow_quality.py`: 별도 1X control과 temporal
   8-case stress capture를 연결해 Original에는 O-1X flow, Adaptive에는 A-1X flow를
   공통 적용. spatial 1X 대비와 세 독립 축의 aligned residual을 분리
+- `-smaaSupersampleStressReferenceCapture`: `thin-lines`, `object-motion`,
+  `combined` stress timeline을 2× 선형 해상도, frame당 3×3 subpixel grid와
+  8×MSAA의 `SuperSampleReference`로 캡처. 한 출력 프레임 동안 장면 상태를 고정하고
+  temporal history는 사용하지 않으므로 spatial-reference proxy로 분류
+- `Tools/SMAA/analyze_supersample_reference_quality.py`: supersample spatial
+  reference와 `O-1X`, `O-T2X-R`, candidate jitter On/Off ablation을 같은 frame/ROI로
+  검증. RGB MAE, PSNR, luma SSIM, edge/reference 비율과 대표 5-way GIF·difference
+  sheet를 생성하며 temporal ground truth로 표현하지 않음
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -299,8 +307,8 @@ candidate/process 150,908.285개, candidate/base 67.939%였다. 이는 전체 �
 Original 네 mode의 한 Bistro 경로 품질 기준선은 이후 완료됐다. Adaptive 4개를 포함한
 정식 8-case visible-window 성능, Bistro 연속 품질과 전용 temporal stress 품질 측정도
 이후 완료됐다. SMAA 1X control, Original camera-reprojection 경로의 구성요소별
-ablation과 optical-flow 정렬 보조 분석도 이후 완료됐다. 최종 연구 결론에는 필요 시
-supersample ground-truth 보강이 남아 있다.
+ablation, optical-flow 정렬 보조 분석과 supersample spatial-reference proxy 보강도
+이후 완료됐다.
 
 Original 네 mode 품질 분석기는 16프레임 축소 capture에서 각 mode의 연속 index·해상도·
 고유 hash를 검증하고 CSV/JSON/Markdown/contact sheet/대표 PNG/GIF 생성을 완료했다.
@@ -401,9 +409,10 @@ Edge-selective에서 darkness가 Original 39.16%, Adaptive 40.71%, 연속 폭이
 연속 frame sheet에서는 Standard T2X의 회전 날개에 이전 위치가 반투명하게 겹치는
 이중 잔상이 보였고 Edge-selective에서 크게 줄었다. 다만 Edge-selective의 temporal
 변화 지표가 여러 ROI에서 증가했으므로 이는 현재 `ghosting 감소 가능성 ↔ temporal
-variation/flicker 증가 가능성`의 trade-off 근거다. SMAA 1X 또는 supersample
-ground truth와 optical-flow 보정이 없으므로 최종 품질 우위나 절대 ghosting 점수로
-표현하지 않는다. 품질 PNG capture는 hidden-window로 실행했지만 저장된 render target
+variation/flicker 증가 가능성`의 trade-off 근거다. 이 단계에는 SMAA 1X,
+supersample reference와 optical-flow 보정이 없었으므로 단독 최종 품질 우위나 절대
+ghosting 점수로 표현하지 않는다. 이 보조 reference들은 후속 실험에서 별도로
+보강했다. 품질 PNG capture는 hidden-window로 실행했지만 저장된 render target
 검증용이며 FPS 결과로 사용하지 않는다.
 
 SMAA 1X 품질 control도 이후 완료했다. `O-1X`는 기존 원본 SMAA 1X를 그대로 사용하고,
@@ -486,9 +495,9 @@ GPU 평균이 `0.283675 → 0.442705 ms`(+56.061%), WholeFrame이
 따라서 현재 성능 병목은 history sample 세부식보다 candidate 준비·compact·indirect
 실행 구조의 추가 비용이며, edge-selective는 Standard보다 빠르지 않다.
 
-이 ablation은 최종 8-case mode를 늘리지 않는 원인 분석용 진단 경로다. 품질 지표는
-ground-truth가 아니므로 최종 품질 우위는 supersample 또는 optical-flow reference로
-보강하기 전까지 보류한다. 상세 결과는
+이 ablation은 최종 8-case mode를 늘리지 않는 원인 분석용 진단 경로다. 이 단계의
+품질 지표만으로 최종 품질 우위를 주장하지 않으며, 이후 optical-flow와 supersample
+spatial-reference proxy로 보강했다. 상세 결과는
 `Docs/SMAA-Temporal-Component-Ablation-Results-ko.md`를 기준으로 한다.
 
 이후 Farneback dense optical flow 기반 motion-compensated 보조 분석도 완료했다.
@@ -550,6 +559,28 @@ O-1X 대비 residual이 +0.290%에 불과해 temporal supersampling 효과도 �
 새 diagnostic을 포함한 lifecycle 검증은 reset 35회, seed 18회, resolve 89회,
 reprojection 41회, failure 0으로 PASS했다.
 상세 결과는 `Docs/SMAA-Candidate-Jitter-Stabilization-Results-ko.md`를 기준으로 한다.
+
+같은 세 stress timeline의 supersample spatial-reference proxy도 후속 측정했다.
+Reference는 선형 해상도 2배, 한 출력 프레임 안의 3×3 subpixel grid, 각 render
+8×MSAA이며 temporal history를 사용하지 않는다. Path-traced 또는 temporal ground
+truth가 아니고, 현재 프레임 형상을 비교하기 위한 고품질 spatial proxy다.
+
+- `Projects/CMAA2/AutoBench/20260730_152152`: `thin-lines`
+- `Projects/CMAA2/AutoBench/20260730_152246`: `object-motion`
+- `Projects/CMAA2/AutoBench/20260730_152342`: `combined`
+
+각 시나리오는 reference 60-frame warm-up 뒤 240 PNG를 저장했다. Object-motion
+rotor의 reference RGB MAE는 `O-1X` 0.500726, `O-T2X-R` 2.248942,
+candidate jitter 0.691534, candidate no-jitter 0.551653이었다. 즉 Standard는
+O-1X보다 349.136% 멀고 difference sheet에서 이전 날개 위치의 이중 잔상이
+확인됐다. Candidate jitter는 모든 정식 ROI에서 O-1X보다 MAE가 35.777~49.024%
+높았고, candidate no-jitter는 -4.993~+10.171%로 O-1X에 가까웠다.
+
+이는 Standard의 낮은 temporal residual이 올바른 안정화뿐 아니라 ghost smoothing도
+포함한다는 해석과, global no-jitter가 범위 불일치를 줄이는 대신 temporal
+supersampling을 대부분 잃는다는 해석을 함께 지지한다. 따라서 no-jitter를 최종
+성공으로 확정하지 않는다. 상세 결과는
+`Docs/SMAA-Supersample-Reference-Results-ko.md`를 기준으로 한다.
 
 `-smaaOriginalFourCapture 1 1 6`의 첫 mode인 `O-T2X`는 같은 실행 조건에서도
 `9F5B...`와 `74E9...` 두 PNG hash가 관측됐다. `O-T2X-R`, `O-ET2X`, `O-ET2X-R`은
@@ -615,10 +646,15 @@ reprojection 41회, failure 0으로 PASS했다.
     단일요소로 분리해 candidate-only variation의 주원인이 후보 제거가 아니라 전역
     jitter와 후보 한정 resolve의 범위 불일치임을 확인했다. Global no-jitter의
     O-1X 유사성도 기록해 안정화와 temporal 효과 손실을 구분했다.
-16. **남음:** 필요 시 supersample ground truth로 flow가 제외하는 disocclusion과
-    blur/ghosting 구분을 보강한다. Candidate-aware jitter, 별도 unjittered spatial
-    base 또는 비후보 안정화와 object motion vector 지원은 현재 8-case와 분리한
-    후속 연구로 다룬다.
+16. **완료:** 2× linear resolution, 3×3 within-frame subpixel grid와 8×MSAA의
+    supersample spatial-reference proxy를 같은 stress timeline에 연결하고,
+    `O-1X`, `O-T2X-R`, candidate jitter On/Off를 3개 시나리오에서 240프레임씩
+    비교했다. Standard의 object ghost와 global no-jitter의 O-1X 유사성을
+    reference MAE/PSNR/SSIM 및 difference sheet로 보강했다.
+17. **남음:** 후보에는 temporal sample diversity를 유지하면서 비후보에는 별도
+    unjittered spatial base 또는 de-jitter resolve를 제공하는 hybrid를 ablation한다.
+    Candidate-aware stabilization band와 object motion vector 지원도 현재 8-case와
+    분리한 후속 연구로 다룬다.
 
 ## 7. 측정 규칙
 
