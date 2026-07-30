@@ -106,6 +106,7 @@ namespace VertexAsylum
             SMAA_A_ET2X,            // A-ET2X: Adaptive SMAA edge-selective temporal, no-reprojection ablation
             SMAA_A_ET2X_R,          // A-ET2X-R: Adaptive SMAA edge-selective temporal, camera reprojection On
             SMAA_A_1X,              // A-1X: Adaptive SMAA spatial-only quality control
+            SMAA_O_ABLATION_CANDIDATE_ONLY_R, // Diagnostic: O-T2X-R settings with edge-selective candidates as the only temporal change
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
@@ -225,6 +226,7 @@ namespace VertexAsylum
         shared_ptr<vaCMAA2>                     m_CMAA2;
         shared_ptr<vaSMAAWrapper>               m_SMAA;
         AAType                                  m_lastLoggedSMAAOption                 = AAType::MaxValue;
+        vaVector2i                              m_lastSMAATemporalViewportSize         = vaVector2i( 0, 0 );
         shared_ptr<vaFXAAWrapper>               m_FXAA;
 
         shared_ptr<vaZoomTool>                  m_zoomTool;

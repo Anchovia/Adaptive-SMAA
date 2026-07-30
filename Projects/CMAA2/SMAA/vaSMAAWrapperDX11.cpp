@@ -1044,13 +1044,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 assert( optionalInLuma != nullptr );
 
                 ID3D11RenderTargetView * currentSpatialRTV = m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetRTV( );
-                // Intel's public TSCMAA material does not prescribe deliberate
-                // subpixel projection jitter. Non-candidates use the current
-                // spatial result directly, so a full-frame T2X jitter would
-                // otherwise remain visible as a two-frame oscillation.
+                // The document profile has no deliberate projection jitter and
+                // therefore keeps the SMAA 1X spatial path. Controlled
+                // candidate-only ablations preserve Standard T2X jitter and
+                // must also preserve the matching T2X subsample indices.
+                const SMAA::Mode spatialMode = GetTemporalJitterEnabled( )?
+                    SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X;
                 {
                     VA_SCOPE_CPUGPU_TIMER( SMAASpatial1X, deviceContext );
-                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, SMAA::MODE_SMAA_1X );
+                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr,
+                        velocitySRV, currentSpatialRTV, depthDSV, inputMode, spatialMode );
                 }
 
                 const vaDrawResultFlags tscmaaResult = ExecuteTSCMAAInspiredResolve( deviceContext, m_temporalSpatialCurrent,
@@ -1087,9 +1090,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             if( temporalLifecycleDiagnosticsEnabled )
             {
-                const vaVector4 expectedSubsampleIndices = edgeSelectiveTemporalEnabled?
-                    vaVector4( 0.0f, 0.0f, 0.0f, 0.0f ) :
-                    ((temporalFrameIndexBefore == 0)? vaVector4( 1.0f, 1.0f, 1.0f, 0.0f ) : vaVector4( 2.0f, 2.0f, 2.0f, 0.0f ));
+                const vaVector4 expectedSubsampleIndices = GetTemporalJitterEnabled( )?
+                    ((temporalFrameIndexBefore == 0)? vaVector4( 1.0f, 1.0f, 1.0f, 0.0f ) : vaVector4( 2.0f, 2.0f, 2.0f, 0.0f )) :
+                    vaVector4( 0.0f, 0.0f, 0.0f, 0.0f );
                 if( !m_temporalLastSubsampleIndicesValid
                     || !SMAATemporalSubsampleIndicesMatch( m_temporalLastSubsampleIndices, expectedSubsampleIndices ) )
                     m_temporalLifecycleDiagnostics.SubsampleMismatchCount++;
