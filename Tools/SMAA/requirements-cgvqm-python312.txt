@@ -1,0 +1,13 @@
+# IntelLabs/CGVQM commit 8302ff45b4ff5a691682baf23f7c007d6b591e98
+# Official requirements use av==14.4.0 and target Python 3.10.
+# PyAV 14.4 has no CPython 3.12 Windows wheel, so this local integration uses
+# the nearest newer binary release. The read/write APIs used by CGVQM are
+# unchanged and are covered by the official Dock smoke plus RGB round-trip
+# validation in run_cgvqm_png_sequences.py.
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+numpy==2.3.0
+pandas==2.3.0
+torch==2.8.0
+torchvision==0.23.0
+av==15.1.0

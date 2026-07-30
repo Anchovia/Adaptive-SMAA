@@ -210,6 +210,10 @@ Original mode는 기존 edge target/shader path를 유지한다.
   reference와 `O-1X`, `O-T2X-R`, candidate jitter On/Off ablation을 같은 frame/ROI로
   검증. RGB MAE, PSNR, luma SSIM, edge/reference 비율과 대표 5-way GIF·difference
   sheet를 생성하며 temporal ground truth로 표현하지 않음
+- `Tools/SMAA/run_cgvqm_png_sequences.py`: frame-aligned PNG test/reference
+  sequence의 index·해상도·pixel hash를 검증하고 RGB 계열 FFV1로 무손실 변환한 뒤
+  Intel 공식 CGVQM을 호출. decoded RGB 전체가 원본과 pixel-exact인지 확인하고
+  score, error-map 통계, per-frame CSV와 error-map 영상을 생성
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -605,6 +609,22 @@ de-jitter pass의 정식 성능 본 측정은 생략했다. 상세 결과는
 비결정성을 해결하기 전에는 `O-T2X` 단일 프레임 hash를 최종 deterministic 증거로
 사용하지 않는다.
 
+교수 피드백에 따라 다음 우선순위는 새 장면을 추가하는 대신 기존 Bistro와 Minecraft에서
+급격한 camera motion을 통제하고, 공개 논문 기반 고스팅 평가를 적용하는 것이다.
+Bistro는 연구상 저대비 동적 장면, Minecraft Lost Empire는 고대비 동적 장면으로
+분류하되 luma/local contrast와 edge/candidate 통계로 이 분류를 수치 보강한다.
+평가 프로토콜은 `Docs/SMAA-Camera-Motion-Ghosting-Evaluation-Protocol-ko.md`를
+기준으로 한다.
+
+IntelLabs/CGVQM 공식 commit `8302ff45`의 CUDA smoke를 RTX 3060 Ti에서 통과했다.
+공식 Dock pair는 CGVQM-2 `73.62/100`과 error map을 생성했다. 기존 thin-lines
+`O-T2X-R`/supersample reference의 30-frame integration smoke도 두 FFV1 입력의
+RGB round-trip mismatch 0, CGVQM-2 `99.4658126831`로 완료했다. 독립 재실행의
+score·error-map 통계·per-frame CSV SHA-256이 일치했다. 이는 도구 engineering
+validation일 뿐 새 camera-motion 품질 결과가 아니다. Windows Python 3.12에서는
+공식 `av==14.4.0` wheel이 없어 같은 API의 `av==15.1.0` binary를 사용하며, 모델,
+weight, 전처리와 pooling 코드는 수정하지 않는다.
+
 ## 5. 기존 측정의 정확한 범위
 
 `Projects/CMAA2/AutoBench/20260729_002704` 데이터는 다음 두 복합 구현의 1차 품질 비교다.
@@ -672,9 +692,14 @@ de-jitter pass의 정식 성능 본 측정은 생략했다. 상세 결과는
     screen-space de-jitter spatial base를 제공하는 hybrid를 ablation했다. Jitter
     candidate보다 부분 개선됐지만 NoJitter와 O-1X보다 일관되게 나쁘고 blur가 남아
     최종 방식으로 채택하지 않았다.
-18. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
-    object motion vector 지원을 현재 8-case와 분리한 후속 연구로 다룬다. 우선
-    현재 엔진에서 object motion vector를 생성·전달할 수 있는지 조사한다.
+18. **진행 중:** CGVQM 기반 고스팅 평가 protocol과 PNG lossless adapter의 engineering
+    validation을 완료했다. 다음은 Bistro 저대비/Minecraft 고대비 장면에 독립적인
+    `yaw-slow-360`, `yaw-fast-360`, `yaw-extreme-360`, `strafe-fast`,
+    `yaw-strafe-fast` deterministic camera profile과 동일 pose의 supersample
+    reference capture를 연결한다. Original 5-way 축소 검증 뒤 최종 8-case로 확장한다.
+19. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+    object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
+    분리한 후속 연구로 유지한다.
 
 ## 7. 측정 규칙
 
@@ -695,6 +720,11 @@ de-jitter pass의 정식 성능 본 측정은 생략했다. 상세 결과는
 - 고스팅, shimmer, crawling, flicker, blur, disocclusion을 연속 프레임으로 확인한다.
 - 정지 스크린샷만으로 temporal 품질 결론을 내리지 않는다.
 - optical-flow 보정 없는 temporal difference는 장면 motion을 포함하므로 상대 지표로만 쓴다.
+- CGVQM은 full-reference 주 지표로 사용하되 절대 고스팅 ground truth라고 표현하지
+  않는다. supersample spatial reference, error map, 잔상 유지 frame, temporal
+  variation과 연속 영상 자료를 함께 사용한다.
+- camera-motion 품질 결과는 Bistro 저대비와 Minecraft 고대비 장면을 분리해
+  보고하고, 장면 평균 하나만으로 결론내리지 않는다.
 
 ### 성능 측정
 
