@@ -486,3 +486,23 @@ PNG 저장이 포함된 품질 capture 중 애플리케이션 창의 표시 FPS�
 수, 평균 frame rate와 일정한 1/60초 PTS 간격을 확인한다. 홀수 높이 1017은 마지막 scanline을 한 줄
 복제해 1018로 맞춘다. 이 yuv420p 영상은 발표용이며 정식 full-reference 지표에는 원본
 PNG/RGB-preserving FFV1만 사용한다.
+
+### 11.8 Parallax·복합 camera-motion formal 결과
+
+2026-08-13에 양 장면의 `strafe-fast`와 `yaw-strafe-fast`를 최종 8-case +
+`O/A-1X` control로 완료했다. 각 실행은 pre-still 60, motion 120, post-still 60의
+240 frame이며 장면·profile마다 10 mode × 240 PNG와 SS-Reference 240 PNG를
+사용했다. 모든 최종 CGVQM 입력은 연속 index, 같은 1920×1017 해상도와 FFV1 RGB
+round-trip mismatch 0을 통과했다.
+
+- Bistro `strafe-fast`: capture `20260813_013331`, reference `20260813_013845`
+- Minecraft `strafe-fast`: capture `20260813_023150`, reference `20260813_023846`
+- Bistro `yaw-strafe-fast`: capture `20260813_032105`, reference `20260813_032603`
+- Minecraft `yaw-strafe-fast`: capture `20260813_041648`, reference `20260813_042324`
+
+두 strafe-only 조건에서는 `O-T2X-R`이 `O-ET2X-R`보다 CGVQM-2가 높았지만, 두
+yaw+strafe 조건에서는 반대로 `O-ET2X-R`이 높고 motion 구간 reference error도
+낮았다. 따라서 edge-selective history 제한의 이득은 camera-motion 유형에 의존한다.
+다만 `O-ET2X-R`은 네 조건 모두 대응 1X에 매우 가까워 temporal supersampling 유지
+여부는 보류한다. 상세 수치와 해석 제한은
+`Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다.

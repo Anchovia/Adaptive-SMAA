@@ -255,12 +255,100 @@ RGB-preserving FFV1을 사용한다. `yaw-fast-360`은 2회 연속 반복한 359
 frame-start 간격까지 포함한다. Preview 추가 후 temporal lifecycle도 reset 36,
 frame 114, seed 19, resolve 95, reprojection 45, failure 0으로 PASS했다.
 
-## 9. 다음 작업
+## 9. Parallax·복합 camera-motion 후속 formal 결과
 
-1. `yaw-extreme-360`, `strafe-fast`, `yaw-strafe-fast`는 yaw-fast 결과에서 드러나지 않은
-   큰 UV 이동, parallax와 disocclusion의 stress profile로 후속 측정한다.
-2. 현재-frame edge dilation과 filtered downsample-upsample은 별도 thin-geometry
-   ablation으로 진행한다. 이전-frame edge mask는 추가 camera-motion 고스팅 근거가
-   확인될 때만 검토한다.
-3. 얇은 선 복구 ablation은 3×3/5×5/7×7 dilation과 filtered downsample-upsample을
-   비교하고, 품질·history 적용률·flicker·GPU 비용을 함께 측정한다.
+2026-08-13에 pure-yaw 결과를 보강하기 위해 Bistro 저대비와 Minecraft 고대비 장면에서
+`strafe-fast`와 `yaw-strafe-fast`를 최종 8-case + `O/A-1X` control로 측정했다.
+두 profile 모두 fixed 60 Hz의 pre-still 60 frame, motion 120 frame, post-still 60
+frame으로 구성된다. 장면·profile마다 10 mode × 240 PNG와 같은 pose의
+SS-Reference 240 PNG를 사용했다. CGVQM은 공식 IntelLabs/CGVQM commit `8302ff45`,
+model 2, CUDA, patch scale 3, mean pooling으로 mode를 하나씩 순차 실행했다.
+
+### 9.1 산출물
+
+| 장면·profile | 10-way capture/analysis | SS-Reference |
+|---|---|---|
+| Bistro `strafe-fast` | `Projects/CMAA2/AutoBench/20260813_013331` | `Projects/CMAA2/AutoBench/20260813_013845/SS_Reference` |
+| Minecraft `strafe-fast` | `Projects/CMAA2/AutoBench/20260813_023150` | `Projects/CMAA2/AutoBench/20260813_023846/SS_Reference` |
+| Bistro `yaw-strafe-fast` | `Projects/CMAA2/AutoBench/20260813_032105` | `Projects/CMAA2/AutoBench/20260813_032603/SS_Reference` |
+| Minecraft `yaw-strafe-fast` | `Projects/CMAA2/AutoBench/20260813_041648` | `Projects/CMAA2/AutoBench/20260813_042324/SS_Reference` |
+
+각 capture root의 `CameraMotionAnalysis`에는 `camera_motion_summary.csv`, 전체
+frame별 CSV/JSON, 11-way 대표 시트와 `camera_motion_comparison.gif`가 있다. 입력
+sequence는 모두 00000~00239 연속이며 최종 CGVQM 입력의 FFV1 RGB round-trip
+mismatch는 0이다. Minecraft `yaw-strafe-fast`의 빈 초기화 실패 root
+`20260813_041600`과 PNG 0장으로 중단한 reference root `20260813_042034`는 결과에서
+제외했다.
+
+### 9.2 CGVQM-2 결과
+
+높을수록 SS-Reference에 가깝다. 이 reference는 한 frame 안의 spatial supersample
+proxy이며 절대적인 temporal ghosting ground truth는 아니다.
+
+| Mode | Bistro strafe | Minecraft strafe | Bistro yaw+strafe | Minecraft yaw+strafe |
+|---|---:|---:|---:|---:|
+| `O-1X` | 93.9107 | 96.3603 | 94.8757 | 97.2766 |
+| `O-T2X` | 81.1557 | 81.3310 | 64.6599 | 79.3864 |
+| `O-T2X-R` | 94.7023 | 96.4396 | 93.9159 | 96.8836 |
+| `O-ET2X` | 91.3870 | 94.8152 | 93.6000 | 96.6377 |
+| `O-ET2X-R` | 93.7334 | 96.1257 | 94.7905 | 97.1111 |
+| `A-1X` | 93.9340 | 96.3523 | 94.8983 | 97.2708 |
+| `A-T2X` | 81.2244 | 81.3657 | 64.7222 | 79.4099 |
+| `A-T2X-R` | 94.7792 | 96.4781 | 93.9945 | 96.9102 |
+| `A-ET2X` | 91.4072 | 94.8116 | 93.6180 | 96.6323 |
+| `A-ET2X-R` | 93.7585 | 96.1190 | 94.8167 | 97.1071 |
+
+Original mode의 motion 구간 error mean은 다음과 같다. 낮을수록 SS-Reference에
+가깝다.
+
+| Mode | Bistro strafe | Minecraft strafe | Bistro yaw+strafe | Minecraft yaw+strafe |
+|---|---:|---:|---:|---:|
+| `O-1X` | 5.1983 | 2.7573 | 3.2682 | 0.9246 |
+| `O-T2X` | 32.4255 | 33.8740 | 65.4172 | 37.7633 |
+| `O-T2X-R` | 5.2870 | 3.6254 | 6.8581 | 2.7305 |
+| `O-ET2X` | 10.1488 | 5.7826 | 5.7262 | 2.1481 |
+| `O-ET2X-R` | 5.6142 | 3.2473 | 3.5131 | 1.2722 |
+
+### 9.3 관찰
+
+1. **Camera reprojection은 필수에 가깝다.** `O-T2X`는 네 실험 모두 motion 구간
+   reference error가 가장 컸고, 특히 Bistro `yaw-strafe-fast`의 CGVQM-2는
+   `64.6599`까지 낮아졌다. 대표 시트에서도 이전 pose가 넓게 겹치는 이중 잔상이
+   확인됐다.
+2. **단순 strafe에서는 Standard reprojection이 우세했다.** `O-T2X-R`은 Bistro와
+   Minecraft에서 각각 `94.7023`, `96.4396`으로 `O-ET2X-R`보다 `0.9689`,
+   `0.3139` 높았다.
+3. **회전+이동에서는 Edge-selective reprojection이 우세했다.** `O-ET2X-R`은
+   Bistro와 Minecraft에서 `O-T2X-R`보다 각각 `0.8746`, `0.2275` 높았고 motion
+   error mean도 `6.8581→3.5131`, `2.7305→1.2722`로 낮았다. 큰 복합 camera
+   motion에서는 history 적용 범위를 edge 후보로 제한하는 것이 reprojection 오차의
+   피해를 줄일 가능성이 있다.
+4. **Temporal 이득 유지 여부는 아직 보류한다.** `O-ET2X-R`의 motion 구간 1X 대비
+   RGB MAE는 네 실험에서 `0.2516~0.5549`로 매우 작았다. 이는 현재 형상 보존에는
+   유리하지만 출력이 1X에 가까워 temporal supersampling을 충분히 유지하지 못했을
+   가능성도 뜻한다. CGVQM 우위만으로 flicker/shimmer 개선을 주장하지 않는다.
+5. **No-reprojection Edge-selective는 피해를 줄이지만 완전한 대안은 아니다.**
+   `O-ET2X`는 `O-T2X`보다 크게 회복됐지만 post-still recovery가 네 조건에서 2~3
+   frame이었고, SS-Reference 점수는 reprojection On 또는 1X보다 낮았다.
+6. **Adaptive 공간 축은 temporal 결론을 바꾸지 않았다.** 네 실험 전체에서 대응하는
+   Original/Adaptive CGVQM-2 차이의 최대 절대값은 `0.0787`이었다.
+
+따라서 현재 자료가 지지하는 결론은 “Edge-selective가 항상 Standard T2X보다 좋다”가
+아니다. 단순 평행 이동에서는 `T2X-R`이 우세했고, 더 큰 회전+이동에서는
+`ET2X-R`이 우세했다. Edge-selective의 이득은 camera-motion 유형에 의존하며, 1X에
+가까워지는 temporal 손실 가능성과 함께 보고해야 한다.
+
+## 10. 다음 작업
+
+1. 교수님 피드백의 다음 핵심인 **현재-frame edge expansion**을 thin-geometry
+   ablation으로 진행한다. 먼저 3×3/5×5/7×7 dilation을 비교한다.
+2. dilation 비용이 크면 nearest-neighbor가 아닌 filtered downsample-upsample으로
+   후보 영역을 확장하는 대안을 비교한다.
+3. 기존 `thin-lines` stress 장면과 별도의 공개 thin-geometry 외부 장면을 같은
+   1080p급 조건에서 사용한다. 끊어진 얇은 선 복구, history 적용률, flicker,
+   고스팅과 GPU 비용을 함께 측정한다.
+4. 이전-frame edge mask와 dilation은 현재-frame expansion 및 추가 camera-motion
+   결과만으로 부족한 경우에만 후속 ablation으로 추가한다.
+5. `yaw-extreme-360`은 더 큰 pure-yaw UV stress가 필요할 때 추가하는 선택적 검증으로
+   남긴다. 현재 완료된 `yaw-fast-360`, `strafe-fast`, `yaw-strafe-fast` 결과를
+   대체하지 않는다.

@@ -120,7 +120,7 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 
 위 항목의 구현과 검증표가 완료되기 전에는 “TSCMAA core 완료”로 표시하지 않는다.
 
-## 4. 2026-07-30 현재 구현 상태
+## 4. 2026-08-13 현재 구현 상태
 
 | ID | 상태 | 현재 코드 대응 |
 |---|---|---|
@@ -707,6 +707,19 @@ average rate 60, constant 1/60초 PTS와 3.000초 duration을 통과했다. MP4�
 정식 지표에는 원본 PNG/RGB-preserving FFV1만 사용한다. Preview 추가 후 lifecycle은
 reset 36, frame 114, seed 19, resolve 95, reprojection 45, failure 0으로 PASS했다.
 
+2026-08-13에 Bistro/Minecraft의 `strafe-fast`와 `yaw-strafe-fast` 최종 8-case +
+O/A-1X formal 측정을 완료했다. 각 장면·profile은 10 mode × 240 PNG와 같은 pose의
+SS-Reference 240 PNG를 사용했으며 40개 CGVQM 결과의 최종 FFV1 RGB round-trip
+mismatch는 0이었다. 유효 capture root는 각각 `20260813_013331`,
+`20260813_023150`, `20260813_032105`, `20260813_041648`이고 reference root는
+`20260813_013845`, `20260813_023846`, `20260813_032603`, `20260813_042324`다.
+두 strafe-only 조건에서는 대응 `T2X-R`이 `ET2X-R`보다 CGVQM-2가 높았지만, 두
+yaw+strafe 조건에서는 `ET2X-R`이 높고 motion 구간 reference error도 낮았다.
+Edge-selective 이득은 camera-motion 유형에 의존하며, ET2X-R이 1X에 매우 가깝다는
+temporal 이득 손실 가능성을 함께 기록한다. Adaptive/Original 대응 CGVQM-2 차이의
+최대 절대값은 0.0787로 temporal 결론을 바꾸지 않았다. 상세 결과는
+`Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다.
+
 첫 180-frame CGVQM 실행은 per-frame CSV 생성 뒤 error-map visualization이 전체
 context/error/heatmap을 동시에 메모리에 적재하면서 native Python access violation으로
 종료됐다. error-map을 frame별 colorize/FFV1 encode하도록 변경했고, 이후 Bistro와
@@ -788,11 +801,13 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     O/A-1X, reference, CGVQM/error-map/recovery formal 분석을 완료했다. PNG 저장 없는
     벽시계 60 Hz preview와 기존 PNG의 constant 60 FPS MP4도 검증해 캡처 중 낮은 표시
     FPS와 기록 timeline을 분리했다.
-19. **진행 중:** `yaw-extreme-360`, `strafe-fast`, `yaw-strafe-fast`의 parallax와
-    disocclusion 후속 측정을 진행한다. 그 다음 controlled `thin-lines`를 대체하지 않는
-    공개 thin-geometry 외부 장면을 별도 추가해 current-edge expansion ablation의 외부
-    타당성을 확인한다.
-20. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+19. **완료:** `strafe-fast`, `yaw-strafe-fast`의 양 장면 최종 8-case + O/A-1X,
+    supersample reference, CGVQM/recovery 분석을 완료했다. `yaw-extreme-360`은 더 큰
+    pure-yaw UV stress가 필요할 때의 선택적 검증으로 남긴다.
+20. **진행 중:** controlled `thin-lines`와 별도의 공개 thin-geometry 외부 장면에서
+    current-frame edge 3×3/5×5/7×7 dilation 및 filtered downsample-upsample
+    ablation을 진행하고 품질·history 적용률·flicker·고스팅·GPU 비용을 함께 측정한다.
+21. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
 
