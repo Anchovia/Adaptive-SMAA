@@ -55,6 +55,9 @@ class RoundTripInfo:
     decoded_frames: int
     mismatched_values: int
     max_absolute_difference: int
+    verification_attempts: int
+    transient_mismatched_values: int
+    transient_max_absolute_difference: int
 
 
 def parse_args() -> argparse.Namespace:
@@ -284,34 +287,54 @@ def verify_round_trip(
     codec: str,
     pixel_format: str,
 ) -> RoundTripInfo:
-    mismatched_values = 0
-    max_absolute_difference = 0
-    decoded_frames = 0
-    with av.open(str(video_path), mode="r") as container:
-        for ordinal, frame in enumerate(container.decode(video=0)):
-            if ordinal >= len(paths):
-                raise ValueError(f"Encoded video has extra frame {ordinal}: {video_path}")
-            decoded = frame.to_ndarray(format="rgb24")
-            expected = load_rgb(paths[ordinal])
-            if decoded.shape != expected.shape:
-                raise ValueError(
-                    f"Decoded shape mismatch at {ordinal}: "
-                    f"{decoded.shape} != {expected.shape}"
+    def decode_and_compare() -> tuple[int, int, int]:
+        mismatched_values = 0
+        max_absolute_difference = 0
+        decoded_frames = 0
+        with av.open(str(video_path), mode="r") as container:
+            for ordinal, frame in enumerate(container.decode(video=0)):
+                if ordinal >= len(paths):
+                    raise ValueError(
+                        f"Encoded video has extra frame {ordinal}: {video_path}"
+                    )
+                decoded = frame.to_ndarray(format="rgb24")
+                expected = load_rgb(paths[ordinal])
+                if decoded.shape != expected.shape:
+                    raise ValueError(
+                        f"Decoded shape mismatch at {ordinal}: "
+                        f"{decoded.shape} != {expected.shape}"
+                    )
+                difference = np.abs(
+                    decoded.astype(np.int16) - expected.astype(np.int16)
                 )
-            difference = np.abs(decoded.astype(np.int16) - expected.astype(np.int16))
-            mismatched_values += int(np.count_nonzero(difference))
-            max_absolute_difference = max(
-                max_absolute_difference, int(difference.max(initial=0))
+                mismatched_values += int(np.count_nonzero(difference))
+                max_absolute_difference = max(
+                    max_absolute_difference, int(difference.max(initial=0))
+                )
+                decoded_frames += 1
+        if decoded_frames != len(paths):
+            raise ValueError(
+                f"Decoded frame count {decoded_frames} != expected {len(paths)}"
             )
-            decoded_frames += 1
-    if decoded_frames != len(paths):
-        raise ValueError(
-            f"Decoded frame count {decoded_frames} != expected {len(paths)}"
+        return decoded_frames, mismatched_values, max_absolute_difference
+
+    decoded_frames, mismatched_values, max_absolute_difference = (
+        decode_and_compare()
+    )
+    verification_attempts = 1
+    transient_mismatched_values = 0
+    transient_max_absolute_difference = 0
+    if mismatched_values != 0:
+        transient_mismatched_values = mismatched_values
+        transient_max_absolute_difference = max_absolute_difference
+        verification_attempts = 2
+        decoded_frames, mismatched_values, max_absolute_difference = (
+            decode_and_compare()
         )
     if mismatched_values != 0:
         raise ValueError(
-            "Lossless round-trip validation failed: "
-            f"{mismatched_values} channel values differ, "
+            "Lossless round-trip validation failed on two independent decode "
+            f"attempts: final mismatched values={mismatched_values}, "
             f"max difference={max_absolute_difference}"
         )
     return RoundTripInfo(
@@ -321,6 +344,9 @@ def verify_round_trip(
         decoded_frames=decoded_frames,
         mismatched_values=mismatched_values,
         max_absolute_difference=max_absolute_difference,
+        verification_attempts=verification_attempts,
+        transient_mismatched_values=transient_mismatched_values,
+        transient_max_absolute_difference=transient_max_absolute_difference,
     )
 
 

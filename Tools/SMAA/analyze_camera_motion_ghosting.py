@@ -542,7 +542,7 @@ def main() -> int:
         "## 대표 비교 자료",
         "",
         f"- 대표 프레임 시트: `{sheet_path.name}`",
-        f"- 회전 구간 6-way GIF: `{gif_path.name}`",
+        f"- 회전 구간 {len(visual_sources)}-way GIF: `{gif_path.name}`",
         "",
     ]
     report_path.write_text("\n".join(lines), encoding="utf-8")
