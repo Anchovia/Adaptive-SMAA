@@ -362,26 +362,44 @@ def write_error_map_video(
     # Reuse the official CGVQM/FovVideoVDP color mapping, but encode it as
     # RGB-family FFV1. The official helper forces libx264/yuv420p, which rejects
     # CMAA2's 1920x1017 capture size because its height is odd.
+    #
+    # Keep only one colorized frame in memory at a time. A full 180-frame
+    # 1920x1017 sequence otherwise needs several simultaneous multi-gigabyte
+    # tensors (context, normalized error, heatmap, and RGB output), which can
+    # terminate native PyTorch code before Python can raise MemoryError.
     sys.path.insert(0, str(cgvqm_root.resolve()))
     utils_module = importlib.import_module("utils.utils")
-    context = torch.from_numpy(
-        np.stack([load_rgb(path) for path in test_paths], axis=0)
-    ).permute(0, 3, 1, 2)
-    normalized = torch.clamp(emap.detach().float().cpu() / 100.0, 0.0, 1.0)
-    heatmap = utils_module.visualize_diff_map(
-        normalized.unsqueeze(1),
-        context_image=context,
-        type="pmap",
-        colormap_type="threshold",
-    )
-    heatmap_rgb = (
-        (heatmap.clamp(0.0, 1.0) * 255.0)
-        .to(torch.uint8)
-        .permute(0, 2, 3, 1)
-        .contiguous()
-        .numpy()
-    )
-    encode_rgb_arrays_ffv1(heatmap_rgb, output_path, fps)
+    error_maps = emap.detach().float().cpu()
+    if error_maps.shape[0] != len(test_paths):
+        raise ValueError(
+            "Error-map frame count differs from the test sequence: "
+            f"{error_maps.shape[0]} != {len(test_paths)}"
+        )
+
+    def colorized_frames() -> Iterable[np.ndarray]:
+        for ordinal, path in enumerate(test_paths):
+            context = torch.from_numpy(load_rgb(path).copy()).permute(2, 0, 1)
+            context = context.unsqueeze(0)
+            normalized = torch.clamp(
+                error_maps[ordinal].unsqueeze(0).unsqueeze(0) / 100.0,
+                0.0,
+                1.0,
+            )
+            heatmap = utils_module.visualize_diff_map(
+                normalized,
+                context_image=context,
+                type="pmap",
+                colormap_type="threshold",
+            )
+            yield (
+                (heatmap.squeeze(0).clamp(0.0, 1.0) * 255.0)
+                .to(torch.uint8)
+                .permute(1, 2, 0)
+                .contiguous()
+                .numpy()
+            )
+
+    encode_rgb_arrays_ffv1(colorized_frames(), output_path, fps)
 
 
 def error_map_stats(emap: torch.Tensor) -> tuple[dict[str, float], list[dict[str, float]]]:
