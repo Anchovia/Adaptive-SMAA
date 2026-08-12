@@ -333,3 +333,70 @@ Bistro/Minecraft 급격한 camera-motion 본 결과로 사용하지 않는다.
 sequence는 먼저 메모리 사용량을 확인한다. 임의로 30-frame 파일 여러 개로 나누면
 temporal clip 경계와 전역 mean/max pooling 정의가 달라질 수 있으므로, 분할 방식의
 수학적 동등성을 별도로 검증하기 전에는 한 sequence의 점수처럼 합치지 않는다.
+
+### 11.3 결정적 camera profile 및 capture 명령
+
+2026-08-12에 위 5개 profile을 `CMAA2Sample`의 고정 60 Hz 분석 경로에 연결했다.
+사용자의 `last.camerastate`를 사용하지 않고 장면별 고정 위치와 방향을 코드에 기록한다.
+
+| 장면 | 기준 위치 | 기준 시선 | Strafe 전체 거리 |
+|---|---|---|---:|
+| Bistro | `(4.30, -3.20, 1.75)` | 수평 `+X` | `1.50` |
+| Minecraft | `(4.30, 29.20, 14.20)` | `(6.50, 0.00, 8.70)` 방향 | `10.0` |
+
+각 profile은 60 frame 정지, 지정된 camera motion, 60 frame 정지로 구성한다. 완전한
+360도 회전 뒤의 post-stop pose는 시작 pose와 bit-identical하도록 각도를 정확히 0으로
+복원한다. 이 규칙은 `recovery frames`를 시작·종료 pose 차이 없이 계산하기 위한 것이다.
+
+Original 5-way capture:
+
+```powershell
+.\CMAA2.exe -smaaCameraMotionOriginalFiveCapture "<bistro|minecraft> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]"
+```
+
+동일 pose의 supersample spatial-reference capture:
+
+```powershell
+.\CMAA2.exe -smaaCameraMotionReferenceCapture "<bistro|minecraft> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]"
+```
+
+`captureFrames`를 생략하거나 0으로 지정하면 `firstProfileFrame`부터 profile 끝까지
+저장한다. 정식 실행은 `firstProfileFrame=0`, 전체 frame 수와 기본 60-frame warm-up을
+사용한다. 부분 frame 범위는 engineering smoke로 자동 표기하며 정식 품질 결과로
+사용하지 않는다.
+
+Original 5-way는 `O-1X`, `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R`을 같은 pose
+sequence로 저장한다. Reference는 별도 실행하여 장시간 supersample 비용과 temporal
+mode capture를 분리한다. 모든 PNG 이름은 기존 분석기와 호환되도록
+`..._profile_<profile index>_frame_<capture index>.png`로 끝난다.
+
+### 11.4 Camera profile engineering smoke
+
+Release x64, DirectX 11, 1920×1017, SMAA Ultra, VSync Off에서 다음을 확인했다.
+
+- Bistro `yaw-fast-360` profile frame 58~62를 5개 mode에서 각각 5장 저장했다.
+- Minecraft도 같은 구간에서 5개 mode × 5장을 저장했다.
+- 두 장면과 모든 mode에서 frame 58·59는 같은 정지 pose hash이고, 회전이 시작되는
+  frame 60~62는 서로 다른 hash였다.
+- Bistro 실행을 독립적으로 반복했을 때 5개 mode × 5장, 총 25 PNG의 SHA-256
+  mismatch는 0이었다.
+- Bistro `yaw-fast-360`의 시작 frame 0과 360도 회전 후 마지막 frame 179를 같은
+  warm-up/reset 조건으로 별도 캡처했으며, 5개 mode 모두 대응 PNG가 byte-identical했다.
+  따라서 post-still의 시작 자세가 pre-still 자세로 정확히 복원됨을 확인했다.
+- `yaw-slow-360`, `yaw-extreme-360`, `strafe-fast`, `yaw-strafe-fast`도 frame
+  58~61의 정지→이동 경계를 5개 mode에서 모두 정상 통과했다.
+- 기존 `-smaaTemporalLifecycleTest`는 reset 36, seed 19, resolve 94,
+  reprojection 44, failure 0으로 PASS했다.
+
+Supersample reference는 Bistro `yaw-fast-360` frame 60을 독립 재실행했을 때 PNG
+SHA-256은 달랐지만, 차이는 전체 1920×1017 중 101 pixel, 최대 2/255, 전체 channel
+MAE `0.0000198023`이었다. 5-way pose 복원 검증이 별도로 통과했으므로 이는 camera
+pose 오차가 아니라 supersample 경로의 극소수 GPU 누적 변동으로 취급한다. Reference
+재현성은 byte-identical만 요구하지 않고 이
+허용오차와 full-reference 지표의 반복 안정성을 함께 기록한다.
+
+파일명 수정 후 Bistro `yaw-fast-360` frame 60~61의 `O-T2X-R`과 SS-Reference를
+기존 PNG adapter에 입력했다. 두 sequence 모두 연속 index 0~1과 1920×1017을
+통과했고, FFV1 decode의 mismatched channel value와 최대 절대 차이는 각각 0이었다.
+CUDA CGVQM-2도 정상 종료했다. 2-frame score는 파이프라인 호환성 확인용이며 품질
+결과로 사용하지 않는다.

@@ -76,6 +76,17 @@ namespace VertexAsylum
             MaxValue
         };
 
+        enum class SMAACameraMotionProfile : int32
+        {
+            YawSlow360,
+            YawFast360,
+            YawExtreme360,
+            StrafeFast,
+            YawStrafeFast,
+
+            MaxValue
+        };
+
 #define MSAA_16x_SUPPORTED 0        // not testing caps for support so let's skip it for now
 
         enum class AAType : int32
@@ -220,6 +231,12 @@ namespace VertexAsylum
                                                     SMAATemporalStressScenario::ObjectMotionDisocclusion;
         float                                   m_temporalStressTimeSeconds = 0.0f;
         bool                                    m_temporalStressStateConfigured = false;
+        SceneSelectionType                      m_cameraMotionScene =
+                                                    SceneSelectionType::LumberyardBistro;
+        SMAACameraMotionProfile                 m_cameraMotionProfile =
+                                                    SMAACameraMotionProfile::YawFast360;
+        int                                     m_cameraMotionFrame = 0;
+        bool                                    m_cameraMotionStateConfigured = false;
 
         shared_ptr<vaScene>                     m_currentScene;
         vaRenderSelection                       m_currentSceneMainRenderSelection;
@@ -321,6 +338,11 @@ namespace VertexAsylum
         void                                    SetFlythroughCameraEnabled( bool enabled ) { m_flythroughPlay = enabled; }
         void                                    SetSMAATemporalStressTestState( SMAATemporalStressScenario scenario, float timeSeconds );
         static const char *                     GetSMAATemporalStressScenarioName( SMAATemporalStressScenario scenario );
+        void                                    SetSMAACameraMotionTestState( SceneSelectionType scene, SMAACameraMotionProfile profile, int frameIndex );
+        void                                    ClearSMAACameraMotionTestState( ) { m_cameraMotionStateConfigured = false; }
+        static const char *                     GetSMAACameraMotionSceneName( SceneSelectionType scene );
+        static const char *                     GetSMAACameraMotionProfileName( SMAACameraMotionProfile profile );
+        static int                              GetSMAACameraMotionProfileFrameCount( SMAACameraMotionProfile profile );
 
     public:
         // events/callbacks:

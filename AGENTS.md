@@ -625,6 +625,31 @@ validation일 뿐 새 camera-motion 품질 결과가 아니다. Windows Python 3
 공식 `av==14.4.0` wheel이 없어 같은 API의 `av==15.1.0` binary를 사용하며, 모델,
 weight, 전처리와 pooling 코드는 수정하지 않는다.
 
+Bistro/Minecraft에 `yaw-slow-360`, `yaw-fast-360`, `yaw-extreme-360`,
+`strafe-fast`, `yaw-strafe-fast` 결정적 camera profile을 연결했다. 각 profile은 fixed
+60 Hz에서 60-frame pre-still, profile별 motion, 60-frame post-still로 구성하고 완전한
+360도 뒤 pose는 시작 pose와 정확히 같게 복원한다. 다음 두 명령을 사용한다.
+
+- `-smaaCameraMotionOriginalFiveCapture`: `O-1X`, `O-T2X`, `O-T2X-R`,
+  `O-ET2X`, `O-ET2X-R` 5-way PNG capture
+- `-smaaCameraMotionReferenceCapture`: 같은 pose의 `SS-Reference` 별도 capture
+
+두 명령은 `<scene> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]`를
+받는다. 부분 frame 범위는 engineering smoke, profile 전체는 complete quality capture로
+provenance에 기록한다. PNG 이름은 기존 CGVQM adapter와 호환되는 `_frame_<index>`로
+끝난다. Bistro와 Minecraft yaw-fast 정지→회전 smoke, 나머지 4개 profile의 Bistro
+분기 smoke, Release x64 build와 temporal lifecycle(reset 36, seed 19, resolve 94,
+reprojection 44, failure 0)을 통과했다. Bistro yaw-fast 5-way 25 PNG의 독립 재실행
+SHA-256 mismatch는 0이었다. 같은 profile의 시작 frame 0과 360도 회전 후 마지막
+frame 179도 5개 mode 모두 대응 PNG가 byte-identical해 pose 복원을 확인했다.
+
+동일 Bistro pose의 supersample reference 재실행은 1920×1017 중 101 pixel에서 최대
+2/255 차이, 전체 channel MAE `0.0000198023`의 극소수 GPU 누적 변동이 있었다.
+따라서 reference는 byte-identical만을 acceptance로 삼지 않고 이 허용오차와 지표 반복
+안정성을 함께 기록한다. 수정된 camera-motion PNG 2-frame pair는 기존 adapter의 연속
+index·해상도 검증과 FFV1 RGB round-trip mismatch 0 및 CUDA CGVQM-2 실행을 통과했다.
+모든 수치는 engineering validation이며 정식 camera-motion 품질 결론이 아니다.
+
 ## 5. 기존 측정의 정확한 범위
 
 `Projects/CMAA2/AutoBench/20260729_002704` 데이터는 다음 두 복합 구현의 1차 품질 비교다.
@@ -693,10 +718,14 @@ weight, 전처리와 pooling 코드는 수정하지 않는다.
     candidate보다 부분 개선됐지만 NoJitter와 O-1X보다 일관되게 나쁘고 blur가 남아
     최종 방식으로 채택하지 않았다.
 18. **진행 중:** CGVQM 기반 고스팅 평가 protocol과 PNG lossless adapter의 engineering
-    validation을 완료했다. 다음은 Bistro 저대비/Minecraft 고대비 장면에 독립적인
+    validation을 완료했다. Bistro 저대비/Minecraft 고대비 장면의 독립적인
     `yaw-slow-360`, `yaw-fast-360`, `yaw-extreme-360`, `strafe-fast`,
-    `yaw-strafe-fast` deterministic camera profile과 동일 pose의 supersample
-    reference capture를 연결한다. Original 5-way 축소 검증 뒤 최종 8-case로 확장한다.
+    `yaw-strafe-fast` deterministic camera profile, Original 5-way capture와 동일 pose의
+    supersample reference capture를 연결하고 축소 검증했다. 다음은 양 장면의 완전한
+    Original 5-way + reference sequence를 확보해 CGVQM/error-map/recovery 분석을
+    검증한 뒤 최종 8-case로 확장한다. 그 다음 controlled `thin-lines`를 대체하지 않는
+    공개 thin-geometry 외부 장면을 별도 추가해 current-edge expansion ablation의 외부
+    타당성을 확인한다.
 19. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
