@@ -30,6 +30,8 @@
 
 #include <iomanip>
 #include <sstream> // stringstream
+#include <chrono>
+#include <thread>
 
 using namespace VertexAsylum;
 
@@ -206,6 +208,70 @@ namespace
         case vaSMAAWrapper::CandidatePolicy::ExperimentalLocalMeanMax3x3:        return "ExperimentalLocalMeanMax3x3";
         default:                                                                 return "Unknown";
         }
+    }
+
+    bool TryParseSMAACameraMotionScene(
+        const wstring & token, CMAA2Sample::SceneSelectionType & scene )
+    {
+        if( _wcsicmp( token.c_str( ), L"bistro" ) == 0 )
+            scene = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+        else if( _wcsicmp( token.c_str( ), L"minecraft" ) == 0 )
+            scene = CMAA2Sample::SceneSelectionType::MinecraftLostEmpire;
+        else
+            return false;
+        return true;
+    }
+
+    bool TryParseSMAACameraMotionProfile(
+        const wstring & token, CMAA2Sample::SMAACameraMotionProfile & profile )
+    {
+        if( _wcsicmp( token.c_str( ), L"yaw-slow-360" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::YawSlow360;
+        else if( _wcsicmp( token.c_str( ), L"yaw-fast-360" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::YawFast360;
+        else if( _wcsicmp( token.c_str( ), L"yaw-extreme-360" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::YawExtreme360;
+        else if( _wcsicmp( token.c_str( ), L"strafe-fast" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::StrafeFast;
+        else if( _wcsicmp( token.c_str( ), L"yaw-strafe-fast" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::YawStrafeFast;
+        else
+            return false;
+        return true;
+    }
+
+    bool TryParseSMAAResearchMode(
+        const wstring & token, CMAA2Sample::AAType & mode, string & semanticID )
+    {
+        struct ModeEntry
+        {
+            const wchar_t * Token;
+            CMAA2Sample::AAType Mode;
+            const char * SemanticID;
+        };
+        static const ModeEntry c_modes[] =
+        {
+            { L"O-1X",     CMAA2Sample::AAType::SMAA,          "O-1X" },
+            { L"O-T2X",    CMAA2Sample::AAType::SMAA_O_T2X,    "O-T2X" },
+            { L"O-T2X-R",  CMAA2Sample::AAType::SMAA_O_T2X_R,  "O-T2X-R" },
+            { L"O-ET2X",   CMAA2Sample::AAType::SMAA_O_ET2X,   "O-ET2X" },
+            { L"O-ET2X-R", CMAA2Sample::AAType::SMAA_O_ET2X_R, "O-ET2X-R" },
+            { L"A-1X",     CMAA2Sample::AAType::SMAA_A_1X,     "A-1X" },
+            { L"A-T2X",    CMAA2Sample::AAType::SMAA_A_T2X,    "A-T2X" },
+            { L"A-T2X-R",  CMAA2Sample::AAType::SMAA_A_T2X_R,  "A-T2X-R" },
+            { L"A-ET2X",   CMAA2Sample::AAType::SMAA_A_ET2X,   "A-ET2X" },
+            { L"A-ET2X-R", CMAA2Sample::AAType::SMAA_A_ET2X_R, "A-ET2X-R" },
+        };
+        for( const ModeEntry & entry : c_modes )
+        {
+            if( _wcsicmp( token.c_str( ), entry.Token ) == 0 )
+            {
+                mode = entry.Mode;
+                semanticID = entry.SemanticID;
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -3137,6 +3203,190 @@ protected:
     }
 };
 
+class BenchItemPreviewSMAACameraMotion : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    const CMAA2Sample::SceneSelectionType m_scene;
+    const CMAA2Sample::SMAACameraMotionProfile m_profile;
+    const CMAA2Sample::AAType m_mode;
+    const string        m_semanticID;
+    const int           m_repeatCount;
+    const int           m_profileFrameCount;
+    int                 m_currentFrame = -1;
+    int                 m_currentRepeat = 0;
+    bool                m_started = false;
+    bool                m_pacingStarted = false;
+    bool                m_isDone = false;
+    std::chrono::steady_clock::time_point m_nextFrameDeadline;
+    std::chrono::steady_clock::time_point m_previousFrameStart;
+    vector<double>      m_frameIntervals;
+
+    double GetYawDegreesPerFrame( ) const
+    {
+        switch( m_profile )
+        {
+        case CMAA2Sample::SMAACameraMotionProfile::YawSlow360:    return 1.5;
+        case CMAA2Sample::SMAACameraMotionProfile::YawFast360:    return 6.0;
+        case CMAA2Sample::SMAACameraMotionProfile::YawExtreme360: return 12.0;
+        case CMAA2Sample::SMAACameraMotionProfile::YawStrafeFast: return 3.0;
+        default:                                                   return 0.0;
+        }
+    }
+
+    void PaceNextFrame( )
+    {
+        using Clock = std::chrono::steady_clock;
+        const Clock::duration frameDuration =
+            std::chrono::duration_cast<Clock::duration>(
+                std::chrono::duration<double>( 1.0 / c_framePerSecond ) );
+        const Clock::time_point now = Clock::now( );
+        if( !m_pacingStarted )
+        {
+            m_pacingStarted = true;
+            m_nextFrameDeadline = now;
+            m_previousFrameStart = now;
+            return;
+        }
+
+        m_nextFrameDeadline += frameDuration;
+        // A shader compile or OS pause must not cause a burst of catch-up
+        // frames. Preserve every analytical camera step but resume the 60 Hz
+        // wall-clock cadence from the current time after a large stall.
+        if( now > m_nextFrameDeadline + frameDuration * 2 )
+            m_nextFrameDeadline = now;
+        else if( now < m_nextFrameDeadline )
+            std::this_thread::sleep_until( m_nextFrameDeadline );
+
+        const Clock::time_point frameStart = Clock::now( );
+        m_frameIntervals.push_back(
+            std::chrono::duration<double>( frameStart - m_previousFrameStart ).count( ) );
+        m_previousFrameStart = frameStart;
+    }
+
+public:
+    BenchItemPreviewSMAACameraMotion(
+        CMAA2Sample & parent,
+        CMAA2Sample::SceneSelectionType scene,
+        CMAA2Sample::SMAACameraMotionProfile profile,
+        CMAA2Sample::AAType mode,
+        const string & semanticID,
+        int repeatCount )
+        : AutoBenchToolWorkItem( parent ),
+        m_scene( scene ),
+        m_profile( profile ),
+        m_mode( mode ),
+        m_semanticID( semanticID ),
+        m_repeatCount( vaMath::Clamp( repeatCount, 1, 20 ) ),
+        m_profileFrameCount(
+            CMAA2Sample::GetSMAACameraMotionProfileFrameCount( profile ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice = m_scene;
+            m_parent.Settings( ).CurrentAAOption = m_mode;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / (float)c_framePerSecond );
+            m_parent.SetVsyncForBenchmark( false );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( false );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity( );
+            m_parent.SetSMAACameraMotionTestState( m_scene, m_profile, 0 );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText(
+                "SMAA real-time camera-motion visual preview\r\n\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Scene:           %s\r\n",
+                CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Camera profile:  %s\r\n",
+                CMAA2Sample::GetSMAACameraMotionProfileName( m_profile ) ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Mode:            %s\r\n", m_semanticID.c_str( ) ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Timeline:        %d frames at wall-clock %d Hz, repeats=%d\r\n",
+                m_profileFrameCount, c_framePerSecond, m_repeatCount ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Yaw step:        %.3f degrees/frame\r\n",
+                GetYawDegreesPerFrame( ) ) );
+            abTool.ReportAddText(
+                "Presentation:    visible window, VSync Off, explicit wall-clock 60 Hz pacing\r\n" );
+            abTool.ReportAddText(
+                "Capture:         disabled; this is visual engineering preview, not a quality or performance measurement\r\n\r\n" );
+            return;
+        }
+
+        // Keep the first analytical pose while scene resources and shadow maps
+        // settle. Wall-clock pacing begins only after loading has completed.
+        if( m_currentFrame < 0 && m_parent.HasPendingShadowmapUpdates( ) )
+        {
+            m_parent.SetSMAACameraMotionTestState( m_scene, m_profile, 0 );
+            return;
+        }
+
+        if( m_currentFrame + 1 >= m_profileFrameCount )
+        {
+            m_currentRepeat++;
+            if( m_currentRepeat >= m_repeatCount )
+            {
+                double intervalSum = 0.0;
+                double intervalMin = std::numeric_limits<double>::max( );
+                double intervalMax = 0.0;
+                for( double interval : m_frameIntervals )
+                {
+                    intervalSum += interval;
+                    intervalMin = vaMath::Min( intervalMin, interval );
+                    intervalMax = vaMath::Max( intervalMax, interval );
+                }
+                const double intervalMean = m_frameIntervals.empty( )?
+                    0.0 : intervalSum / (double)m_frameIntervals.size( );
+                abTool.ReportAddText( vaStringTools::Format(
+                    "Observed frame-start interval: mean %.3f ms, min %.3f ms, max %.3f ms (%d samples)\r\n",
+                    intervalMean * 1000.0, intervalMin * 1000.0,
+                    intervalMax * 1000.0, (int)m_frameIntervals.size( ) ) );
+                abTool.ReportAddText(
+                    "Result: preview complete; inspect the visible window or generated 60 fps MP4 for perceived smoothness.\r\n" );
+                m_parent.ClearSMAACameraMotionTestState( );
+                m_isDone = true;
+                abTool.ReportFinish( );
+                return;
+            }
+
+            m_currentFrame = -1;
+            m_parent.SetSMAACameraMotionTestState( m_scene, m_profile, 0 );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+        }
+
+        PaceNextFrame( );
+        m_currentFrame++;
+        m_parent.Settings( ).CurrentAAOption = m_mode;
+        m_parent.SetSMAACameraMotionTestState(
+            m_scene, m_profile, m_currentFrame );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override { return false; }
+    virtual float GetProgress( ) const override
+    {
+        const int completed = m_currentRepeat * m_profileFrameCount
+            + vaMath::Max( 0, m_currentFrame );
+        return vaMath::Clamp(
+            (float)completed / (float)(m_repeatCount * m_profileFrameCount),
+            0.0f, 1.0f );
+    }
+};
+
 class BenchItemRecordSMAACandidateOnlyAblation : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
@@ -5618,6 +5868,66 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA temporal lifecycle engineering validation");
+            return;
+        }
+
+        if( _wcsicmp( parameter.first.c_str( ),
+            L"smaaCameraMotionPreview" ) == 0 )
+        {
+            wstring sceneToken = L"bistro";
+            wstring profileToken = L"yaw-slow-360";
+            wstring modeToken = L"O-ET2X-R";
+            int repeatCount = 1;
+            if( !parameter.second.empty( ) )
+            {
+                std::wistringstream values( parameter.second );
+                if( !(values >> sceneToken >> profileToken) )
+                {
+                    VA_LOG_ERROR(
+                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
+                    return;
+                }
+                if( values >> modeToken )
+                {
+                    int parsedRepeatCount = 1;
+                    if( values >> parsedRepeatCount )
+                        repeatCount = parsedRepeatCount;
+                }
+            }
+
+            SceneSelectionType scene = SceneSelectionType::MaxValue;
+            SMAACameraMotionProfile profile = SMAACameraMotionProfile::MaxValue;
+            AAType mode = AAType::SMAA_O_ET2X_R;
+            string semanticID;
+            if( !TryParseSMAACameraMotionScene( sceneToken, scene ) )
+            {
+                VA_LOG_ERROR(
+                    "Invalid SMAA camera-motion preview scene; expected bistro or minecraft" );
+                return;
+            }
+            if( !TryParseSMAACameraMotionProfile( profileToken, profile ) )
+            {
+                VA_LOG_ERROR(
+                    "Invalid SMAA camera-motion preview profile; expected yaw-slow-360, yaw-fast-360, yaw-extreme-360, strafe-fast, or yaw-strafe-fast" );
+                return;
+            }
+            if( !TryParseSMAAResearchMode( modeToken, mode, semanticID ) )
+            {
+                VA_LOG_ERROR(
+                    "Invalid SMAA camera-motion preview mode; use a semantic O/A 1X/T2X/ET2X ID" );
+                return;
+            }
+            repeatCount = vaMath::Clamp( repeatCount, 1, 20 );
+
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemPreviewSMAACameraMotion>(
+                    *this, scene, profile, mode, semanticID, repeatCount ) );
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG(
+                "Queued real-time SMAA camera-motion preview: scene=%s, profile=%s, mode=%s, repeats=%d, PNG capture=off",
+                GetSMAACameraMotionSceneName( scene ),
+                GetSMAACameraMotionProfileName( profile ),
+                semanticID.c_str( ), repeatCount );
             return;
         }
 
