@@ -17,23 +17,30 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 FRAME_PATTERN = re.compile(r"(?:^|_)frame_(\d+)$", re.IGNORECASE)
-MODES = (
+ORIGINAL_MODES = (
     ("O-1X", "O_1X"),
     ("O-T2X", "O_T2X"),
     ("O-T2X-R", "O_T2X_R"),
     ("O-ET2X", "O_ET2X"),
     ("O-ET2X-R", "O_ET2X_R"),
 )
+ADAPTIVE_MODES = (
+    ("A-1X", "A_1X"),
+    ("A-T2X", "A_T2X"),
+    ("A-T2X-R", "A_T2X_R"),
+    ("A-ET2X", "A_ET2X"),
+    ("A-ET2X-R", "A_ET2X_R"),
+)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Analyze Original five-way deterministic camera-motion CGVQM "
+            "Analyze deterministic camera-motion CGVQM "
             "results and recovery behavior."
         )
     )
@@ -43,6 +50,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--post-frames", type=int, default=60)
     parser.add_argument("--stable-frames", type=int, default=5)
     parser.add_argument("--threshold-sigma", type=float, default=3.0)
+    parser.add_argument(
+        "--include-adaptive",
+        action="store_true",
+        help="Analyze A-1X plus the four Adaptive temporal cases as well.",
+    )
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -90,8 +102,8 @@ def region_summary(rows: list[dict[str, float]], start: int, end: int) -> dict[s
         "cgvqm_error_mean": mean_or_nan([row["mean"] for row in selected]),
         "cgvqm_error_peak_frame_mean": max(row["mean"] for row in selected),
         "mean_of_frame_p95": mean_or_nan([row["p95"] for row in selected]),
-        "rgb_mae_vs_o_1x": mean_or_nan(
-            [row["rgb_mae_vs_o_1x"] for row in selected]
+        "rgb_mae_vs_spatial_1x": mean_or_nan(
+            [row["rgb_mae_vs_spatial_1x"] for row in selected]
         ),
         "adjacent_rgb_mae": mean_or_nan(
             [row["adjacent_rgb_mae"] for row in selected if math.isfinite(row["adjacent_rgb_mae"])]
@@ -125,6 +137,78 @@ def fmt(value: float | int | None, digits: int = 6) -> str:
     return f"{value:.{digits}f}"
 
 
+def resized_rgb(path: Path, width: int) -> Image.Image:
+    with Image.open(path) as image:
+        rgb = image.convert("RGB")
+        height = max(1, round(rgb.height * width / rgb.width))
+        return rgb.resize((width, height), Image.Resampling.LANCZOS)
+
+
+def make_comparison_sheet(
+    output: Path,
+    selected_frames: list[int],
+    sources: list[tuple[str, list[Path]]],
+) -> None:
+    tile_width = 300
+    label_height = 24
+    sample = resized_rgb(sources[0][1][selected_frames[0]], tile_width)
+    tile_height = sample.height
+    canvas = Image.new(
+        "RGB",
+        (tile_width * len(sources), label_height + len(selected_frames) * (tile_height + label_height)),
+        "white",
+    )
+    draw = ImageDraw.Draw(canvas)
+    for column, (label, _) in enumerate(sources):
+        draw.text((column * tile_width + 6, 6), label, fill="black")
+    y = label_height
+    for frame in selected_frames:
+        for column, (_, paths) in enumerate(sources):
+            tile = resized_rgb(paths[frame], tile_width)
+            canvas.paste(tile, (column * tile_width, y))
+        draw.text((6, y + tile_height + 5), f"frame {frame:05d}", fill="black")
+        y += tile_height + label_height
+    canvas.save(output, optimize=True)
+
+
+def make_motion_gif(
+    output: Path,
+    motion_start: int,
+    motion_end: int,
+    sources: list[tuple[str, list[Path]]],
+) -> None:
+    tile_width = 220
+    label_height = 22
+    sample = resized_rgb(sources[0][1][motion_start], tile_width)
+    tile_height = sample.height
+    gif_frames: list[Image.Image] = []
+    for frame in range(motion_start, motion_end):
+        canvas = Image.new(
+            "RGB", (tile_width * len(sources), label_height + tile_height), "white"
+        )
+        draw = ImageDraw.Draw(canvas)
+        for column, (label, paths) in enumerate(sources):
+            draw.text(
+                (column * tile_width + 5, 5),
+                f"{label}  f{frame:03d}",
+                fill="black",
+            )
+            canvas.paste(
+                resized_rgb(paths[frame], tile_width),
+                (column * tile_width, label_height),
+            )
+        gif_frames.append(canvas.quantize(colors=256))
+    gif_frames[0].save(
+        output,
+        save_all=True,
+        append_images=gif_frames[1:],
+        duration=17,
+        loop=0,
+        disposal=2,
+        optimize=False,
+    )
+
+
 def main() -> int:
     args = parse_args()
     if min(args.pre_frames, args.motion_frames, args.post_frames) <= 0:
@@ -136,6 +220,7 @@ def main() -> int:
     output = (args.output or (root / "CameraMotionAnalysis")).resolve()
     output.mkdir(parents=True, exist_ok=True)
     expected = args.pre_frames + args.motion_frames + args.post_frames
+    modes = ORIGINAL_MODES + (ADAPTIVE_MODES if args.include_adaptive else ())
     motion_start = args.pre_frames
     post_start = args.pre_frames + args.motion_frames
 
@@ -144,14 +229,17 @@ def main() -> int:
     reference_hash: str | None = None
     provenance: dict[str, Any] | None = None
 
-    for semantic_id, directory_name in MODES:
+    for semantic_id, directory_name in modes:
         mode_root = root / directory_name
         result_path = mode_root / "CGVQM-Results.json"
         if not result_path.is_file():
             raise FileNotFoundError(f"Missing CGVQM result: {result_path}")
         result = json.loads(result_path.read_text(encoding="utf-8"))
-        if result["classification"] != "engineering":
-            raise RuntimeError(f"{semantic_id}: expected engineering classification")
+        expected_classification = "formal" if args.include_adaptive else "engineering"
+        if result["classification"] != expected_classification:
+            raise RuntimeError(
+                f"{semantic_id}: expected {expected_classification} classification"
+            )
         if result["test_sequence"]["frame_count"] != expected:
             raise RuntimeError(f"{semantic_id}: unexpected test frame count")
         current_reference_hash = result["reference_sequence"]["pixel_sha256"]
@@ -182,7 +270,7 @@ def main() -> int:
                         "p95": float(row["p95"]),
                         "p99": float(row["p99"]),
                         "maximum": float(row["maximum"]),
-                        "rgb_mae_vs_o_1x": float("nan"),
+                        "rgb_mae_vs_spatial_1x": float("nan"),
                         "adjacent_rgb_mae": float("nan"),
                         "second_luma_difference": float("nan"),
                     }
@@ -192,21 +280,29 @@ def main() -> int:
         results[semantic_id] = {"json": result, "model": model}
         frame_rows[semantic_id] = rows
 
-    base_directory = Path(
-        results["O-1X"]["json"]["test_sequence"]["directory"]
-    )
-    base_frames = collect_frames(base_directory, expected)
-    for semantic_id, _ in MODES:
+    base_frames_by_spatial: dict[str, list[Path]] = {}
+    for base_id, prefix in (("O-1X", "O"), ("A-1X", "A")):
+        if base_id in results:
+            base_directory = Path(
+                results[base_id]["json"]["test_sequence"]["directory"]
+            )
+            base_frames_by_spatial[prefix] = collect_frames(base_directory, expected)
+    mode_frames: dict[str, list[Path]] = {}
+    for semantic_id, _ in modes:
         directory = Path(results[semantic_id]["json"]["test_sequence"]["directory"])
         frames = collect_frames(directory, expected)
+        mode_frames[semantic_id] = frames
         previous_luma: np.ndarray | None = None
         previous_previous_luma: np.ndarray | None = None
         previous_rgb: np.ndarray | None = None
+        spatial_prefix = semantic_id[0]
+        base_frames = base_frames_by_spatial[spatial_prefix]
+        base_id = f"{spatial_prefix}-1X"
         for index, (path, base_path) in enumerate(zip(frames, base_frames, strict=True)):
             current = load_rgb(path)
-            base = current if semantic_id == "O-1X" else load_rgb(base_path)
+            base = current if semantic_id == base_id else load_rgb(base_path)
             row = frame_rows[semantic_id][index]
-            row["rgb_mae_vs_o_1x"] = float(
+            row["rgb_mae_vs_spatial_1x"] = float(
                 np.abs(current.astype(np.int16) - base.astype(np.int16)).mean(
                     dtype=np.float64
                 )
@@ -228,11 +324,14 @@ def main() -> int:
             previous_previous_luma = previous_luma
             previous_luma = current_luma
 
-    base_pre = [row["mean"] for row in frame_rows["O-1X"][:motion_start]]
-    base_limit = float(np.mean(base_pre) + args.threshold_sigma * np.std(base_pre))
     summaries: dict[str, Any] = {}
-    for semantic_id, _ in MODES:
+    for semantic_id, _ in modes:
         rows = frame_rows[semantic_id]
+        base_id = f"{semantic_id[0]}-1X"
+        base_pre = [row["mean"] for row in frame_rows[base_id][:motion_start]]
+        base_limit = float(
+            np.mean(base_pre) + args.threshold_sigma * np.std(base_pre)
+        )
         pre_values = [row["mean"] for row in rows[:motion_start]]
         mode_limit = float(
             np.mean(pre_values) + args.threshold_sigma * np.std(pre_values)
@@ -250,7 +349,7 @@ def main() -> int:
             "recovery_threshold": threshold,
             "recovery_threshold_definition": (
                 f"max(mode pre mean + {args.threshold_sigma:g} sigma, "
-                f"O-1X pre mean + {args.threshold_sigma:g} sigma)"
+                f"{base_id} pre mean + {args.threshold_sigma:g} sigma)"
             ),
             "recovery_frames_5_consecutive": recovery_frames(
                 post_values, threshold, args.stable_frames
@@ -267,13 +366,13 @@ def main() -> int:
             "cgvqm_error_p95",
             "cgvqm_error_p99",
             "cgvqm_error_maximum",
-            "rgb_mae_vs_o_1x",
+            "rgb_mae_vs_spatial_1x",
             "adjacent_rgb_mae",
             "second_luma_difference",
         )
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
-        for semantic_id, _ in MODES:
+        for semantic_id, _ in modes:
             for index, row in enumerate(frame_rows[semantic_id]):
                 phase = "pre-still" if index < motion_start else (
                     "motion" if index < post_start else "post-still"
@@ -287,7 +386,7 @@ def main() -> int:
                         "cgvqm_error_p95": row["p95"],
                         "cgvqm_error_p99": row["p99"],
                         "cgvqm_error_maximum": row["maximum"],
-                        "rgb_mae_vs_o_1x": row["rgb_mae_vs_o_1x"],
+                        "rgb_mae_vs_spatial_1x": row["rgb_mae_vs_spatial_1x"],
                         "adjacent_rgb_mae": row["adjacent_rgb_mae"],
                         "second_luma_difference": row["second_luma_difference"],
                     }
@@ -300,7 +399,7 @@ def main() -> int:
             "cgvqm_2_score",
             "error_map_mean",
             "motion_error_mean",
-            "motion_rgb_mae_vs_o_1x",
+            "motion_rgb_mae_vs_spatial_1x",
             "motion_second_luma_difference",
             "post_peak_error",
             "recovery_threshold",
@@ -308,7 +407,7 @@ def main() -> int:
         )
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
-        for semantic_id, _ in MODES:
+        for semantic_id, _ in modes:
             summary = summaries[semantic_id]
             writer.writerow(
                 {
@@ -316,7 +415,7 @@ def main() -> int:
                     "cgvqm_2_score": summary["cgvqm_2_score"],
                     "error_map_mean": summary["cgvqm_error_map"]["mean"],
                     "motion_error_mean": summary["motion"]["cgvqm_error_mean"],
-                    "motion_rgb_mae_vs_o_1x": summary["motion"]["rgb_mae_vs_o_1x"],
+                    "motion_rgb_mae_vs_spatial_1x": summary["motion"]["rgb_mae_vs_spatial_1x"],
                     "motion_second_luma_difference": summary["motion"]["second_luma_difference"],
                     "post_peak_error": summary["post_still"]["cgvqm_error_peak_frame_mean"],
                     "recovery_threshold": summary["recovery_threshold"],
@@ -325,7 +424,11 @@ def main() -> int:
             )
 
     payload = {
-        "classification": "engineering full-length Original five-way evaluation",
+        "classification": (
+            "formal full-length final eight-case plus O/A 1X controls evaluation"
+            if args.include_adaptive
+            else "engineering full-length Original five-way evaluation"
+        ),
         "interpretation_limit": (
             "CGVQM, RGB differences, and temporal differences are complementary "
             "signals, not absolute ghosting ground truth."
@@ -345,24 +448,63 @@ def main() -> int:
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    report_path = output / "SMAA-Camera-Motion-Original-Five-Analysis-ko.md"
+    reference_directory = Path(
+        results["O-1X"]["json"]["reference_sequence"]["directory"]
+    )
+    reference_frames = collect_frames(reference_directory, expected)
+    visual_sources = [("SS-Reference", reference_frames)] + [
+        (semantic_id, mode_frames[semantic_id]) for semantic_id, _ in modes
+    ]
+    o_t2x_motion = frame_rows["O-T2X"][motion_start:post_start]
+    o_et2x_r_motion = frame_rows["O-ET2X-R"][motion_start:post_start]
+    selected_frames = sorted(
+        {
+            motion_start - 1,
+            motion_start,
+            motion_start
+            + int(np.argmax([row["mean"] for row in o_t2x_motion])),
+            motion_start
+            + int(np.argmax([row["mean"] for row in o_et2x_r_motion])),
+            post_start - 1,
+            post_start,
+            min(expected - 1, post_start + 2),
+        }
+    )
+    sheet_path = output / "camera_motion_representative_sheet.png"
+    gif_path = output / "camera_motion_rotation_comparison.gif"
+    make_comparison_sheet(sheet_path, selected_frames, visual_sources)
+    make_motion_gif(gif_path, motion_start, post_start, visual_sources)
+
+    report_path = output / (
+        "SMAA-Camera-Motion-Eight-Case-Analysis-ko.md"
+        if args.include_adaptive
+        else "SMAA-Camera-Motion-Original-Five-Analysis-ko.md"
+    )
     lines = [
-        "# SMAA 급격한 카메라 회전 Original 5-way 분석",
+        (
+            "# SMAA 급격한 카메라 회전 최종 8-case + O/A-1X 분석"
+            if args.include_adaptive
+            else "# SMAA 급격한 카메라 회전 Original 5-way 분석"
+        ),
         "",
         "## 범위",
         "",
         f"- 장면: `{provenance.get('scene') if provenance else 'unknown'}`",
         f"- 카메라 profile: `{provenance.get('camera_profile') if provenance else 'unknown'}`",
         f"- timeline: pre-still 0~{motion_start - 1}, motion {motion_start}~{post_start - 1}, post-still {post_start}~{expected - 1}",
-        "- 분류: 전체 길이 Original 5-way 평가 파이프라인 검증(engineering)",
+        (
+            "- 분류: 전체 길이 최종 8-case + O/A-1X 품질 측정(formal)"
+            if args.include_adaptive
+            else "- 분류: 전체 길이 Original 5-way 평가 파이프라인 검증(engineering)"
+        ),
         "- Reference: temporal history가 없는 supersample spatial-reference proxy",
         "",
         "## 결과 요약",
         "",
-        "| Mode | CGVQM-2 ↑ | 전체 error mean ↓ | 회전 error mean ↓ | 회전 O-1X MAE ↓ | 회전 2차 luma diff ↓ | post peak ↓ | recovery frame ↓ |",
+        "| Mode | CGVQM-2 ↑ | 전체 error mean ↓ | 회전 error mean ↓ | 회전 대응 1X MAE ↓ | 회전 2차 luma diff ↓ | post peak ↓ | recovery frame ↓ |",
         "|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
-    for semantic_id, _ in MODES:
+    for semantic_id, _ in modes:
         summary = summaries[semantic_id]
         lines.append(
             "| " + " | ".join(
@@ -371,7 +513,7 @@ def main() -> int:
                     fmt(summary["cgvqm_2_score"]),
                     fmt(summary["cgvqm_error_map"]["mean"]),
                     fmt(summary["motion"]["cgvqm_error_mean"]),
-                    fmt(summary["motion"]["rgb_mae_vs_o_1x"]),
+                    fmt(summary["motion"]["rgb_mae_vs_spatial_1x"]),
                     fmt(summary["motion"]["second_luma_difference"]),
                     fmt(summary["post_still"]["cgvqm_error_peak_frame_mean"]),
                     fmt(summary["recovery_frames_5_consecutive"]),
@@ -382,16 +524,25 @@ def main() -> int:
         "",
         "## Recovery 정의",
         "",
-        f"각 mode의 pre-still CGVQM error mean + {args.threshold_sigma:g}σ와 O-1X pre-still mean + {args.threshold_sigma:g}σ 중 큰 값을 threshold로 고정했다.",
+        f"각 mode의 pre-still CGVQM error mean + {args.threshold_sigma:g}σ와 대응 공간 control(O-1X/A-1X)의 pre-still mean + {args.threshold_sigma:g}σ 중 큰 값을 threshold로 고정했다.",
         f"post-still 시작 뒤 error가 threshold 이하로 {args.stable_frames}프레임 연속 유지되는 최초 offset을 recovery frame으로 기록했다.",
         "이 threshold는 post-still 결과를 보지 않고 pre-still control만으로 계산한다.",
         "",
         "## 해석 제한",
         "",
         "- CGVQM 점수가 높아도 temporal supersampling 유지 여부를 단독으로 증명하지 않는다.",
-        "- O-1X와의 same-frame MAE가 작으면 현재 형상에는 가깝지만 temporal 효과를 잃었을 수 있다.",
+        "- 대응 공간 control(O-1X/A-1X)과의 same-frame MAE가 작으면 현재 형상에는 가깝지만 temporal 효과를 잃었을 수 있다.",
         "- 2차 시간 차분이 작아도 올바른 안정화가 아니라 blur/ghost smoothing일 수 있다.",
-        "- 이 결과는 Original 5-way 평가 경로 검증이며 최종 8-case 결론이 아니다.",
+        (
+            "- 이 결과는 최종 8-case와 O/A-1X control을 같은 profile에서 비교한다. 다른 camera profile과 thin-geometry ablation은 별도다."
+            if args.include_adaptive
+            else "- 이 결과는 Original 5-way 평가 경로 검증이며 최종 8-case 결론이 아니다."
+        ),
+        "",
+        "## 대표 비교 자료",
+        "",
+        f"- 대표 프레임 시트: `{sheet_path.name}`",
+        f"- 회전 구간 6-way GIF: `{gif_path.name}`",
         "",
     ]
     report_path.write_text("\n".join(lines), encoding="utf-8")
@@ -399,6 +550,8 @@ def main() -> int:
     print(f"SUMMARY_CSV={summary_csv}")
     print(f"PER_FRAME_CSV={detailed_csv}")
     print(f"JSON={json_path}")
+    print(f"SHEET={sheet_path}")
+    print(f"GIF={gif_path}")
     return 0
 
 

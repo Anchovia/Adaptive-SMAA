@@ -354,6 +354,12 @@ Original 5-way capture:
 .\CMAA2.exe -smaaCameraMotionOriginalFiveCapture "<bistro|minecraft> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]"
 ```
 
+최종 8-case + O/A-1X control capture:
+
+```powershell
+.\CMAA2.exe -smaaCameraMotionEightCaseCapture "<bistro|minecraft> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]"
+```
+
 동일 pose의 supersample spatial-reference capture:
 
 ```powershell
@@ -369,6 +375,12 @@ Original 5-way는 `O-1X`, `O-T2X`, `O-T2X-R`, `O-ET2X`, `O-ET2X-R`을 같은 pos
 sequence로 저장한다. Reference는 별도 실행하여 장시간 supersample 비용과 temporal
 mode capture를 분리한다. 모든 PNG 이름은 기존 분석기와 호환되도록
 `..._profile_<profile index>_frame_<capture index>.png`로 끝난다.
+
+최종 명령은 Original 5개에 `A-1X`, `A-T2X`, `A-T2X-R`, `A-ET2X`,
+`A-ET2X-R`을 추가해 10개 sequence를 저장한다. `O/A-1X`는 최종 8-case를 늘리는
+case가 아니라 각 공간 처리의 temporal control이다. 2-frame 축소 실행에서 10개 폴더와
+각각 연속 PNG 2개를 확인했고 Release x64 build 및 temporal lifecycle(reset 36,
+seed 19, resolve 93, reprojection 44, failure 0)을 통과했다.
 
 ### 11.4 Camera profile engineering smoke
 
@@ -400,3 +412,26 @@ pose 오차가 아니라 supersample 경로의 극소수 GPU 누적 변동으로
 통과했고, FFV1 decode의 mismatched channel value와 최대 절대 차이는 각각 0이었다.
 CUDA CGVQM-2도 정상 종료했다. 2-frame score는 파이프라인 호환성 확인용이며 품질
 결과로 사용하지 않는다.
+
+### 11.5 전체 길이 Original 5-way 평가 결과
+
+2026-08-12에 Bistro와 Minecraft `yaw-fast-360`을 각각 60-frame pre-still,
+60-frame 회전, 60-frame post-still의 전체 길이로 캡처했다. 장면별 5개 mode × 180
+PNG와 SS-Reference 180 PNG를 확보했고 모든 sequence의 연속 index와 FFV1 RGB
+round-trip mismatch 0을 확인했다.
+
+두 장면 모두 reprojection 없는 `O-T2X`에서 회전 중 큰 이중 잔상이 보였고 CGVQM-2도
+Bistro `71.4263`, Minecraft `82.9486`으로 낮았다. `O-T2X-R`은 각각 `94.2841`,
+`97.4389`, `O-ET2X-R`은 `94.4143`, `97.7409`로 회복됐다. `O-1X` control은
+각각 `94.3980`, `97.8179`였다. post-stop recovery는 두 장면에서 0~2 frame이므로
+이번 pure-yaw 경로의 주 문제는 장시간 정지 잔상보다 회전 중 history 오정렬이었다.
+
+`O-ET2X-R`은 눈에 띄는 360도 회전 고스팅이 없었지만 O-1X와 시간 변화가 거의 같아
+temporal supersampling 이득 유지 여부는 보류한다. 이 결과는 final 8-case가 아닌 전체
+길이 평가 파이프라인 engineering 검증이다. 상세 표와 해석은
+`Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다.
+
+첫 180-frame 실행에서 전체 context/error/heatmap을 동시에 적재하던 error-map
+visualization이 Windows native access violation으로 종료됐다. frame별 색상화·FFV1
+streaming으로 수정한 뒤 양 장면 10개 전체 분석에서 재발하지 않았다. 공식 CGVQM
+본체의 전체 영상 float tensor 적재는 유지되므로 mode는 병렬이 아닌 순차 실행한다.

@@ -2898,6 +2898,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
     static const int    c_originalModeCount = 5;
+    static const int    c_fullModeCount = 10;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SceneSelectionType m_scene;
     const CMAA2Sample::SMAACameraMotionProfile m_profile;
@@ -2905,40 +2906,48 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
     const bool          m_referenceOnly;
+    const bool          m_includeAdaptive;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
     bool                m_started = false;
     bool                m_isDone = false;
-    wstring             m_outputDirs[c_originalModeCount];
+    wstring             m_outputDirs[c_fullModeCount];
 
     static const char * GetModeID( int mode )
     {
-        static const char * c_modeIDs[c_originalModeCount] =
+        static const char * c_modeIDs[c_fullModeCount] =
         {
-            "O-1X", "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R"
+            "O-1X", "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
+            "A-1X", "A-T2X", "A-T2X-R", "A-ET2X", "A-ET2X-R"
         };
         return c_modeIDs[mode];
     }
 
     static const char * GetModeDirectory( int mode )
     {
-        static const char * c_modeDirectories[c_originalModeCount] =
+        static const char * c_modeDirectories[c_fullModeCount] =
         {
-            "O_1X", "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R"
+            "O_1X", "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R",
+            "A_1X", "A_T2X", "A_T2X_R", "A_ET2X", "A_ET2X_R"
         };
         return c_modeDirectories[mode];
     }
 
     static CMAA2Sample::AAType GetModeAAType( int mode )
     {
-        static const CMAA2Sample::AAType c_modes[c_originalModeCount] =
+        static const CMAA2Sample::AAType c_modes[c_fullModeCount] =
         {
             CMAA2Sample::AAType::SMAA,
             CMAA2Sample::AAType::SMAA_O_T2X,
             CMAA2Sample::AAType::SMAA_O_T2X_R,
             CMAA2Sample::AAType::SMAA_O_ET2X,
-            CMAA2Sample::AAType::SMAA_O_ET2X_R
+            CMAA2Sample::AAType::SMAA_O_ET2X_R,
+            CMAA2Sample::AAType::SMAA_A_1X,
+            CMAA2Sample::AAType::SMAA_A_T2X,
+            CMAA2Sample::AAType::SMAA_A_T2X_R,
+            CMAA2Sample::AAType::SMAA_A_ET2X,
+            CMAA2Sample::AAType::SMAA_A_ET2X_R
         };
         return c_modes[mode];
     }
@@ -2951,7 +2960,8 @@ public:
         int firstProfileFrame,
         int captureFrameCount,
         int warmupFrameCount,
-        bool referenceOnly )
+        bool referenceOnly,
+        bool includeAdaptive )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_profile( profile ),
@@ -2959,7 +2969,8 @@ public:
         m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
         m_warmupFrameCount( vaMath::Max( 0, warmupFrameCount ) ),
         m_referenceOnly( referenceOnly ),
-        m_modeCount( referenceOnly? 1 : c_originalModeCount )
+        m_includeAdaptive( includeAdaptive ),
+        m_modeCount( referenceOnly? 1 : (includeAdaptive? c_fullModeCount : c_originalModeCount) )
     {
     }
 
@@ -3002,7 +3013,9 @@ protected:
                 && m_captureFrameCount == profileFrameCount;
             abTool.ReportAddText( m_referenceOnly?
                 "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n" :
-                "SMAA deterministic camera-motion Original five-way capture\r\n\r\n" );
+                (m_includeAdaptive?
+                    "SMAA deterministic camera-motion final eight-case plus O/A 1X controls capture\r\n\r\n" :
+                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n") );
             abTool.ReportAddText( vaStringTools::Format(
                 "Scene:           %s\r\n",
                 CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
@@ -3036,7 +3049,9 @@ protected:
             }
             else
             {
-                abTool.ReportAddText( "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n" );
+                abTool.ReportAddText( m_includeAdaptive?
+                    "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n" );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
@@ -5609,10 +5624,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool cameraMotionOriginalFive =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaCameraMotionOriginalFiveCapture" ) == 0;
+        const bool cameraMotionEightCase =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaCameraMotionEightCaseCapture" ) == 0;
         const bool cameraMotionReference =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaCameraMotionReferenceCapture" ) == 0;
-        if( cameraMotionOriginalFive || cameraMotionReference )
+        if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -5680,11 +5698,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
             m_autoBench->AddTask( std::make_shared<BenchItemRecordSMAACameraMotion>(
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
-                warmupFrameCount, cameraMotionReference ) );
+                warmupFrameCount, cameraMotionReference, cameraMotionEightCase ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
-                cameraMotionReference? "supersample reference capture" : "Original five-way capture",
+                cameraMotionReference? "supersample reference capture" :
+                    (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
+                        "Original five-way capture"),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );

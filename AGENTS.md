@@ -633,6 +633,8 @@ Bistro/Minecraft에 `yaw-slow-360`, `yaw-fast-360`, `yaw-extreme-360`,
 - `-smaaCameraMotionOriginalFiveCapture`: `O-1X`, `O-T2X`, `O-T2X-R`,
   `O-ET2X`, `O-ET2X-R` 5-way PNG capture
 - `-smaaCameraMotionReferenceCapture`: 같은 pose의 `SS-Reference` 별도 capture
+- `-smaaCameraMotionEightCaseCapture`: 최종 8-case + `O-1X`/`A-1X` control의
+  10-way PNG capture
 
 두 명령은 `<scene> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]`를
 받는다. 부분 frame 범위는 engineering smoke, profile 전체는 complete quality capture로
@@ -649,6 +651,37 @@ frame 179도 5개 mode 모두 대응 PNG가 byte-identical해 pose 복원을 확
 안정성을 함께 기록한다. 수정된 camera-motion PNG 2-frame pair는 기존 adapter의 연속
 index·해상도 검증과 FFV1 RGB round-trip mismatch 0 및 CUDA CGVQM-2 실행을 통과했다.
 모든 수치는 engineering validation이며 정식 camera-motion 품질 결론이 아니다.
+
+이후 Bistro와 Minecraft `yaw-fast-360`의 전체 길이 Original 5-way + SS-Reference를
+완료했다. 장면별 5 mode × 180 PNG와 reference 180 PNG의 연속 index, 같은 pose,
+FFV1 RGB round-trip mismatch 0을 확인했다. CGVQM-2는 다음과 같다.
+
+| Mode | Bistro | Minecraft |
+|---|---:|---:|
+| `O-1X` | 94.3980 | 97.8179 |
+| `O-T2X` | 71.4263 | 82.9486 |
+| `O-T2X-R` | 94.2841 | 97.4389 |
+| `O-ET2X` | 93.6266 | 97.3908 |
+| `O-ET2X-R` | 94.4143 | 97.7409 |
+
+두 장면 모두 `O-T2X`의 회전 중 큰 이중 잔상과 reprojection을 통한 회복이 수치·대표
+시트에서 같은 방향으로 확인됐다. `O-ET2X-R`은 눈에 띄는 pure-yaw 고스팅이 없었지만
+O-1X와 시간 변화가 거의 같아 temporal 이득 유지는 보류한다. post-stop recovery는
+0~2 frame으로 장시간 trail보다 회전 중 오정렬이 핵심이었다. 이는 final 8-case가 아닌
+전체 길이 평가 경로 engineering 결과다. 상세 결과는
+`Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다.
+
+전체 평가 뒤 `-smaaCameraMotionEightCaseCapture`를 추가했다. 기존 Original 5-way
+출력을 보존하면서 `A-1X`와 Adaptive temporal 4개를 더해 총 10개 sequence를 저장한다.
+Bistro 2-frame 축소 실행에서 10개 폴더가 각각 2개 연속 PNG를 생성했고 Release x64
+build와 lifecycle(reset 36, seed 19, resolve 93, reprojection 44, failure 0)을
+통과했다. 다음 본 실행은 이 명령으로 양 장면 최종 8-case + control을 캡처한다.
+
+첫 180-frame CGVQM 실행은 per-frame CSV 생성 뒤 error-map visualization이 전체
+context/error/heatmap을 동시에 메모리에 적재하면서 native Python access violation으로
+종료됐다. error-map을 frame별 colorize/FFV1 encode하도록 변경했고, 이후 Bistro와
+Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM 본체는 전체 test/ref
+영상을 float tensor로 읽으므로 mode는 순차 실행하며 병렬 실행하지 않는다.
 
 ## 5. 기존 측정의 정확한 범위
 
