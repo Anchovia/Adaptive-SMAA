@@ -457,3 +457,32 @@ reprojection Off에서도 피해 범위를 줄였지만 대응 1X와 가까워 t
 `Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다. 이 결과는 pure-yaw
 profile에 한정하며 다른 camera profile과 thin-geometry expansion ablation을 대체하지
 않는다.
+
+### 11.7 실시간 preview와 발표용 60 FPS playback
+
+PNG 저장이 포함된 품질 capture 중 애플리케이션 창의 표시 FPS는 camera timeline의
+재생 FPS가 아니다. 각 render target을 동기적으로 readback·저장하므로 화면은 느려질 수
+있지만, 분석 입력은 fixed 60 Hz의 연속 PNG index로 구성된다.
+
+실시간 경로 확인은 PNG 저장을 완전히 끈 다음 명령으로 분리한다.
+
+```powershell
+.\CMAA2.exe -smaaCameraMotionPreview "<bistro|minecraft> <profile> [semantic-mode] [repeatCount]"
+```
+
+- analytical camera step과 fixed scene delta는 60 Hz를 유지한다.
+- wall-clock frame 시작을 60 Hz로 제한한다.
+- 로딩 또는 OS stall 뒤에는 frame을 생략하지 않되 catch-up burst도 만들지 않는다.
+- `yaw-slow-360`은 1.5°/frame, `yaw-fast-360`은 6°/frame이다.
+- preview는 visual engineering 검증이며 품질 또는 성능 측정값으로 사용하지 않는다.
+
+기존 PNG의 발표용 영상은 다음처럼 만든다.
+
+```powershell
+.research-tools\cgvqm-venv\Scripts\python.exe Tools\SMAA\create_camera_motion_playback.py <capture-root> --single-mode O_1X --compare-modes O_1X O_T2X O_ET2X_R
+```
+
+도구는 단일 mode와 3-way H.264/MP4를 constant 60 FPS로 만들고 다시 decode하여 frame
+수, 평균 frame rate와 일정한 1/60초 PTS 간격을 확인한다. 홀수 높이 1017은 마지막 scanline을 한 줄
+복제해 1018로 맞춘다. 이 yuv420p 영상은 발표용이며 정식 full-reference 지표에는 원본
+PNG/RGB-preserving FFV1만 사용한다.

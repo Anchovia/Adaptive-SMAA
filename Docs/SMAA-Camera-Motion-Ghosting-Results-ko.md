@@ -211,7 +211,51 @@ Bistro formal `O-ET2X-R`의 첫 FFV1 검증에서 약 10억 channel value 중 1�
 때 한 번 독립 decode를 반복하고, 두 시도 모두 실패할 때만 오류로 판정하도록 보강했다.
 재실행된 formal 결과와 나머지 19개 결과는 최종 mismatch 0이다.
 
-## 8. 다음 작업
+## 8. 실시간 재생과 60 FPS 영상 검증
+
+PNG 품질 capture는 각 frame을 GPU에서 CPU로 readback하고 동기적으로 파일에 저장한다.
+따라서 캡처 중 보이는 애플리케이션 창이 9~10 FPS까지 떨어지는 것은 기록된 camera
+timeline의 frame 누락을 의미하지 않는다. 기존 formal sequence는 mode마다 180개 연속
+frame을 포함하지만, 실행 창만 저장 비용 때문에 느리게 보일 수 있다.
+
+이를 분리하기 위해 PNG를 저장하지 않는 `-smaaCameraMotionPreview`를 추가했다. 이
+preview는 analytical camera frame을 건너뛰지 않으면서 벽시계 기준 60 Hz로 제한하고,
+큰 로딩 stall 뒤에는 catch-up frame을 몰아서 실행하지 않는다.
+
+```powershell
+.\CMAA2.exe -smaaCameraMotionPreview "<bistro|minecraft> <profile> [semantic-mode] [repeatCount]"
+```
+
+2026-08-13 Bistro `O-ET2X-R` visible-window engineering 검증 결과는 다음과 같다.
+
+| Profile | 회전 구간 | 각도 간격 | 평균 frame-start 간격 | 최소~최대 |
+|---|---:|---:|---:|---:|
+| `yaw-slow-360` | 240 frame / 4초 | 1.5°/frame | 16.669 ms | 14.836~18.233 ms |
+| `yaw-fast-360` | 60 frame / 1초 | 6.0°/frame | 16.669 ms | 15.005~18.240 ms |
+
+따라서 기존 `yaw-fast-360`은 불규칙하게 frame을 건너뛴 경로가 아니라 정확한 60 Hz에서
+프레임마다 6°를 이동하는 고속 stress profile이다. CMAA2 기본 flythrough와 비슷한
+시각적 부드러움을 확인할 때는 프레임당 1.5°인 `yaw-slow-360`을 사용한다. 두 profile
+모두 가감속 없는 등속 회전이므로 시작·종료 경계는 의도적으로 즉시 바뀐다.
+기존 formal `O-1X`의 회전 구간 frame 60~119도 Bistro와 Minecraft 각각 60개 중
+SHA-256 고유 hash 60개, 인접 중복 0으로 확인했다.
+
+기존 PNG sequence를 발표용으로 확인하기 위해
+`Tools/SMAA/create_camera_motion_playback.py`도 추가했다. 원본 frame index와 해상도를
+검증하고, 단일 mode 및 지정한 mode 비교 영상을 H.264/MP4 constant 60 FPS로 생성한 뒤
+전체 영상을 다시 decode해 frame 수, 평균 frame rate와 PTS 증가를 확인한다.
+
+- Bistro: `Projects/CMAA2/AutoBench/20260812_201017/Playback60fps`
+- Minecraft: `Projects/CMAA2/AutoBench/20260812_205656/Playback60fps`
+- 각 장면: `O-1X` 단일 영상 + `O-1X | O-T2X | O-ET2X-R` 3-way 영상
+- 검증: 180 frame, 60 FPS, constant PTS 1/60초, 3.000초, H.264/yuv420p
+
+MP4는 발표·육안 확인용 손실 압축 영상이다. CGVQM과 정식 수치는 계속 원본 PNG와
+RGB-preserving FFV1을 사용한다. `yaw-fast-360`은 2회 연속 반복한 359개
+frame-start 간격까지 포함한다. Preview 추가 후 temporal lifecycle도 reset 36,
+frame 114, seed 19, resolve 95, reprojection 45, failure 0으로 PASS했다.
+
+## 9. 다음 작업
 
 1. `yaw-extreme-360`, `strafe-fast`, `yaw-strafe-fast`는 yaw-fast 결과에서 드러나지 않은
    큰 UV 이동, parallax와 disocclusion의 stress profile로 후속 측정한다.

@@ -214,6 +214,10 @@ Original mode는 기존 edge target/shader path를 유지한다.
   sequence의 index·해상도·pixel hash를 검증하고 RGB 계열 FFV1로 무손실 변환한 뒤
   Intel 공식 CGVQM을 호출. decoded RGB 전체가 원본과 pixel-exact인지 확인하고
   score, error-map 통계, per-frame CSV와 error-map 영상을 생성
+- `Tools/SMAA/create_camera_motion_playback.py`: PNG 품질 capture와 화면 재생을 분리해
+  단일 mode와 지정 mode 비교 영상을 H.264/MP4 constant 60 FPS로 생성. 전체 영상을
+  다시 decode해 frame 수, average rate와 PTS 증가를 검증하며 발표·육안 확인용으로만
+  사용
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -688,6 +692,21 @@ pure-yaw 고스팅이 없었지만 대응 1X와 시간 거동이 매우 가까�
 바꾸지 않았다. 상세 결과는
 `Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다.
 
+PNG 동기 저장 때문에 품질 capture 중 보이는 창이 9~10 FPS로 느려지는 현상을 camera
+경로 문제와 분리하기 위해 `-smaaCameraMotionPreview`를 추가했다. PNG를 저장하지 않고
+분석 camera step을 벽시계 60 Hz로 재생하며 semantic mode와 반복 횟수를 선택한다.
+Bistro `O-ET2X-R`에서 `yaw-slow-360`은 frame-start 평균 16.669 ms,
+`yaw-fast-360` 2회 반복은 16.669 ms였다. 기존 formal O-1X 회전 frame 60~119도 양 장면 모두
+60개 고유 hash와 인접 중복 0이었다. 따라서 기존 fast profile은 frame 누락이 아니라
+60 frame 동안 360°, 즉 6°/frame의 의도적인 고속 stress다. 시각적으로 기본 demo에
+가까운 회전 확인에는 240-frame motion의 `yaw-slow-360`을 사용한다.
+
+기존 PNG에서는 `Tools/SMAA/create_camera_motion_playback.py`로 단일 mode와 3-way
+constant 60 FPS H.264/MP4를 생성했다. Bistro/Minecraft 모두 180 decoded frame,
+average rate 60, constant 1/60초 PTS와 3.000초 duration을 통과했다. MP4는 발표용이며
+정식 지표에는 원본 PNG/RGB-preserving FFV1만 사용한다. Preview 추가 후 lifecycle은
+reset 36, frame 114, seed 19, resolve 95, reprojection 45, failure 0으로 PASS했다.
+
 첫 180-frame CGVQM 실행은 per-frame CSV 생성 뒤 error-map visualization이 전체
 context/error/heatmap을 동시에 메모리에 적재하면서 native Python access violation으로
 종료됐다. error-map을 frame별 colorize/FFV1 encode하도록 변경했고, 이후 Bistro와
@@ -761,16 +780,19 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     screen-space de-jitter spatial base를 제공하는 hybrid를 ablation했다. Jitter
     candidate보다 부분 개선됐지만 NoJitter와 O-1X보다 일관되게 나쁘고 blur가 남아
     최종 방식으로 채택하지 않았다.
-18. **진행 중:** CGVQM 기반 고스팅 평가 protocol과 PNG lossless adapter의 engineering
+18. **완료:** CGVQM 기반 고스팅 평가 protocol과 PNG lossless adapter의 engineering
     validation을 완료했다. Bistro 저대비/Minecraft 고대비 장면의 독립적인
     `yaw-slow-360`, `yaw-fast-360`, `yaw-extreme-360`, `strafe-fast`,
     `yaw-strafe-fast` deterministic camera profile, Original 5-way capture와 동일 pose의
-    supersample reference capture를 연결하고 축소 검증했다. 다음은 양 장면의 완전한
-    Original 5-way + reference sequence를 확보해 CGVQM/error-map/recovery 분석을
-    검증한 뒤 최종 8-case로 확장한다. 그 다음 controlled `thin-lines`를 대체하지 않는
+    supersample reference capture를 연결했다. 양 장면 `yaw-fast-360`의 최종 8-case +
+    O/A-1X, reference, CGVQM/error-map/recovery formal 분석을 완료했다. PNG 저장 없는
+    벽시계 60 Hz preview와 기존 PNG의 constant 60 FPS MP4도 검증해 캡처 중 낮은 표시
+    FPS와 기록 timeline을 분리했다.
+19. **진행 중:** `yaw-extreme-360`, `strafe-fast`, `yaw-strafe-fast`의 parallax와
+    disocclusion 후속 측정을 진행한다. 그 다음 controlled `thin-lines`를 대체하지 않는
     공개 thin-geometry 외부 장면을 별도 추가해 current-edge expansion ablation의 외부
     타당성을 확인한다.
-19. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+20. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
 
