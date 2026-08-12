@@ -471,7 +471,7 @@ def main() -> int:
         }
     )
     sheet_path = output / "camera_motion_representative_sheet.png"
-    gif_path = output / "camera_motion_rotation_comparison.gif"
+    gif_path = output / "camera_motion_comparison.gif"
     make_comparison_sheet(sheet_path, selected_frames, visual_sources)
     make_motion_gif(gif_path, motion_start, post_start, visual_sources)
 
@@ -482,9 +482,9 @@ def main() -> int:
     )
     lines = [
         (
-            "# SMAA 급격한 카메라 회전 최종 8-case + O/A-1X 분석"
+            "# SMAA 급격한 카메라 운동 최종 8-case + O/A-1X 분석"
             if args.include_adaptive
-            else "# SMAA 급격한 카메라 회전 Original 5-way 분석"
+            else "# SMAA 급격한 카메라 운동 Original 5-way 분석"
         ),
         "",
         "## 범위",
@@ -501,7 +501,7 @@ def main() -> int:
         "",
         "## 결과 요약",
         "",
-        "| Mode | CGVQM-2 ↑ | 전체 error mean ↓ | 회전 error mean ↓ | 회전 대응 1X MAE ↓ | 회전 2차 luma diff ↓ | post peak ↓ | recovery frame ↓ |",
+        "| Mode | CGVQM-2 ↑ | 전체 error mean ↓ | 운동 구간 error mean ↓ | 운동 구간 대응 1X MAE ↓ | 운동 구간 2차 luma diff ↓ | post peak ↓ | recovery frame ↓ |",
         "|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for semantic_id, _ in modes:
@@ -542,7 +542,7 @@ def main() -> int:
         "## 대표 비교 자료",
         "",
         f"- 대표 프레임 시트: `{sheet_path.name}`",
-        f"- 회전 구간 {len(visual_sources)}-way GIF: `{gif_path.name}`",
+        f"- 카메라 운동 구간 {len(visual_sources)}-way GIF: `{gif_path.name}`",
         "",
     ]
     report_path.write_text("\n".join(lines), encoding="utf-8")
