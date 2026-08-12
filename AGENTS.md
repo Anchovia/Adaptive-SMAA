@@ -675,7 +675,18 @@ O-1X와 시간 변화가 거의 같아 temporal 이득 유지는 보류한다. p
 출력을 보존하면서 `A-1X`와 Adaptive temporal 4개를 더해 총 10개 sequence를 저장한다.
 Bistro 2-frame 축소 실행에서 10개 폴더가 각각 2개 연속 PNG를 생성했고 Release x64
 build와 lifecycle(reset 36, seed 19, resolve 93, reprojection 44, failure 0)을
-통과했다. 다음 본 실행은 이 명령으로 양 장면 최종 8-case + control을 캡처한다.
+통과했다.
+
+이후 Bistro `Projects/CMAA2/AutoBench/20260812_201017`과 Minecraft
+`Projects/CMAA2/AutoBench/20260812_205656`에서 `yaw-fast-360` 최종 8-case +
+`O/A-1X` formal capture를 완료했다. 장면별 10 mode × 180 PNG와 10개 CGVQM 결과가
+모두 연속 frame, `classification=formal`, test/reference 180 frame, FFV1 RGB
+round-trip mismatch 0을 통과했다. `O/A-T2X` no-reprojection은 회전 중 큰 history
+오정렬을 보였고 camera reprojection으로 크게 회복됐다. `O/A-ET2X-R`은 눈에 띄는
+pure-yaw 고스팅이 없었지만 대응 1X와 시간 거동이 매우 가까워 temporal 이득 유지 여부는
+보류한다. Adaptive와 Original 대응 결과 차이는 작아 이 profile의 temporal 결론을
+바꾸지 않았다. 상세 결과는
+`Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다.
 
 첫 180-frame CGVQM 실행은 per-frame CSV 생성 뒤 error-map visualization이 전체
 context/error/heatmap을 동시에 메모리에 적재하면서 native Python access violation으로

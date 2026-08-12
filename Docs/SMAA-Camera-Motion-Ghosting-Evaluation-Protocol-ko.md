@@ -435,3 +435,25 @@ temporal supersampling 이득 유지 여부는 보류한다. 이 결과는 final
 visualization이 Windows native access violation으로 종료됐다. frame별 색상화·FFV1
 streaming으로 수정한 뒤 양 장면 10개 전체 분석에서 재발하지 않았다. 공식 CGVQM
 본체의 전체 영상 float tensor 적재는 유지되므로 mode는 병렬이 아닌 순차 실행한다.
+
+### 11.6 최종 8-case + O/A-1X formal 평가 결과
+
+같은 `yaw-fast-360` profile에서 Bistro와 Minecraft의 최종 8-case 및 `O/A-1X`
+control을 측정했다.
+
+- Bistro capture: `Projects/CMAA2/AutoBench/20260812_201017`
+- Minecraft capture: `Projects/CMAA2/AutoBench/20260812_205656`
+- 장면별 10 mode × 180 PNG, 모든 sequence index 00000~00179 연속
+- 20개 CGVQM 결과 모두 `classification=formal`, test/reference 180 frame,
+  FFV1 RGB round-trip mismatch 0
+
+두 장면에서 reprojection 없는 Standard T2X는 회전 중 큰 history 오정렬을 보였고,
+camera reprojection을 켜면 CGVQM과 대표 프레임이 크게 회복됐다. Edge-selective는
+reprojection Off에서도 피해 범위를 줄였지만 대응 1X와 가까워 temporal 이득 유지 여부는
+보류한다. Adaptive와 Original 대응 mode의 `yaw-fast-360` 결과 차이는 작았으며 temporal
+결론을 바꾸지 않았다.
+
+상세 수치·대표 시트·GIF·해석 제한은
+`Docs/SMAA-Camera-Motion-Ghosting-Results-ko.md`를 기준으로 한다. 이 결과는 pure-yaw
+profile에 한정하며 다른 camera profile과 thin-geometry expansion ablation을 대체하지
+않는다.
