@@ -3237,10 +3237,10 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
         {
             static const char * c_dilationModeIDs[c_dilationModeCount] =
             {
-                "ABL-Candidate-Jitter-R",
-                "ABL-Candidate-Jitter-Dilate3x3-R",
                 "O-ET2X-R-Document",
-                "ABL-Document-Dilate3x3-R"
+                "ABL-Document-Dilate3x3-R",
+                "ABL-Candidate-Jitter-R",
+                "ABL-Candidate-Jitter-Dilate3x3-R"
             };
             return c_dilationModeIDs[mode];
         }
@@ -3270,10 +3270,10 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
         {
             static const char * c_dilationModeDirectories[c_dilationModeCount] =
             {
-                "ABL_Candidate_Jitter_R",
-                "ABL_Candidate_Jitter_Dilate3x3_R",
                 "O_ET2X_R_Document",
-                "ABL_Document_Dilate3x3_R"
+                "ABL_Document_Dilate3x3_R",
+                "ABL_Candidate_Jitter_R",
+                "ABL_Candidate_Jitter_Dilate3x3_R"
             };
             return c_dilationModeDirectories[mode];
         }
@@ -3303,10 +3303,10 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
         {
             static const CMAA2Sample::AAType c_dilationModes[c_dilationModeCount] =
             {
-                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
-                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3,
                 CMAA2Sample::AAType::SMAA_O_ET2X_R,
-                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3
             };
             return c_dilationModes[mode];
         }
@@ -3448,6 +3448,7 @@ protected:
             {
                 abTool.ReportAddText( m_currentEdgeDilationMatrix?
                     "Comparison:      Candidate-Jitter and document profile, each with current-edge dilation None versus 3x3\r\n"
+                    "Order control:   no-jitter document pair first, then jitter pair after an equal deterministic prelude\r\n"
                     "Purpose:         isolate current-edge 3x3 dilation; final 8-case modes remain unchanged\r\n\r\n" :
                 (m_temporalRetentionMatrix?
                     "Comparison:      O-1X, Standard T2X-R, candidate-only jitter On/Off, and complete document-profile O-ET2X-R\r\n"
@@ -3463,7 +3464,16 @@ protected:
             m_currentMode = 0;
             m_currentFrame = -m_warmupFrameCount - 1;
             m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            // Render one uncounted readiness frame before the measured warm-up.
+            // AutoBench Tick is paused while that frame reports shader/resource
+            // work, so the next Tick is the first point at which readiness is
+            // known. Reset there to prevent a variable number of compilation
+            // frames from changing temporal phase for the first matrix mode.
+            return;
         }
+
+        if( m_currentFrame == -m_warmupFrameCount - 1 )
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
 
         // Hold the first pose while scene resources and shadow maps settle so
         // each mode starts from the same fully rendered lighting state.
@@ -4254,6 +4264,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         CopySpatialToHistory,
         PrepareCandidates,
         ExtractCandidates,
+        DilateCandidates3x3,
         ComputeDispatchArgs,
         ResolveCandidates,
         OutputCopy,
@@ -4277,6 +4288,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const int m_repeatCount;
     const bool m_candidateAblation;
     const bool m_fullComponentAblation;
+    const bool m_currentEdgeDilationAblation;
     const int m_modeCount;
     const float m_frameDeltaTime = 1.0f / (float)c_framePerSecond;
 
@@ -4299,6 +4311,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_currentEdgeDilationAblation )
+        {
+            static const char * c_dilationModeIDs[4] =
+            {
+                "O-ET2X-R-Document",
+                "ABL-Document-Dilate3x3-R",
+                "ABL-Candidate-Jitter-R",
+                "ABL-Candidate-Jitter-Dilate3x3-R"
+            };
+            return c_dilationModeIDs[mode];
+        }
         if( m_candidateAblation )
         {
             if( m_fullComponentAblation )
@@ -4332,6 +4355,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_currentEdgeDilationAblation )
+        {
+            static const CMAA2Sample::AAType c_dilationModes[4] =
+            {
+                CMAA2Sample::AAType::SMAA_O_ET2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3
+            };
+            return c_dilationModes[mode];
+        }
         if( m_candidateAblation )
         {
             if( m_fullComponentAblation )
@@ -4371,6 +4405,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_currentEdgeDilationAblation )
+            return true;
         if( m_candidateAblation )
             return mode >= 1;
         const int temporalProfile = mode % c_originalModeCount;
@@ -4391,6 +4427,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case CopySpatialToHistory:      return "TSCMAACopySpatialToHistory";
         case PrepareCandidates:         return "TSCMAAPrepareCandidates";
         case ExtractCandidates:         return "TSCMAAExtractCandidates";
+        case DilateCandidates3x3:       return "TSCMAADilateCandidates3x3";
         case ComputeDispatchArgs:       return "TSCMAAComputeDispatchArgs";
         case ResolveCandidates:         return "TSCMAAResolveCandidates";
         case OutputCopy:                return "TSCMAAOutputCopy";
@@ -4402,6 +4439,18 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
+
+        if( m_currentEdgeDilationAblation )
+        {
+            if( metric == GenerateCameraVelocity || metric == SpatialSMAA1X
+                || metric == CopySpatialToHistory || metric == PrepareCandidates
+                || metric == ExtractCandidates || metric == ComputeDispatchArgs
+                || metric == ResolveCandidates || metric == OutputCopy )
+                return true;
+            if( metric == DilateCandidates3x3 )
+                return mode == 1 || mode == 3;
+            return false;
+        }
 
         const int temporalProfile = mode % c_originalModeCount;
         const bool standard = m_candidateAblation? mode == 0 :
@@ -4419,6 +4468,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             || metric == ExtractCandidates || metric == ComputeDispatchArgs || metric == ResolveCandidates
             || metric == OutputCopy )
             return edgeSelective;
+        if( metric == DilateCandidates3x3 )
+            return false;
         return false;
     }
 
@@ -4618,7 +4669,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 public:
     BenchItemSMAATemporalPerformanceBenchmark( CMAA2Sample & parent, float startTime,
         int warmupFrameCount, int measureFrameCount, int repeatCount, bool includeAdaptive,
-        bool candidateAblation = false, bool fullComponentAblation = false )
+        bool candidateAblation = false, bool fullComponentAblation = false,
+        bool currentEdgeDilationAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
         m_warmupFrameCount( vaMath::Max( 8, warmupFrameCount ) ),
@@ -4626,9 +4678,12 @@ public:
         m_repeatCount( vaMath::Clamp( repeatCount, 1, 9 ) ),
         m_candidateAblation( candidateAblation ),
         m_fullComponentAblation( fullComponentAblation ),
-        m_modeCount( candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount) )
+        m_currentEdgeDilationAblation( currentEdgeDilationAblation ),
+        m_modeCount( currentEdgeDilationAblation? 4 :
+            (candidateAblation? (fullComponentAblation? 6 : 3) :
+            (includeAdaptive? c_modeCapacity : c_originalModeCount)) )
     {
+        assert( !(candidateAblation && currentEdgeDilationAblation) );
     }
 
 protected:
@@ -4651,24 +4706,37 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            abTool.ReportAddText( m_candidateAblation?
-                (m_fullComponentAblation?
+            if( m_currentEdgeDilationAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA current-edge 3x3 dilation repeated performance benchmark\r\n\r\n" :
+                    "SMAA current-edge 3x3 dilation GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This compares Candidate-Jitter and the document profile, each with current-edge dilation None versus 3x3.\r\n"
+                    "The two-pass 3x3 path reports raw extraction, dilation, indirect dispatch, resolve, and total SMAA GPU timestamps separately.\r\n" );
+            }
+            else if( m_candidateAblation )
+            {
+                abTool.ReportAddText( m_fullComponentAblation?
                     (m_repeatCount > 1? "SMAA temporal component ablation repeated performance benchmark\r\n\r\n" :
                         "SMAA temporal component ablation GPU performance smoke\r\n\r\n") :
                     (m_repeatCount > 1? "SMAA candidate-only controlled repeated performance benchmark\r\n\r\n" :
-                        "SMAA candidate-only controlled GPU performance smoke\r\n\r\n")) :
-                (m_modeCount == c_modeCapacity?
-                (m_repeatCount > 1? "SMAA eight-case repeated performance benchmark\r\n\r\n" :
-                    "SMAA eight-case GPU performance smoke\r\n\r\n") :
-                (m_repeatCount > 1? "Original SMAA four-mode repeated performance benchmark\r\n\r\n" :
-                    "Original SMAA four-mode GPU performance smoke\r\n\r\n")) );
-            abTool.ReportAddText( m_candidateAblation?
-                (m_fullComponentAblation?
+                        "SMAA candidate-only controlled GPU performance smoke\r\n\r\n") );
+                abTool.ReportAddText( m_fullComponentAblation?
                     "This cumulatively compares candidate coverage, Catmull-Rom 5-tap, YCoCg variance clipping, history weight 0.8, and the final no-jitter document endpoint.\r\n" :
-                    "This compares O-T2X-R, the candidate-only controlled ablation, and the existing compound O-ET2X-R document endpoint.\r\n") :
-                (m_modeCount == c_modeCapacity?
-                "This measures the full Original/Adaptive, Standard/Edge-selective, reprojection Off/On matrix.\r\n" :
-                "This measures the Original four cases only; it is not the final Adaptive-inclusive 8-case benchmark.\r\n") );
+                    "This compares O-T2X-R, the candidate-only controlled ablation, and the existing compound O-ET2X-R document endpoint.\r\n" );
+            }
+            else
+            {
+                abTool.ReportAddText( m_modeCount == c_modeCapacity?
+                    (m_repeatCount > 1? "SMAA eight-case repeated performance benchmark\r\n\r\n" :
+                        "SMAA eight-case GPU performance smoke\r\n\r\n") :
+                    (m_repeatCount > 1? "Original SMAA four-mode repeated performance benchmark\r\n\r\n" :
+                        "Original SMAA four-mode GPU performance smoke\r\n\r\n") );
+                abTool.ReportAddText( m_modeCount == c_modeCapacity?
+                    "This measures the full Original/Adaptive, Standard/Edge-selective, reprojection Off/On matrix.\r\n" :
+                    "This measures the Original four cases only; it is not the final Adaptive-inclusive 8-case benchmark.\r\n" );
+            }
             if( m_candidateAblation )
             {
                 abTool.ReportAddText( "O-T2X-R and ABL-CandidateOnly-R keep camera reprojection, SMAA T2X jitter/subsample pattern, bilinear history sampling, clipping Off, and history weight 0.5 identical; only temporal coverage changes.\r\n" );
@@ -6192,15 +6260,21 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaTemporalComponentAblationPerformanceSmoke") == 0;
         const bool componentAblationPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaTemporalComponentAblationPerformanceBenchmark") == 0;
+        const bool currentEdgeDilationPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaCurrentEdgeDilationPerformanceSmoke") == 0;
+        const bool currentEdgeDilationPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaCurrentEdgeDilationPerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
             candidateAblationPerformanceSmoke || candidateAblationPerformanceBenchmark
             || fullComponentAblationPerformance;
         const bool performanceSmoke = originalPerformanceSmoke || eightCasePerformanceSmoke
-            || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke;
+            || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke
+            || currentEdgeDilationPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
-            || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark;
+            || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
+            || currentEdgeDilationPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -6229,12 +6303,17 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(
                 *this, startTime, warmupFrameCount, measureFrameCount, repeatCount,
                 includeAdaptive, candidateAblationPerformance,
-                fullComponentAblationPerformance));
+                fullComponentAblationPerformance,
+                currentEdgeDilationPerformanceSmoke
+                    || currentEdgeDilationPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA %s %s: start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
-                fullComponentAblationPerformance? "temporal component ablation" :
+                (currentEdgeDilationPerformanceSmoke
+                    || currentEdgeDilationPerformanceBenchmark)?
+                    "current-edge 3x3 dilation ablation" :
+                (fullComponentAblationPerformance? "temporal component ablation" :
                     (candidateAblationPerformance? "candidate-only controlled ablation" :
-                    (includeAdaptive? "eight-case" : "Original four-mode")),
+                    (includeAdaptive? "eight-case" : "Original four-mode"))),
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
                 startTime, repeatCount, warmupFrameCount, measureFrameCount,
                 m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled()? "On" : "Off");
