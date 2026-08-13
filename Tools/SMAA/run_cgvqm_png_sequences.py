@@ -80,6 +80,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--start-index", type=int)
     parser.add_argument(
+        "--reference-index-offset",
+        type=int,
+        default=0,
+        help=(
+            "Map test frame i to reference frame i+offset. The default zero "
+            "retains strict equal-index validation."
+        ),
+    )
+    parser.add_argument(
         "--frames",
         type=int,
         help="Limit the aligned sequence to this many frames after start-index.",
@@ -153,9 +162,26 @@ def select_aligned_frames(
     start_index: int | None,
     count: int | None,
 ) -> tuple[list[int], list[Path], list[Path]]:
+    indices, _, test_paths, reference_paths = select_offset_aligned_frames(
+        test_frames,
+        reference_frames,
+        start_index,
+        count,
+        0,
+    )
+    return indices, test_paths, reference_paths
+
+
+def select_offset_aligned_frames(
+    test_frames: dict[int, Path],
+    reference_frames: dict[int, Path],
+    start_index: int | None,
+    count: int | None,
+    reference_index_offset: int,
+) -> tuple[list[int], list[int], list[Path], list[Path]]:
     test_indices = set(test_frames)
     reference_indices = set(reference_frames)
-    if test_indices != reference_indices:
+    if reference_index_offset == 0 and test_indices != reference_indices:
         test_only = sorted(test_indices - reference_indices)[:8]
         reference_only = sorted(reference_indices - test_indices)[:8]
         raise ValueError(
@@ -178,10 +204,25 @@ def select_aligned_frames(
         missing = sorted(set(expected) - set(indices))[:8]
         raise ValueError(f"Selected frame indices are not contiguous: {missing}")
 
+    aligned_reference_indices = [
+        index + reference_index_offset for index in indices
+    ]
+    missing_reference = [
+        index
+        for index in aligned_reference_indices
+        if index not in reference_frames
+    ]
+    if missing_reference:
+        raise ValueError(
+            "Reference sequence is missing offset-aligned indices: "
+            f"{missing_reference[:8]}"
+        )
+
     return (
         indices,
+        aligned_reference_indices,
         [test_frames[index] for index in indices],
-        [reference_frames[index] for index in indices],
+        [reference_frames[index] for index in aligned_reference_indices],
     )
 
 
@@ -487,14 +528,19 @@ def main() -> int:
 
     test_by_index = collect_frames(args.test_dir.resolve())
     reference_by_index = collect_frames(args.reference_dir.resolve())
-    indices, test_paths, reference_paths = select_aligned_frames(
-        test_by_index,
-        reference_by_index,
-        args.start_index,
-        args.frames,
+    indices, reference_indices, test_paths, reference_paths = (
+        select_offset_aligned_frames(
+            test_by_index,
+            reference_by_index,
+            args.start_index,
+            args.frames,
+            args.reference_index_offset,
+        )
     )
     test_info = inspect_sequence(args.test_dir, test_paths, indices)
-    reference_info = inspect_sequence(args.reference_dir, reference_paths, indices)
+    reference_info = inspect_sequence(
+        args.reference_dir, reference_paths, reference_indices
+    )
     if (test_info.width, test_info.height) != (
         reference_info.width,
         reference_info.height,
@@ -597,6 +643,7 @@ def main() -> int:
             "patch_scale": args.patch_scale,
             "patch_pool": args.patch_pool,
             "models": list(models),
+            "reference_index_offset": args.reference_index_offset,
         },
         "test_sequence": asdict(test_info),
         "reference_sequence": asdict(reference_info),
