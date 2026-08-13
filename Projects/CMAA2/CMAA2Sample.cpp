@@ -32,6 +32,7 @@
 #include <sstream> // stringstream
 #include <chrono>
 #include <thread>
+#include <cstring>
 
 using namespace VertexAsylum;
 
@@ -217,6 +218,8 @@ namespace
             scene = CMAA2Sample::SceneSelectionType::LumberyardBistro;
         else if( _wcsicmp( token.c_str( ), L"minecraft" ) == 0 )
             scene = CMAA2Sample::SceneSelectionType::MinecraftLostEmpire;
+        else if( _wcsicmp( token.c_str( ), L"powerplant" ) == 0 )
+            scene = CMAA2Sample::SceneSelectionType::PowerPlantThinGeometry;
         else
             return false;
         return true;
@@ -772,6 +775,34 @@ void CMAA2Sample::LoadAssetsAndScenes()
         }
     }
 
+    // The UNC Power Plant source is a non-commercial external research asset
+    // and therefore never enters this repository.  When an explicit cache
+    // path is supplied, load the selected real-geometry section into a
+    // separate preview scene.  The offline converter validates the original
+    // OBJ hash and writes the compact cache to the external research drive.
+    m_scenes[(int32)SceneSelectionType::PowerPlantThinGeometry]->Clear();
+    m_scenes[(int32)SceneSelectionType::PowerPlantThinGeometry]->Name() =
+        "Power Plant Thin Geometry (external cache not loaded)";
+    for(const auto& parameter : m_application.GetCommandLineParameters())
+    {
+        if(_wcsicmp(parameter.first.c_str(), L"smaaPowerPlantPreviewCache") != 0)
+            continue;
+        if(parameter.second.empty())
+        {
+            VA_LOG_ERROR("-smaaPowerPlantPreviewCache requires an absolute .smaapp cache path");
+            break;
+        }
+        if(LoadPowerPlantPreviewCache(parameter.second))
+        {
+            m_settings.SceneChoice = SceneSelectionType::PowerPlantThinGeometry;
+            m_flythroughPlay = false;
+            m_camera->SetPosition(vaVector3(0.0f, -28.0f, 3.0f));
+            m_camera->SetOrientationLookAt(vaVector3(0.0f, 0.0f, 0.0f));
+            m_SMAA->ResetTemporalHistory();
+        }
+        break;
+    }
+
 #ifdef ENABLE_TEXTURE_REDUCTION_TOOL
     vaTextureReductionTestTool::SetSupportedByApp();
 #endif
@@ -833,6 +864,7 @@ const char * CMAA2Sample::GetSMAACameraMotionSceneName( SceneSelectionType scene
     {
     case SceneSelectionType::LumberyardBistro:      return "bistro";
     case SceneSelectionType::MinecraftLostEmpire:   return "minecraft";
+    case SceneSelectionType::PowerPlantThinGeometry:return "powerplant";
     default:                                        return "invalid";
     }
 }
@@ -869,7 +901,8 @@ void CMAA2Sample::SetSMAACameraMotionTestState(
     SceneSelectionType scene, SMAACameraMotionProfile profile, int frameIndex )
 {
     assert( scene == SceneSelectionType::LumberyardBistro
-        || scene == SceneSelectionType::MinecraftLostEmpire );
+        || scene == SceneSelectionType::MinecraftLostEmpire
+        || scene == SceneSelectionType::PowerPlantThinGeometry );
     assert( profile >= SMAACameraMotionProfile::YawSlow360
         && profile < SMAACameraMotionProfile::MaxValue );
 
@@ -882,7 +915,8 @@ void CMAA2Sample::SetSMAACameraMotionTestState(
 
     // These are fixed research viewpoints, not the user's persisted camera.
     // Bistro is placed inside the low-contrast interior; Minecraft reuses the
-    // original overview pose that frames the translated Lost Empire asset.
+    // original overview pose that frames the translated Lost Empire asset;
+    // Power Plant frames the selected normalized real-geometry section.
     vaVector3 basePosition;
     vaVector3 baseForward;
     float strafeDistance;
@@ -892,11 +926,17 @@ void CMAA2Sample::SetSMAACameraMotionTestState(
         baseForward = vaVector3( 1.0f, 0.0f, 0.0f );
         strafeDistance = 1.50f;
     }
-    else
+    else if( scene == SceneSelectionType::MinecraftLostEmpire )
     {
         basePosition = vaVector3( 4.30f, 29.20f, 14.20f );
         baseForward = (vaVector3( 6.50f, 0.0f, 8.70f ) - basePosition).Normalized( );
         strafeDistance = 10.0f;
+    }
+    else
+    {
+        basePosition = vaVector3( 0.0f, -25.0f, 2.0f );
+        baseForward = (vaVector3( 1.8f, 0.0f, 0.0f ) - basePosition).Normalized( );
+        strafeDistance = 6.0f;
     }
 
     const int preMotionStillFrames = 60;
@@ -1924,6 +1964,85 @@ protected:
     virtual void    OnRender(AutoBenchTool&) override {}
     virtual bool    IsDone(AutoBenchTool&) const override { return m_remainingTime <= 0; }
     virtual float   GetProgress() const override { return 0.5f; }
+};
+
+class BenchItemCaptureSMAAPowerPlantPreview : public AutoBenchToolWorkItem
+{
+    const int       m_warmupFrameCount;
+    int             m_currentFrame = 0;
+    bool            m_started = false;
+    bool            m_isDone = false;
+    bool            m_captureSucceeded = false;
+    wstring         m_outputPath;
+
+public:
+    BenchItemCaptureSMAAPowerPlantPreview(CMAA2Sample& parent, int warmupFrameCount)
+        : AutoBenchToolWorkItem(parent),
+        m_warmupFrameCount(vaMath::Clamp(warmupFrameCount, 0, 600))
+    {
+    }
+
+protected:
+    virtual void Tick(AutoBenchTool& abTool, float deltaTime) override
+    {
+        deltaTime;
+        if(!m_started)
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice =
+                CMAA2Sample::SceneSelectionType::PowerPlantThinGeometry;
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA;
+            m_parent.SetRequireDeterminism(true);
+            m_parent.SetFixedDeltaTime(1.0f / 60.0f);
+            m_parent.SetSMAAPreset(vaSMAAWrapper::Preset::PRESET_ULTRA);
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity();
+            abTool.ReportStart();
+            m_outputPath = abTool.ReportGetDir() + L"powerplant_preview.png";
+            abTool.ReportAddText("UNC Power Plant external real-geometry preview capture\r\n");
+            abTool.ReportAddText("Classification: engineering scene-selection evidence\r\n");
+            abTool.ReportAddText("SMAA preset: Ultra\r\n");
+            abTool.ReportAddText(vaStringTools::Format(
+                "Warm-up: %d frames\r\n", m_warmupFrameCount));
+            m_currentFrame = -m_warmupFrameCount;
+        }
+        else
+        {
+            m_currentFrame++;
+            if(m_currentFrame > 0)
+            {
+                abTool.ReportAddText(
+                    string("Capture: ") + (m_captureSucceeded? "PASS" : "FAIL") + "\r\n");
+                abTool.ReportFinish();
+                m_parent.SetFixedDeltaTime(0.0f);
+                m_parent.SetRequireDeterminism(false);
+                m_isDone = true;
+            }
+        }
+    }
+
+    virtual void OnRender(AutoBenchTool&) override {}
+
+    virtual void OnRenderComparePoint(AutoBenchTool&, vaImageCompareTool&,
+        vaRenderDeviceContext& renderContext, const shared_ptr<vaTexture>& colorInOut,
+        shared_ptr<vaPostProcess>&) override
+    {
+        if(m_currentFrame == 0 && !m_captureSucceeded)
+        {
+            m_captureSucceeded = colorInOut->SaveToPNGFile(renderContext, m_outputPath);
+            if(!m_captureSucceeded)
+                VA_LOG_ERROR(L"Failed to save Power Plant preview '%s'", m_outputPath.c_str());
+        }
+    }
+
+    virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
+    virtual bool IsCapturingFrame() const override { return m_currentFrame == 0; }
+    virtual float GetProgress() const override
+    {
+        return m_started? vaMath::Clamp(
+            (float)(m_currentFrame + m_warmupFrameCount + 1)
+                / (float)(m_warmupFrameCount + 2), 0.0f, 1.0f) : 0.0f;
+    }
 };
 
 class BenchItemPerformance : public AutoBenchToolWorkItem
@@ -5630,6 +5749,22 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         return;
     m_commandLineCaptureProcessed = true;
 
+    // User settings are loaded after external assets. Restore the explicit
+    // command-line scene selection here so a free-running preview cannot be
+    // switched back to the previously saved scene before the first frame.
+    if (HasPowerPlantPreview())
+    {
+        for (const auto& parameter : m_application.GetCommandLineParameters())
+        {
+            if (_wcsicmp(parameter.first.c_str(), L"smaaPowerPlantPreviewCache") == 0)
+            {
+                m_settings.SceneChoice = SceneSelectionType::PowerPlantThinGeometry;
+                m_flythroughPlay = false;
+                break;
+            }
+        }
+    }
+
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
         if (_wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyOverride") == 0)
@@ -5729,6 +5864,30 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if(_wcsicmp(parameter.first.c_str(), L"smaaPowerPlantPreviewCapture") == 0)
+        {
+            int warmupFrameCount = 60;
+            if(!parameter.second.empty())
+            {
+                std::wistringstream values(parameter.second);
+                if(!(values >> warmupFrameCount) || warmupFrameCount < 0 || warmupFrameCount > 600)
+                {
+                    VA_LOG_ERROR("Invalid -smaaPowerPlantPreviewCapture value; expected [warmupFrames] between 0 and 600");
+                    return;
+                }
+            }
+            if(!HasPowerPlantPreview())
+            {
+                VA_LOG_ERROR("-smaaPowerPlantPreviewCapture requires -smaaPowerPlantPreviewCache <absolute .smaapp path>");
+                return;
+            }
+            m_autoBench->AddTask(std::make_shared<BenchItemCaptureSMAAPowerPlantPreview>(
+                *this, warmupFrameCount));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued UNC Power Plant engineering preview capture: warm-up=%d", warmupFrameCount);
+            return;
+        }
+
         if (_wcsicmp(parameter.first.c_str(), L"smaaStaticStabilityTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAStaticStability>(*this));
@@ -5884,7 +6043,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( !(values >> sceneToken >> profileToken) )
                 {
                     VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
+                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft|powerplant> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
                     return;
                 }
                 if( values >> modeToken )
@@ -5902,7 +6061,12 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if( !TryParseSMAACameraMotionScene( sceneToken, scene ) )
             {
                 VA_LOG_ERROR(
-                    "Invalid SMAA camera-motion preview scene; expected bistro or minecraft" );
+                    "Invalid SMAA camera-motion preview scene; expected bistro, minecraft, or powerplant" );
+                return;
+            }
+            if( scene == SceneSelectionType::PowerPlantThinGeometry && !HasPowerPlantPreview() )
+            {
+                VA_LOG_ERROR("Power Plant camera-motion preview requires -smaaPowerPlantPreviewCache <absolute .smaapp path>");
                 return;
             }
             if( !TryParseSMAACameraMotionProfile( profileToken, profile ) )
@@ -5953,7 +6117,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( !(values >> sceneToken >> profileToken) )
                 {
                     VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion capture values; expected: <bistro|minecraft> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [firstProfileFrame] [captureFrames] [warmupFrames]" );
+                        "Invalid SMAA camera-motion capture values; expected: <bistro|minecraft|powerplant> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [firstProfileFrame] [captureFrames] [warmupFrames]" );
                     return;
                 }
                 int parsedValue = 0;
@@ -5966,14 +6130,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             }
 
             SceneSelectionType scene = SceneSelectionType::MaxValue;
-            if( _wcsicmp( sceneToken.c_str( ), L"bistro" ) == 0 )
-                scene = SceneSelectionType::LumberyardBistro;
-            else if( _wcsicmp( sceneToken.c_str( ), L"minecraft" ) == 0 )
-                scene = SceneSelectionType::MinecraftLostEmpire;
-            else
+            if( !TryParseSMAACameraMotionScene( sceneToken, scene ) )
             {
                 VA_LOG_ERROR(
-                    "Invalid SMAA camera-motion scene; expected bistro or minecraft" );
+                    "Invalid SMAA camera-motion scene; expected bistro, minecraft, or powerplant" );
+                return;
+            }
+            if( scene == SceneSelectionType::PowerPlantThinGeometry && !HasPowerPlantPreview() )
+            {
+                VA_LOG_ERROR("Power Plant camera-motion capture requires -smaaPowerPlantPreviewCache <absolute .smaapp path>");
                 return;
             }
 
@@ -6204,6 +6369,206 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             eightCaseCapture? "eight-case" : "Original four-mode", startTime, frameCount, warmupFrameCount);
         return;
     }
+}
+
+bool CMAA2Sample::LoadPowerPlantPreviewCache(const wstring& cachePath)
+{
+    static const char expectedMagic[8] = { 'S', 'M', 'A', 'A', 'P', 'P', '1', '\0' };
+    static const uint32 expectedVersion = 1;
+    static const uint32 maximumNameLength = 1024;
+    static const uint32 maximumChunkCount = 256;
+    static const uint64 maximumVertexCount = 25ull * 1000ull * 1000ull;
+    static const uint64 maximumIndexCount = 75ull * 1000ull * 1000ull;
+
+    vaFileStream stream;
+    if(!stream.Open(cachePath, FileCreationMode::Open, FileAccessMode::Read))
+    {
+        VA_LOG_ERROR(L"Unable to open Power Plant preview cache '%s'", cachePath.c_str());
+        return false;
+    }
+    auto readExact = [&stream](void* destination, int64 byteCount)
+    {
+        int64 bytesRead = 0;
+        return stream.Read(destination, byteCount, &bytesRead) && bytesRead == byteCount;
+    };
+
+    char magic[8] = {};
+    uint32 version = 0;
+    uint32 sectionNameLength = 0;
+    uint32 chunkCount = 0;
+    uint32 reserved = 0;
+    uint64 declaredVertexCount = 0;
+    uint64 declaredIndexCount = 0;
+    float declaredBounds[6] = {};
+    if(!readExact(magic, sizeof(magic))
+        || !stream.ReadValue(version)
+        || !stream.ReadValue(sectionNameLength)
+        || !stream.ReadValue(chunkCount)
+        || !stream.ReadValue(reserved)
+        || !stream.ReadValue(declaredVertexCount)
+        || !stream.ReadValue(declaredIndexCount)
+        || !readExact(declaredBounds, sizeof(declaredBounds)))
+    {
+        VA_LOG_ERROR(L"Truncated Power Plant cache header in '%s'", cachePath.c_str());
+        return false;
+    }
+    if(std::memcmp(magic, expectedMagic, sizeof(magic)) != 0
+        || version != expectedVersion || reserved != 0
+        || sectionNameLength == 0 || sectionNameLength > maximumNameLength
+        || chunkCount == 0 || chunkCount > maximumChunkCount
+        || declaredVertexCount == 0 || declaredVertexCount > maximumVertexCount
+        || declaredIndexCount == 0 || declaredIndexCount > maximumIndexCount
+        || (declaredIndexCount % 3) != 0)
+    {
+        VA_LOG_ERROR(L"Invalid Power Plant cache header in '%s'", cachePath.c_str());
+        return false;
+    }
+    for(float value : declaredBounds)
+    {
+        if(!std::isfinite(value))
+        {
+            VA_LOG_ERROR(L"Non-finite Power Plant cache bounds in '%s'", cachePath.c_str());
+            return false;
+        }
+    }
+
+    string sectionName(sectionNameLength, '\0');
+    if(!readExact(&sectionName[0], sectionNameLength))
+    {
+        VA_LOG_ERROR(L"Truncated Power Plant section name in '%s'", cachePath.c_str());
+        return false;
+    }
+
+    shared_ptr<vaScene> scene = m_scenes[(int32)SceneSelectionType::PowerPlantThinGeometry];
+    scene->Clear();
+    m_powerPlantPreviewMeshes.clear();
+    m_powerPlantPreviewMaterials.clear();
+    scene->Name() = "UNC Power Plant " + sectionName + " (external research scene)";
+    scene->SetSkybox(GetRenderDevice(), "Media\\sky_cube.dds", vaMatrix3x3::Identity, 0.012f);
+    scene->Lights().push_back(std::make_shared<vaLight>(
+        vaLight::MakeAmbient("PowerPlantAmbient", vaVector3(0.5f, 0.5f, 0.5f))));
+    scene->Lights().push_back(std::make_shared<vaLight>(
+        vaLight::MakeDirectional("PowerPlantDirectional", vaVector3(0.95f, 0.95f, 0.9f),
+            vaVector3(-0.35f, 0.4f, -1.0f).Normalized())));
+
+    uint64 loadedVertexCount = 0;
+    uint64 loadedIndexCount = 0;
+    for(uint32 chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+    {
+        uint32 materialNameLength = 0;
+        float albedo[4] = {};
+        uint32 vertexCount = 0;
+        uint32 indexCount = 0;
+        if(!stream.ReadValue(materialNameLength)
+            || !readExact(albedo, sizeof(albedo))
+            || !stream.ReadValue(vertexCount)
+            || !stream.ReadValue(indexCount)
+            || materialNameLength == 0 || materialNameLength > maximumNameLength
+            || vertexCount == 0 || indexCount == 0 || (indexCount % 3) != 0
+            || loadedVertexCount + vertexCount > declaredVertexCount
+            || loadedIndexCount + indexCount > declaredIndexCount)
+        {
+            VA_LOG_ERROR(L"Invalid Power Plant chunk %u in '%s'", chunkIndex, cachePath.c_str());
+            scene->Clear();
+            m_powerPlantPreviewMeshes.clear();
+            m_powerPlantPreviewMaterials.clear();
+            return false;
+        }
+        for(float value : albedo)
+        {
+            if(!std::isfinite(value))
+            {
+                VA_LOG_ERROR(L"Non-finite Power Plant material in '%s'", cachePath.c_str());
+                return false;
+            }
+        }
+
+        string materialName(materialNameLength, '\0');
+        vector<float> positionValues((size_t)vertexCount * 3);
+        vector<float> normalValues((size_t)vertexCount * 3);
+        vector<uint32> indices(indexCount);
+        if(!readExact(&materialName[0], materialNameLength)
+            || !readExact(positionValues.data(), (int64)positionValues.size() * sizeof(float))
+            || !readExact(normalValues.data(), (int64)normalValues.size() * sizeof(float))
+            || !readExact(indices.data(), (int64)indices.size() * sizeof(uint32)))
+        {
+            VA_LOG_ERROR(L"Truncated Power Plant chunk %u in '%s'", chunkIndex, cachePath.c_str());
+            return false;
+        }
+
+        vector<vaVector3> vertices(vertexCount);
+        vector<vaVector3> normals(vertexCount);
+        vector<vaVector2> texcoords0(vertexCount, vaVector2(0.0f, 0.0f));
+        vector<vaVector2> texcoords1(vertexCount, vaVector2(0.0f, 0.0f));
+        for(uint32 vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++)
+        {
+            const size_t component = (size_t)vertexIndex * 3;
+            vertices[vertexIndex] = vaVector3(positionValues[component],
+                positionValues[component + 1], positionValues[component + 2]);
+            normals[vertexIndex] = vaVector3(normalValues[component],
+                normalValues[component + 1], normalValues[component + 2]).Normalized();
+        }
+        for(uint32 index : indices)
+        {
+            if(index >= vertexCount)
+            {
+                VA_LOG_ERROR(L"Out-of-range Power Plant index in chunk %u of '%s'",
+                    chunkIndex, cachePath.c_str());
+                return false;
+            }
+        }
+
+        shared_ptr<vaRenderMaterial> material =
+            GetRenderDevice().GetMaterialManager().CreateRenderMaterial(vaCore::GUIDCreate());
+        material->InitializeDefaultMaterial();
+        const int albedoIndex = material->FindInputByName("Albedo");
+        if(albedoIndex < 0)
+        {
+            VA_LOG_ERROR("Power Plant preview material has no Albedo input");
+            return false;
+        }
+        vaRenderMaterial::MaterialInput albedoInput = material->GetInputs()[albedoIndex];
+        albedoInput.Value = vaRenderMaterial::MaterialInput::ValueVar(
+            vaVector4(albedo[0], albedo[1], albedo[2], 1.0f));
+        material->SetInput(albedoIndex, albedoInput);
+        vaRenderMaterial::MaterialSettings materialSettings = material->GetMaterialSettings();
+        materialSettings.CastShadows = false;
+        materialSettings.ReceiveShadows = false;
+        materialSettings.FaceCull = vaFaceCull::None;
+        material->SetMaterialSettings(materialSettings);
+
+        shared_ptr<vaRenderMesh> mesh = vaRenderMesh::Create(
+            GetRenderDevice(), vaMatrix4x4::Identity, vertices, normals,
+            texcoords0, texcoords1, indices, vaWindingOrder::CounterClockwise);
+        vaRenderMesh::SubPart part = mesh->GetPart();
+        part.CachedMaterialRef = material;
+        part.MaterialID = material->UIDObject_GetUID();
+        mesh->SetPart(part);
+
+        shared_ptr<vaSceneObject> object = scene->CreateObject(
+            "PowerPlant_" + sectionName + "_" + materialName, vaMatrix4x4::Identity);
+        object->AddRenderMeshRef(mesh);
+        m_powerPlantPreviewMeshes.push_back(mesh);
+        m_powerPlantPreviewMaterials.push_back(material);
+        loadedVertexCount += vertexCount;
+        loadedIndexCount += indexCount;
+    }
+
+    if(loadedVertexCount != declaredVertexCount || loadedIndexCount != declaredIndexCount
+        || stream.GetPosition() != stream.GetLength())
+    {
+        VA_LOG_ERROR(L"Power Plant cache totals or trailing bytes mismatch in '%s'", cachePath.c_str());
+        scene->Clear();
+        m_powerPlantPreviewMeshes.clear();
+        m_powerPlantPreviewMaterials.clear();
+        return false;
+    }
+
+    VA_LOG(L"Loaded UNC Power Plant preview cache '%s': section=%S, chunks=%u, vertices=%llu, triangles=%llu",
+        cachePath.c_str(), sectionName.c_str(), chunkCount,
+        (unsigned long long)loadedVertexCount,
+        (unsigned long long)(loadedIndexCount / 3));
+    return true;
 }
 
 // for conversion to mpeg one option is to download ffmpeg and then do 'ffmpeg -r 60 -f image2 -s 1920x1080 -i SuperSampleReference_frame_%05d.png -vcodec libx264 -crf 13  -pix_fmt yuv420p outputvideo.mp4'

@@ -63,6 +63,7 @@ namespace VertexAsylum
             StaticImage,
             MinecraftLostEmpire,
             SMAATemporalStressTest,
+            PowerPlantThinGeometry,
             
             MaxValue
         };
@@ -227,6 +228,8 @@ namespace VertexAsylum
         vector<shared_ptr<vaSceneObject>>       m_temporalStressRotorBlades;
         vector<shared_ptr<vaRenderMesh>>        m_temporalStressMeshes;
         vector<shared_ptr<vaRenderMaterial>>    m_temporalStressMaterials;
+        vector<shared_ptr<vaRenderMesh>>        m_powerPlantPreviewMeshes;
+        vector<shared_ptr<vaRenderMaterial>>    m_powerPlantPreviewMaterials;
         SMAATemporalStressScenario              m_temporalStressScenario =
                                                     SMAATemporalStressScenario::ObjectMotionDisocclusion;
         float                                   m_temporalStressTimeSeconds = 0.0f;
@@ -336,6 +339,7 @@ namespace VertexAsylum
                                                 GetFlythroughCameraController()     { return m_flythroughCameraController; }
         bool                                    GetFlythroughCameraEnabled() const  { return m_flythroughPlay; }
         void                                    SetFlythroughCameraEnabled( bool enabled ) { m_flythroughPlay = enabled; }
+        bool                                    HasPowerPlantPreview( ) const { return !m_powerPlantPreviewMeshes.empty(); }
         void                                    SetSMAATemporalStressTestState( SMAATemporalStressScenario scenario, float timeSeconds );
         static const char *                     GetSMAATemporalStressScenarioName( SMAATemporalStressScenario scenario );
         void                                    SetSMAACameraMotionTestState( SceneSelectionType scene, SMAACameraMotionProfile profile, int frameIndex );
@@ -353,6 +357,7 @@ namespace VertexAsylum
     protected:
         vaDrawResultFlags                       RenderTick( );
         void                                    LoadAssetsAndScenes( );
+        bool                                    LoadPowerPlantPreviewCache( const wstring & cachePath );
         int                                     GetMSAACountForAAType( CMAA2Sample::AAType aaType );
         void                                    ProcessCommandLineCaptureRequest( );
 

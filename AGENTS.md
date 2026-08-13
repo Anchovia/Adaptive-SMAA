@@ -807,6 +807,13 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
 20. **진행 중:** controlled `thin-lines`와 별도의 공개 thin-geometry 외부 장면에서
     current-frame edge 3×3/5×5/7×7 dilation 및 filtered downsample-upsample
     ablation을 진행하고 품질·history 적용률·flicker·고스팅·GPU 비용을 함께 측정한다.
+    2026-08-13에 UNC Power Plant 원본의 해시·21개 section 구조를 검증하고 외부
+    `.smaapp` 캐시 변환/검증 로더를 추가했다. 17개 section 동일 preview에서 실제 배관·
+    프레임 구조가 풍부하고 화면 포화가 덜한 `sec4`를 주 후보, 수직 반복선이 극단적인
+    `sec10`을 보조 stress 후보로 선정했다. `powerplant`를 기존 60 Hz camera-motion
+    preview와 Original 5-way capture에 연결했고 `sec4` 5 mode×3 frame smoke를
+    통과했다. 상세 기준은 `Docs/SMAA-PowerPlant-ThinGeometry-Scene-ko.md`다. 이는
+    scene-selection engineering 완료이며 dilation 품질·성능 결과가 아니다.
 21. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
