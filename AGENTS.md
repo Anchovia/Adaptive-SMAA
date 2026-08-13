@@ -819,23 +819,48 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
 19. **완료:** `strafe-fast`, `yaw-strafe-fast`의 양 장면 최종 8-case + O/A-1X,
     supersample reference, CGVQM/recovery 분석을 완료했다. `yaw-extreme-360`은 더 큰
     pure-yaw UV stress가 필요할 때의 선택적 검증으로 남긴다.
-20. **진행 중:** controlled `thin-lines`와 별도의 공개 thin-geometry 외부 장면에서
-    current-frame edge 3×3/5×5/7×7 dilation 및 filtered downsample-upsample
-    ablation을 진행하고 품질·history 적용률·flicker·고스팅·GPU 비용을 함께 측정한다.
+20. **진행 중:** dilation에 앞서 실제 장면에서 현재 edge-selective 구현이 Standard
+    T2X의 temporal 효과를 얼마나 유지하는지 직접 측정한다. 비교 matrix는 `O-1X`,
+    `O-T2X-R`, `ABL-Candidate-Jitter-R`, `ABL-Candidate-NoJitter-R`,
+    `O-ET2X-R-Document`다. final 출력과 동일 프레임의 `CurrentSpatial` debug 출력을
+    별도 clean-process capture로 저장해 실제 화면에 나타난 history 기여 범위와 세기를
+    측정하고, O-1X 공통 optical flow의 motion-aligned residual 및 기존 CGVQM/reference
+    결과를 함께 해석한다. 이 기준선 뒤에만 current-frame edge 3×3/5×5/7×7 dilation과
+    filtered downsample-upsample ablation의 필요 여부를 결정한다.
+
+    정식 장면은 저대비 Bistro와 고대비 Minecraft를 기본으로 한다. 자체 절차적
+    `thin-lines`/rotor/occluder 장면은 변수 통제·회귀용 engineering stress로만 유지하며
+    논문용 실제 장면 근거로 사용하지 않는다.
+
+    공개 외부 장면의 연구 분류도 다음과 같이 고정한다.
     2026-08-13에 UNC Power Plant 원본의 해시·21개 section 구조를 검증하고 외부
     `.smaapp` 캐시 변환/검증 로더를 추가했다. 17개 section 동일 preview에서 실제 배관·
     프레임 구조가 풍부하고 화면 포화가 덜한 `sec4`를 주 후보, 수직 반복선이 극단적인
     `sec10`을 보조 stress 후보로 선정했다. `powerplant`를 기존 60 Hz camera-motion
     preview와 Original 5-way capture에 연결했고 `sec4` 5 mode×3 frame smoke를
-    통과했다. 상세 기준은 `Docs/SMAA-PowerPlant-ThinGeometry-Scene-ko.md`다. 이는
-    scene-selection engineering 완료이며 dilation 품질·성능 결과가 아니다.
+    통과했다. 상세 기준은 `Docs/SMAA-PowerPlant-ThinGeometry-Scene-ko.md`다. 현재
+    Power Plant 경로는 texture·lighting·재질 표현이 불완전하므로 loader/scene-selection
+    engineering 자료로만 보존하고 정식 품질·논문 장면에서는 제외한다.
     같은 날 실제 texture·식생 alpha edge·가구와 난간을 포함하는 San Miguel 2.1
     저폴리 장면도 검증된 외부 `.smaasm` cache로 연결했다. 5,617,451개 triangle,
     281개 material, 265개 diffuse texture와 97개 alpha-test material을 로드하고
     courtyard 고정 camera preview의 Release x64 렌더링·정상 종료·잔류 프로세스 0개를
     확인했다. `yaw-slow-360` Original 5-way의 mode별 1-frame engineering smoke도
-    clean process에서 통과했다. 상세 기준은 `Docs/SMAA-SanMiguel-Textured-Scene-ko.md`다. 이 역시
-    textured real-scene integration 검증이며 dilation 결과가 아니다.
+    clean process에서 통과했다. 상세 기준은 `Docs/SMAA-SanMiguel-Textured-Scene-ko.md`다.
+    San Miguel은 texture와 alpha-tested geometry가 있는 실제 장면 후보지만 현재 renderer가
+    diffuse+alpha 중심으로 제한되어 있다. 따라서 동일 camera path의 정상 렌더링, 적절한
+    thin/detail ROI와 reference 반복 안정성을 검증한 뒤에만 정식 보조 장면으로 승격한다.
+    그 전 capture는 textured real-scene integration/engineering 결과이며 dilation 결과가 아니다.
+    이후 dilation 없는 실제 장면 temporal-retention 5-way 선행 측정을 완료했다. `yaw-fast-360`
+    회전 frame 60~119, mode별 warm-up/저장 60 frame에서 O-1X와의 same-frame 출력 거리를
+    `O-T2X-R=100%`로 정규화하면 Candidate-Jitter는 Bistro 94.07%, Minecraft 91.48%,
+    San Miguel 93.06%였으나 Candidate-NoJitter는 14.10%, 14.57%, 18.01%, document
+    profile은 19.30%, 19.73%, 25.02%였다. SelectedCandidates mask 내부의
+    `final-CurrentSpatial` 차이는 NoJitter/document에서도 남아 history 자체가 0은 아님을
+    확인했다. 따라서 현재 전체 temporal 효과 감소의 큰 분기점은 candidate selection 단독보다
+    deliberate projection jitter 제거이며, dilation이 이를 자동으로 복구한다고 가정하지
+    않는다. 상세 프로토콜/결과는 `Docs/SMAA-Real-Scene-Temporal-Retention-Protocol-ko.md`와
+    `Docs/SMAA-Real-Scene-Temporal-Retention-Results-ko.md`를 기준으로 한다.
 21. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
