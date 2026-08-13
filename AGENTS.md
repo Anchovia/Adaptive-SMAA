@@ -252,6 +252,17 @@ Original mode는 기존 edge target/shader path를 유지한다.
   바꾼 짝 비교로 SMAA GPU/CPU scope 오버헤드를 기록
 - temporal debug view 4/5/6: 후보 픽셀의 clipping 전 history, clipping 후 history,
   8배 clipping delta. 이 R16G16B16A16 debug resource는 해당 view에서만 할당한다.
+- `CandidateExpansion::Dilate3x3`: raw current-edge candidate mask에 정확한 3×3
+  max-filter를 적용하고, 확장된 mask만 compact/indirect resolve로 넘기는 직교 ablation.
+  Candidate-Jitter와 document profile 각각 None/3×3 비교 mode를 유지한다.
+- `-smaaCurrentEdgeDilationAblationCapture`: 두 profile의 None/3×3 네 mode를 같은
+  camera path에서 캡처하고 별도 current-spatial/candidate-mask capture와 대응시킨다.
+- `-smaaCurrentEdgeDilationPerformanceSmoke` /
+  `-smaaCurrentEdgeDilationPerformanceBenchmark`: raw extraction, 3×3 dilation,
+  indirect resolve와 전체 SMAA GPU 시간을 분리하는 전용 성능 matrix.
+- `Tools/SMAA/analyze_current_edge_dilation_quality.py`와
+  `analyze_current_edge_dilation_performance.py`: GPU mask의 정확한 3×3 검증,
+  반복 hash, reference/temporal/coverage 지표와 반복 성능 CSV를 검증·분석한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
@@ -826,7 +837,7 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
 19. **완료:** `strafe-fast`, `yaw-strafe-fast`의 양 장면 최종 8-case + O/A-1X,
     supersample reference, CGVQM/recovery 분석을 완료했다. `yaw-extreme-360`은 더 큰
     pure-yaw UV stress가 필요할 때의 선택적 검증으로 남긴다.
-20. **진행 중:** dilation에 앞서 실제 장면에서 현재 edge-selective 구현이 Standard
+20. **완료:** dilation에 앞서 실제 장면에서 현재 edge-selective 구현이 Standard
     T2X의 temporal 효과를 얼마나 유지하는지 직접 측정한다. 비교 matrix는 `O-1X`,
     `O-T2X-R`, `ABL-Candidate-Jitter-R`, `ABL-Candidate-NoJitter-R`,
     `O-ET2X-R-Document`다. final 출력과 동일 프레임의 `CurrentSpatial` debug 출력을
@@ -876,10 +887,21 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     offline 3×3 dilation은 reference 구조 recall을 크게 높였으나 후보 화면 비율도 약
     2.7~3.2배 늘렸다. 이는 dilation 효과 자체가 아니라 다음 최소 3×3 구현의 근거다.
     상세 결과는 `Docs/SMAA-Candidate-Jitter-Real-Scene-Quality-Results-ko.md`를 기준으로 한다.
-    다음 구현은 Candidate-Jitter와 document profile에 직교하는 current-edge 3×3 toggle로
-    제한하며, 5×5/7×7 및 filtered downsample-upsample은 3×3의 실제 품질·성능 측정 뒤로
-    보류한다.
-21. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+    Candidate-Jitter와 document profile에 직교하는 current-edge 3×3 toggle의 구현과
+    실제 품질·성능 측정도 완료했다. GPU mask는 정확한 CPU 3×3 max-filter와 mismatch
+    0 pixel이었고, 양 장면 독립 반복 capture의 4 mode×60 PNG도 mismatch 0이었다.
+    후보는 전체 화면 기준 약 2.9~3.2배, 구조 recall과 화면에 나타난 history 영향은
+    증가했다. Candidate-Jitter CGVQM-2는 Bistro +0.7735, Minecraft +0.2121이었으나
+    document profile은 Bistro +0.0362, Minecraft -0.3994로 장면 의존적이었다.
+    600 frame×3회 hidden engineering에서 3×3은 SMAA GPU 시간을 Candidate-Jitter
+    +17.306%, document +18.639% 늘렸다. 따라서 기능적 coverage 확장은 확인했지만
+    일관된 품질·성능 개선으로 채택하지 않으며 5×5/7×7은 보류한다. 상세 결과는
+    `Docs/SMAA-Current-Edge-Dilation-3x3-Results-ko.md`를 기준으로 한다.
+21. **다음:** 교수님이 제안한 nearest-neighbor가 아닌 filtered 1/4
+    downsample-upsample 후보 확장을 별도 직교 ablation으로 구현한다. 3×3보다 낮은
+    mask 생성 비용·후보 증가율로 구조 coverage를 얻는지 먼저 engineering smoke로
+    판단하고, 근거가 있을 때만 실제 장면 전체 품질·성능 측정을 진행한다.
+22. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
 

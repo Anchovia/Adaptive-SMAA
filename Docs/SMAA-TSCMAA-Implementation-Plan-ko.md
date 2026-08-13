@@ -1810,3 +1810,26 @@ flow-aligned residual을 4.809~15.254%, supersample reference MAE를
 엔진에서 object motion vector를 생성하고 SMAA temporal resolve에 전달할 수 있는지
 조사하는 것이다. 현재 `-R`은 camera motion만 보정하므로 독립 object-motion
 ghosting의 구조적 한계를 해결하지 못한다.
+
+### 17.30 Current-edge 3×3 dilation ablation
+
+교수님이 제안한 현재 프레임 edge 영역 확장을 Candidate-Jitter와 document profile에
+각각 직교하는 3×3 toggle로 구현했다. raw candidate mask와 dilation pass를 분리하고
+확장된 mask를 candidate compact/indirect resolve에 연결했다. 이전 프레임 edge mask와
+object motion vector는 사용하지 않으며 최종 8-case도 변경하지 않았다.
+
+Bistro/Minecraft `yaw-fast-360`에서 GPU mask와 CPU의 정확한 3×3 max-filter가
+mismatch 0 pixel이었고 독립 반복 capture의 4 mode×60 PNG도 모두 동일했다. 후보 수는
+약 2.9~3.2배, reference 구조 recall과 관측 history 영향은 증가했다. Candidate-Jitter의
+CGVQM-2는 Bistro +0.7735, Minecraft +0.2121이었지만 document profile은 각각
++0.0362, -0.3994로 일관되지 않았다.
+
+120 warm-up + 600 measurement frame×3회 hidden engineering 측정에서 SMAA GPU 시간은
+Candidate-Jitter +17.306%, document +18.639%였다. 따라서 3×3은 temporal coverage를
+확실히 늘리지만 현재 경로의 성능 최적화가 아니며, document profile의 temporal 손실을
+일관되게 복구하지도 못했다. 5×5/7×7은 즉시 진행하지 않는다.
+
+상세 구현, 조건, 품질·성능 표와 산출물은
+`Docs/SMAA-Current-Edge-Dilation-3x3-Results-ko.md`를 기준으로 한다. 다음 ablation은
+nearest-neighbor가 아닌 filtered 1/4 downsample-upsample 후보 확장으로 제한하며,
+3×3보다 낮은 비용과 후보 증가율의 가능성을 먼저 engineering smoke로 확인한다.
