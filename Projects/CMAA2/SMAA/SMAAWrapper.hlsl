@@ -52,7 +52,8 @@ struct SMAAReprojectionConstants
     // y: history clipping enum (0 off, 1 YCoCg variance).
     float4 TSCMAAResolveParams;
     // xy: current projection jitter in pixel units,
-    // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial).
+    // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial),
+    // w: candidate expansion enum (0 none, 1 current-edge 3x3 dilation).
     float4 TSCMAAHybridParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
@@ -288,6 +289,7 @@ float4 TSCMAADebugColorPS(float4 position : SV_POSITION,
 Texture2D<float4>                    tscmaaCurrentColor                  : register( t10 );
 Texture2D<float4>                    tscmaaHistoryColor                  : register( t11 );
 Texture2D<float>                     tscmaaLuma                          : register( t12 );
+Texture2D<float>                     tscmaaRawCandidateMaskInput         : register( t13 );
 
 RWTexture2D<float4>                  tscmaaOutput                        : register( u0 );
 RWStructuredBuffer<uint>             tscmaaCandidates                    : register( u1 );
@@ -296,6 +298,7 @@ RWByteAddressBuffer                  tscmaaDispatchArgs                  : regis
 RWTexture2D<float>                   tscmaaBaseEdgeMask                  : register( u4 );
 RWTexture2D<float>                   tscmaaCandidateMask                 : register( u5 );
 RWTexture2D<float4>                  tscmaaClippingDebug                  : register( u6 );
+RWTexture2D<float>                   tscmaaRawCandidateMask               : register( u7 );
 
 #define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
 #define TSCMAA_PROCESS_COUNT_OFFSET           4
@@ -375,6 +378,19 @@ bool TSCMAAIsExperimentalLocallyDominantCandidate(int2 pixel, int2 dimensions, f
     return strength > 0.0 && strength >= localThreshold;
 }
 
+bool TSCMAAIsCandidateAtPixel(
+    int2 pixel, int2 dimensions, uint policy, float2 directionalStrength) {
+    if (policy == 0)
+        return TSCMAAIsBaseEdge(directionalStrength);
+    if (policy == 1)
+        return TSCMAAIsIntelFamilyNonDominantCandidate(
+            pixel, dimensions, directionalStrength);
+    float experimentalStrength =
+        TSCMAAExperimentalEdgeStrength(pixel, dimensions);
+    return TSCMAAIsExperimentalLocallyDominantCandidate(
+        pixel, dimensions, experimentalStrength);
+}
+
 [numthreads(8, 8, 1)]
 void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     uint width;
@@ -399,15 +415,11 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     }
 
     uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
-    bool candidate = forcedCountDiagnostics && baseEdge;
-    if (!forcedCountDiagnostics && policy == 0) {
-        candidate = baseEdge;
-    } else if (!forcedCountDiagnostics && policy == 1) {
-        candidate = TSCMAAIsIntelFamilyNonDominantCandidate(pixel, dimensions, directionalStrength);
-    } else if (!forcedCountDiagnostics) {
-        float experimentalStrength = TSCMAAExperimentalEdgeStrength(pixel, dimensions);
-        candidate = TSCMAAIsExperimentalLocallyDominantCandidate(pixel, dimensions, experimentalStrength);
-    }
+    // Keep exact-count diagnostics independent of candidate expansion so the
+    // established 0/1/63/64/65/full-capacity boundary test remains exact.
+    bool candidate = forcedCountDiagnostics?
+        baseEdge : TSCMAAIsCandidateAtPixel(
+            pixel, dimensions, policy, directionalStrength);
 
     tscmaaCandidateMask[pixel] = candidate ? 1.0 : 0.0;
     if (!candidate)
@@ -421,6 +433,71 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
     if (candidateIndex < candidateCapacity)
         tscmaaCandidates[candidateIndex] = (dispatchThreadID.x << 16) | dispatchThreadID.y;
+}
+
+// First half of the 3x3 expansion path. Candidate policy evaluation remains
+// one per pixel; the following pass dilates this raw mask with cheap R8 loads.
+[numthreads(8, 8, 1)]
+void TSCMAAExtractRawCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaLuma.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    int2 pixel = int2(dispatchThreadID.xy);
+    int2 dimensions = int2(width, height);
+    float2 directionalStrength = TSCMAABaseEdgeStrength(pixel, dimensions);
+    bool baseEdge = TSCMAAIsBaseEdge(directionalStrength);
+    tscmaaBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
+    if (baseEdge) {
+        uint ignoredEdgeIndex;
+        tscmaaControl.InterlockedAdd(
+            TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
+    }
+
+    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
+    bool rawCandidate = TSCMAAIsCandidateAtPixel(
+        pixel, dimensions, policy, directionalStrength);
+    tscmaaRawCandidateMask[pixel] = rawCandidate ? 1.0 : 0.0;
+}
+
+// Current-edge 3x3 dilation. This is an SMAA research ablation, not a
+// recovered Intel TSCMAA source formula.
+[numthreads(8, 8, 1)]
+void TSCMAADilateCandidates3x3CS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaRawCandidateMaskInput.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    int2 pixel = int2(dispatchThreadID.xy);
+    int2 dimensions = int2(width, height);
+    bool candidate = false;
+    [unroll]
+    for (int y = -1; y <= 1; y++) {
+        [unroll]
+        for (int x = -1; x <= 1; x++) {
+            candidate = candidate ||
+                tscmaaRawCandidateMaskInput.Load(int3(
+                    TSCMAAClampPixel(pixel + int2(x, y), dimensions), 0)) > 0.5;
+        }
+    }
+
+    tscmaaCandidateMask[pixel] = candidate ? 1.0 : 0.0;
+    if (!candidate)
+        return;
+
+    uint candidateIndex;
+    tscmaaControl.InterlockedAdd(
+        TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
+    uint candidateCapacity;
+    uint candidateStride;
+    tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
+    if (candidateIndex < candidateCapacity)
+        tscmaaCandidates[candidateIndex] =
+            (dispatchThreadID.x << 16) | dispatchThreadID.y;
 }
 
 [numthreads(1, 1, 1)]

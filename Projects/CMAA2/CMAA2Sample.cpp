@@ -55,7 +55,9 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -103,6 +105,7 @@ namespace
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3:
             // Controlled ablation against O-T2X-R: preserve reprojection,
             // deliberate T2X jitter and the Intel-family candidate policy,
             // then cumulatively enable one document-profile component at a
@@ -117,7 +120,8 @@ namespace
             settings.NonDominantRemovalAmount = 0.5f;
             settings.Sampler =
                 (aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R
-                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER)?
+                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER
+                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3)?
                 vaSMAAWrapper::HistorySampler::Bilinear :
                 vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping =
@@ -129,6 +133,10 @@ namespace
                 aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE?
                 vaSMAAWrapper::NonCandidateBase::DeJitteredSpatial :
                 vaSMAAWrapper::NonCandidateBase::CurrentSpatial;
+            settings.Expansion =
+                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3?
+                vaSMAAWrapper::CandidateExpansion::Dilate3x3 :
+                vaSMAAWrapper::CandidateExpansion::None;
             settings.HistoryWeight =
                 aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R?
                 0.8f : 0.5f;
@@ -148,6 +156,17 @@ namespace
             settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
             settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
+            settings.HistoryWeight = 0.8f;
+            settings.NonDominantRemovalAmount = 0.5f;
+            break;
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3:
+            settings.Coverage = vaSMAAWrapper::TemporalCoverage::EdgeSelective;
+            settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
+            settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
+            settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
+            settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
+            settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
+            settings.Expansion = vaSMAAWrapper::CandidateExpansion::Dilate3x3;
             settings.HistoryWeight = 0.8f;
             settings.NonDominantRemovalAmount = 0.5f;
             break;
@@ -209,6 +228,12 @@ namespace
         case vaSMAAWrapper::CandidatePolicy::ExperimentalLocalMeanMax3x3:        return "ExperimentalLocalMeanMax3x3";
         default:                                                                 return "Unknown";
         }
+    }
+
+    const char * GetCandidateExpansionName( vaSMAAWrapper::CandidateExpansion value )
+    {
+        return value == vaSMAAWrapper::CandidateExpansion::Dilate3x3?
+            "Dilate3x3" : "None";
     }
 
     bool TryParseSMAACameraMotionScene(
@@ -507,6 +532,10 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
         return "ABL-CandidateOnly-NoJitter-R - Candidate-only with deliberate projection jitter disabled";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE:
         return "ABL-Candidate-DeJitter-R - Candidate-only jitter path with de-jittered noncandidate spatial base";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3:
+        return "ABL-Candidate-Jitter-Dilate3x3-R - Candidate-Jitter plus current-edge 3x3 dilation";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3:
+        return "ABL-Document-Dilate3x3-R - O-ET2X-R document profile plus current-edge 3x3 dilation";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -553,6 +582,8 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3:
         return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
@@ -1663,7 +1694,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
         m_SMAA->GetEffectiveHistoryClipping( ) : temporalSMAASettings.Clipping;
     if( IsSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
     {
-        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, nonCandidateBase=%s, candidates=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
+        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, nonCandidateBase=%s, candidates=%s%s, expansion=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
             GetAAName( m_settings.CurrentAAOption ),
             GetSpatialSearchName( spatialSMAASearch ),
             GetTemporalCoverageName( temporalSMAASettings.Coverage ),
@@ -1676,6 +1707,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
             GetNonCandidateBaseName( temporalSMAASettings.NonCandidate ),
             GetCandidatePolicyName( m_SMAA->GetEffectiveCandidatePolicy( ) ),
             m_SMAA->GetCandidatePolicyOverrideEnabled( )? " [diagnostic override]" : "",
+            GetCandidateExpansionName( m_SMAA->GetEffectiveCandidateExpansion( ) ),
+            m_SMAA->GetCandidateExpansionOverrideEnabled( )? " [diagnostic override]" : "",
             temporalSMAASettings.HistoryWeight,
             temporalSMAASettings.NonDominantRemovalAmount,
             temporalSMAASettings.EdgeThreshold );
@@ -3179,6 +3212,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
     static const int    c_originalModeCount = 5;
+    static const int    c_dilationModeCount = 4;
     static const int    c_fullModeCount = 10;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SceneSelectionType m_scene;
@@ -3189,6 +3223,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_referenceOnly;
     const bool          m_includeAdaptive;
     const bool          m_temporalRetentionMatrix;
+    const bool          m_currentEdgeDilationMatrix;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
@@ -3198,6 +3233,17 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_currentEdgeDilationMatrix )
+        {
+            static const char * c_dilationModeIDs[c_dilationModeCount] =
+            {
+                "ABL-Candidate-Jitter-R",
+                "ABL-Candidate-Jitter-Dilate3x3-R",
+                "O-ET2X-R-Document",
+                "ABL-Document-Dilate3x3-R"
+            };
+            return c_dilationModeIDs[mode];
+        }
         if( m_temporalRetentionMatrix )
         {
             static const char * c_temporalRetentionModeIDs[c_originalModeCount] =
@@ -3220,6 +3266,17 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 
     const char * GetModeDirectory( int mode ) const
     {
+        if( m_currentEdgeDilationMatrix )
+        {
+            static const char * c_dilationModeDirectories[c_dilationModeCount] =
+            {
+                "ABL_Candidate_Jitter_R",
+                "ABL_Candidate_Jitter_Dilate3x3_R",
+                "O_ET2X_R_Document",
+                "ABL_Document_Dilate3x3_R"
+            };
+            return c_dilationModeDirectories[mode];
+        }
         if( m_temporalRetentionMatrix )
         {
             static const char * c_temporalRetentionModeDirectories[c_originalModeCount] =
@@ -3242,6 +3299,17 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_currentEdgeDilationMatrix )
+        {
+            static const CMAA2Sample::AAType c_dilationModes[c_dilationModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3
+            };
+            return c_dilationModes[mode];
+        }
         if( m_temporalRetentionMatrix )
         {
             static const CMAA2Sample::AAType c_temporalRetentionModes[c_originalModeCount] =
@@ -3280,7 +3348,8 @@ public:
         int warmupFrameCount,
         bool referenceOnly,
         bool includeAdaptive,
-        bool temporalRetentionMatrix = false )
+        bool temporalRetentionMatrix = false,
+        bool currentEdgeDilationMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_profile( profile ),
@@ -3290,10 +3359,12 @@ public:
         m_referenceOnly( referenceOnly ),
         m_includeAdaptive( includeAdaptive ),
         m_temporalRetentionMatrix( temporalRetentionMatrix ),
-        m_modeCount( referenceOnly? 1 : (includeAdaptive? c_fullModeCount : c_originalModeCount) )
+        m_currentEdgeDilationMatrix( currentEdgeDilationMatrix ),
+        m_modeCount( referenceOnly? 1 : (currentEdgeDilationMatrix?
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)) )
     {
-        assert( !(referenceOnly && temporalRetentionMatrix) );
-        assert( !(includeAdaptive && temporalRetentionMatrix) );
+        assert( (int)referenceOnly + (int)includeAdaptive
+            + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix <= 1 );
     }
 
 protected:
@@ -3335,11 +3406,13 @@ protected:
                 && m_captureFrameCount == profileFrameCount;
             abTool.ReportAddText( m_referenceOnly?
                 "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n" :
+                (m_currentEdgeDilationMatrix?
+                    "SMAA current-edge 3x3 dilation controlled ablation capture\r\n\r\n" :
                 (m_temporalRetentionMatrix?
                     "SMAA deterministic real-scene temporal-retention five-way capture\r\n\r\n" :
                 (m_includeAdaptive?
                     "SMAA deterministic camera-motion final eight-case plus O/A 1X controls capture\r\n\r\n" :
-                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n")) );
+                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n"))) );
             abTool.ReportAddText( vaStringTools::Format(
                 "Scene:           %s\r\n",
                 CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
@@ -3373,12 +3446,15 @@ protected:
             }
             else
             {
-                abTool.ReportAddText( m_temporalRetentionMatrix?
+                abTool.ReportAddText( m_currentEdgeDilationMatrix?
+                    "Comparison:      Candidate-Jitter and document profile, each with current-edge dilation None versus 3x3\r\n"
+                    "Purpose:         isolate current-edge 3x3 dilation; final 8-case modes remain unchanged\r\n\r\n" :
+                (m_temporalRetentionMatrix?
                     "Comparison:      O-1X, Standard T2X-R, candidate-only jitter On/Off, and complete document-profile O-ET2X-R\r\n"
                     "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
                 (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n") );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n")) );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
@@ -5935,6 +6011,20 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             VA_LOG("SMAA candidate policy diagnostic override: %s",
                 policy >= 0? GetCandidatePolicyName((vaSMAAWrapper::CandidatePolicy)policy) : "disabled");
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateExpansionOverride") == 0)
+        {
+            int expansion = -1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> expansion) || expansion < -1 || expansion > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaCandidateExpansionOverride value; expected -1 (disabled), 0 (none), or 1 (current-edge 3x3 dilation)");
+                return;
+            }
+            m_SMAA->SetCandidateExpansionOverride(expansion >= 0,
+                expansion >= 0? (vaSMAAWrapper::CandidateExpansion)expansion : vaSMAAWrapper::CandidateExpansion::None);
+            VA_LOG("SMAA candidate expansion diagnostic override: %s",
+                expansion >= 0? GetCandidateExpansionName((vaSMAAWrapper::CandidateExpansion)expansion) : "disabled");
+        }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaHistorySamplerOverride") == 0)
         {
             int sampler = -1;
@@ -6298,8 +6388,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool realSceneTemporalRetention =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaRealSceneTemporalRetentionCapture" ) == 0;
+        const bool currentEdgeDilationAblation =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaCurrentEdgeDilationAblationCapture" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
-            || realSceneTemporalRetention )
+            || realSceneTemporalRetention || currentEdgeDilationAblation )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -6348,6 +6441,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     "Real-scene temporal-retention capture excludes the incomplete Power Plant renderer; use bistro, minecraft, or sanmiguel" );
                 return;
             }
+            if( currentEdgeDilationAblation
+                && scene == SceneSelectionType::PowerPlantThinGeometry )
+            {
+                VA_LOG_ERROR(
+                    "Current-edge dilation capture excludes the incomplete Power Plant renderer; use bistro, minecraft, or sanmiguel" );
+                return;
+            }
 
             SMAACameraMotionProfile profile = SMAACameraMotionProfile::MaxValue;
             if( _wcsicmp( profileToken.c_str( ), L"yaw-slow-360" ) == 0 )
@@ -6381,14 +6481,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask( std::make_shared<BenchItemRecordSMAACameraMotion>(
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
                 warmupFrameCount, cameraMotionReference, cameraMotionEightCase,
-                realSceneTemporalRetention ) );
+                realSceneTemporalRetention, currentEdgeDilationAblation ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture")),
+                        "Original five-way capture"))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );

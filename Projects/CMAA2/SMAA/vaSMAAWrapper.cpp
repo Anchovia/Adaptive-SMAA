@@ -70,6 +70,19 @@ void vaSMAAWrapper::UIPanelDraw( )
                 SetNonDominantRemovalOverride( true, removal );
         }
 
+        bool expansionOverrideEnabled = m_candidateExpansionOverrideEnabled;
+        if( ImGui::Checkbox( "Override candidate expansion", &expansionOverrideEnabled ) )
+            SetCandidateExpansionOverride(
+                expansionOverrideEnabled, m_candidateExpansionOverride );
+        if( expansionOverrideEnabled )
+        {
+            int expansion = (int)m_candidateExpansionOverride;
+            if( ImGuiEx_Combo( "Candidate expansion", expansion,
+                { string("None"), string("Current-edge 3x3 dilation") } ) )
+                SetCandidateExpansionOverride(
+                    true, (CandidateExpansion)expansion );
+        }
+
         bool samplerOverrideEnabled = m_historySamplerOverrideEnabled;
         if( ImGui::Checkbox( "Override history sampler", &samplerOverrideEnabled ) )
             SetHistorySamplerOverride( samplerOverrideEnabled, m_historySamplerOverride );
@@ -137,6 +150,9 @@ void vaSMAAWrapper::UIPanelDraw( )
             ImGui::Text( "Candidates: %u (%.3f%% of pixels)", statistics.CandidateCount,
                 100.0f * statistics.GetCandidateToPixelRatio( ) );
             ImGui::Text( "Candidate/base: %.3f%%", 100.0f * statistics.GetCandidateToBaseRatio( ) );
+            ImGui::Text( "Candidate expansion: %s",
+                statistics.Expansion == CandidateExpansion::Dilate3x3?
+                "Current-edge 3x3" : "None" );
             ImGui::Text( "Indirect processed: %u", statistics.ProcessCount );
             ImGui::Text( "Indirect groups: %u", statistics.DispatchGroupCount );
         }

@@ -87,6 +87,12 @@ namespace VertexAsylum
             ExperimentalLocalMeanMax3x3
         };
 
+        enum class CandidateExpansion : int32
+        {
+            None,
+            Dilate3x3
+        };
+
         enum class TemporalDebugView : int32
         {
             None,
@@ -107,6 +113,7 @@ namespace VertexAsylum
             uint32                      DispatchGroupCount          = 0;
             uint32                      PixelCount                  = 0;
             CandidatePolicy             Policy                      = CandidatePolicy::AllBaseEdges;
+            CandidateExpansion          Expansion                   = CandidateExpansion::None;
 
             float GetCandidateToBaseRatio( ) const
             {
@@ -252,6 +259,7 @@ namespace VertexAsylum
             HistoryClipping              Clipping                    = HistoryClipping::Off;
             NonCandidateBase             NonCandidate                = NonCandidateBase::CurrentSpatial;
             CandidatePolicy              Candidates                  = CandidatePolicy::AllBaseEdges;
+            CandidateExpansion           Expansion                   = CandidateExpansion::None;
             float                        HistoryWeight               = 0.5f;
             float                        NonDominantRemovalAmount    = 0.5f;
             float                        EdgeThreshold               = 1.0f / 22.0f;
@@ -265,6 +273,7 @@ namespace VertexAsylum
                     && Clipping == other.Clipping
                     && NonCandidate == other.NonCandidate
                     && Candidates == other.Candidates
+                    && Expansion == other.Expansion
                     && HistoryWeight == other.HistoryWeight
                     && NonDominantRemovalAmount == other.NonDominantRemovalAmount
                     && EdgeThreshold == other.EdgeThreshold;
@@ -301,6 +310,8 @@ namespace VertexAsylum
         bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
         bool                        m_candidatePolicyOverrideEnabled    = false;
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
+        bool                        m_candidateExpansionOverrideEnabled = false;
+        CandidateExpansion          m_candidateExpansionOverride        = CandidateExpansion::Dilate3x3;
         bool                        m_nonDominantRemovalOverrideEnabled  = false;
         float                       m_nonDominantRemovalOverride         = 0.5f;
         bool                        m_historySamplerOverrideEnabled     = false;
@@ -381,6 +392,22 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidatePolicyOverrideEnabled( ) const { return m_candidatePolicyOverrideEnabled; }
+        CandidateExpansion          GetEffectiveCandidateExpansion( ) const
+        {
+            return m_candidateExpansionOverrideEnabled?
+                m_candidateExpansionOverride : m_temporalSettings.Expansion;
+        }
+        void                        SetCandidateExpansionOverride( bool enabled, CandidateExpansion expansion )
+        {
+            if( m_candidateExpansionOverrideEnabled != enabled
+                || m_candidateExpansionOverride != expansion )
+            {
+                m_candidateExpansionOverrideEnabled = enabled;
+                m_candidateExpansionOverride = expansion;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetCandidateExpansionOverrideEnabled( ) const { return m_candidateExpansionOverrideEnabled; }
         float                       GetEffectiveNonDominantRemovalAmount( ) const
         {
             return m_nonDominantRemovalOverrideEnabled? m_nonDominantRemovalOverride : m_temporalSettings.NonDominantRemovalAmount;
