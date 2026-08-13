@@ -5,6 +5,21 @@
 기존 문서나 임시 보고서가 이 파일과 충돌하면 이 파일을 우선하고, 충돌 내용을 사용자에게
 알린 뒤 정정한다.
 
+## 0.1 CMAA2 실행 프로세스 격리
+
+- CMAA2 데모는 장시간 실행 시 메모리 사용량과 GPU 부하가 누적될 수 있으므로, 각 자동
+  캡처·측정 명령은 새로운 독립 프로세스로 실행한다.
+- 실행 전 기존 `CMAA2.exe` 프로세스가 0개인지 확인하고, 기존 프로세스가 있으면 새 측정을
+  시작하지 않는다.
+- 명령이 완료되거나 실패한 뒤 해당 프로세스가 완전히 종료됐고 잔류 CMAA2 프로세스가
+  0개인지 확인한 다음에만 다음 명령을 시작한다.
+- 한 benchmark 명령 안의 mode/repeat 순회는 같은 실험 실행으로 보되, 서로 다른 benchmark
+  명령을 같은 데모 프로세스에 이어 붙이지 않는다.
+- 렌더 준비나 캡처가 지정된 wall-clock timeout을 넘으면 무한 대기 가능성이 있는 것으로
+  분류하고, 해당 실행에서 시작한 프로세스만 종료한다. 부분 결과는 정식 결과로 사용하지 않는다.
+- 자동 실행에는 가능한 한 `Tools/SMAA/run_clean_cmaa2.ps1` 또는 장면별 clean runner를
+  사용해 위의 실행 전·후 조건과 timeout을 기계적으로 적용한다.
+
 ## 1. 최종 연구 목표
 
 연구의 최종 비교 대상은 다음 세 개의 독립 변수를 조합한 **총 8개 case**다.
@@ -814,6 +829,13 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     preview와 Original 5-way capture에 연결했고 `sec4` 5 mode×3 frame smoke를
     통과했다. 상세 기준은 `Docs/SMAA-PowerPlant-ThinGeometry-Scene-ko.md`다. 이는
     scene-selection engineering 완료이며 dilation 품질·성능 결과가 아니다.
+    같은 날 실제 texture·식생 alpha edge·가구와 난간을 포함하는 San Miguel 2.1
+    저폴리 장면도 검증된 외부 `.smaasm` cache로 연결했다. 5,617,451개 triangle,
+    281개 material, 265개 diffuse texture와 97개 alpha-test material을 로드하고
+    courtyard 고정 camera preview의 Release x64 렌더링·정상 종료·잔류 프로세스 0개를
+    확인했다. `yaw-slow-360` Original 5-way의 mode별 1-frame engineering smoke도
+    clean process에서 통과했다. 상세 기준은 `Docs/SMAA-SanMiguel-Textured-Scene-ko.md`다. 이 역시
+    textured real-scene integration 검증이며 dilation 결과가 아니다.
 21. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.

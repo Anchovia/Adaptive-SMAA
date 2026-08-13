@@ -64,6 +64,7 @@ namespace VertexAsylum
             MinecraftLostEmpire,
             SMAATemporalStressTest,
             PowerPlantThinGeometry,
+            SanMiguelTextured,
             
             MaxValue
         };
@@ -230,6 +231,9 @@ namespace VertexAsylum
         vector<shared_ptr<vaRenderMaterial>>    m_temporalStressMaterials;
         vector<shared_ptr<vaRenderMesh>>        m_powerPlantPreviewMeshes;
         vector<shared_ptr<vaRenderMaterial>>    m_powerPlantPreviewMaterials;
+        vector<shared_ptr<vaRenderMesh>>        m_sanMiguelPreviewMeshes;
+        vector<shared_ptr<vaRenderMaterial>>    m_sanMiguelPreviewMaterials;
+        vector<shared_ptr<vaTexture>>           m_sanMiguelPreviewTextures;
         SMAATemporalStressScenario              m_temporalStressScenario =
                                                     SMAATemporalStressScenario::ObjectMotionDisocclusion;
         float                                   m_temporalStressTimeSeconds = 0.0f;
@@ -275,6 +279,8 @@ namespace VertexAsylum
         bool                                    m_queueEightCasePerformanceBenchmark = false;
         bool                                    m_commandLineCaptureProcessed   = false;
         bool                                    m_quitAfterCommandLineCapture   = false;
+        double                                  m_externalScenePreviewDeadline = -1.0;
+        double                                  m_externalScenePreviewNextStatusLog = -1.0;
 
         bool                                    m_requireDeterminism            = false;
         float                                   m_fixedDeltaTime                 = 0.0f;
@@ -340,6 +346,7 @@ namespace VertexAsylum
         bool                                    GetFlythroughCameraEnabled() const  { return m_flythroughPlay; }
         void                                    SetFlythroughCameraEnabled( bool enabled ) { m_flythroughPlay = enabled; }
         bool                                    HasPowerPlantPreview( ) const { return !m_powerPlantPreviewMeshes.empty(); }
+        bool                                    HasSanMiguelScene( ) const { return !m_sanMiguelPreviewMeshes.empty(); }
         void                                    SetSMAATemporalStressTestState( SMAATemporalStressScenario scenario, float timeSeconds );
         static const char *                     GetSMAATemporalStressScenarioName( SMAATemporalStressScenario scenario );
         void                                    SetSMAACameraMotionTestState( SceneSelectionType scene, SMAACameraMotionProfile profile, int frameIndex );
@@ -358,6 +365,7 @@ namespace VertexAsylum
         vaDrawResultFlags                       RenderTick( );
         void                                    LoadAssetsAndScenes( );
         bool                                    LoadPowerPlantPreviewCache( const wstring & cachePath );
+        bool                                    LoadSanMiguelTexturedScene( const wstring & cachePath );
         int                                     GetMSAACountForAAType( CMAA2Sample::AAType aaType );
         void                                    ProcessCommandLineCaptureRequest( );
 

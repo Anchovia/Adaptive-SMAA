@@ -21,6 +21,9 @@ from PIL import Image
 EXPECTED_ARCHIVE_SHA256 = (
     "85874077735808150e679b3c71d70a37a270cb8833f4911325aa1099da3f7d4a"
 )
+EXPECTED_LOW_POLY_OBJ_SHA256 = (
+    "7142519da39589857d7dfcd3143a7b41bd444279f65dd5177c3adfad29a1ecc9"
+)
 SOURCE_URL = (
     "https://casual-effects.com/g3d/data10/research/model/San_Miguel/"
     "San_Miguel.zip"
@@ -365,6 +368,11 @@ def main() -> None:
         raise RuntimeError(
             f"Unexpected archive SHA-256 {archive_sha256}; "
             f"expected {EXPECTED_ARCHIVE_SHA256}"
+        )
+    if not args.skip_hash and obj_sha256 != EXPECTED_LOW_POLY_OBJ_SHA256:
+        raise RuntimeError(
+            f"Unexpected low-poly OBJ SHA-256 {obj_sha256}; "
+            f"expected {EXPECTED_LOW_POLY_OBJ_SHA256}"
         )
 
     material_manifest = parse_mtl(mtl_path)

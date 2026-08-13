@@ -220,6 +220,8 @@ namespace
             scene = CMAA2Sample::SceneSelectionType::MinecraftLostEmpire;
         else if( _wcsicmp( token.c_str( ), L"powerplant" ) == 0 )
             scene = CMAA2Sample::SceneSelectionType::PowerPlantThinGeometry;
+        else if( _wcsicmp( token.c_str( ), L"sanmiguel" ) == 0 )
+            scene = CMAA2Sample::SceneSelectionType::SanMiguelTextured;
         else
             return false;
         return true;
@@ -803,6 +805,35 @@ void CMAA2Sample::LoadAssetsAndScenes()
         break;
     }
 
+    // San Miguel 2.1 is kept on the external research drive under its source
+    // license. The repository's Assimp integration is disabled and its source
+    // is not shipped, so load a validated external cache with texture paths.
+    m_scenes[(int32)SceneSelectionType::SanMiguelTextured]->Clear();
+    m_scenes[(int32)SceneSelectionType::SanMiguelTextured]->Name() =
+        "San Miguel 2.1 (external OBJ not loaded)";
+    for(const auto& parameter : m_application.GetCommandLineParameters())
+    {
+        if(_wcsicmp(parameter.first.c_str(), L"smaaSanMiguelCache") != 0)
+            continue;
+        if(parameter.second.empty())
+        {
+            VA_LOG_ERROR("-smaaSanMiguelCache requires an absolute .smaasm cache path");
+            break;
+        }
+        if(LoadSanMiguelTexturedScene(parameter.second))
+        {
+            m_settings.SceneChoice = SceneSelectionType::SanMiguelTextured;
+            m_flythroughPlay = false;
+            // Courtyard research viewpoint.  The former exterior position at
+            // y=-24 looked directly into the south wall and produced a valid
+            // but useless full-frame wall-texture capture.
+            m_camera->SetPosition(vaVector3(-5.0f, -10.5f, 2.3f));
+            m_camera->SetOrientationLookAt(vaVector3(3.0f, -2.3f, 2.0f));
+            m_SMAA->ResetTemporalHistory();
+        }
+        break;
+    }
+
 #ifdef ENABLE_TEXTURE_REDUCTION_TOOL
     vaTextureReductionTestTool::SetSupportedByApp();
 #endif
@@ -865,6 +896,7 @@ const char * CMAA2Sample::GetSMAACameraMotionSceneName( SceneSelectionType scene
     case SceneSelectionType::LumberyardBistro:      return "bistro";
     case SceneSelectionType::MinecraftLostEmpire:   return "minecraft";
     case SceneSelectionType::PowerPlantThinGeometry:return "powerplant";
+    case SceneSelectionType::SanMiguelTextured:     return "sanmiguel";
     default:                                        return "invalid";
     }
 }
@@ -902,7 +934,8 @@ void CMAA2Sample::SetSMAACameraMotionTestState(
 {
     assert( scene == SceneSelectionType::LumberyardBistro
         || scene == SceneSelectionType::MinecraftLostEmpire
-        || scene == SceneSelectionType::PowerPlantThinGeometry );
+        || scene == SceneSelectionType::PowerPlantThinGeometry
+        || scene == SceneSelectionType::SanMiguelTextured );
     assert( profile >= SMAACameraMotionProfile::YawSlow360
         && profile < SMAACameraMotionProfile::MaxValue );
 
@@ -931,6 +964,12 @@ void CMAA2Sample::SetSMAACameraMotionTestState(
         basePosition = vaVector3( 4.30f, 29.20f, 14.20f );
         baseForward = (vaVector3( 6.50f, 0.0f, 8.70f ) - basePosition).Normalized( );
         strafeDistance = 10.0f;
+    }
+    else if( scene == SceneSelectionType::SanMiguelTextured )
+    {
+        basePosition = vaVector3( -5.0f, -10.5f, 2.3f );
+        baseForward = (vaVector3( 3.0f, -2.3f, 2.0f ) - basePosition).Normalized( );
+        strafeDistance = 8.0f;
     }
     else
     {
@@ -1018,6 +1057,28 @@ void CMAA2Sample::OnTick(float deltaTime)
         vaThreading::Sleep(30);
 
     ProcessCommandLineCaptureRequest();
+
+    // External research scenes can require substantial first-use shader and
+    // GPU resource preparation. AutoBench intentionally does not advance
+    // while the previous render reports pending work, so enforce a wall-clock
+    // deadline outside that gate to prevent an endless high-GPU-load process.
+    if(m_externalScenePreviewDeadline > 0.0
+        && m_application.GetTimeFromStart() >= m_externalScenePreviewNextStatusLog)
+    {
+        VA_LOG("External scene preview waiting: drawFlags=0x%08X, compilingShaders=%d, pendingShadowmaps=%s, remaining=%.1f s",
+            (uint32)prevDrawResultFlags, vaShader::GetNumberOfCompilingShaders(),
+            HasPendingShadowmapUpdates()? "yes" : "no",
+            m_externalScenePreviewDeadline - m_application.GetTimeFromStart());
+        m_externalScenePreviewNextStatusLog = m_application.GetTimeFromStart() + 5.0;
+    }
+    if(m_externalScenePreviewDeadline > 0.0
+        && m_application.GetTimeFromStart() >= m_externalScenePreviewDeadline)
+    {
+        VA_LOG_ERROR("External scene preview exceeded the 180-second render-readiness deadline; terminating the clean test process");
+        m_externalScenePreviewDeadline = -1.0;
+        m_application.Quit();
+        return;
+    }
 
     // if everything was OK with the last tick we can continue with the autobench, otherwise skip the frame until everything is loaded / compiled
     if (prevDrawResultFlags == vaDrawResultFlags::None)
@@ -1966,19 +2027,28 @@ protected:
     virtual float   GetProgress() const override { return 0.5f; }
 };
 
-class BenchItemCaptureSMAAPowerPlantPreview : public AutoBenchToolWorkItem
+class BenchItemCaptureSMAAExternalScenePreview : public AutoBenchToolWorkItem
 {
+    const CMAA2Sample::SceneSelectionType m_scene;
     const int       m_warmupFrameCount;
+    const wstring   m_outputFileName;
+    const string    m_reportTitle;
     int             m_currentFrame = 0;
     bool            m_started = false;
+    bool            m_renderReady = false;
     bool            m_isDone = false;
     bool            m_captureSucceeded = false;
     wstring         m_outputPath;
 
 public:
-    BenchItemCaptureSMAAPowerPlantPreview(CMAA2Sample& parent, int warmupFrameCount)
+    BenchItemCaptureSMAAExternalScenePreview(CMAA2Sample& parent,
+        CMAA2Sample::SceneSelectionType scene, int warmupFrameCount,
+        const wstring& outputFileName, const string& reportTitle)
         : AutoBenchToolWorkItem(parent),
-        m_warmupFrameCount(vaMath::Clamp(warmupFrameCount, 0, 600))
+        m_scene(scene),
+        m_warmupFrameCount(vaMath::Clamp(warmupFrameCount, 0, 600)),
+        m_outputFileName(outputFileName),
+        m_reportTitle(reportTitle)
     {
     }
 
@@ -1986,11 +2056,17 @@ protected:
     virtual void Tick(AutoBenchTool& abTool, float deltaTime) override
     {
         deltaTime;
+        // Reuse the camera-motion test state so OnTick reapplies the fixed
+        // analytical pose after free-flight input and rebuilds its matrices.
+        // Merely setting the camera here is too early: the normal controller
+        // update later in OnTick would restore the persisted user pose.
+        if(m_scene == CMAA2Sample::SceneSelectionType::SanMiguelTextured)
+            m_parent.SetSMAACameraMotionTestState(
+                m_scene, CMAA2Sample::SMAACameraMotionProfile::YawSlow360, 0);
         if(!m_started)
         {
             m_started = true;
-            m_parent.Settings().SceneChoice =
-                CMAA2Sample::SceneSelectionType::PowerPlantThinGeometry;
+            m_parent.Settings().SceneChoice = m_scene;
             m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA;
             m_parent.SetRequireDeterminism(true);
             m_parent.SetFixedDeltaTime(1.0f / 60.0f);
@@ -1998,8 +2074,8 @@ protected:
             m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed =
                 std::numeric_limits<float>::infinity();
             abTool.ReportStart();
-            m_outputPath = abTool.ReportGetDir() + L"powerplant_preview.png";
-            abTool.ReportAddText("UNC Power Plant external real-geometry preview capture\r\n");
+            m_outputPath = abTool.ReportGetDir() + m_outputFileName;
+            abTool.ReportAddText(m_reportTitle + "\r\n");
             abTool.ReportAddText("Classification: engineering scene-selection evidence\r\n");
             abTool.ReportAddText("SMAA preset: Ultra\r\n");
             abTool.ReportAddText(vaStringTools::Format(
@@ -2008,6 +2084,16 @@ protected:
         }
         else
         {
+            if(!m_renderReady)
+            {
+                if(vaShader::GetNumberOfCompilingShaders() != 0
+                    || m_parent.HasPendingShadowmapUpdates())
+                    return;
+                m_renderReady = true;
+                VA_LOG("External scene render preparation complete; starting %d warm-up frames",
+                    m_warmupFrameCount);
+                return;
+            }
             m_currentFrame++;
             if(m_currentFrame > 0)
             {
@@ -2016,6 +2102,8 @@ protected:
                 abTool.ReportFinish();
                 m_parent.SetFixedDeltaTime(0.0f);
                 m_parent.SetRequireDeterminism(false);
+                if(m_scene == CMAA2Sample::SceneSelectionType::SanMiguelTextured)
+                    m_parent.ClearSMAACameraMotionTestState();
                 m_isDone = true;
             }
         }
@@ -2023,20 +2111,28 @@ protected:
 
     virtual void OnRender(AutoBenchTool&) override {}
 
-    virtual void OnRenderComparePoint(AutoBenchTool&, vaImageCompareTool&,
+    virtual void OnRenderComparePoint(AutoBenchTool& abTool, vaImageCompareTool&,
         vaRenderDeviceContext& renderContext, const shared_ptr<vaTexture>& colorInOut,
         shared_ptr<vaPostProcess>&) override
     {
         if(m_currentFrame == 0 && !m_captureSucceeded)
         {
+            const vaVector3 cameraPosition = m_parent.Camera()->GetPosition();
+            abTool.ReportAddText(vaStringTools::Format(
+                "SceneChoice: %d, requested scene: %d\r\n",
+                (int)m_parent.Settings().SceneChoice, (int)m_scene));
+            abTool.ReportAddText(vaStringTools::Format(
+                "Capture camera: %.3f, %.3f, %.3f\r\n",
+                cameraPosition.x, cameraPosition.y, cameraPosition.z));
             m_captureSucceeded = colorInOut->SaveToPNGFile(renderContext, m_outputPath);
             if(!m_captureSucceeded)
-                VA_LOG_ERROR(L"Failed to save Power Plant preview '%s'", m_outputPath.c_str());
+                VA_LOG_ERROR(L"Failed to save external scene preview '%s'", m_outputPath.c_str());
         }
     }
 
     virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
-    virtual bool IsCapturingFrame() const override { return m_currentFrame == 0; }
+    virtual bool IsCapturingFrame() const override
+        { return m_renderReady && m_currentFrame == 0; }
     virtual float GetProgress() const override
     {
         return m_started? vaMath::Clamp(
@@ -5764,6 +5860,18 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             }
         }
     }
+    if (HasSanMiguelScene())
+    {
+        for (const auto& parameter : m_application.GetCommandLineParameters())
+        {
+            if (_wcsicmp(parameter.first.c_str(), L"smaaSanMiguelCache") == 0)
+            {
+                m_settings.SceneChoice = SceneSelectionType::SanMiguelTextured;
+                m_flythroughPlay = false;
+                break;
+            }
+        }
+    }
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
@@ -5881,10 +5989,42 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 VA_LOG_ERROR("-smaaPowerPlantPreviewCapture requires -smaaPowerPlantPreviewCache <absolute .smaapp path>");
                 return;
             }
-            m_autoBench->AddTask(std::make_shared<BenchItemCaptureSMAAPowerPlantPreview>(
-                *this, warmupFrameCount));
+            m_autoBench->AddTask(std::make_shared<BenchItemCaptureSMAAExternalScenePreview>(
+                *this, SceneSelectionType::PowerPlantThinGeometry, warmupFrameCount,
+                L"powerplant_preview.png",
+                "UNC Power Plant external real-geometry preview capture"));
+            m_externalScenePreviewDeadline = m_application.GetTimeFromStart() + 180.0;
+            m_externalScenePreviewNextStatusLog = m_application.GetTimeFromStart();
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued UNC Power Plant engineering preview capture: warm-up=%d", warmupFrameCount);
+            return;
+        }
+
+        if(_wcsicmp(parameter.first.c_str(), L"smaaSanMiguelPreviewCapture") == 0)
+        {
+            int warmupFrameCount = 60;
+            if(!parameter.second.empty())
+            {
+                std::wistringstream values(parameter.second);
+                if(!(values >> warmupFrameCount) || warmupFrameCount < 0 || warmupFrameCount > 600)
+                {
+                    VA_LOG_ERROR("Invalid -smaaSanMiguelPreviewCapture value; expected [warmupFrames] between 0 and 600");
+                    return;
+                }
+            }
+            if(!HasSanMiguelScene())
+            {
+                VA_LOG_ERROR("-smaaSanMiguelPreviewCapture requires -smaaSanMiguelCache <absolute .smaasm path>");
+                return;
+            }
+            m_autoBench->AddTask(std::make_shared<BenchItemCaptureSMAAExternalScenePreview>(
+                *this, SceneSelectionType::SanMiguelTextured, warmupFrameCount,
+                L"san_miguel_preview.png",
+                "San Miguel 2.1 external textured-scene preview capture"));
+            m_externalScenePreviewDeadline = m_application.GetTimeFromStart() + 180.0;
+            m_externalScenePreviewNextStatusLog = m_application.GetTimeFromStart();
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued San Miguel engineering preview capture: warm-up=%d", warmupFrameCount);
             return;
         }
 
@@ -6043,7 +6183,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( !(values >> sceneToken >> profileToken) )
                 {
                     VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft|powerplant> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
+                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft|powerplant|sanmiguel> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
                     return;
                 }
                 if( values >> modeToken )
@@ -6061,12 +6201,17 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if( !TryParseSMAACameraMotionScene( sceneToken, scene ) )
             {
                 VA_LOG_ERROR(
-                    "Invalid SMAA camera-motion preview scene; expected bistro, minecraft, or powerplant" );
+                    "Invalid SMAA camera-motion preview scene; expected bistro, minecraft, powerplant, or sanmiguel" );
                 return;
             }
             if( scene == SceneSelectionType::PowerPlantThinGeometry && !HasPowerPlantPreview() )
             {
                 VA_LOG_ERROR("Power Plant camera-motion preview requires -smaaPowerPlantPreviewCache <absolute .smaapp path>");
+                return;
+            }
+            if( scene == SceneSelectionType::SanMiguelTextured && !HasSanMiguelScene() )
+            {
+                VA_LOG_ERROR("San Miguel camera-motion preview requires -smaaSanMiguelCache <absolute .smaasm path>");
                 return;
             }
             if( !TryParseSMAACameraMotionProfile( profileToken, profile ) )
@@ -6117,7 +6262,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( !(values >> sceneToken >> profileToken) )
                 {
                     VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion capture values; expected: <bistro|minecraft|powerplant> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [firstProfileFrame] [captureFrames] [warmupFrames]" );
+                        "Invalid SMAA camera-motion capture values; expected: <bistro|minecraft|powerplant|sanmiguel> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast> [firstProfileFrame] [captureFrames] [warmupFrames]" );
                     return;
                 }
                 int parsedValue = 0;
@@ -6133,12 +6278,17 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if( !TryParseSMAACameraMotionScene( sceneToken, scene ) )
             {
                 VA_LOG_ERROR(
-                    "Invalid SMAA camera-motion scene; expected bistro, minecraft, or powerplant" );
+                    "Invalid SMAA camera-motion scene; expected bistro, minecraft, powerplant, or sanmiguel" );
                 return;
             }
             if( scene == SceneSelectionType::PowerPlantThinGeometry && !HasPowerPlantPreview() )
             {
                 VA_LOG_ERROR("Power Plant camera-motion capture requires -smaaPowerPlantPreviewCache <absolute .smaapp path>");
+                return;
+            }
+            if( scene == SceneSelectionType::SanMiguelTextured && !HasSanMiguelScene() )
+            {
+                VA_LOG_ERROR("San Miguel camera-motion capture requires -smaaSanMiguelCache <absolute .smaasm path>");
                 return;
             }
 
@@ -6567,6 +6717,266 @@ bool CMAA2Sample::LoadPowerPlantPreviewCache(const wstring& cachePath)
     VA_LOG(L"Loaded UNC Power Plant preview cache '%s': section=%S, chunks=%u, vertices=%llu, triangles=%llu",
         cachePath.c_str(), sectionName.c_str(), chunkCount,
         (unsigned long long)loadedVertexCount,
+        (unsigned long long)(loadedIndexCount / 3));
+    return true;
+}
+
+bool CMAA2Sample::LoadSanMiguelTexturedScene(const wstring& cachePath)
+{
+    static const char expectedMagic[8] = { 'S', 'M', 'A', 'A', 'S', 'M', '1', '\0' };
+    static const uint32 expectedVersion = 1;
+    static const uint32 maximumStringLength = 4096;
+    static const uint32 maximumMaterialCount = 2048;
+    static const uint32 maximumChunkCount = 8192;
+    static const uint64 maximumVertexCount = 50ull * 1000ull * 1000ull;
+    static const uint64 maximumIndexCount = 150ull * 1000ull * 1000ull;
+
+    vaFileStream stream;
+    if(!stream.Open(cachePath, FileCreationMode::Open, FileAccessMode::Read))
+    {
+        VA_LOG_ERROR(L"Unable to open San Miguel cache '%s'", cachePath.c_str());
+        return false;
+    }
+    wstring directory;
+    wstring extension;
+    vaFileTools::SplitPath(cachePath, &directory, nullptr, &extension);
+    if(_wcsicmp(extension.c_str(), L".smaasm") != 0)
+    {
+        VA_LOG_ERROR(L"San Miguel cache must use .smaasm, got '%s'", cachePath.c_str());
+        return false;
+    }
+
+    auto readExact = [&stream](void* destination, int64 byteCount)
+    {
+        int64 bytesRead = 0;
+        return stream.Read(destination, byteCount, &bytesRead) && bytesRead == byteCount;
+    };
+    char magic[8] = {};
+    uint32 version = 0;
+    uint32 materialCount = 0;
+    uint32 chunkCount = 0;
+    uint32 reserved = 0;
+    uint64 declaredVertexCount = 0;
+    uint64 declaredIndexCount = 0;
+    float declaredBounds[6] = {};
+    if(!readExact(magic, sizeof(magic))
+        || !stream.ReadValue(version)
+        || !stream.ReadValue(materialCount)
+        || !stream.ReadValue(chunkCount)
+        || !stream.ReadValue(reserved)
+        || !stream.ReadValue(declaredVertexCount)
+        || !stream.ReadValue(declaredIndexCount)
+        || !readExact(declaredBounds, sizeof(declaredBounds))
+        || std::memcmp(magic, expectedMagic, sizeof(magic)) != 0
+        || version != expectedVersion || reserved != 0
+        || materialCount == 0 || materialCount > maximumMaterialCount
+        || chunkCount == 0 || chunkCount > maximumChunkCount
+        || declaredVertexCount == 0 || declaredVertexCount > maximumVertexCount
+        || declaredIndexCount == 0 || declaredIndexCount > maximumIndexCount
+        || (declaredIndexCount % 3) != 0)
+    {
+        VA_LOG_ERROR(L"Invalid San Miguel cache header in '%s'", cachePath.c_str());
+        return false;
+    }
+    for(float value : declaredBounds)
+    {
+        if(!std::isfinite(value))
+        {
+            VA_LOG_ERROR(L"Non-finite San Miguel cache bounds in '%s'", cachePath.c_str());
+            return false;
+        }
+    }
+
+    shared_ptr<vaScene> scene = m_scenes[(int32)SceneSelectionType::SanMiguelTextured];
+    scene->Clear();
+    m_sanMiguelPreviewMeshes.clear();
+    m_sanMiguelPreviewMaterials.clear();
+    m_sanMiguelPreviewTextures.clear();
+    scene->Name() = "San Miguel 2.1 (external textured research scene)";
+
+    for(uint32 materialIndex = 0; materialIndex < materialCount; materialIndex++)
+    {
+        uint32 materialNameLength = 0;
+        uint32 texturePathLength = 0;
+        uint32 flags = 0;
+        uint32 materialReserved = 0;
+        float albedo[4] = {};
+        float specularPower = 0.0f;
+        if(!stream.ReadValue(materialNameLength)
+            || !stream.ReadValue(texturePathLength)
+            || !stream.ReadValue(flags)
+            || !stream.ReadValue(materialReserved)
+            || !readExact(albedo, sizeof(albedo))
+            || !stream.ReadValue(specularPower)
+            || materialNameLength == 0 || materialNameLength > maximumStringLength
+            || texturePathLength > maximumStringLength
+            || flags > 1 || materialReserved != 0 || !std::isfinite(specularPower))
+        {
+            VA_LOG_ERROR(L"Invalid San Miguel material %u in '%s'",
+                materialIndex, cachePath.c_str());
+            return false;
+        }
+        for(float value : albedo)
+            if(!std::isfinite(value))
+                return false;
+
+        string materialName(materialNameLength, '\0');
+        string texturePath(texturePathLength, '\0');
+        if(!readExact(&materialName[0], materialNameLength)
+            || (texturePathLength > 0
+                && !readExact(&texturePath[0], texturePathLength))
+            || texturePath.find("..") != string::npos
+            || texturePath.find(':') != string::npos
+            || (!texturePath.empty() && (texturePath[0] == '/' || texturePath[0] == '\\')))
+        {
+            VA_LOG_ERROR(L"Invalid San Miguel material strings in '%s'", cachePath.c_str());
+            return false;
+        }
+
+        shared_ptr<vaRenderMaterial> material =
+            GetRenderDevice().GetMaterialManager().CreateRenderMaterial(vaCore::GUIDCreate());
+        material->InitializeDefaultMaterial();
+        const vaVector4 albedoValue(albedo[0], albedo[1], albedo[2], albedo[3]);
+        if(texturePath.empty())
+        {
+            const int albedoIndex = material->FindInputByName("Albedo");
+            if(albedoIndex < 0)
+                return false;
+            vaRenderMaterial::MaterialInput input = material->GetInputs()[albedoIndex];
+            input.Value = vaRenderMaterial::MaterialInput::ValueVar(albedoValue);
+            material->SetInput(albedoIndex, input);
+        }
+        else
+        {
+            const wstring fullTexturePath = directory
+                + vaStringTools::SimpleWiden(texturePath);
+            shared_ptr<vaTexture> texture = vaTexture::CreateFromImageFile(
+                GetRenderDevice(), fullTexturePath,
+                vaTextureLoadFlags::PresumeDataIsSRGB,
+                vaResourceBindSupportFlags::ShaderResource,
+                vaTextureContentsType::GenericColor);
+            if(texture == nullptr)
+            {
+                VA_LOG_ERROR(L"Unable to load San Miguel texture '%s'", fullTexturePath.c_str());
+                return false;
+            }
+            // Texture-backed material inputs resolve their GUID through the
+            // global asset registrar. Unlike textures loaded through an asset
+            // pack, direct image-file textures are not registered for us.
+            if(!texture->UIDObject_IsTracked() && !texture->UIDObject_Track())
+            {
+                VA_LOG_ERROR(L"Unable to register San Miguel texture '%s'", fullTexturePath.c_str());
+                return false;
+            }
+            material->SetInputByName(vaRenderMaterial::MaterialInput(
+                "Albedo", vaRenderMaterial::MaterialInput::InputType::Color4,
+                texture->UIDObject_GetUID(), 0,
+                vaRenderMaterial::MaterialInput::TextureSamplerType::AnisotropicWrap,
+                albedoValue), true);
+            m_sanMiguelPreviewTextures.push_back(texture);
+        }
+        vaRenderMaterial::MaterialSettings materialSettings = material->GetMaterialSettings();
+        materialSettings.AlphaTest = (flags & 1) != 0;
+        materialSettings.Transparent = false;
+        materialSettings.FaceCull = materialSettings.AlphaTest? vaFaceCull::None : vaFaceCull::Back;
+        materialSettings.CastShadows = false;
+        materialSettings.ReceiveShadows = false;
+        material->SetMaterialSettings(materialSettings);
+        m_sanMiguelPreviewMaterials.push_back(material);
+    }
+
+    uint64 loadedVertexCount = 0;
+    uint64 loadedIndexCount = 0;
+    for(uint32 chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+    {
+        uint32 objectNameLength = 0;
+        uint32 materialIndex = 0;
+        uint32 vertexCount = 0;
+        uint32 indexCount = 0;
+        if(!stream.ReadValue(objectNameLength)
+            || !stream.ReadValue(materialIndex)
+            || !stream.ReadValue(vertexCount)
+            || !stream.ReadValue(indexCount)
+            || objectNameLength == 0 || objectNameLength > maximumStringLength
+            || materialIndex >= materialCount || vertexCount == 0
+            || indexCount == 0 || (indexCount % 3) != 0
+            || loadedVertexCount + vertexCount > declaredVertexCount
+            || loadedIndexCount + indexCount > declaredIndexCount)
+        {
+            VA_LOG_ERROR(L"Invalid San Miguel chunk %u in '%s'", chunkIndex, cachePath.c_str());
+            return false;
+        }
+        string objectName(objectNameLength, '\0');
+        vector<float> positionValues((size_t)vertexCount * 3);
+        vector<float> normalValues((size_t)vertexCount * 3);
+        vector<float> textureCoordinateValues((size_t)vertexCount * 2);
+        vector<uint32> indices(indexCount);
+        if(!readExact(&objectName[0], objectNameLength)
+            || !readExact(positionValues.data(), (int64)positionValues.size() * sizeof(float))
+            || !readExact(normalValues.data(), (int64)normalValues.size() * sizeof(float))
+            || !readExact(textureCoordinateValues.data(),
+                (int64)textureCoordinateValues.size() * sizeof(float))
+            || !readExact(indices.data(), (int64)indices.size() * sizeof(uint32)))
+        {
+            VA_LOG_ERROR(L"Truncated San Miguel chunk %u in '%s'", chunkIndex, cachePath.c_str());
+            return false;
+        }
+
+        vector<vaVector3> vertices(vertexCount);
+        vector<vaVector3> normals(vertexCount);
+        vector<vaVector2> texcoords0(vertexCount);
+        vector<vaVector2> texcoords1(vertexCount, vaVector2(0.0f, 0.0f));
+        for(uint32 vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++)
+        {
+            const size_t component3 = (size_t)vertexIndex * 3;
+            const size_t component2 = (size_t)vertexIndex * 2;
+            vertices[vertexIndex] = vaVector3(positionValues[component3],
+                positionValues[component3 + 1], positionValues[component3 + 2]);
+            normals[vertexIndex] = vaVector3(normalValues[component3],
+                normalValues[component3 + 1], normalValues[component3 + 2]).Normalized();
+            texcoords0[vertexIndex] = vaVector2(textureCoordinateValues[component2],
+                textureCoordinateValues[component2 + 1]);
+        }
+        for(uint32 index : indices)
+            if(index >= vertexCount)
+                return false;
+
+        shared_ptr<vaRenderMesh> mesh = vaRenderMesh::Create(
+            GetRenderDevice(), vaMatrix4x4::Identity, vertices, normals,
+            texcoords0, texcoords1, indices, vaWindingOrder::CounterClockwise);
+        vaRenderMesh::SubPart part = mesh->GetPart();
+        const shared_ptr<vaRenderMaterial>& material =
+            m_sanMiguelPreviewMaterials[materialIndex];
+        part.CachedMaterialRef = material;
+        part.MaterialID = material->UIDObject_GetUID();
+        mesh->SetPart(part);
+        shared_ptr<vaSceneObject> object = scene->CreateObject(
+            "SanMiguel_" + objectName + "_" + std::to_string(chunkIndex),
+            vaMatrix4x4::Identity);
+        object->AddRenderMeshRef(mesh);
+        m_sanMiguelPreviewMeshes.push_back(mesh);
+        loadedVertexCount += vertexCount;
+        loadedIndexCount += indexCount;
+    }
+
+    if(loadedVertexCount != declaredVertexCount || loadedIndexCount != declaredIndexCount
+        || stream.GetPosition() != stream.GetLength())
+    {
+        VA_LOG_ERROR(L"San Miguel cache totals or trailing bytes mismatch in '%s'", cachePath.c_str());
+        return false;
+    }
+
+    scene->SetSkybox(GetRenderDevice(), "Media\\sky_cube.dds",
+        vaMatrix3x3::Identity, 0.025f);
+    scene->Lights().push_back(std::make_shared<vaLight>(
+        vaLight::MakeAmbient("SanMiguelAmbient", vaVector3(0.32f, 0.32f, 0.32f))));
+    scene->Lights().push_back(std::make_shared<vaLight>(
+        vaLight::MakeDirectional("SanMiguelSun", vaVector3(1.25f, 1.18f, 1.05f),
+            vaVector3(-0.35f, 0.45f, -1.0f).Normalized())));
+
+    VA_LOG(L"Loaded San Miguel external cache '%s': materials=%u, textures=%u, chunks=%u, vertices=%llu, triangles=%llu",
+        cachePath.c_str(), materialCount, (uint32)m_sanMiguelPreviewTextures.size(),
+        chunkCount, (unsigned long long)loadedVertexCount,
         (unsigned long long)(loadedIndexCount / 3));
     return true;
 }
