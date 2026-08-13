@@ -228,7 +228,14 @@ Original mode는 기존 edge target/shader path를 유지한다.
 - `Tools/SMAA/run_cgvqm_png_sequences.py`: frame-aligned PNG test/reference
   sequence의 index·해상도·pixel hash를 검증하고 RGB 계열 FFV1로 무손실 변환한 뒤
   Intel 공식 CGVQM을 호출. decoded RGB 전체가 원본과 pixel-exact인지 확인하고
-  score, error-map 통계, per-frame CSV와 error-map 영상을 생성
+  score, error-map 통계, per-frame CSV와 error-map 영상을 생성. 부분 capture의 index가
+  다시 0부터 시작하는 경우 `--reference-index-offset`으로 원래 profile reference frame과
+  명시적으로 대응하며 test/reference의 실제 index 범위를 각각 결과에 기록
+- `Tools/SMAA/analyze_candidate_jitter_real_scene_quality.py`: Bistro/Minecraft의 실제
+  세부 구조 ROI에서 새 5-way temporal-retention capture를 기존 supersample spatial
+  reference와 비교. O-1X formal hash bridge, RGB/PSNR/structure/edge/time-change 지표,
+  candidate 비율과 offline 3×3/5×5/7×7 및 filtered 1/4 mask coverage proxy, 비교
+  PNG/GIF를 생성. Offline mask 확장을 실제 resolve 품질·성능 결과로 표현하지 않음
 - `Tools/SMAA/create_camera_motion_playback.py`: PNG 품질 capture와 화면 재생을 분리해
   단일 mode와 지정 mode 비교 영상을 H.264/MP4 constant 60 FPS로 생성. 전체 영상을
   다시 decode해 frame 수, average rate와 PTS 증가를 검증하며 발표·육안 확인용으로만
@@ -861,6 +868,17 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     deliberate projection jitter 제거이며, dilation이 이를 자동으로 복구한다고 가정하지
     않는다. 상세 프로토콜/결과는 `Docs/SMAA-Real-Scene-Temporal-Retention-Protocol-ko.md`와
     `Docs/SMAA-Real-Scene-Temporal-Retention-Results-ko.md`를 기준으로 한다.
+    이어서 Bistro/Minecraft 새 60-frame `O-1X`와 기존 formal frame 60~119의 PNG
+    SHA-256 mismatch 0/60으로 supersample reference pose 정렬을 검증했다. 동일 subset의
+    CGVQM-2에서 Candidate-Jitter는 Standard보다 Bistro +0.9011점, Minecraft +0.3384점
+    높았지만 O-1X보다 각각 2.6199점, 1.4435점 낮았다. 실제 asset ROI에서도
+    Candidate-Jitter의 reference MAE가 O-1X와 no-jitter/document보다 컸다. 저장 mask의
+    offline 3×3 dilation은 reference 구조 recall을 크게 높였으나 후보 화면 비율도 약
+    2.7~3.2배 늘렸다. 이는 dilation 효과 자체가 아니라 다음 최소 3×3 구현의 근거다.
+    상세 결과는 `Docs/SMAA-Candidate-Jitter-Real-Scene-Quality-Results-ko.md`를 기준으로 한다.
+    다음 구현은 Candidate-Jitter와 document profile에 직교하는 current-edge 3×3 toggle로
+    제한하며, 5×5/7×7 및 filtered downsample-upsample은 3×3의 실제 품질·성능 측정 뒤로
+    보류한다.
 21. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.

@@ -133,3 +133,19 @@ O-1X보다 항상 작지 않아 정규화 안정화 유지율은 N/A인 경우�
    측정한다.
 
 이 결과만으로 dilation의 성공 여부나 TSCMAA adaptation의 최종 품질 우위를 주장하지 않는다.
+
+## 9. 후속 진행 상태
+
+위 1~2번의 실제 장면 ROI 및 같은 frame reference/CGVQM 연결을 완료했다.
+
+- 새 60-frame `O-1X`와 기존 formal `O-1X` frame 60~119의 SHA-256 mismatch는
+  Bistro와 Minecraft 모두 0/60이었다.
+- Candidate-Jitter는 CGVQM-2에서 대응 Standard보다 Bistro +0.9011점,
+  Minecraft +0.3384점 높았지만 O-1X보다 각각 2.6199점, 1.4435점 낮았다.
+- 실제 ROI의 offline mask 분석에서 3×3 dilation은 reference 구조 recall을 크게
+  높이는 대신 후보 화면 비율을 약 2.7~3.2배 늘렸다.
+- 따라서 다음 구현은 3×3 current-edge dilation 하나로 제한하고, 5×5/7×7 및 filtered
+  downsample-upsample은 그 품질·성능 결과 뒤로 보류한다.
+
+상세 수치와 해석 제한은
+`Docs/SMAA-Candidate-Jitter-Real-Scene-Quality-Results-ko.md`를 기준으로 한다.
