@@ -3188,6 +3188,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const int           m_warmupFrameCount;
     const bool          m_referenceOnly;
     const bool          m_includeAdaptive;
+    const bool          m_temporalRetentionMatrix;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
@@ -3195,8 +3196,20 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     bool                m_isDone = false;
     wstring             m_outputDirs[c_fullModeCount];
 
-    static const char * GetModeID( int mode )
+    const char * GetModeID( int mode ) const
     {
+        if( m_temporalRetentionMatrix )
+        {
+            static const char * c_temporalRetentionModeIDs[c_originalModeCount] =
+            {
+                "O-1X",
+                "O-T2X-R",
+                "ABL-Candidate-Jitter-R",
+                "ABL-Candidate-NoJitter-R",
+                "O-ET2X-R-Document"
+            };
+            return c_temporalRetentionModeIDs[mode];
+        }
         static const char * c_modeIDs[c_fullModeCount] =
         {
             "O-1X", "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
@@ -3205,8 +3218,20 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
         return c_modeIDs[mode];
     }
 
-    static const char * GetModeDirectory( int mode )
+    const char * GetModeDirectory( int mode ) const
     {
+        if( m_temporalRetentionMatrix )
+        {
+            static const char * c_temporalRetentionModeDirectories[c_originalModeCount] =
+            {
+                "O_1X",
+                "O_T2X_R",
+                "ABL_Candidate_Jitter_R",
+                "ABL_Candidate_NoJitter_R",
+                "O_ET2X_R_Document"
+            };
+            return c_temporalRetentionModeDirectories[mode];
+        }
         static const char * c_modeDirectories[c_fullModeCount] =
         {
             "O_1X", "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R",
@@ -3215,8 +3240,20 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
         return c_modeDirectories[mode];
     }
 
-    static CMAA2Sample::AAType GetModeAAType( int mode )
+    CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_temporalRetentionMatrix )
+        {
+            static const CMAA2Sample::AAType c_temporalRetentionModes[c_originalModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA,
+                CMAA2Sample::AAType::SMAA_O_T2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R
+            };
+            return c_temporalRetentionModes[mode];
+        }
         static const CMAA2Sample::AAType c_modes[c_fullModeCount] =
         {
             CMAA2Sample::AAType::SMAA,
@@ -3242,7 +3279,8 @@ public:
         int captureFrameCount,
         int warmupFrameCount,
         bool referenceOnly,
-        bool includeAdaptive )
+        bool includeAdaptive,
+        bool temporalRetentionMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_profile( profile ),
@@ -3251,8 +3289,11 @@ public:
         m_warmupFrameCount( vaMath::Max( 0, warmupFrameCount ) ),
         m_referenceOnly( referenceOnly ),
         m_includeAdaptive( includeAdaptive ),
+        m_temporalRetentionMatrix( temporalRetentionMatrix ),
         m_modeCount( referenceOnly? 1 : (includeAdaptive? c_fullModeCount : c_originalModeCount) )
     {
+        assert( !(referenceOnly && temporalRetentionMatrix) );
+        assert( !(includeAdaptive && temporalRetentionMatrix) );
     }
 
 protected:
@@ -3294,9 +3335,11 @@ protected:
                 && m_captureFrameCount == profileFrameCount;
             abTool.ReportAddText( m_referenceOnly?
                 "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n" :
+                (m_temporalRetentionMatrix?
+                    "SMAA deterministic real-scene temporal-retention five-way capture\r\n\r\n" :
                 (m_includeAdaptive?
                     "SMAA deterministic camera-motion final eight-case plus O/A 1X controls capture\r\n\r\n" :
-                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n") );
+                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n")) );
             abTool.ReportAddText( vaStringTools::Format(
                 "Scene:           %s\r\n",
                 CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
@@ -3330,9 +3373,12 @@ protected:
             }
             else
             {
-                abTool.ReportAddText( m_includeAdaptive?
+                abTool.ReportAddText( m_temporalRetentionMatrix?
+                    "Comparison:      O-1X, Standard T2X-R, candidate-only jitter On/Off, and complete document-profile O-ET2X-R\r\n"
+                    "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
+                (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n" );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n") );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
@@ -6249,7 +6295,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool cameraMotionReference =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaCameraMotionReferenceCapture" ) == 0;
-        if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference )
+        const bool realSceneTemporalRetention =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaRealSceneTemporalRetentionCapture" ) == 0;
+        if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
+            || realSceneTemporalRetention )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -6291,6 +6341,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 VA_LOG_ERROR("San Miguel camera-motion capture requires -smaaSanMiguelCache <absolute .smaasm path>");
                 return;
             }
+            if( realSceneTemporalRetention
+                && scene == SceneSelectionType::PowerPlantThinGeometry )
+            {
+                VA_LOG_ERROR(
+                    "Real-scene temporal-retention capture excludes the incomplete Power Plant renderer; use bistro, minecraft, or sanmiguel" );
+                return;
+            }
 
             SMAACameraMotionProfile profile = SMAACameraMotionProfile::MaxValue;
             if( _wcsicmp( profileToken.c_str( ), L"yaw-slow-360" ) == 0 )
@@ -6323,13 +6380,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
             m_autoBench->AddTask( std::make_shared<BenchItemRecordSMAACameraMotion>(
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
-                warmupFrameCount, cameraMotionReference, cameraMotionEightCase ) );
+                warmupFrameCount, cameraMotionReference, cameraMotionEightCase,
+                realSceneTemporalRetention ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture"),
+                        "Original five-way capture")),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );

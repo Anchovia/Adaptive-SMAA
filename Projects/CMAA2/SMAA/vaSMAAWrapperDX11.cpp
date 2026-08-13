@@ -1092,6 +1092,17 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     VA_SCOPE_CPUGPU_TIMER( SMAAStandardTemporalResolve, deviceContext );
                     m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
                 }
+                // Diagnostic capture only: expose the spatial T2X result before
+                // full-screen temporal resolve. The edge-selective path exposes
+                // its equivalent through DrawTSCMAADebugView. Keeping this after
+                // reproject preserves the normal history feedback/lifecycle while
+                // making final-vs-spatial output contribution directly measurable.
+                if( GetTemporalDebugView( ) == TemporalDebugView::CurrentSpatial )
+                {
+                    dx11Context->CopyResource(
+                        dstRT->SafeCast<vaTextureDX11*>( )->GetResource( ),
+                        currentHistoryDX11->GetResource( ) );
+                }
             }
 
             m_temporalHistoryValid = true;
