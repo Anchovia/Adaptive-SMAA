@@ -263,6 +263,16 @@ Original mode는 기존 edge target/shader path를 유지한다.
 - `Tools/SMAA/analyze_current_edge_dilation_quality.py`와
   `analyze_current_edge_dilation_performance.py`: GPU mask의 정확한 3×3 검증,
   반복 hash, reference/temporal/coverage 지표와 반복 성능 CSV를 검증·분석한다.
+- `CandidateExpansion::FilteredQuarter`: raw current-edge candidate를 유효 4×4 block 평균으로
+  quarter-resolution R8_UNORM mask에 저장하고 half-pixel bilinear로 full resolution에
+  복원한 뒤 0.25 이상을 compact하는 직교 ablation. nearest-neighbor는 사용하지 않는다.
+- `-smaaFilteredQuarterAblationCapture`와
+  `-smaaFilteredQuarterPerformanceSmoke`/`Benchmark`: Candidate-Jitter와 document profile의
+  None/3×3/Filtered 총 6개 mode를 동일 camera path에서 비교하고 quarter downsample,
+  upsample/compact 및 전체 SMAA GPU 시간을 분리한다.
+- `Tools/SMAA/analyze_filtered_quarter_quality.py`와
+  `analyze_filtered_quarter_performance.py`: 6-mode sequence, 3×3 exact CPU mask,
+  filtered CPU mirror의 threshold-boundary mismatch, 후보 배수와 timing 표본을 검증한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
@@ -897,11 +907,16 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     +17.306%, document +18.639% 늘렸다. 따라서 기능적 coverage 확장은 확인했지만
     일관된 품질·성능 개선으로 채택하지 않으며 5×5/7×7은 보류한다. 상세 결과는
     `Docs/SMAA-Current-Edge-Dilation-3x3-Results-ko.md`를 기준으로 한다.
-21. **다음:** 교수님이 제안한 nearest-neighbor가 아닌 filtered 1/4
-    downsample-upsample 후보 확장을 별도 직교 ablation으로 구현한다. 3×3보다 낮은
-    mask 생성 비용·후보 증가율로 구조 coverage를 얻는지 먼저 engineering smoke로
-    판단하고, 근거가 있을 때만 실제 장면 전체 품질·성능 측정을 진행한다.
-22. **남음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+21. **완료:** 교수님이 제안한 nearest-neighbor가 아닌 filtered 1/4
+    downsample-upsample 후보 확장을 별도 직교 ablation으로 구현하고 engineering gate를
+    측정했다. Bistro/Minecraft yaw-fast pose에서 후보 증가는 약 1.57×로 3×3의
+    2.83~3.12×보다 작았다. 그러나 단일 120-frame performance smoke에서 두 filtered
+    pass 합은 0.0628~0.0631 ms로 3×3 0.0452~0.0455 ms보다 약 38.5~38.8% 높았고,
+    SMAA total도 3×3보다 3.5~3.7% 높았다. 따라서 낮은 후보 증가율은 확인했지만 낮은
+    mask 비용 gate는 통과하지 못해 정식 60-frame 품질·CGVQM 및 600×3 성능 측정으로
+    확대하지 않는다. 상세 결과는
+    `Docs/SMAA-Filtered-Quarter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
+22. **다음:** Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
 

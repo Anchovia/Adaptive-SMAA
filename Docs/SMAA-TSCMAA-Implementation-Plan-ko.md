@@ -1833,3 +1833,22 @@ Candidate-Jitter +17.306%, document +18.639%였다. 따라서 3×3은 temporal c
 `Docs/SMAA-Current-Edge-Dilation-3x3-Results-ko.md`를 기준으로 한다. 다음 ablation은
 nearest-neighbor가 아닌 filtered 1/4 downsample-upsample 후보 확장으로 제한하며,
 3×3보다 낮은 비용과 후보 증가율의 가능성을 먼저 engineering smoke로 확인한다.
+
+### 17.31 Filtered 1/4 candidate expansion engineering gate
+
+교수님 제안에 따라 nearest-neighbor를 사용하지 않는 filtered 1/4 후보 확장을
+Candidate-Jitter와 document profile에 각각 직교하는 toggle로 구현했다. 4×4 valid-pixel
+box average를 R8_UNORM quarter mask에 기록하고, half-pixel bilinear reconstruction 값이
+0.25 이상인 full-resolution 픽셀만 compact한다. 이전 edge mask와 object motion vector는
+사용하지 않으며 최종 8-case도 변경하지 않았다.
+
+Bistro/Minecraft `yaw-fast-360` 3-frame engineering smoke에서 후보 배수는 3×3의
+2.83~3.12×에 비해 Filtered가 1.57×였다. 그러나 120-frame 단일 성능 smoke에서
+downsample+upsample mask 비용은 0.0628~0.0631 ms로 3×3의 0.0452~0.0455 ms보다
+약 38.5~38.8% 높았다. SMAA total도 Filtered가 대응 None보다 23.2~24.3%, 3×3보다
+3.5~3.7% 높았다.
+
+따라서 “후보 증가율 감소”는 확인했지만 “3×3보다 낮은 mask 비용” engineering gate는
+통과하지 못했다. 현재 구현의 60-frame 정식 품질·CGVQM과 600-frame×3회 성능 측정은
+확대하지 않는다. 상세 정의, 검증 한계와 산출물은
+`Docs/SMAA-Filtered-Quarter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
