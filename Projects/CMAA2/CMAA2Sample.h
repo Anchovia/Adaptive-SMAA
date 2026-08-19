@@ -127,6 +127,8 @@ namespace VertexAsylum
             SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE, // Diagnostic: Candidate-only jitter path with de-jittered noncandidate spatial base
             SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3, // Diagnostic: Candidate-Jitter plus current-edge 3x3 dilation
             SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3, // Diagnostic: O-ET2X-R document profile plus current-edge 3x3 dilation
+            SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER, // Diagnostic: Candidate-Jitter plus filtered 1/4 candidate expansion
+            SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER, // Diagnostic: O-ET2X-R document profile plus filtered 1/4 candidate expansion
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,

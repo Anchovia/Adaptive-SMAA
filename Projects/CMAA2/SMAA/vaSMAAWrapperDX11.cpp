@@ -406,6 +406,8 @@ namespace VertexAsylum
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractRawCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaDilateCandidates3x3CS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaDownsampleCandidatesQuarterCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaUpsampleCandidatesQuarterCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaDeJitterSpatialCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
@@ -415,9 +417,11 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_tscmaaBaseEdgeMask             = nullptr;
         shared_ptr<vaTexture>       m_tscmaaCandidateMask            = nullptr;
         shared_ptr<vaTexture>       m_tscmaaRawCandidateMask         = nullptr;
+        shared_ptr<vaTexture>       m_tscmaaFilteredQuarterMask      = nullptr;
         shared_ptr<vaTexture>       m_tscmaaClippingDebug            = nullptr;
         bool                        m_clippingDebugResourcesEnabled  = false;
         bool                        m_candidateExpansionResourcesEnabled = false;
+        bool                        m_filteredQuarterResourcesEnabled = false;
         ID3D11Buffer *              m_tscmaaCandidatesBuffer        = nullptr;
         ID3D11UnorderedAccessView * m_tscmaaCandidatesUAV           = nullptr;
         ID3D11Buffer *              m_tscmaaCandidatesReadback      = nullptr;
@@ -549,7 +553,10 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
     m_tscmaaDebugColorPS( params.RenderDevice ),
     m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaExtractRawCandidatesCS( params.RenderDevice ),
-    m_tscmaaDilateCandidates3x3CS( params.RenderDevice ), m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
+    m_tscmaaDilateCandidates3x3CS( params.RenderDevice ),
+    m_tscmaaDownsampleCandidatesQuarterCS( params.RenderDevice ),
+    m_tscmaaUpsampleCandidatesQuarterCS( params.RenderDevice ),
+    m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
     m_tscmaaDeJitterSpatialCS( params.RenderDevice ), m_tscmaaResolveCandidatesCS( params.RenderDevice ),
     m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice ),
     m_tscmaaVarianceDiagnosticCS( params.RenderDevice )
@@ -564,6 +571,8 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaExtractCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAExtractCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaExtractRawCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAExtractRawCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaDilateCandidates3x3CS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADilateCandidates3x3CS", tscmaaShaderMacros, true );
+    m_tscmaaDownsampleCandidatesQuarterCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADownsampleCandidatesQuarterCS", tscmaaShaderMacros, true );
+    m_tscmaaUpsampleCandidatesQuarterCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAUpsampleCandidatesQuarterCS", tscmaaShaderMacros, true );
     m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
     m_tscmaaDeJitterSpatialCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADeJitterSpatialCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
@@ -658,6 +667,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_tscmaaBaseEdgeMask = nullptr;
     m_tscmaaCandidateMask = nullptr;
     m_tscmaaRawCandidateMask = nullptr;
+    m_tscmaaFilteredQuarterMask = nullptr;
     m_tscmaaClippingDebug = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
@@ -665,6 +675,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_velocityDiagnosticsResourcesEnabled = false;
     m_clippingDebugResourcesEnabled = false;
     m_candidateExpansionResourcesEnabled = false;
+    m_filteredQuarterResourcesEnabled = false;
     SAFE_RELEASE( m_tscmaaCandidatesUAV );
     SAFE_RELEASE( m_tscmaaCandidatesBuffer );
     SAFE_RELEASE( m_tscmaaCandidatesReadback );
@@ -720,8 +731,11 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaProjection = GetTemporalReprojectionEnabled( );
     bool edgeSelective = GetEdgeSelectiveTemporalEnabled( );
     bool adaptiveSearch = GetAdaptiveSpatialSearchEnabled( );
+    const CandidateExpansion effectiveExpansion = GetEffectiveCandidateExpansion( );
     bool candidateExpansion = edgeSelective
-        && GetEffectiveCandidateExpansion( ) == CandidateExpansion::Dilate3x3;
+        && effectiveExpansion != CandidateExpansion::None;
+    bool filteredQuarter = edgeSelective
+        && effectiveExpansion == CandidateExpansion::FilteredQuarter;
     assert( inputColor->GetSampleCount() == 1 ); // if MSAA we expect inputs in a resolved array
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
@@ -731,10 +745,12 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
         || m_clippingDebugResourcesEnabled != GetClippingDebugViewsEnabled( )
         || m_candidateExpansionResourcesEnabled != candidateExpansion
+        || m_filteredQuarterResourcesEnabled != filteredQuarter
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
             || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                 || (candidateExpansion && m_tscmaaRawCandidateMask == nullptr)
+                || (filteredQuarter && m_tscmaaFilteredQuarterMask == nullptr)
                 || (GetClippingDebugViewsEnabled( ) && m_tscmaaClippingDebug == nullptr)
                 || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
                 || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
@@ -751,6 +767,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
         m_clippingDebugResourcesEnabled = GetClippingDebugViewsEnabled( );
         m_candidateExpansionResourcesEnabled = candidateExpansion;
+        m_filteredQuarterResourcesEnabled = filteredQuarter;
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
@@ -827,6 +844,10 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 if( candidateExpansion )
                     m_tscmaaRawCandidateMask = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R8_UNORM, inputColor->GetSizeX(), inputColor->GetSizeY(),
                         1, 1, 1, maskBindFlags, vaResourceAccessFlags::Default );
+                if( filteredQuarter )
+                    m_tscmaaFilteredQuarterMask = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R8_UNORM,
+                        (inputColor->GetSizeX() + 3) / 4, (inputColor->GetSizeY() + 3) / 4,
+                        1, 1, 1, maskBindFlags, vaResourceAccessFlags::Default );
                 if( GetClippingDebugViewsEnabled( ) )
                 {
                     const vaResourceBindSupportFlags clippingDebugBindFlags =
@@ -872,6 +893,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                     || (candidateExpansion && m_tscmaaRawCandidateMask == nullptr)
+                    || (filteredQuarter && m_tscmaaFilteredQuarterMask == nullptr)
                     || (GetClippingDebugViewsEnabled( ) && m_tscmaaClippingDebug == nullptr)
                     || m_tscmaaCandidatesBuffer == nullptr || m_tscmaaCandidatesUAV == nullptr
                     || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
@@ -908,6 +930,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     if( GetEdgeSelectiveTemporalEnabled( ) && (!m_tscmaaExtractCandidatesCS->IsCreated( )
         || (GetEffectiveCandidateExpansion( ) == CandidateExpansion::Dilate3x3
             && (!m_tscmaaExtractRawCandidatesCS->IsCreated( ) || !m_tscmaaDilateCandidates3x3CS->IsCreated( )))
+        || (GetEffectiveCandidateExpansion( ) == CandidateExpansion::FilteredQuarter
+            && (!m_tscmaaExtractRawCandidatesCS->IsCreated( )
+                || !m_tscmaaDownsampleCandidatesQuarterCS->IsCreated( )
+                || !m_tscmaaUpsampleCandidatesQuarterCS->IsCreated( )))
         || !m_tscmaaComputeDispatchArgsCS->IsCreated( )
         || (GetDeJitteredNonCandidateBaseEnabled( ) && !m_tscmaaDeJitterSpatialCS->IsCreated( ))
         || !m_tscmaaResolveCandidatesCS->IsCreated( )
@@ -1264,13 +1290,21 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     // therefore bypasses expansion even when a diagnostic override is active.
     const bool dilate3x3 = !GetForcedCandidateCountEnabled( )
         && GetEffectiveCandidateExpansion( ) == CandidateExpansion::Dilate3x3;
-    ID3D11ComputeShader * extractCandidatesShader = (dilate3x3?
+    const bool filteredQuarter = !GetForcedCandidateCountEnabled( )
+        && GetEffectiveCandidateExpansion( ) == CandidateExpansion::FilteredQuarter;
+    const bool expandedCandidates = dilate3x3 || filteredQuarter;
+    ID3D11ComputeShader * extractCandidatesShader = (expandedCandidates?
         m_tscmaaExtractRawCandidatesCS : m_tscmaaExtractCandidatesCS)->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
     ID3D11ComputeShader * dilateCandidatesShader = dilate3x3?
         m_tscmaaDilateCandidates3x3CS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
+    ID3D11ComputeShader * downsampleCandidatesShader = filteredQuarter?
+        m_tscmaaDownsampleCandidatesQuarterCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
+    ID3D11ComputeShader * upsampleCandidatesShader = filteredQuarter?
+        m_tscmaaUpsampleCandidatesQuarterCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
     ID3D11ComputeShader * computeDispatchArgsShader = m_tscmaaComputeDispatchArgsCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
     ID3D11ComputeShader * resolveCandidatesShader = m_tscmaaResolveCandidatesCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
     if( extractCandidatesShader == nullptr || (dilate3x3 && dilateCandidatesShader == nullptr)
+        || (filteredQuarter && (downsampleCandidatesShader == nullptr || upsampleCandidatesShader == nullptr))
         || computeDispatchArgsShader == nullptr || resolveCandidatesShader == nullptr )
         return vaDrawResultFlags::ShadersStillCompiling;
 
@@ -1292,10 +1326,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         return vaDrawResultFlags::UnspecifiedError;
     if( GetClippingDebugViewsEnabled( ) && UAVs[6] == nullptr )
         return vaDrawResultFlags::UnspecifiedError;
-    if( dilate3x3 && UAVs[7] == nullptr )
+    if( expandedCandidates && UAVs[7] == nullptr )
+        return vaDrawResultFlags::UnspecifiedError;
+    if( filteredQuarter && (m_tscmaaFilteredQuarterMask == nullptr
+        || m_tscmaaFilteredQuarterMask->SafeCast<vaTextureDX11*>( )->GetUAV( ) == nullptr
+        || m_tscmaaFilteredQuarterMask->SafeCast<vaTextureDX11*>( )->GetSRV( ) == nullptr) )
         return vaDrawResultFlags::UnspecifiedError;
 
-    ID3D11ShaderResourceView * SRVs[7] =
+    ID3D11ShaderResourceView * SRVs[8] =
     {
         m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ),
         *m_smaa->getEdgesRenderTarget( ),
@@ -1303,9 +1341,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         currentSpatialDX11->GetSRV( ),
         previousHistoryDX11->GetSRV( ),
         luma->SafeCast<vaTextureDX11*>( )->GetSRV( ),
+        nullptr,
         nullptr
     };
-    ID3D11ShaderResourceView * nullSRVs[7] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    ID3D11ShaderResourceView * nullSRVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 
     const UINT zeroes[4] = { 0, 0, 0, 0 };
     const FLOAT maskZeroes[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -1317,7 +1356,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         dx11Context->ClearUnorderedAccessViewFloat( UAVs[5], maskZeroes );
         if( GetClippingDebugViewsEnabled( ) )
             dx11Context->ClearUnorderedAccessViewFloat( UAVs[6], maskZeroes );
-        if( dilate3x3 )
+        if( expandedCandidates )
             dx11Context->ClearUnorderedAccessViewFloat( UAVs[7], maskZeroes );
     }
 
@@ -1350,6 +1389,40 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         }
         ID3D11ShaderResourceView * nullRawMaskSRV = nullptr;
         dx11Context->CSSetShaderResources( 13, 1, &nullRawMaskSRV );
+    }
+    else if( filteredQuarter )
+    {
+        // Pass 1: read the full-resolution raw mask and write an R8_UNORM
+        // quarter-resolution 4x4 box average through the shared u7 slot.
+        ID3D11UnorderedAccessView * nullIntermediateUAV = nullptr;
+        dx11Context->CSSetUnorderedAccessViews( 7, 1, &nullIntermediateUAV, nullptr );
+        SRVs[6] = m_tscmaaRawCandidateMask->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        dx11Context->CSSetShaderResources( 13, 1, &SRVs[6] );
+        ID3D11UnorderedAccessView * quarterMaskUAV =
+            m_tscmaaFilteredQuarterMask->SafeCast<vaTextureDX11*>( )->GetUAV( );
+        dx11Context->CSSetUnorderedAccessViews( 7, 1, &quarterMaskUAV, nullptr );
+        {
+            VA_SCOPE_CPUGPU_TIMER( TSCMAAFilteredQuarterDownsample, deviceContext );
+            dx11Context->CSSetShader( downsampleCandidatesShader, nullptr, 0 );
+            dx11Context->Dispatch( (m_tscmaaFilteredQuarterMask->GetSizeX( ) + 7) / 8,
+                (m_tscmaaFilteredQuarterMask->GetSizeY( ) + 7) / 8, 1 );
+        }
+
+        // Pass 2: unbind both sides of the downsample, then manually bilinear
+        // upsample t14 into the full-resolution candidate mask and compact list.
+        dx11Context->CSSetUnorderedAccessViews( 7, 1, &nullIntermediateUAV, nullptr );
+        ID3D11ShaderResourceView * nullRawMaskSRV = nullptr;
+        dx11Context->CSSetShaderResources( 13, 1, &nullRawMaskSRV );
+        SRVs[7] = m_tscmaaFilteredQuarterMask->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        dx11Context->CSSetShaderResources( 14, 1, &SRVs[7] );
+        {
+            VA_SCOPE_CPUGPU_TIMER( TSCMAAFilteredQuarterUpsample, deviceContext );
+            dx11Context->CSSetShader( upsampleCandidatesShader, nullptr, 0 );
+            dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8,
+                (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
+        }
+        ID3D11ShaderResourceView * nullQuarterMaskSRV = nullptr;
+        dx11Context->CSSetShaderResources( 14, 1, &nullQuarterMaskSRV );
     }
 
     {
@@ -2184,9 +2257,11 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
                 case CandidatePolicy::IntelFamilyNonDominant:          policyName = "IntelFamilyNonDominant"; break;
                 case CandidatePolicy::ExperimentalLocalMeanMax3x3:     policyName = "ExperimentalLocalMeanMax3x3"; break;
                 }
-                const char * expansionName =
-                    m_temporalCandidateStatistics.Expansion == CandidateExpansion::Dilate3x3?
-                    "Dilate3x3" : "None";
+                const char * expansionName = "None";
+                if( m_temporalCandidateStatistics.Expansion == CandidateExpansion::Dilate3x3 )
+                    expansionName = "Dilate3x3";
+                else if( m_temporalCandidateStatistics.Expansion == CandidateExpansion::FilteredQuarter )
+                    expansionName = "FilteredQuarter";
                 VA_LOG( "TSCMAA candidate counters [%s, expansion=%s%s]: base=%u (%.3f%% pixels), candidates=%u (%.3f%% pixels, %.3f%% of base), indirect=%u, groups=%u",
                     policyName, expansionName,
                     GetForcedCandidateCountEnabled( )? ", forced-count diagnostics" : "",

@@ -53,7 +53,8 @@ struct SMAAReprojectionConstants
     float4 TSCMAAResolveParams;
     // xy: current projection jitter in pixel units,
     // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial),
-    // w: candidate expansion enum (0 none, 1 current-edge 3x3 dilation).
+    // w: candidate expansion enum (0 none, 1 current-edge 3x3 dilation,
+    // 2 filtered quarter-resolution downsample/upsample).
     float4 TSCMAAHybridParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
@@ -290,6 +291,7 @@ Texture2D<float4>                    tscmaaCurrentColor                  : regis
 Texture2D<float4>                    tscmaaHistoryColor                  : register( t11 );
 Texture2D<float>                     tscmaaLuma                          : register( t12 );
 Texture2D<float>                     tscmaaRawCandidateMaskInput         : register( t13 );
+Texture2D<float>                     tscmaaFilteredQuarterMaskInput      : register( t14 );
 
 RWTexture2D<float4>                  tscmaaOutput                        : register( u0 );
 RWStructuredBuffer<uint>             tscmaaCandidates                    : register( u1 );
@@ -298,7 +300,9 @@ RWByteAddressBuffer                  tscmaaDispatchArgs                  : regis
 RWTexture2D<float>                   tscmaaBaseEdgeMask                  : register( u4 );
 RWTexture2D<float>                   tscmaaCandidateMask                 : register( u5 );
 RWTexture2D<float4>                  tscmaaClippingDebug                  : register( u6 );
-RWTexture2D<float>                   tscmaaRawCandidateMask               : register( u7 );
+// The u7 intermediate is rebound between passes: full-resolution raw mask
+// during extraction and quarter-resolution filtered mask during downsample.
+RWTexture2D<float>                   tscmaaExpansionIntermediate          : register( u7 );
 
 #define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
 #define TSCMAA_PROCESS_COUNT_OFFSET           4
@@ -459,7 +463,7 @@ void TSCMAAExtractRawCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) 
     uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
     bool rawCandidate = TSCMAAIsCandidateAtPixel(
         pixel, dimensions, policy, directionalStrength);
-    tscmaaRawCandidateMask[pixel] = rawCandidate ? 1.0 : 0.0;
+    tscmaaExpansionIntermediate[pixel] = rawCandidate ? 1.0 : 0.0;
 }
 
 // Current-edge 3x3 dilation. This is an SMAA research ablation, not a
@@ -486,6 +490,90 @@ void TSCMAADilateCandidates3x3CS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     }
 
     tscmaaCandidateMask[pixel] = candidate ? 1.0 : 0.0;
+    if (!candidate)
+        return;
+
+    uint candidateIndex;
+    tscmaaControl.InterlockedAdd(
+        TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
+    uint candidateCapacity;
+    uint candidateStride;
+    tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
+    if (candidateIndex < candidateCapacity)
+        tscmaaCandidates[candidateIndex] =
+            (dispatchThreadID.x << 16) | dispatchThreadID.y;
+}
+
+// Filtered-quarter expansion pass 1. Each quarter-resolution texel stores the
+// exact mean of its corresponding valid 4x4 raw-candidate block. This explicit
+// box filter is the documented GPU counterpart of the earlier area-downsample
+// proxy and keeps non-multiple-of-four borders deterministic.
+[numthreads(8, 8, 1)]
+void TSCMAADownsampleCandidatesQuarterCS(
+    uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint sourceWidth;
+    uint sourceHeight;
+    tscmaaRawCandidateMaskInput.GetDimensions(sourceWidth, sourceHeight);
+    uint outputWidth;
+    uint outputHeight;
+    tscmaaExpansionIntermediate.GetDimensions(outputWidth, outputHeight);
+    if (dispatchThreadID.x >= outputWidth || dispatchThreadID.y >= outputHeight)
+        return;
+
+    uint2 blockStart = dispatchThreadID.xy * 4;
+    uint2 blockEnd = min(blockStart + 4, uint2(sourceWidth, sourceHeight));
+    float sum = 0.0;
+    uint count = 0;
+    [unroll]
+    for (uint y = 0; y < 4; y++) {
+        [unroll]
+        for (uint x = 0; x < 4; x++) {
+            uint2 sourcePixel = blockStart + uint2(x, y);
+            if (sourcePixel.x < blockEnd.x && sourcePixel.y < blockEnd.y) {
+                sum += tscmaaRawCandidateMaskInput.Load(
+                    int3(sourcePixel, 0));
+                count++;
+            }
+        }
+    }
+    tscmaaExpansionIntermediate[dispatchThreadID.xy] =
+        count > 0 ? sum / (float)count : 0.0;
+}
+
+// Filtered-quarter expansion pass 2. Manual bilinear interpolation makes the
+// non-nearest reconstruction rule explicit and CPU-reference reproducible.
+// Pixels at or above the offline proxy threshold (0.25) are compacted.
+[numthreads(8, 8, 1)]
+void TSCMAAUpsampleCandidatesQuarterCS(
+    uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaCandidateMask.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    uint quarterWidth;
+    uint quarterHeight;
+    tscmaaFilteredQuarterMaskInput.GetDimensions(quarterWidth, quarterHeight);
+    float2 sourcePosition =
+        (float2(dispatchThreadID.xy) + 0.5) *
+        (float2(quarterWidth, quarterHeight) / float2(width, height)) - 0.5;
+    int2 basePixel = int2(floor(sourcePosition));
+    float2 fraction = frac(sourcePosition);
+    int2 maximumPixel = int2(quarterWidth, quarterHeight) - 1;
+    int2 p00 = clamp(basePixel, int2(0, 0), maximumPixel);
+    int2 p10 = clamp(basePixel + int2(1, 0), int2(0, 0), maximumPixel);
+    int2 p01 = clamp(basePixel + int2(0, 1), int2(0, 0), maximumPixel);
+    int2 p11 = clamp(basePixel + int2(1, 1), int2(0, 0), maximumPixel);
+    float top = lerp(
+        tscmaaFilteredQuarterMaskInput.Load(int3(p00, 0)),
+        tscmaaFilteredQuarterMaskInput.Load(int3(p10, 0)), fraction.x);
+    float bottom = lerp(
+        tscmaaFilteredQuarterMaskInput.Load(int3(p01, 0)),
+        tscmaaFilteredQuarterMaskInput.Load(int3(p11, 0)), fraction.x);
+    bool candidate = lerp(top, bottom, fraction.y) >= 0.25;
+
+    tscmaaCandidateMask[dispatchThreadID.xy] = candidate ? 1.0 : 0.0;
     if (!candidate)
         return;
 

@@ -90,7 +90,8 @@ namespace VertexAsylum
         enum class CandidateExpansion : int32
         {
             None,
-            Dilate3x3
+            Dilate3x3,
+            FilteredQuarter
         };
 
         enum class TemporalDebugView : int32
