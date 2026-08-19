@@ -136,11 +136,13 @@ namespace VertexAsylum
         void                                        SetPlaySpeed( float newSpeed )                          { m_playSpeed = newSpeed; }
         bool                                        GetLoop( ) const                                        { return m_enableLoop; }
         void                                        SetLoop( bool enableLoop )                              { m_enableLoop = enableLoop; }
+        bool                                        EvaluatePose( float time, vaVector3 & outPosition,
+                                                                 vaQuaternion & outOrientation ) const;
         
         void                                        SetFixedUp( bool enabled, const vaVector3 & upVec = vaVector3( 0.0f, 0.0f, 1.0f ) )   { m_fixedUp = enabled; m_fixedUpVec = upVec; }
 
     protected:
-        bool                                        FindKeys( float time, int & keyIndexFrom, int & keyIndexTo );
+        bool                                        FindKeys( float time, int & keyIndexFrom, int & keyIndexTo ) const;
 
     protected:
         virtual void                                CameraAttached( const shared_ptr<vaCameraBase> & camera );

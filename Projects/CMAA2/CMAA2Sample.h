@@ -85,6 +85,9 @@ namespace VertexAsylum
             YawExtreme360,
             StrafeFast,
             YawStrafeFast,
+            YawSmooth360,
+            FlythroughSmooth,
+            FlythroughSmoothYaw360,
 
             MaxValue
         };
@@ -355,6 +358,10 @@ namespace VertexAsylum
         void                                    SetSMAATemporalStressTestState( SMAATemporalStressScenario scenario, float timeSeconds );
         static const char *                     GetSMAATemporalStressScenarioName( SMAATemporalStressScenario scenario );
         void                                    SetSMAACameraMotionTestState( SceneSelectionType scene, SMAACameraMotionProfile profile, int frameIndex );
+        bool                                    EvaluateSMAACameraMotionPose( SceneSelectionType scene,
+                                                    SMAACameraMotionProfile profile, int frameIndex,
+                                                    vaVector3 & outPosition, vaVector3 & outForward,
+                                                    float * outAddedYawRadians = nullptr ) const;
         void                                    ClearSMAACameraMotionTestState( ) { m_cameraMotionStateConfigured = false; }
         static const char *                     GetSMAACameraMotionSceneName( SceneSelectionType scene );
         static const char *                     GetSMAACameraMotionProfileName( SMAACameraMotionProfile profile );

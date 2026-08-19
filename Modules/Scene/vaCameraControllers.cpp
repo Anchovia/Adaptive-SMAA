@@ -222,7 +222,7 @@ void vaCameraControllerFlythrough::CameraAttached( const shared_ptr<vaCameraBase
     vaCameraControllerBase::CameraAttached( camera );
 }
 
-bool vaCameraControllerFlythrough::FindKeys( float time, int & keyIndexFrom, int & keyIndexTo )
+bool vaCameraControllerFlythrough::FindKeys( float time, int & keyIndexFrom, int & keyIndexTo ) const
 {
     time = vaMath::Clamp( time, 0.0f, m_totalTime );
     if( m_keys.size() == 0 )
@@ -251,16 +251,29 @@ void vaCameraControllerFlythrough::CameraTick( float deltaTime, vaCameraBase & c
 
     SetPlayTime( GetPlayTime() + deltaTime * GetPlaySpeed() );
 
-    int indexFrom, indexTo;
-    if( !FindKeys( GetPlayTime(), indexFrom, indexTo ) )
+    vaVector3 position;
+    vaQuaternion orientation;
+    if( !EvaluatePose( GetPlayTime( ), position, orientation ) )
         return;
-    
-    Keyframe & keyFrom  = m_keys[indexFrom];
-    Keyframe & keyTo    = m_keys[indexTo];
+
+    camera.SetPosition( position );
+    camera.SetOrientation( orientation );
+}
+
+bool vaCameraControllerFlythrough::EvaluatePose(
+    float time, vaVector3 & outPosition, vaQuaternion & outOrientation ) const
+{
+    time = vaMath::Clamp( time, 0.0f, m_totalTime );
+    int indexFrom, indexTo;
+    if( !FindKeys( time, indexFrom, indexTo ) )
+        return false;
+
+    const Keyframe & keyFrom  = m_keys[indexFrom];
+    const Keyframe & keyTo    = m_keys[indexTo];
 
     float timeBetweenKeys = keyTo.Time - keyFrom.Time;
     timeBetweenKeys = vaMath::Max( 0.00001f, timeBetweenKeys );
-    float lerpK = vaMath::Clamp( (m_currentTime-keyFrom.Time) / timeBetweenKeys, 0.0f, 1.0f );
+    float lerpK = vaMath::Clamp( (time-keyFrom.Time) / timeBetweenKeys, 0.0f, 1.0f );
     //lerpK = vaMath::Smoothstep( lerpK );
 
     vaVector3 pos       = vaVector3::Lerp( keyFrom.Position, keyTo.Position, lerpK );
@@ -270,10 +283,10 @@ void vaCameraControllerFlythrough::CameraTick( float deltaTime, vaCameraBase & c
     int index1      = indexFrom;
     int index2      = indexTo;
     int index3      = vaMath::Min( (int)m_keys.size()-1, indexTo+1 );
-    Keyframe & key0 = m_keys[index0];
-    Keyframe & key1 = m_keys[index1];
-    Keyframe & key2 = m_keys[index2];
-    Keyframe & key3 = m_keys[index3];
+    const Keyframe & key0 = m_keys[index0];
+    const Keyframe & key1 = m_keys[index1];
+    const Keyframe & key2 = m_keys[index2];
+    const Keyframe & key3 = m_keys[index3];
 
     pos = vaVector3::CatmullRom( key0.Position, key1.Position, key2.Position, key3.Position, lerpK );
     //pos = vaVector3::Hermite( key1.Position, (key2.Position - key0.Position).Normalized(), key2.Position, (key3.Position - key1.Position).Normalized(), lerpK );
@@ -296,8 +309,9 @@ void vaCameraControllerFlythrough::CameraTick( float deltaTime, vaCameraBase & c
     // pos = vaMath::Lerp( camera.GetPosition(), pos, lf );
     // rot = vaQuaternion::Slerp( camera.GetOrientation(), rot, lf );
 
-    camera.SetPosition( pos );
-    camera.SetOrientation( rot );
+    outPosition = pos;
+    outOrientation = rot;
+    return true;
 }
 
 void vaCameraControllerFlythrough::AddKey( const Keyframe & newKey )
