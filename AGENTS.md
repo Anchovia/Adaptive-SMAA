@@ -135,7 +135,7 @@ implementation을 만들기 위한 기초 틀**이다. 다음 구현 계획을 �
 
 위 항목의 구현과 검증표가 완료되기 전에는 “TSCMAA core 완료”로 표시하지 않는다.
 
-## 4. 2026-08-13 현재 구현 상태
+## 4. 2026-08-20 현재 구현 상태
 
 | ID | 상태 | 현재 코드 대응 |
 |---|---|---|
@@ -240,6 +240,11 @@ Original mode는 기존 edge target/shader path를 유지한다.
   단일 mode와 지정 mode 비교 영상을 H.264/MP4 constant 60 FPS로 생성. 전체 영상을
   다시 decode해 frame 수, average rate와 PTS 증가를 검증하며 발표·육안 확인용으로만
   사용
+- `yaw-smooth-360`, `flythrough-smooth`, `flythrough-smooth-yaw-360`: fixed 60 Hz에서
+  각각 회전-only, CMAA2 Catmull-Rom 이동-only, 동일 이동+부드러운 360° yaw를 제공하는
+  480-frame control profile. `-smaaSmoothCameraMotionPathValidationTest`로 위치·방향
+  연속성과 control pairing을 확인하고 `-smaaCameraMotionSingleModeCapture`로 경로
+  시각화용 한 mode만 저장한다. 알고리즘 또는 품질 reference로 분류하지 않는다.
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -916,7 +921,17 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     mask 비용 gate는 통과하지 못해 정식 60-frame 품질·CGVQM 및 600×3 성능 측정으로
     확대하지 않는다. 상세 결과는
     `Docs/SMAA-Filtered-Quarter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
-22. **다음:** Candidate-aware stabilization band와 별도 unjittered scene base,
+22. **완료:** CMAA2 기본 flythrough Catmull-Rom 경로 위에 quintic smootherstep 360°
+    yaw를 더하는 결정적 결합 camera profile을 구현했다. 이동-only·회전-only control을
+    함께 유지하고 기존 급회전 profile과 최종 8-case는 변경하지 않았다. Release x64,
+    경로 불변 조건, Bistro/Minecraft visible 60 Hz preview, 장면 관통 없는 대표 프레임,
+    장면별 480 PNG와 정확한 480-frame/60 FPS MP4를 검증했다. 이는 camera protocol
+    engineering 완료이며 T2X/ET2X 품질 결론이 아니다. 상세 내용은
+    `Docs/SMAA-Smooth-Flythrough-360-Protocol-ko.md`를 기준으로 한다.
+23. **다음:** 새 결합 경로에서 우선 `O-1X`, `O-T2X-R`, `O-ET2X-R`을
+    Bistro/Minecraft별로 비교해 이동-only·회전-only·결합 motion의 고스팅과 temporal
+    retention을 분리한다. 새 정보가 확인된 뒤에만 전체 8-case와 reference 측정으로
+    확대한다. Candidate-aware stabilization band와 별도 unjittered scene base,
     object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
     분리한 후속 연구로 유지한다.
 

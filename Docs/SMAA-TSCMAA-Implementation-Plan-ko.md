@@ -1852,3 +1852,27 @@ downsample+upsample mask 비용은 0.0628~0.0631 ms로 3×3의 0.0452~0.0455 ms�
 통과하지 못했다. 현재 구현의 60-frame 정식 품질·CGVQM과 600-frame×3회 성능 측정은
 확대하지 않는다. 상세 정의, 검증 한계와 산출물은
 `Docs/SMAA-Filtered-Quarter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
+
+### 17.32 Smooth flythrough + 360° camera-motion protocol
+
+기존 `yaw-fast-360`의 6°/frame 고정 위치 급회전과 별개로, CMAA2 기본 benchmark의
+Catmull–Rom flythrough 곡선을 따라 이동하면서 quintic smootherstep 360° yaw를 더하는
+결정적 경로를 추가했다. 이동-only `flythrough-smooth`, 회전-only `yaw-smooth-360`,
+결합 `flythrough-smooth-yaw-360`을 각각 유지해 motion 성분을 분리한다. 기존 profile과
+최종 8-case mode는 변경하지 않았다.
+
+세 profile은 60-frame pre-still, 360-frame motion, 60-frame post-still의 fixed 60 Hz
+timeline이다. Bistro/Minecraft에서 위치 이동을 0.25배로 균일 축소해 원본 spline
+모양을 유지하면서 geometry 관통을 피했다. Minecraft 새 smooth profile에만 높이가
+10 m 높은 안전 기준점을 사용하고 기존 카메라 실험의 pose는 보존했다.
+
+Release x64 자동 검증에서 두 flythrough profile의 이동 거리는 약 1.8613 m,
+최대 위치 step은 약 0.0107 m/frame이었다. 결합 profile과 이동-only의 위치 mismatch는
+0, 회전된 forward mismatch는 `3e-7` 미만, 시작·종료 정지 경계 각도 step은 0°였다.
+Bistro/Minecraft visible O-1X preview의 frame-start 평균은 모두 16.668 ms였고,
+두 장면 480 PNG와 정확한 480 decoded frame·60 FPS·8초 MP4를 만들었다.
+
+이는 경로 engineering 검증이며 T2X/ET2X 품질 결과가 아니다. 다음에는 두 실제 장면에서
+먼저 `O-1X`, `O-T2X-R`, `O-ET2X-R`을 이동-only·회전-only·결합 경로로 비교하고,
+새 정보가 확인된 뒤에만 전체 8-case와 reference 측정으로 확대한다. 상세 프로토콜과
+산출물은 `Docs/SMAA-Smooth-Flythrough-360-Protocol-ko.md`를 기준으로 한다.
