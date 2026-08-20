@@ -245,6 +245,13 @@ Original mode는 기존 edge target/shader path를 유지한다.
   480-frame control profile. `-smaaSmoothCameraMotionPathValidationTest`로 위치·방향
   연속성과 control pairing을 확인하고 `-smaaCameraMotionSingleModeCapture`로 경로
   시각화용 한 mode만 저장한다. 알고리즘 또는 품질 reference로 분류하지 않는다.
+- `-smaaSmoothCameraFocusedThreeCapture`: 위 세 profile에서 `O-1X`, `O-T2X-R`,
+  `O-ET2X-R`만 같은 실행에 저장하는 선행 quality gate. 최종 8-case를 변경하지 않으며
+  mode마다 history를 초기화하고 같은 첫 pose warm-up을 적용한다.
+- `Tools/SMAA/analyze_smooth_camera_focused_quality.py`: Bistro/Minecraft의
+  rotation-only, translation-only, combined 18 sequence를 검증하고 O-1X 대비 temporal
+  영향 대용값, 시간 변화, edge strength, post-still plateau 안정화와 full/difference/
+  peak-crop/GIF 자료를 생성한다. O-1X 차이를 절대 ghosting ground truth로 표현하지 않는다.
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -928,12 +935,22 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     장면별 480 PNG와 정확한 480-frame/60 FPS MP4를 검증했다. 이는 camera protocol
     engineering 완료이며 T2X/ET2X 품질 결론이 아니다. 상세 내용은
     `Docs/SMAA-Smooth-Flythrough-360-Protocol-ko.md`를 기준으로 한다.
-23. **다음:** 새 결합 경로에서 우선 `O-1X`, `O-T2X-R`, `O-ET2X-R`을
-    Bistro/Minecraft별로 비교해 이동-only·회전-only·결합 motion의 고스팅과 temporal
-    retention을 분리한다. 새 정보가 확인된 뒤에만 전체 8-case와 reference 측정으로
-    확대한다. Candidate-aware stabilization band와 별도 unjittered scene base,
-    object motion vector·depth disocclusion 지원은 camera-motion 고스팅 평가와
-    분리한 후속 연구로 유지한다.
+23. **완료:** 새 부드러운 경로에서 `O-1X`, `O-T2X-R`, `O-ET2X-R`을
+    Bistro/Minecraft별 rotation-only·translation-only·combined control로 비교했다.
+    6 capture root의 mode별 480 frame과 O-1X 독립 실행 SHA-256 mismatch 0을 검증했다.
+    `O-ET2X-R`의 O-1X 대비 화면 차이는 Standard의 23.95~28.56%였고 combined는 개별
+    control 범위 안이었다. ET2X-R edge strength는 Standard보다 O-1X에 가까웠으며,
+    회전 포함 후 최종 post-still plateau 안정화에는 6~8 frame이 필요했다. 대표 프레임의
+    catastrophic reprojection ghosting은 보이지 않았지만 O-1X 유사성이 ghost 감소인지
+    temporal sample 손실인지는 reference 없이 확정하지 않는다. 상세 결과는
+    `Docs/SMAA-Smooth-Camera-Focused-Results-ko.md`를 기준으로 한다.
+24. **다음:** Bistro/Minecraft `flythrough-smooth-yaw-360` 결합 profile의 동일 pose
+    supersample spatial-reference를 확보하고 `O-1X`, `O-T2X-R`, `O-ET2X-R`에
+    CGVQM-2/error-map을 적용한다. 이 gate에서 Standard의 넓은 history 차이와
+    Edge-selective의 O-1X 유사성을 reference 기준으로 구분한 뒤에만 전체 8-case와
+    Adaptive SMAA로 확대한다. Candidate-aware stabilization band와 별도 unjittered
+    scene base, object motion vector·depth disocclusion 지원은 camera-motion reference
+    평가와 분리한 후속 연구로 유지한다.
 
 ## 7. 측정 규칙
 

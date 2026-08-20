@@ -135,3 +135,18 @@ MP4는 경로 재생과 발표용이다. 이후 정식 품질 지표에는 원�
 `O-1X`, `O-T2X-R`, `O-ET2X-R`을 비교한다. 회전-only와 이동-only control을 함께 사용해
 카메라 이동, 회전, 결합 motion의 영향을 분리한다. 이 선행 결과에서 새 정보가 확인된
 뒤에만 전체 8-case + O/A-1X와 supersample/CGVQM 측정으로 확대한다.
+
+## 9. 3-way 선행 측정 완료
+
+2026-08-20에 위 계획대로 Bistro/Minecraft의 세 profile에서 `O-1X`, `O-T2X-R`,
+`O-ET2X-R` 전체 480-frame capture를 완료했다. 전용 명령은 다음과 같다.
+
+```text
+-smaaSmoothCameraFocusedThreeCapture "<scene> <profile> [firstProfileFrame] [captureFrames] [warmupFrames]"
+```
+
+여섯 조건에서 `O-ET2X-R`의 O-1X 대비 화면 차이는 Standard의 약 23.95~28.56%였고,
+결합 profile은 개별 rotation/translation control 범위 안이었다. 세부 수치, 해석 제한,
+capture root와 다음 reference gate는 다음 문서를 기준으로 한다.
+
+- `Docs/SMAA-Smooth-Camera-Focused-Results-ko.md`
