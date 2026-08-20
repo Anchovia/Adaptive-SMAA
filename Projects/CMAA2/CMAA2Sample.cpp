@@ -3358,6 +3358,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
     static const int    c_originalModeCount = 5;
+    static const int    c_focusedModeCount = 3;
     static const int    c_dilationModeCount = 4;
     static const int    c_filteredQuarterModeCount = 6;
     static const int    c_fullModeCount = 10;
@@ -3372,6 +3373,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_temporalRetentionMatrix;
     const bool          m_currentEdgeDilationMatrix;
     const bool          m_filteredQuarterMatrix;
+    const bool          m_focusedComparisonMatrix;
     const bool          m_singleModeOnly;
     const CMAA2Sample::AAType m_singleModeAAType;
     const string        m_singleModeID;
@@ -3387,6 +3389,14 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     {
         if( m_singleModeOnly )
             return m_singleModeID.c_str( );
+        if( m_focusedComparisonMatrix )
+        {
+            static const char * c_focusedModeIDs[c_focusedModeCount] =
+            {
+                "O-1X", "O-T2X-R", "O-ET2X-R"
+            };
+            return c_focusedModeIDs[mode];
+        }
         if( m_filteredQuarterMatrix )
         {
             static const char * c_filteredQuarterModeIDs[c_filteredQuarterModeCount] =
@@ -3435,6 +3445,14 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     {
         if( m_singleModeOnly )
             return m_singleModeDirectory.c_str( );
+        if( m_focusedComparisonMatrix )
+        {
+            static const char * c_focusedModeDirectories[c_focusedModeCount] =
+            {
+                "O_1X", "O_T2X_R", "O_ET2X_R"
+            };
+            return c_focusedModeDirectories[mode];
+        }
         if( m_filteredQuarterMatrix )
         {
             static const char * c_filteredQuarterModeDirectories[c_filteredQuarterModeCount] =
@@ -3483,6 +3501,16 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     {
         if( m_singleModeOnly )
             return m_singleModeAAType;
+        if( m_focusedComparisonMatrix )
+        {
+            static const CMAA2Sample::AAType c_focusedModes[c_focusedModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA,
+                CMAA2Sample::AAType::SMAA_O_T2X_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R
+            };
+            return c_focusedModes[mode];
+        }
         if( m_filteredQuarterMatrix )
         {
             static const CMAA2Sample::AAType c_filteredQuarterModes[c_filteredQuarterModeCount] =
@@ -3548,6 +3576,7 @@ public:
         bool temporalRetentionMatrix = false,
         bool currentEdgeDilationMatrix = false,
         bool filteredQuarterMatrix = false,
+        bool focusedComparisonMatrix = false,
         bool singleModeOnly = false,
         CMAA2Sample::AAType singleModeAAType = CMAA2Sample::AAType::SMAA,
         const string & singleModeID = "O-1X",
@@ -3563,17 +3592,20 @@ public:
         m_temporalRetentionMatrix( temporalRetentionMatrix ),
         m_currentEdgeDilationMatrix( currentEdgeDilationMatrix ),
         m_filteredQuarterMatrix( filteredQuarterMatrix ),
+        m_focusedComparisonMatrix( focusedComparisonMatrix ),
         m_singleModeOnly( singleModeOnly ),
         m_singleModeAAType( singleModeAAType ),
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
-        m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 : (filteredQuarterMatrix?
+        m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 : (focusedComparisonMatrix?
+            c_focusedModeCount : (filteredQuarterMatrix?
             c_filteredQuarterModeCount : (currentEdgeDilationMatrix?
-            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)))) )
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount))))) )
     {
         assert( (int)referenceOnly + (int)includeAdaptive
             + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix
-            + (int)filteredQuarterMatrix + (int)singleModeOnly <= 1 );
+            + (int)filteredQuarterMatrix + (int)focusedComparisonMatrix
+            + (int)singleModeOnly <= 1 );
     }
 
 protected:
@@ -3617,6 +3649,8 @@ protected:
                 "SMAA deterministic camera-motion single-mode visualization capture\r\n\r\n" :
                 (m_referenceOnly?
                 "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n" :
+                (m_focusedComparisonMatrix?
+                    "SMAA smooth camera-motion focused three-way quality capture\r\n\r\n" :
                 (m_filteredQuarterMatrix?
                     "SMAA filtered-quarter candidate-expansion controlled ablation capture\r\n\r\n" :
                 (m_currentEdgeDilationMatrix?
@@ -3625,7 +3659,7 @@ protected:
                     "SMAA deterministic real-scene temporal-retention five-way capture\r\n\r\n" :
                 (m_includeAdaptive?
                     "SMAA deterministic camera-motion final eight-case plus O/A 1X controls capture\r\n\r\n" :
-                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n"))))) );
+                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n")))))) );
             abTool.ReportAddText( vaStringTools::Format(
                 "Scene:           %s\r\n",
                 CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
@@ -3661,6 +3695,9 @@ protected:
             {
                 abTool.ReportAddText( m_singleModeOnly?
                     "Purpose:         rendered path inspection and constant-frame-rate playback generation; not a quality comparison\r\n\r\n" :
+                    (m_focusedComparisonMatrix?
+                    "Comparison:      O-1X control, full-screen Standard T2X-R, and edge-selective O-ET2X-R\r\n"
+                    "Purpose:         isolate rotation-only, translation-only, and combined camera motion before expanding to the final eight cases\r\n\r\n" :
                     (m_filteredQuarterMatrix?
                     "Comparison:      Candidate-Jitter and document profile, each with expansion None, 3x3, and filtered quarter\r\n"
                     "Order control:   no-jitter document triplet first, then jitter triplet after an equal deterministic prelude\r\n"
@@ -3675,7 +3712,7 @@ protected:
                     "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
                 (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n")))) );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n"))))) );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
@@ -7047,7 +7084,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask( std::make_shared<BenchItemRecordSMAACameraMotion>(
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
                 warmupFrameCount, false, false, false, false, false,
-                true, mode, semanticID, modeDirectory ) );
+                false, true, mode, semanticID, modeDirectory ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA single-mode camera capture: scene=%s, profile=%s, mode=%s, profile frames [%d,%d], warm-up=%d",
@@ -7076,9 +7113,12 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool filteredQuarterAblation =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaFilteredQuarterAblationCapture" ) == 0;
+        const bool smoothCameraFocusedThree =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaSmoothCameraFocusedThreeCapture" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
             || realSceneTemporalRetention || currentEdgeDilationAblation
-            || filteredQuarterAblation )
+            || filteredQuarterAblation || smoothCameraFocusedThree )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -7158,16 +7198,17 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
                 warmupFrameCount, cameraMotionReference, cameraMotionEightCase,
                 realSceneTemporalRetention, currentEdgeDilationAblation,
-                filteredQuarterAblation ) );
+                filteredQuarterAblation, smoothCameraFocusedThree ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    (smoothCameraFocusedThree? "focused O-1X/O-T2X-R/O-ET2X-R capture" :
                     (filteredQuarterAblation? "filtered-quarter candidate-expansion ablation capture" :
                     (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture")))),
+                        "Original five-way capture"))))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );
