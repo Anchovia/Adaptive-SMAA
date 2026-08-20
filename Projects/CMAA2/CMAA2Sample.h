@@ -88,6 +88,8 @@ namespace VertexAsylum
             YawSmooth360,
             FlythroughSmooth,
             FlythroughSmoothYaw360,
+            FlythroughWide,
+            FlythroughWideYaw360,
 
             MaxValue
         };

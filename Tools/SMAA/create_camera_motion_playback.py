@@ -83,6 +83,11 @@ def parse_args() -> argparse.Namespace:
         choices=sorted(MODE_LABELS),
         help="Modes shown left-to-right in the comparison playback.",
     )
+    parser.add_argument(
+        "--single-only",
+        action="store_true",
+        help="Create and validate only the full-resolution single-mode playback.",
+    )
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--tile-width", type=int, default=640)
     parser.add_argument("--crf", type=int, default=16)
@@ -324,9 +329,14 @@ def main() -> int:
 
     capture_root = args.capture_root.resolve()
     output = (args.output or (capture_root / "Playback60fps")).resolve()
-    requested_modes = list(dict.fromkeys([args.single_mode, *args.compare_modes]))
+    requested_modes = list(
+        dict.fromkeys(
+            [args.single_mode]
+            if args.single_only
+            else [args.single_mode, *args.compare_modes]
+        )
+    )
     loaded = {mode: load_sequence(capture_root, mode) for mode in requested_modes}
-    comparison = [loaded[mode] for mode in args.compare_modes]
     frame_count, indices = validate_aligned(loaded.values())
 
     single = loaded[args.single_mode]
@@ -334,13 +344,20 @@ def main() -> int:
     single_height = even(single.height)
     single_path = output / f"{single.mode}_camera_path_60fps.mp4"
 
-    comparison_render, comparison_width, comparison_height = (
-        make_comparison_renderer(comparison, args.tile_width)
-    )
-    comparison_name = "_vs_".join(sequence.mode for sequence in comparison)
-    comparison_path = output / f"{comparison_name}_comparison_60fps.mp4"
+    comparison: list[Sequence] = []
+    comparison_path: Path | None = None
+    if not args.single_only:
+        comparison = [loaded[mode] for mode in args.compare_modes]
+        comparison_render, comparison_width, comparison_height = (
+            make_comparison_renderer(comparison, args.tile_width)
+        )
+        comparison_name = "_vs_".join(sequence.mode for sequence in comparison)
+        comparison_path = output / f"{comparison_name}_comparison_60fps.mp4"
     if args.validate_only:
-        for path in (single_path, comparison_path):
+        expected_paths = [single_path]
+        if comparison_path is not None:
+            expected_paths.append(comparison_path)
+        for path in expected_paths:
             if not path.is_file():
                 raise FileNotFoundError(f"Missing playback video: {path}")
     else:
@@ -354,21 +371,21 @@ def main() -> int:
             args.crf,
             args.preset,
         )
-        encode_h264(
-            comparison_path,
-            frame_count,
-            args.fps,
-            comparison_width,
-            comparison_height,
-            comparison_render,
-            args.crf,
-            args.preset,
-        )
+        if comparison_path is not None:
+            encode_h264(
+                comparison_path,
+                frame_count,
+                args.fps,
+                comparison_width,
+                comparison_height,
+                comparison_render,
+                args.crf,
+                args.preset,
+            )
 
-    validations = [
-        validate_video(single_path, frame_count, args.fps),
-        validate_video(comparison_path, frame_count, args.fps),
-    ]
+    validations = [validate_video(single_path, frame_count, args.fps)]
+    if comparison_path is not None:
+        validations.append(validate_video(comparison_path, frame_count, args.fps))
     metadata = {
         "classification": "presentation_playback_not_quality_measurement",
         "capture_root": str(capture_root),
@@ -391,7 +408,8 @@ def main() -> int:
     )
 
     print(f"SINGLE={single_path}")
-    print(f"COMPARISON={comparison_path}")
+    if comparison_path is not None:
+        print(f"COMPARISON={comparison_path}")
     print(f"METADATA={metadata_path}")
     print(
         f"VALIDATION=PASS frames={frame_count} fps={args.fps} "

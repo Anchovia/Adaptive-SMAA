@@ -285,6 +285,10 @@ namespace
             profile = CMAA2Sample::SMAACameraMotionProfile::FlythroughSmooth;
         else if( _wcsicmp( token.c_str( ), L"flythrough-smooth-yaw-360" ) == 0 )
             profile = CMAA2Sample::SMAACameraMotionProfile::FlythroughSmoothYaw360;
+        else if( _wcsicmp( token.c_str( ), L"flythrough-wide" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::FlythroughWide;
+        else if( _wcsicmp( token.c_str( ), L"flythrough-wide-yaw-360" ) == 0 )
+            profile = CMAA2Sample::SMAACameraMotionProfile::FlythroughWideYaw360;
         else
             return false;
         return true;
@@ -971,6 +975,9 @@ const char * CMAA2Sample::GetSMAACameraMotionProfileName( SMAACameraMotionProfil
     case SMAACameraMotionProfile::FlythroughSmooth: return "flythrough-smooth";
     case SMAACameraMotionProfile::FlythroughSmoothYaw360:
         return "flythrough-smooth-yaw-360";
+    case SMAACameraMotionProfile::FlythroughWide:  return "flythrough-wide";
+    case SMAACameraMotionProfile::FlythroughWideYaw360:
+        return "flythrough-wide-yaw-360";
     default:                                        return "invalid";
     }
 }
@@ -989,6 +996,8 @@ int CMAA2Sample::GetSMAACameraMotionProfileFrameCount( SMAACameraMotionProfile p
     case SMAACameraMotionProfile::YawSmooth360:
     case SMAACameraMotionProfile::FlythroughSmooth:
     case SMAACameraMotionProfile::FlythroughSmoothYaw360:
+    case SMAACameraMotionProfile::FlythroughWide:
+    case SMAACameraMotionProfile::FlythroughWideYaw360:
         return preMotionStillFrames + 360 + postMotionStillFrames;
     default:                                        return 0;
     }
@@ -1057,6 +1066,8 @@ bool CMAA2Sample::EvaluateSMAACameraMotionPose(
     case SMAACameraMotionProfile::YawSmooth360:
     case SMAACameraMotionProfile::FlythroughSmooth:
     case SMAACameraMotionProfile::FlythroughSmoothYaw360:
+    case SMAACameraMotionProfile::FlythroughWide:
+    case SMAACameraMotionProfile::FlythroughWideYaw360:
         motionFrameCount = 360;
         break;
     default:                                        assert( false );         break;
@@ -1077,11 +1088,23 @@ bool CMAA2Sample::EvaluateSMAACameraMotionPose(
     const bool strafeMotion = profile == SMAACameraMotionProfile::StrafeFast
         || profile == SMAACameraMotionProfile::YawStrafeFast;
     const bool smoothYawMotion = profile == SMAACameraMotionProfile::YawSmooth360
-        || profile == SMAACameraMotionProfile::FlythroughSmoothYaw360;
+        || profile == SMAACameraMotionProfile::FlythroughSmoothYaw360
+        || profile == SMAACameraMotionProfile::FlythroughWideYaw360;
     const bool flythroughMotion = profile == SMAACameraMotionProfile::FlythroughSmooth
-        || profile == SMAACameraMotionProfile::FlythroughSmoothYaw360;
+        || profile == SMAACameraMotionProfile::FlythroughSmoothYaw360
+        || profile == SMAACameraMotionProfile::FlythroughWide
+        || profile == SMAACameraMotionProfile::FlythroughWideYaw360;
+    const bool wideFlythroughMotion = profile == SMAACameraMotionProfile::FlythroughWide
+        || profile == SMAACameraMotionProfile::FlythroughWideYaw360;
     const bool smoothCameraProfile = smoothYawMotion
-        || profile == SMAACameraMotionProfile::FlythroughSmooth;
+        || profile == SMAACameraMotionProfile::FlythroughSmooth
+        || profile == SMAACameraMotionProfile::FlythroughWide;
+
+    // Preserve the existing 0.25-scale protocol and expose a separate 0.50
+    // control whose translation is visually distinguishable from pure yaw.
+    // A separate profile keeps every completed low-translation capture valid.
+    if( wideFlythroughMotion )
+        flythroughPositionScale *= 2.0f;
 
     // The legacy Minecraft overview has terrain immediately behind the camera,
     // which makes a complete yaw enter the mesh. Keep every legacy profile
@@ -3835,6 +3858,7 @@ class BenchItemPreviewSMAACameraMotion : public AutoBenchToolWorkItem
         case CMAA2Sample::SMAACameraMotionProfile::YawStrafeFast: return 3.0;
         case CMAA2Sample::SMAACameraMotionProfile::YawSmooth360:
         case CMAA2Sample::SMAACameraMotionProfile::FlythroughSmoothYaw360:
+        case CMAA2Sample::SMAACameraMotionProfile::FlythroughWideYaw360:
             return 1.875;
         default:                                                   return 0.0;
         }
@@ -4031,11 +4055,13 @@ protected:
             CMAA2Sample::SceneSelectionType::LumberyardBistro,
             CMAA2Sample::SceneSelectionType::MinecraftLostEmpire
         };
-        const CMAA2Sample::SMAACameraMotionProfile profiles[3] =
+        const CMAA2Sample::SMAACameraMotionProfile profiles[5] =
         {
             CMAA2Sample::SMAACameraMotionProfile::YawSmooth360,
             CMAA2Sample::SMAACameraMotionProfile::FlythroughSmooth,
-            CMAA2Sample::SMAACameraMotionProfile::FlythroughSmoothYaw360
+            CMAA2Sample::SMAACameraMotionProfile::FlythroughSmoothYaw360,
+            CMAA2Sample::SMAACameraMotionProfile::FlythroughWide,
+            CMAA2Sample::SMAACameraMotionProfile::FlythroughWideYaw360
         };
 
         bool passed = true;
@@ -4046,7 +4072,7 @@ protected:
             "CPU-only deterministic pose validation; this is not a rendered quality or performance result.\r\n"
             "The combined profile must reuse the exact flythrough position and add only a smooth yaw contribution.\r\n\r\n" );
         abTool.ReportAddRowValues( { "Scene", "Profile", "Frames", "Travel distance",
-            "Max position step", "Max view-angle step deg", "Start boundary m / deg",
+            "Net displacement", "Max position step", "Max view-angle step deg", "Start boundary m / deg",
             "End boundary m / deg", "Result" } );
 
         for( CMAA2Sample::SceneSelectionType scene : scenes )
@@ -4064,6 +4090,7 @@ protected:
                 float endBoundaryPositionStep = 0.0f;
                 float startBoundaryStep = 0.0f;
                 float endBoundaryStep = 0.0f;
+                vaVector3 firstPosition;
                 bool profilePassed = frameCount == 480;
                 for( int frame = 0; frame < frameCount; frame++ )
                 {
@@ -4099,9 +4126,16 @@ protected:
                             endBoundaryStep = angularStep;
                         }
                     }
+                    else
+                    {
+                        firstPosition = position;
+                    }
                     previousPosition = position;
                     previousForward = forward;
                 }
+
+                const float netDisplacement =
+                    (previousPosition - firstPosition).Length( );
 
                 const bool stationary =
                     profile == CMAA2Sample::SMAACameraMotionProfile::YawSmooth360;
@@ -4119,6 +4153,7 @@ protected:
                     CMAA2Sample::GetSMAACameraMotionProfileName( profile ),
                     vaStringTools::Format( "%d", frameCount ),
                     vaStringTools::Format( "%.6f", travelDistance ),
+                    vaStringTools::Format( "%.6f", netDisplacement ),
                     vaStringTools::Format( "%.6f", maximumPositionStep ),
                     vaStringTools::Format( "%.6f", maximumAngularStep ),
                     vaStringTools::Format( "%.6f / %.6f",
@@ -4129,57 +4164,72 @@ protected:
                 } );
             }
 
-            float maximumPositionMismatch = 0.0f;
-            float maximumForwardMismatch = 0.0f;
-            float maximumAddedYawStepDegrees = 0.0f;
-            float previousAddedYaw = 0.0f;
-            const int frameCount = CMAA2Sample::GetSMAACameraMotionProfileFrameCount(
-                CMAA2Sample::SMAACameraMotionProfile::FlythroughSmooth );
-            for( int frame = 0; frame < frameCount; frame++ )
+            const CMAA2Sample::SMAACameraMotionProfile flyProfiles[2] =
             {
-                vaVector3 flyPosition;
-                vaVector3 flyForward;
-                vaVector3 combinedPosition;
-                vaVector3 combinedForward;
-                float flyAddedYaw = 0.0f;
-                float combinedAddedYaw = 0.0f;
-                const bool flyEvaluated = m_parent.EvaluateSMAACameraMotionPose(
-                    scene, CMAA2Sample::SMAACameraMotionProfile::FlythroughSmooth,
-                    frame, flyPosition, flyForward, &flyAddedYaw );
-                const bool combinedEvaluated = m_parent.EvaluateSMAACameraMotionPose(
-                    scene, CMAA2Sample::SMAACameraMotionProfile::FlythroughSmoothYaw360,
-                    frame, combinedPosition, combinedForward, &combinedAddedYaw );
-                const float cosine = vaMath::Cos( combinedAddedYaw );
-                const float sine = vaMath::Sin( combinedAddedYaw );
-                const vaVector3 expectedForward(
-                    flyForward.x * cosine - flyForward.y * sine,
-                    flyForward.x * sine + flyForward.y * cosine,
-                    flyForward.z );
-                maximumPositionMismatch = vaMath::Max( maximumPositionMismatch,
-                    (flyPosition - combinedPosition).Length( ) );
-                maximumForwardMismatch = vaMath::Max( maximumForwardMismatch,
-                    (expectedForward.Normalized( ) - combinedForward).Length( ) );
-                if( frame > 0 )
+                CMAA2Sample::SMAACameraMotionProfile::FlythroughSmooth,
+                CMAA2Sample::SMAACameraMotionProfile::FlythroughWide
+            };
+            const CMAA2Sample::SMAACameraMotionProfile combinedProfiles[2] =
+            {
+                CMAA2Sample::SMAACameraMotionProfile::FlythroughSmoothYaw360,
+                CMAA2Sample::SMAACameraMotionProfile::FlythroughWideYaw360
+            };
+            for( int pairIndex = 0; pairIndex < 2; pairIndex++ )
+            {
+                float maximumPositionMismatch = 0.0f;
+                float maximumForwardMismatch = 0.0f;
+                float maximumAddedYawStepDegrees = 0.0f;
+                float previousAddedYaw = 0.0f;
+                const int frameCount =
+                    CMAA2Sample::GetSMAACameraMotionProfileFrameCount(
+                        flyProfiles[pairIndex] );
+                for( int frame = 0; frame < frameCount; frame++ )
                 {
-                    maximumAddedYawStepDegrees = vaMath::Max(
-                        maximumAddedYawStepDegrees,
-                        std::abs( WrappedAngleDifference(
-                            combinedAddedYaw, previousAddedYaw ) )
-                            * 180.0f / VA_PIf );
+                    vaVector3 flyPosition;
+                    vaVector3 flyForward;
+                    vaVector3 combinedPosition;
+                    vaVector3 combinedForward;
+                    float flyAddedYaw = 0.0f;
+                    float combinedAddedYaw = 0.0f;
+                    const bool flyEvaluated = m_parent.EvaluateSMAACameraMotionPose(
+                        scene, flyProfiles[pairIndex], frame,
+                        flyPosition, flyForward, &flyAddedYaw );
+                    const bool combinedEvaluated = m_parent.EvaluateSMAACameraMotionPose(
+                        scene, combinedProfiles[pairIndex], frame,
+                        combinedPosition, combinedForward, &combinedAddedYaw );
+                    const float cosine = vaMath::Cos( combinedAddedYaw );
+                    const float sine = vaMath::Sin( combinedAddedYaw );
+                    const vaVector3 expectedForward(
+                        flyForward.x * cosine - flyForward.y * sine,
+                        flyForward.x * sine + flyForward.y * cosine,
+                        flyForward.z );
+                    maximumPositionMismatch = vaMath::Max( maximumPositionMismatch,
+                        (flyPosition - combinedPosition).Length( ) );
+                    maximumForwardMismatch = vaMath::Max( maximumForwardMismatch,
+                        (expectedForward.Normalized( ) - combinedForward).Length( ) );
+                    if( frame > 0 )
+                    {
+                        maximumAddedYawStepDegrees = vaMath::Max(
+                            maximumAddedYawStepDegrees,
+                            std::abs( WrappedAngleDifference(
+                                combinedAddedYaw, previousAddedYaw ) )
+                                * 180.0f / VA_PIf );
+                    }
+                    previousAddedYaw = combinedAddedYaw;
+                    passed = passed && flyEvaluated && combinedEvaluated
+                        && std::abs( flyAddedYaw ) < 0.000001f;
                 }
-                previousAddedYaw = combinedAddedYaw;
-                passed = passed && flyEvaluated && combinedEvaluated
-                    && std::abs( flyAddedYaw ) < 0.000001f;
+                const bool pairPassed = maximumPositionMismatch < 0.000001f
+                    && maximumForwardMismatch < 0.00001f
+                    && maximumAddedYawStepDegrees < 1.9f;
+                passed = passed && pairPassed;
+                abTool.ReportAddText( vaStringTools::Format(
+                    "\r\n%s %s control pairing: max position mismatch %.9f, max rotated-forward mismatch %.9f, peak added-yaw step %.6f deg => %s\r\n",
+                    CMAA2Sample::GetSMAACameraMotionSceneName( scene ),
+                    pairIndex == 0? "low-translation" : "wide-translation",
+                    maximumPositionMismatch, maximumForwardMismatch,
+                    maximumAddedYawStepDegrees, pairPassed? "PASS" : "FAIL" ) );
             }
-            const bool pairPassed = maximumPositionMismatch < 0.000001f
-                && maximumForwardMismatch < 0.00001f
-                && maximumAddedYawStepDegrees < 1.9f;
-            passed = passed && pairPassed;
-            abTool.ReportAddText( vaStringTools::Format(
-                "\r\n%s control pairing: max position mismatch %.9f, max rotated-forward mismatch %.9f, peak added-yaw step %.6f deg => %s\r\n",
-                CMAA2Sample::GetSMAACameraMotionSceneName( scene ),
-                maximumPositionMismatch, maximumForwardMismatch,
-                maximumAddedYawStepDegrees, pairPassed? "PASS" : "FAIL" ) );
         }
 
         abTool.ReportAddText( passed?
@@ -6957,7 +7007,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( !(values >> sceneToken >> profileToken) )
                 {
                     VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft|powerplant|sanmiguel> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast|yaw-smooth-360|flythrough-smooth|flythrough-smooth-yaw-360> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
+                        "Invalid SMAA camera-motion preview values; expected: <bistro|minecraft|powerplant|sanmiguel> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast|yaw-smooth-360|flythrough-smooth|flythrough-smooth-yaw-360|flythrough-wide|flythrough-wide-yaw-360> [O-1X|O-T2X|O-T2X-R|O-ET2X|O-ET2X-R|A-1X|A-T2X|A-T2X-R|A-ET2X|A-ET2X-R] [repeatCount]" );
                     return;
                 }
                 if( values >> modeToken )
@@ -6991,7 +7041,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if( !TryParseSMAACameraMotionProfile( profileToken, profile ) )
             {
                 VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion preview profile; expected yaw-slow-360, yaw-fast-360, yaw-extreme-360, strafe-fast, yaw-strafe-fast, yaw-smooth-360, flythrough-smooth, or flythrough-smooth-yaw-360" );
+                        "Invalid SMAA camera-motion preview profile; expected yaw-slow-360, yaw-fast-360, yaw-extreme-360, strafe-fast, yaw-strafe-fast, yaw-smooth-360, flythrough-smooth, flythrough-smooth-yaw-360, flythrough-wide, or flythrough-wide-yaw-360" );
                 return;
             }
             if( !TryParseSMAAResearchMode( modeToken, mode, semanticID ) )
@@ -7131,7 +7181,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( !(values >> sceneToken >> profileToken) )
                 {
                     VA_LOG_ERROR(
-                        "Invalid SMAA camera-motion capture values; expected: <bistro|minecraft|powerplant|sanmiguel> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast|yaw-smooth-360|flythrough-smooth|flythrough-smooth-yaw-360> [firstProfileFrame] [captureFrames] [warmupFrames]" );
+                        "Invalid SMAA camera-motion capture values; expected: <bistro|minecraft|powerplant|sanmiguel> <yaw-slow-360|yaw-fast-360|yaw-extreme-360|strafe-fast|yaw-strafe-fast|yaw-smooth-360|flythrough-smooth|flythrough-smooth-yaw-360|flythrough-wide|flythrough-wide-yaw-360> [firstProfileFrame] [captureFrames] [warmupFrames]" );
                     return;
                 }
                 int parsedValue = 0;
@@ -7179,7 +7229,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if( !TryParseSMAACameraMotionProfile( profileToken, profile ) )
             {
                 VA_LOG_ERROR(
-                    "Invalid SMAA camera-motion profile; expected yaw-slow-360, yaw-fast-360, yaw-extreme-360, strafe-fast, yaw-strafe-fast, yaw-smooth-360, flythrough-smooth, or flythrough-smooth-yaw-360" );
+                    "Invalid SMAA camera-motion profile; expected yaw-slow-360, yaw-fast-360, yaw-extreme-360, strafe-fast, yaw-strafe-fast, yaw-smooth-360, flythrough-smooth, flythrough-smooth-yaw-360, flythrough-wide, or flythrough-wide-yaw-360" );
                 return;
             }
 
