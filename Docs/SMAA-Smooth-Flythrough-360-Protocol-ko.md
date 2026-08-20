@@ -150,3 +150,47 @@ MP4는 경로 재생과 발표용이다. 이후 정식 품질 지표에는 원�
 capture root와 다음 reference gate는 다음 문서를 기준으로 한다.
 
 - `Docs/SMAA-Smooth-Camera-Focused-Results-ko.md`
+
+## 10. 이동 가시성 보강 profile
+
+기존 `flythrough-smooth` 계열은 장면 관통을 피하기 위해 원본 위치 변화를 0.25배로
+축소했으며, 6초 motion 동안 약 1.86 m를 이동한다. 수학적으로는 translation이
+존재하지만 360도 yaw가 함께 나타나는 실시간 화면에서는 제자리 회전처럼 보일 수 있다.
+완료된 캡처와 결과를 변경하지 않고 다음 두 profile을 별도 추가했다.
+
+| Profile | 위치 scale | 추가 yaw | 용도 |
+|---|---:|---:|---|
+| `flythrough-wide` | 0.50 | 없음 | 이동-only wide control |
+| `flythrough-wide-yaw-360` | 0.50 | 부드러운 360도 | 이동과 회전이 모두 눈에 보이는 결합 경로 |
+
+두 wide profile은 기존과 같은 Catmull-Rom 구간, quintic smootherstep, fixed 60 Hz와
+60+360+60 frame timeline을 사용한다. 따라서 새 경로는 움직임의 종류를 바꾼 것이
+아니라 translation 크기만 정확히 2배로 늘린 보강 control이다. 기존 low-translation
+결과와 semantic ID는 그대로 유효하다.
+
+2026-08-20 Release x64 자동 검증 결과는 다음과 같다.
+
+| Scene | Profile | 이동 거리 | 순변위 | 최대 위치 변화/프레임 | 최대 시야각 변화/프레임 |
+|---|---|---:|---:|---:|---:|
+| Bistro | `flythrough-wide` | 3.722569 m | 3.721768 m | 0.021401 m | 0.090654° |
+| Bistro | `flythrough-wide-yaw-360` | 3.722569 m | 3.721768 m | 0.021401 m | 1.785202° |
+| Minecraft | `flythrough-wide` | 3.722570 m | 3.721768 m | 0.021401 m | 0.081565° |
+| Minecraft | `flythrough-wide-yaw-360` | 3.722570 m | 3.721768 m | 0.021401 m | 1.577932° |
+
+이동-only와 결합 profile의 frame별 위치 mismatch는 0이었고, 결합 방향은 같은
+flythrough 방향에 추가 yaw만 적용한다는 불변 조건을 통과했다. Bistro와 Minecraft의
+보이는 창 preview 및 O-1X 480-frame 전체 경로를 확인했으며, 대표 frame에서
+가구·벽·지형 관통은 관찰되지 않았다. Bistro에서는 바 내부 물체의 시차가, Minecraft에서는
+지형 위치 변화가 뚜렷해 제자리 회전과 시각적으로 구분됐다.
+
+경로 확인용 원본 PNG와 60 FPS MP4는 다음 위치에 있다.
+
+- Bistro: `D:\SMAA-Research-Data\AutoBench\20260820_162835`
+- Minecraft: `D:\SMAA-Research-Data\AutoBench\20260820_180115`
+
+두 MP4는 각각 480 frame, constant 60 FPS, 8.000초 전체 decode 검증을 통과했다.
+이 파일은 경로 확인·발표용이며 품질 수치는 원본 PNG 또는 lossless 입력으로 계산한다.
+
+기존 3-way 결과는 low-translation control 결과로 보존한다. 다음 supersample
+spatial-reference gate에는 이동이 더 명확한 `flythrough-wide-yaw-360`을 사용하고,
+대응하는 `flythrough-wide`를 translation-only control로 유지한다.

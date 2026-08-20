@@ -215,3 +215,19 @@ supersample spatial-reference를 우선 확보하는 것이다. 먼저 `O-1X`, `
 이 reference gate에서 의미 있는 차이가 확인될 때만 같은 결합 경로를 최종 8-case와
 Adaptive SMAA로 확대한다. candidate dilation과 filtered-quarter 결과는 이 camera-motion
 reference 판정과 섞지 않고 별도 ablation으로 유지한다.
+
+## 11. 후속 경로 선택 정정
+
+이 문서의 정량 결과는 위치 변화 scale 0.25, 총 이동 약 1.86 m인
+`flythrough-smooth` 계열의 **low-translation control 결과**다. 이동은 경로 검증상
+정상이나 결합 yaw가 시각적으로 지배적이어서 실시간 화면에서는 제자리 회전처럼 보일 수
+있다. 결과를 폐기하거나 재해석하지 않고 low-translation 조건으로 보존한다.
+
+후속 reference gate에는 위치 scale 0.50, 총 이동 약 3.72 m인
+`flythrough-wide-yaw-360`을 사용한다. 이 경로는 동일한 보간식과 480-frame timeline을
+유지하면서 이동량만 2배로 늘렸고, 두 실제 장면에서 관통 없는 전체 O-1X 경로와 정확한
+60 FPS 재생을 검증했다. 따라서 10절의 다음 gate에서 profile 이름을
+`flythrough-smooth-yaw-360`이 아니라 `flythrough-wide-yaw-360`으로 적용한다.
+
+wide 경로 자체는 카메라 프로토콜 보강일 뿐 새 품질 결과가 아니다. Standard와
+Edge-selective의 품질 판단은 wide 동일-pose supersample reference를 확보한 뒤 수행한다.

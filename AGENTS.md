@@ -237,7 +237,8 @@ Original mode는 기존 edge target/shader path를 유지한다.
   candidate 비율과 offline 3×3/5×5/7×7 및 filtered 1/4 mask coverage proxy, 비교
   PNG/GIF를 생성. Offline mask 확장을 실제 resolve 품질·성능 결과로 표현하지 않음
 - `Tools/SMAA/create_camera_motion_playback.py`: PNG 품질 capture와 화면 재생을 분리해
-  단일 mode와 지정 mode 비교 영상을 H.264/MP4 constant 60 FPS로 생성. 전체 영상을
+  단일 mode와 지정 mode 비교 영상을 H.264/MP4 constant 60 FPS로 생성. 단일 mode만
+  존재하는 경로 확인 capture에는 `--single-only`를 사용한다. 전체 영상을
   다시 decode해 frame 수, average rate와 PTS 증가를 검증하며 발표·육안 확인용으로만
   사용
 - `yaw-smooth-360`, `flythrough-smooth`, `flythrough-smooth-yaw-360`: fixed 60 Hz에서
@@ -245,6 +246,10 @@ Original mode는 기존 edge target/shader path를 유지한다.
   480-frame control profile. `-smaaSmoothCameraMotionPathValidationTest`로 위치·방향
   연속성과 control pairing을 확인하고 `-smaaCameraMotionSingleModeCapture`로 경로
   시각화용 한 mode만 저장한다. 알고리즘 또는 품질 reference로 분류하지 않는다.
+- `flythrough-wide`, `flythrough-wide-yaw-360`: 기존 smooth flythrough의 위치 변화만
+  0.25 scale에서 0.50 scale로 늘려 약 3.72 m translation을 제공하는 이동-only/결합
+  control. 완료된 low-translation 결과를 변경하지 않으며, 후속 camera-motion
+  supersample reference에는 wide 결합 profile을 사용한다.
 - `-smaaSmoothCameraFocusedThreeCapture`: 위 세 profile에서 `O-1X`, `O-T2X-R`,
   `O-ET2X-R`만 같은 실행에 저장하는 선행 quality gate. 최종 8-case를 변경하지 않으며
   mode마다 history를 초기화하고 같은 첫 pose warm-up을 적용한다.
@@ -944,7 +949,15 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     catastrophic reprojection ghosting은 보이지 않았지만 O-1X 유사성이 ghost 감소인지
     temporal sample 손실인지는 reference 없이 확정하지 않는다. 상세 결과는
     `Docs/SMAA-Smooth-Camera-Focused-Results-ko.md`를 기준으로 한다.
-24. **다음:** Bistro/Minecraft `flythrough-smooth-yaw-360` 결합 profile의 동일 pose
+24. **완료:** 기존 `flythrough-smooth*`의 0.25 scale, 약 1.86 m 이동은 수학적으로
+    정상이나 결합 yaw에서 제자리 회전처럼 보일 수 있어 완료 결과는 low-translation
+    control로 보존했다. 별도 `flythrough-wide`와 `flythrough-wide-yaw-360`을 추가해
+    위치 scale만 0.50으로 늘렸다. 두 장면 모두 480 frame 동안 약 3.72 m를 이동하며,
+    이동-only/결합 위치 일치, 방향 회전 관계, 시작·종료 연속성, Release x64와 visible
+    preview를 통과했다. 장면별 O-1X 480 PNG와 constant 60 FPS 8초 MP4도 검증했고
+    대표 프레임에서 장면 관통 없이 translation이 시각적으로 구분됐다. 경로 세부 내용은
+    `Docs/SMAA-Smooth-Flythrough-360-Protocol-ko.md`를 기준으로 한다.
+25. **다음:** Bistro/Minecraft `flythrough-wide-yaw-360` 결합 profile의 동일 pose
     supersample spatial-reference를 확보하고 `O-1X`, `O-T2X-R`, `O-ET2X-R`에
     CGVQM-2/error-map을 적용한다. 이 gate에서 Standard의 넓은 history 차이와
     Edge-selective의 O-1X 유사성을 reference 기준으로 구분한 뒤에만 전체 8-case와
