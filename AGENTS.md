@@ -290,7 +290,8 @@ Original mode는 기존 edge target/shader path를 유지한다.
   반복 hash, reference/temporal/coverage 지표와 반복 성능 CSV를 검증·분석한다.
 - `CandidateExpansion::FilteredQuarter`: raw current-edge candidate를 유효 4×4 block 평균으로
   quarter-resolution R8_UNORM mask에 저장하고 half-pixel bilinear로 full resolution에
-  복원한 뒤 0.25 이상을 compact하는 직교 ablation. nearest-neighbor는 사용하지 않는다.
+  복원한 뒤, raw candidate와 복원값 0.25 이상 mask를 합집합해 compact하는 직교
+  ablation. nearest-neighbor는 사용하지 않으며 원래 raw 후보를 지우면 검증 실패다.
 - `-smaaFilteredQuarterAblationCapture`와
   `-smaaFilteredQuarterPerformanceSmoke`/`Benchmark`: Candidate-Jitter와 document profile의
   None/3×3/Filtered 총 6개 mode를 동일 camera path에서 비교하고 quarter downsample,
@@ -1007,13 +1008,18 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     3×3보다 약 2.75배 비쌌다. 따라서 ARM 구현은 기능적 ablation으로 보존하되 최종
     개선안이나 600×3/CGVQM formal 대상으로 확대하지 않는다. 상세 결과는
     `Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
-27. **다음:** San Miguel 결과로 current-edge mask 확장 자체의 얇은 geometry 이득이
-    확인됐으므로 3×3과 FilteredQuarter를 우선 후보로 남긴다. 동일 thin-chair 구간에서
-    ghosting·temporal retention을 직접 비교하고, candidate readback Off 반복 성능으로
-    품질/비용 trade-off를 확정한다. ARM은 최적화 전까지 formal 확대하지 않고, 더 큰
-    5×5/7×7도 보류한다. 이후 candidate-aware stabilization band, 별도 unjittered scene
-    base, object motion vector·depth disocclusion은 독립 축으로 진행한다. 기존 최종
-    8-case와 모든 expansion ablation은 회귀 기준으로 보존한다.
+27. **정정:** 2026-08-27 체계적 구현 감사에서 기존 `FilteredQuarter`가 복원 mask만
+    threshold해 raw 후보를 지우는 결함을 발견했다. San Miguel 기존 mask에서 두 profile
+    모두 60/60 frame에 유실이 있었고 최대 58,171개 raw 후보가 사라졌다. GPU path를
+    `raw OR reconstruction>=0.25`로 수정하고 두 분석기에 raw 유실 hard-fail을 추가했다.
+    수정 후 Bistro 3-frame GPU mask에서 유실 최대 0, GPU/CPU 최대 mismatch 0.012240%로
+    PASS했다. 따라서 기존 문서·표의 FilteredQuarter 열과 이를 사용한 pair 결론은
+    pre-fix 자료로 분류하며 재사용하지 않는다. None·3×3·ARM 자체 결과는 보존한다.
+28. **다음:** 수정된 FilteredQuarter의 San Miguel thin-chair 품질·temporal retention과
+    candidate-readback-Off 반복 성능을 다시 측정한 뒤 3×3과 trade-off를 확정한다. ARM은
+    최적화 전까지 formal 확대하지 않고 5×5/7×7도 보류한다. 이후 candidate-aware
+    stabilization band, 별도 unjittered scene base, object motion vector·depth disocclusion을
+    독립 축으로 진행한다. 기존 최종 8-case와 expansion ablation은 회귀 기준으로 보존한다.
 
 ## 7. 측정 규칙
 

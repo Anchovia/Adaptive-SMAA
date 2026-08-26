@@ -1,5 +1,10 @@
 # ARM Dual Filtering 기반 current-edge 후보 확장 engineering 결과
 
+> **2026-08-27 구현 감사 정정:** 이 문서의 `Filtered` 열은 raw candidate union이
+> 빠진 수정 전 FilteredQuarter 구현으로 측정됐다. 따라서 Filtered와의 후보·품질·성능
+> 비교는 무효이며 post-fix 재측정이 필요하다. `None`, `3×3`, `ARM` mode 자체의 결과는
+> 해당 결함의 영향을 받지 않는다.
+
 ## 1. 목적과 연구 분류
 
 교수님이 제안한 downsample-upsample 기반 edge 영역 확장을 검증하기 위해 ARM
@@ -68,6 +73,8 @@ ARM은 세 장면에서 raw mask보다 후보를 늘렸고, 3×3보다는 제한
 별도 readback 실행에서 평균 candidate 수를 평균 None candidate 수로 나눈 값이므로,
 프레임별 raw 후보 수 변화가 큰 장면에서는 두 집계값이 다를 수 있다.
 
+표의 Filtered 후보 배수는 수정 전 기록으로만 보존하며 현재 구현의 배수로 인용하지 않는다.
+
 ARM GPU mask와 CPU mirror의 최대 mismatch는 Bistro 0.109237%, Minecraft
 0.080916%, San Miguel 0.066730%였다. `0.25±0.003` threshold 경계 밖 mismatch는
 각각 0.007426%, 0.000563%, 0.001332%였다. 따라서 bit-identical이라고 표현하지
@@ -99,7 +106,7 @@ reference에 가깝다.
   Candidate-Jitter 10.79% 낮췄다.
 - 실제 의자·테이블 다리와 식생 가지가 보이는 frame 0~9 screen-space ROI에서도 ARM은
   각각 9.44%, 13.10% 낮췄다. 같은 ROI에서 3×3은 9.62%, 14.46% 낮춰 ARM보다 약간
-  우수했고, Filtered도 Document에서 ARM과 사실상 같은 수준이었다.
+  우수했다. 당시 Filtered 비교는 post-fix 결론에 사용하지 않는다.
 - ARM의 adjacent-frame RGB MAE는 None보다 작아진 경우가 있으나 장면 motion을 포함한
   대용값이므로 ghosting 감소나 temporal supersampling 복구로 단정하지 않는다.
 
@@ -118,7 +125,8 @@ warm-up 뒤 120 frame을 1회 측정했다. timing 실행은 candidate readback 
 | Document | 0.045133 ms | 0.061756 ms | 0.132659 ms | +19.237% | +21.991% | +47.561% |
 | Candidate-Jitter | 0.045065 ms | 0.062072 ms | 0.133205 ms | +19.118% | +23.580% | +49.316% |
 
-ARM 4-pass mask는 3×3보다 약 2.94~2.96배, Filtered보다 약 2.15배 비쌌다. 이번 값은
+ARM 4-pass mask는 3×3보다 약 2.94~2.96배 비쌌다. 당시 Filtered 대비 배수는 서로 다른
+의미의 수정 전 구현과 비교한 값이므로 폐기한다. 이번 값은
 1회 engineering 측정이므로 통계적 유의성을 뜻하지 않지만, formal 600×3 측정을
 정당화할 정도의 성능 가능성은 보이지 않았다.
 
@@ -130,7 +138,8 @@ San Miguel `yaw-fast-360` frame 60~119에서도 readback-Off timing과 별도 re
 | Document | 0.048333 ms | 0.064308 ms | 0.132779 ms | +17.162% | +20.989% | +40.103% |
 | Candidate-Jitter | 0.048401 ms | 0.064443 ms | 0.133120 ms | +14.348% | +17.560% | +37.751% |
 
-San Miguel에서도 ARM mask는 3×3보다 약 2.75배, Filtered보다 약 2.06배 비쌌다.
+San Miguel에서도 ARM mask는 3×3보다 약 2.75배 비쌌다. 당시 Filtered 대비 수치는
+post-fix 비교에 사용하지 않는다.
 ARM 후보 수는 None의 약 2.07배였으며 의자 ROI coverage는 약 56%까지 증가했다.
 WholeFrame GPU 평균도 ARM이 None보다 Document 3.71%, Candidate-Jitter 4.82% 높았다.
 모두 1회 engineering 값이므로 통계적 유의성은 주장하지 않는다.
@@ -147,8 +156,8 @@ WholeFrame GPU 평균도 ARM이 None보다 Document 3.71%, Candidate-Jitter 4.82
 6. ARM 구현과 장면 의존 결과는 ablation 근거로 보존한다. 후속으로 재검토한다면 pass fusion,
    group-shared tile, 더 얕은 pyramid 또는 lower-resolution resolve처럼 구조적 비용을
    줄이는 변경이 먼저 필요하다.
-7. 후보 확장 연구의 다음 비교 우선순위는 ARM이 아니라 3×3과 FilteredQuarter의
-   San Miguel ghosting·temporal retention·반복 성능 trade-off다.
+7. 후보 확장 연구의 다음 비교 우선순위는 ARM이 아니라 3×3과 수정된
+   FilteredQuarter의 San Miguel ghosting·temporal retention·반복 성능 trade-off다.
 
 ## 8. 산출물
 

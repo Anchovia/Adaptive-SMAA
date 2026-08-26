@@ -36,7 +36,11 @@ adaptation이며, ARM의 SMAA/TSCMAA 공식 구현이 아니다. 이름은
 - full-resolution binary mask를 유효 4×4 block mean으로 직접 quarter resolution에 저장
 - R8_UNORM 양자화
 - manual bilinear로 full resolution 복원
-- `>= 0.25` threshold로 compact
+- raw selected candidate와 `>= 0.25` reconstruction mask를 합집합해 compact
+
+2026-08-27 감사 이전 FilteredQuarter는 마지막 raw union이 빠져 일부 원본 후보를
+지웠다. 현재 정의는 수정됐으며, 이전 FilteredQuarter 측정값은 post-fix 비교에 사용하지
+않는다.
 
 ## 3. ARM 공식 kernel
 
