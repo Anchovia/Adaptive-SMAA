@@ -298,6 +298,17 @@ Original mode는 기존 edge target/shader path를 유지한다.
 - `Tools/SMAA/analyze_filtered_quarter_quality.py`와
   `analyze_filtered_quarter_performance.py`: 6-mode sequence, 3×3 exact CPU mask,
   filtered CPU mirror의 threshold-boundary mismatch, 후보 배수와 timing 표본을 검증한다.
+- `CandidateExpansion::ArmDualFilter`: ARM SIGGRAPH 2015 공개 5-tap downsample과 8-tap
+  upsample kernel을 full→half→quarter→half→full R8 mask pyramid에 적용한다. 최종 mask는
+  raw selected candidate와 `reconstruction>=0.25`를 union해 원본 current edge를 보존한다.
+  pyramid 깊이, half-pixel 규칙, R8 형식, threshold와 raw union은 SMAA 연구 adaptation이며
+  ARM 또는 Intel의 공식 SMAA/TSCMAA 구현이라고 표현하지 않는다.
+- `-smaaArmDualFilterAblationCapture`와
+  `-smaaArmDualFilterPerformanceSmoke`/`Benchmark`: Candidate-Jitter와 document profile의
+  None/3×3/Filtered/ARM 총 8개 mode를 비교하고 네 ARM filter pass를 따로 계측한다.
+- `Tools/SMAA/analyze_arm_dual_filter_quality.py`와
+  `analyze_arm_dual_filter_performance.py`: ARM CPU mirror, raw 보존, threshold-boundary
+  mismatch, reference/temporal 지표, timing/pass/counter 표본을 검증한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
@@ -975,14 +986,23 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     supersampling 유지 우위는 확인하지 못했다. Transition clip에서는 Standard가 더
     높아 phase 의존성도 기록했다. 상세 결과는
     `Docs/SMAA-Wide-Camera-Reference-Results-ko.md`를 기준으로 한다.
-26. **다음:** ARM Dual Filtering의 공개 downsample/upsample kernel을 current-edge
-    candidate mask 확장에 적용하는 별도 research adaptation의 정확한 수식·offset·
-    threshold protocol을 먼저 고정한다. 기존 `FilteredQuarter`는 자체 4×4 평균+bilinear
-    ablation으로 보존하고 ARM 방식으로 재명명하지 않는다. 구현 후 `None`, 정확한 3×3,
-    `FilteredQuarter`, `ArmDualFilter`의 mask correctness, candidate coverage, CGVQM,
-    temporal retention과 pass별 GPU 비용을 engineering gate부터 비교한다. Candidate-aware
-    stabilization band, 별도 unjittered scene base, object motion vector·depth disocclusion
-    지원은 이 expansion 평가와 분리한 후속 연구로 유지한다.
+26. **완료:** ARM SIGGRAPH 2015 Dual Filtering의 공개 5-tap downsample/8-tap upsample
+    kernel을 current-edge candidate mask에 적용하는 별도 research adaptation을 구현했다.
+    첫 reconstruction-only smoke가 raw 후보를 약 43~44%만 남기는 문제를 발견해
+    `raw OR reconstruction>=0.25` union으로 수정했고, 이후 raw 후보 유실 없이
+    Bistro/Minecraft에서 후보를 약 1.49~1.69배 확장했다. 60-frame CPU/GPU mask와
+    supersample spatial-reference gate, lifecycle과 120-frame readback-Off 성능 smoke를
+    통과했다. 그러나 ARM 4-pass mask는 약 0.133 ms로 3×3의 약 2.94~2.96배였고,
+    Candidate-Jitter의 reference 이득은 작으며 document profile은 장면에 따라 악화됐다.
+    따라서 현재 구현은 기능적 ablation으로 보존하되 최종 개선안으로 채택하거나
+    600×3/CGVQM formal 측정으로 확대하지 않는다. 상세 결과는
+    `Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
+27. **다음:** current-edge mask 확장 계열은 3×3, FilteredQuarter와 ArmDualFilter 모두
+    비용 또는 품질 gate를 통과하지 못했으므로 더 큰 5×5/7×7 kernel은 보류한다.
+    다음 우선순위는 candidate-aware stabilization band, 별도 unjittered scene base,
+    object motion vector·depth disocclusion처럼 temporal sample 유지와 ghost rejection을
+    직접 다루는 독립 축 중 하나를 명시적 protocol로 선택하는 것이다. 기존 최종 8-case와
+    모든 expansion ablation은 회귀 기준으로 보존한다.
 
 ## 7. 측정 규칙
 
