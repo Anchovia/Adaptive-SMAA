@@ -4871,6 +4871,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         double Maximum = 0.0;
     };
 
+    const CMAA2Sample::SceneSelectionType m_scene;
     const float m_startTime;
     const int m_warmupFrameCount;
     const int m_measureFrameCount;
@@ -4880,6 +4881,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_currentEdgeDilationAblation;
     const bool m_filteredQuarterAblation;
     const bool m_armDualFilterAblation;
+    const bool m_useCameraMotionProfile;
+    const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
+    const int m_firstProfileFrame;
     const int m_modeCount;
     const float m_frameDeltaTime = 1.0f / (float)c_framePerSecond;
 
@@ -5336,12 +5340,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     }
 
 public:
-    BenchItemSMAATemporalPerformanceBenchmark( CMAA2Sample & parent, float startTime,
+    BenchItemSMAATemporalPerformanceBenchmark( CMAA2Sample & parent,
+        CMAA2Sample::SceneSelectionType scene, float startTime,
         int warmupFrameCount, int measureFrameCount, int repeatCount, bool includeAdaptive,
         bool candidateAblation = false, bool fullComponentAblation = false,
         bool currentEdgeDilationAblation = false, bool filteredQuarterAblation = false,
-        bool armDualFilterAblation = false )
+        bool armDualFilterAblation = false, bool useCameraMotionProfile = false,
+        CMAA2Sample::SMAACameraMotionProfile cameraMotionProfile =
+            CMAA2Sample::SMAACameraMotionProfile::YawFast360,
+        int firstProfileFrame = 60 )
         : AutoBenchToolWorkItem( parent ),
+        m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
         m_warmupFrameCount( vaMath::Max( 8, warmupFrameCount ) ),
         m_measureFrameCount( vaMath::Max( 16, measureFrameCount ) ),
@@ -5351,6 +5360,9 @@ public:
         m_currentEdgeDilationAblation( currentEdgeDilationAblation ),
         m_filteredQuarterAblation( filteredQuarterAblation ),
         m_armDualFilterAblation( armDualFilterAblation ),
+        m_useCameraMotionProfile( useCameraMotionProfile ),
+        m_cameraMotionProfile( cameraMotionProfile ),
+        m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
         m_modeCount( armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
             (includeAdaptive? c_modeCapacity : c_originalModeCount)))) )
@@ -5367,7 +5379,9 @@ protected:
         if( !m_started )
         {
             m_started = true;
-            m_parent.Settings( ).SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.Settings( ).SceneChoice = m_scene;
+            if( m_useCameraMotionProfile )
+                m_parent.SetFlythroughCameraEnabled( false );
             m_parent.SetRequireDeterminism( true );
             m_parent.SetFixedDeltaTime( m_frameDeltaTime );
             m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
@@ -5440,6 +5454,13 @@ protected:
             abTool.ReportAddText( "ApplicationFrameWall is the observed CPU wall interval between corresponding AutoBench ticks and includes Present/OS scheduling.\r\n" );
             abTool.ReportAddText( "1% low FPS is computed as 1000 / p99 frame time.\r\n" );
             abTool.ReportAddText( "Repeat traversal alternates forward and reverse mode order to reduce order bias.\r\n" );
+            abTool.ReportAddText( vaStringTools::Format( "Scene: %s.\r\n",
+                CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
+            if( m_useCameraMotionProfile )
+                abTool.ReportAddText( vaStringTools::Format(
+                    "Camera profile: %s, measured profile frames %d..%d; warm-up holds the first pose.\r\n",
+                    CMAA2Sample::GetSMAACameraMotionProfileName( m_cameraMotionProfile ),
+                    m_firstProfileFrame, m_firstProfileFrame + m_measureFrameCount - 1 ) );
             abTool.ReportAddText( m_candidateReadbackEnabled?
                 "Candidate counter readback: enabled and reported explicitly.\r\n" :
                 "Candidate counter readback: disabled for timing isolation.\r\n" );
@@ -5472,6 +5493,8 @@ protected:
                 m_currentRepeat++;
                 if( m_currentRepeat >= m_repeatCount )
                 {
+                    if( m_useCameraMotionProfile )
+                        m_parent.ClearSMAACameraMotionTestState( );
                     FinishReport( abTool );
                     m_isDone = true;
                     return;
@@ -5484,8 +5507,17 @@ protected:
 
         m_currentFrame++;
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
-        const float playTime = m_startTime + m_currentFrame * m_frameDeltaTime;
-        m_parent.GetFlythroughCameraController( )->SetPlayTime( vaMath::Max( 0.0f, playTime ) );
+        if( m_useCameraMotionProfile )
+        {
+            const int profileFrame = m_firstProfileFrame + vaMath::Max( 0, m_currentFrame );
+            m_parent.SetSMAACameraMotionTestState(
+                m_scene, m_cameraMotionProfile, profileFrame );
+        }
+        else
+        {
+            const float playTime = m_startTime + m_currentFrame * m_frameDeltaTime;
+            m_parent.GetFlythroughCameraController( )->SetPlayTime( vaMath::Max( 0.0f, playTime ) );
+        }
         m_previousFrameAvailable = true;
     }
 
@@ -7021,6 +7053,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
+            SceneSelectionType performanceScene = SceneSelectionType::LumberyardBistro;
+            bool usePerformanceCameraMotion = false;
             float startTime = 1.0f;
             int warmupFrameCount = repeatedPerformanceBenchmark? 300 : 60;
             int measureFrameCount = repeatedPerformanceBenchmark? 4800 : 120;
@@ -7028,9 +7062,35 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if (!parameter.second.empty())
             {
                 std::wistringstream values(parameter.second);
+                if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark )
+                {
+                    wstring possibleScene;
+                    values >> possibleScene;
+                    SceneSelectionType parsedScene = SceneSelectionType::MaxValue;
+                    if( TryParseSMAACameraMotionScene( possibleScene, parsedScene ) )
+                    {
+                        if( parsedScene == SceneSelectionType::PowerPlantThinGeometry )
+                        {
+                            VA_LOG_ERROR("ARM Dual Filtering performance excludes the incomplete Power Plant renderer; use bistro, minecraft, or sanmiguel");
+                            return;
+                        }
+                        if( parsedScene == SceneSelectionType::SanMiguelTextured && !HasSanMiguelScene( ) )
+                        {
+                            VA_LOG_ERROR("San Miguel ARM Dual Filtering performance requires -smaaSanMiguelCache <absolute .smaasm path>");
+                            return;
+                        }
+                        performanceScene = parsedScene;
+                        usePerformanceCameraMotion = true;
+                    }
+                    else
+                    {
+                        values.clear( );
+                        values.str( parameter.second );
+                    }
+                }
                 if (!(values >> startTime >> warmupFrameCount >> measureFrameCount))
                 {
-                    VA_LOG_ERROR("Invalid SMAA temporal performance values; expected: <startTimeSeconds> <warmupFrames> <measureFrames> [repeats]");
+                    VA_LOG_ERROR("Invalid SMAA temporal performance values; expected: [bistro|minecraft|sanmiguel] <startTimeSeconds> <warmupFrames> <measureFrames> [repeats]");
                     return;
                 }
                 int parsedRepeatCount = repeatCount;
@@ -7041,10 +7101,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             warmupFrameCount = vaMath::Clamp(warmupFrameCount, 8, 600);
             measureFrameCount = vaMath::Clamp(measureFrameCount, 16, 4800);
             repeatCount = vaMath::Clamp(repeatCount, 1, 9);
+            if( usePerformanceCameraMotion && measureFrameCount > 60 )
+            {
+                VA_LOG_ERROR("Scene-profile ARM Dual Filtering performance measures yaw-fast-360 motion frames 60..119; measureFrames must be <= 60");
+                return;
+            }
             if (repeatedPerformanceBenchmark)
                 m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(false);
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(
-                *this, startTime, warmupFrameCount, measureFrameCount, repeatCount,
+                *this, performanceScene, startTime, warmupFrameCount, measureFrameCount, repeatCount,
                 includeAdaptive, candidateAblationPerformance,
                 fullComponentAblationPerformance,
                 currentEdgeDilationPerformanceSmoke
@@ -7052,7 +7117,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 filteredQuarterPerformanceSmoke
                     || filteredQuarterPerformanceBenchmark,
                 armDualFilterPerformanceSmoke
-                    || armDualFilterPerformanceBenchmark));
+                    || armDualFilterPerformanceBenchmark,
+                usePerformanceCameraMotion,
+                SMAACameraMotionProfile::YawFast360, 60));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -7067,10 +7134,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "filtered-quarter candidate-expansion ablation";
             if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark )
                 performanceKind = "ARM Dual Filtering candidate-expansion ablation";
-            VA_LOG("Queued SMAA %s %s: start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
+            VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
-                startTime, repeatCount, warmupFrameCount, measureFrameCount,
+                GetSMAACameraMotionSceneName( performanceScene ), startTime, repeatCount,
+                warmupFrameCount, measureFrameCount,
                 m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled()? "On" : "Off");
             return;
         }
@@ -8468,7 +8536,8 @@ void CMAA2Sample::UIPanelDraw()
             m_queueEightCasePerformanceBenchmark = false;
             m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(false);
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(
-                *this, 1.0f, 300, 4800, 3, true));
+                *this, CMAA2Sample::SceneSelectionType::LumberyardBistro,
+                1.0f, 300, 4800, 3, true));
         }
 
         if (ImGui::CollapsingHeader("Benchmarking", headerFlags))
