@@ -3796,7 +3796,7 @@ protected:
                     (m_filteredQuarterMatrix?
                     "Comparison:      Candidate-Jitter and document profile, each with expansion None, 3x3, and filtered quarter\r\n"
                     "Order control:   no-jitter document triplet first, then jitter triplet after an equal deterministic prelude\r\n"
-                    "Filtered path:   exact valid-pixel 4x4 box average to ceil(width/4)xceil(height/4), R8 storage, manual half-pixel bilinear upsample, threshold >= 0.25\r\n"
+                    "Filtered path:   exact valid-pixel 4x4 box average to ceil(width/4)xceil(height/4), R8 storage, manual half-pixel bilinear upsample, then raw-mask union with threshold >= 0.25\r\n"
                     "Purpose:         isolate the expansion method; final 8-case modes remain unchanged\r\n\r\n" :
                 (m_currentEdgeDilationMatrix?
                     "Comparison:      Candidate-Jitter and document profile, each with current-edge dilation None versus 3x3\r\n"
@@ -5409,7 +5409,7 @@ protected:
                     "SMAA filtered-quarter candidate-expansion GPU performance smoke\r\n\r\n" );
                 abTool.ReportAddText(
                     "This compares Candidate-Jitter and the document profile, each with expansion None, 3x3, and filtered quarter.\r\n"
-                    "The filtered path reports raw extraction, quarter downsample, bilinear upsample/compact, indirect resolve, and total SMAA GPU timestamps separately.\r\n" );
+                    "The filtered path reports raw extraction, quarter downsample, bilinear upsample plus raw-mask union/compact, indirect resolve, and total SMAA GPU timestamps separately.\r\n" );
             }
             else if( m_currentEdgeDilationAblation )
             {

@@ -543,7 +543,9 @@ void TSCMAADownsampleCandidatesQuarterCS(
 
 // Filtered-quarter expansion pass 2. Manual bilinear interpolation makes the
 // non-nearest reconstruction rule explicit and CPU-reference reproducible.
-// Pixels at or above the offline proxy threshold (0.25) are compacted.
+// Pixels at or above the offline proxy threshold (0.25) are unioned with the
+// raw mask and compacted. Candidate expansion must never erase an original
+// current-edge candidate.
 [numthreads(8, 8, 1)]
 void TSCMAAUpsampleCandidatesQuarterCS(
     uint3 dispatchThreadID : SV_DispatchThreadID) {
@@ -572,7 +574,9 @@ void TSCMAAUpsampleCandidatesQuarterCS(
     float bottom = lerp(
         tscmaaFilteredQuarterMaskInput.Load(int3(p01, 0)),
         tscmaaFilteredQuarterMaskInput.Load(int3(p11, 0)), fraction.x);
-    bool candidate = lerp(top, bottom, fraction.y) >= 0.25;
+    bool rawCandidate =
+        tscmaaRawCandidateMaskInput.Load(int3(dispatchThreadID.xy, 0)) > 0.5;
+    bool candidate = rawCandidate || lerp(top, bottom, fraction.y) >= 0.25;
 
     tscmaaCandidateMask[dispatchThreadID.xy] = candidate ? 1.0 : 0.0;
     if (!candidate)

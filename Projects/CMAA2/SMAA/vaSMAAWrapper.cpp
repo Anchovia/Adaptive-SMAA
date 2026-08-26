@@ -79,7 +79,8 @@ void vaSMAAWrapper::UIPanelDraw( )
             int expansion = (int)m_candidateExpansionOverride;
             if( ImGuiEx_Combo( "Candidate expansion", expansion,
                 { string("None"), string("Current-edge 3x3 dilation"),
-                  string("Filtered 1/4 downsample-upsample") } ) )
+                  string("Filtered 1/4 downsample-upsample"),
+                  string("ARM Dual Filtering adaptation") } ) )
                 SetCandidateExpansionOverride(
                     true, (CandidateExpansion)expansion );
         }
@@ -155,7 +156,9 @@ void vaSMAAWrapper::UIPanelDraw( )
                 statistics.Expansion == CandidateExpansion::Dilate3x3?
                 "Current-edge 3x3" :
                 (statistics.Expansion == CandidateExpansion::FilteredQuarter?
-                    "Filtered 1/4" : "None") );
+                    "Filtered 1/4" :
+                    (statistics.Expansion == CandidateExpansion::ArmDualFilter?
+                        "ARM Dual Filtering adaptation" : "None")) );
             ImGui::Text( "Indirect processed: %u", statistics.ProcessCount );
             ImGui::Text( "Indirect groups: %u", statistics.DispatchGroupCount );
         }

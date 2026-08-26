@@ -216,6 +216,7 @@ def main() -> int:
                 "arm_dual_boundary_pixels": int(boundary.sum(dtype=np.int64)),
                 "arm_dual_mismatch_outside_boundary": int(np.count_nonzero(mismatch & ~boundary)),
                 "arm_dual_mismatch_outside_boundary_rate": float(np.mean(mismatch & ~boundary)),
+                "filtered_erased_raw_candidates": int(np.count_nonzero(raw & ~gpu_filtered)),
                 "arm_dual_erased_raw_candidates": int(np.count_nonzero(raw & ~gpu_arm)),
             })
             base_final = load_rgb(finals[base_key][frame])
@@ -245,6 +246,14 @@ def main() -> int:
 
     if any(int(row["dilate3x3_cpu_mismatch"]) != 0 for row in mask_rows):
         raise RuntimeError("GPU 3x3 mask does not match the exact CPU max filter")
+    maximum_filtered_erased_raw = max(
+        int(row["filtered_erased_raw_candidates"]) for row in mask_rows
+    )
+    if maximum_filtered_erased_raw != 0:
+        raise RuntimeError(
+            "Filtered-quarter expansion erased raw candidates: "
+            f"{maximum_filtered_erased_raw}"
+        )
     maximum_erased_raw = max(int(row["arm_dual_erased_raw_candidates"]) for row in mask_rows)
     # Independent mode renders can differ by one threshold pixel in the
     # jittered profile even though the shader applies a strict raw-mask union.
@@ -312,6 +321,7 @@ def main() -> int:
         "expected_frames": args.expected_frames,
         "maximum_arm_dual_cpu_mismatch_rate": max_arm_mismatch,
         "maximum_arm_dual_cpu_mismatch_outside_boundary_rate": max_arm_outside_boundary,
+        "maximum_filtered_erased_raw_candidates": maximum_filtered_erased_raw,
         "maximum_erased_raw_candidates": maximum_erased_raw,
         "summaries": summaries,
         "reference_dir": str(args.reference_dir.resolve()) if args.reference_dir else None,
@@ -325,6 +335,8 @@ def main() -> int:
         f"- 장면/경로: `{args.scene}` / `{args.profile}`",
         f"- 분류: `engineering`; mode당 {args.expected_frames} frame",
         "- ARM kernel 뒤 raw current-edge candidate를 union해 원본 후보를 보존함",
+        "- Filtered 1/4 경로도 raw current-edge candidate와 복원 mask를 합집합으로 보존함",
+        f"- Filtered raw 후보 유실 최대값: {maximum_filtered_erased_raw} pixel",
         f"- ARM GPU/CPU mirror 최대 mismatch: {max_arm_mismatch * 100:.6f}%",
         f"- threshold-boundary 밖 최대 mismatch: {max_arm_outside_boundary * 100:.6f}%",
         f"- 독립 mode capture에서 frame당 raw 후보 유실 최대값: {maximum_erased_raw} pixel",

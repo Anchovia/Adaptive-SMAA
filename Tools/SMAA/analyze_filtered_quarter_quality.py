@@ -153,7 +153,7 @@ def filtered_quarter(mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         - quarter_float[y1[:, None], x0[None, :]]
     ) * fraction_x[None, :]
     reconstructed = top + (bottom - top) * fraction_y[:, None]
-    return reconstructed >= np.float32(0.25), reconstructed
+    return mask | (reconstructed >= np.float32(0.25)), reconstructed
 
 
 def rgb_mae(first: np.ndarray, second: np.ndarray) -> float:
@@ -249,6 +249,9 @@ def main() -> int:
                     "filtered_cpu_mismatch": int(np.count_nonzero(cpu_filtered != gpu_filtered)),
                     "filtered_cpu_mismatch_rate": float(np.mean(cpu_filtered != gpu_filtered)),
                     "filtered_boundary_pixels": int(boundary.sum(dtype=np.int64)),
+                    "filtered_erased_raw_candidates": int(
+                        np.count_nonzero(base & ~gpu_filtered)
+                    ),
                 }
             )
             base_final = load_rgb(paths[base_key][frame])
@@ -268,6 +271,14 @@ def main() -> int:
 
     if any(row["dilate3x3_cpu_mismatch"] != 0 for row in mask_rows):
         raise RuntimeError("GPU 3x3 mask does not match the exact CPU max filter")
+    maximum_filtered_erased_raw = max(
+        int(row["filtered_erased_raw_candidates"]) for row in mask_rows
+    )
+    if maximum_filtered_erased_raw != 0:
+        raise RuntimeError(
+            "Filtered-quarter expansion erased raw candidates: "
+            f"{maximum_filtered_erased_raw}"
+        )
     maximum_filtered_mismatch_rate = max(
         float(row["filtered_cpu_mismatch_rate"]) for row in mask_rows
     )
@@ -326,6 +337,7 @@ def main() -> int:
         "deterministic_repeat_pixel_mismatches": deterministic_pixel_mismatches,
         "deterministic_repeat_max_channel_delta": deterministic_max_channel_delta,
         "maximum_filtered_cpu_mismatch_rate": maximum_filtered_mismatch_rate,
+        "maximum_filtered_erased_raw_candidates": maximum_filtered_erased_raw,
         "summaries": summaries,
     }
     (output / "filtered_quarter_quality.json").write_text(
@@ -338,6 +350,8 @@ def main() -> int:
         f"- 장면/경로: `{args.scene}` / `{args.profile}`",
         f"- 분류: `{args.classification}`; mode당 {args.expected_frames} frame",
         "- 3×3 GPU mask와 CPU max-filter: 모든 frame 0 pixel mismatch",
+        "- Filtered 경로는 raw current-edge candidate와 복원 mask를 합집합으로 보존함",
+        f"- Filtered raw 후보 유실 최대값: {maximum_filtered_erased_raw} pixel",
         f"- Filtered GPU/CPU 최대 mismatch 비율: {maximum_filtered_mismatch_rate * 100:.6f}%",
     ]
     if deterministic_mismatches is not None:

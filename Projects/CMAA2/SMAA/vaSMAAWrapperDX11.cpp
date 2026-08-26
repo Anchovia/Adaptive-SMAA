@@ -654,9 +654,6 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
     SAFE_RELEASE( m_PointSampler    );
     SAFE_RELEASE( m_LinearSampler   );
 
-    SAFE_DELETE( m_smaa );
-
-    SAFE_DELETE( m_smaa );
 }
 
 void vaSMAAWrapperDX11::CleanupTemporaryResources( )
@@ -775,7 +772,6 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 || (GetForcedCandidateCountEnabled( ) && m_tscmaaCandidatesReadback == nullptr)
                 || m_tscmaaControlBufferUAV == nullptr || m_tscmaaDispatchArgsBufferUAV == nullptr)))) )
     {
-        SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
         SetGlobalStates( deviceContext );
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
@@ -1460,10 +1456,13 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         }
 
         // Pass 2: unbind both sides of the downsample, then manually bilinear
-        // upsample t14 into the full-resolution candidate mask and compact list.
+        // upsample t14, union it with the full-resolution raw mask on t13,
+        // and compact the resulting candidate mask.
         dx11Context->CSSetUnorderedAccessViews( 7, 1, &nullIntermediateUAV, nullptr );
         ID3D11ShaderResourceView * nullRawMaskSRV = nullptr;
         dx11Context->CSSetShaderResources( 13, 1, &nullRawMaskSRV );
+        SRVs[6] = m_tscmaaRawCandidateMask->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        dx11Context->CSSetShaderResources( 13, 1, &SRVs[6] );
         SRVs[7] = m_tscmaaFilteredQuarterMask->SafeCast<vaTextureDX11*>( )->GetSRV( );
         dx11Context->CSSetShaderResources( 14, 1, &SRVs[7] );
         {
@@ -1472,6 +1471,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
             dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8,
                 (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
         }
+        dx11Context->CSSetShaderResources( 13, 1, &nullRawMaskSRV );
         ID3D11ShaderResourceView * nullQuarterMaskSRV = nullptr;
         dx11Context->CSSetShaderResources( 14, 1, &nullQuarterMaskSRV );
     }
