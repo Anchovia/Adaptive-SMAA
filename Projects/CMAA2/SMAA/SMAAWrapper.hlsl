@@ -54,7 +54,8 @@ struct SMAAReprojectionConstants
     // xy: current projection jitter in pixel units,
     // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial),
     // w: candidate expansion enum (0 none, 1 current-edge 3x3 dilation,
-    // 2 filtered quarter-resolution downsample/upsample).
+    // 2 filtered quarter-resolution downsample/upsample,
+    // 3 ARM Dual Filtering research adaptation).
     float4 TSCMAAHybridParams;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
@@ -573,6 +574,129 @@ void TSCMAAUpsampleCandidatesQuarterCS(
         tscmaaFilteredQuarterMaskInput.Load(int3(p11, 0)), fraction.x);
     bool candidate = lerp(top, bottom, fraction.y) >= 0.25;
 
+    tscmaaCandidateMask[dispatchThreadID.xy] = candidate ? 1.0 : 0.0;
+    if (!candidate)
+        return;
+
+    uint candidateIndex;
+    tscmaaControl.InterlockedAdd(
+        TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
+    uint candidateCapacity;
+    uint candidateStride;
+    tscmaaCandidates.GetDimensions(candidateCapacity, candidateStride);
+    if (candidateIndex < candidateCapacity)
+        tscmaaCandidates[candidateIndex] =
+            (dispatchThreadID.x << 16) | dispatchThreadID.y;
+}
+
+// ARM SIGGRAPH 2015 Dual Filtering research adaptation. The official filter
+// supplies the weights and relative offsets; the two-level candidate-mask
+// pyramid, half-input-texel convention, R8 intermediates, and 0.25 threshold
+// are controlled SMAA adaptation choices documented in
+// Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Protocol-ko.md.
+float TSCMAAArmDualDownsample(float2 uv, float2 halfPixel) {
+    float sum = tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv, 0.0) * 4.0;
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(-halfPixel.x, -halfPixel.y), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2( halfPixel.x,  halfPixel.y), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2( halfPixel.x, -halfPixel.y), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(-halfPixel.x,  halfPixel.y), 0.0);
+    return sum / 8.0;
+}
+
+float TSCMAAArmDualUpsample(float2 uv, float2 halfPixel) {
+    float sum = tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(-halfPixel.x * 2.0, 0.0), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(-halfPixel.x, halfPixel.y), 0.0) * 2.0;
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(0.0, halfPixel.y * 2.0), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(halfPixel.x, halfPixel.y), 0.0) * 2.0;
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(halfPixel.x * 2.0, 0.0), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(halfPixel.x, -halfPixel.y), 0.0) * 2.0;
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(0.0, -halfPixel.y * 2.0), 0.0);
+    sum += tscmaaRawCandidateMaskInput.SampleLevel(
+        LinearSampler, uv + float2(-halfPixel.x, -halfPixel.y), 0.0) * 2.0;
+    return sum / 12.0;
+}
+
+float2 TSCMAAArmDualSampleParameters(
+    uint2 outputPixel, uint2 outputDimensions, uint2 inputDimensions,
+    out float2 halfPixel) {
+    halfPixel = 0.5 / float2(inputDimensions);
+    return (float2(outputPixel) + 0.5) / float2(outputDimensions);
+}
+
+[numthreads(8, 8, 1)]
+void TSCMAAArmDualDownsampleCS(
+    uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint inputWidth;
+    uint inputHeight;
+    tscmaaRawCandidateMaskInput.GetDimensions(inputWidth, inputHeight);
+    uint outputWidth;
+    uint outputHeight;
+    tscmaaExpansionIntermediate.GetDimensions(outputWidth, outputHeight);
+    if (dispatchThreadID.x >= outputWidth || dispatchThreadID.y >= outputHeight)
+        return;
+
+    float2 halfPixel;
+    float2 uv = TSCMAAArmDualSampleParameters(
+        dispatchThreadID.xy, uint2(outputWidth, outputHeight),
+        uint2(inputWidth, inputHeight), halfPixel);
+    tscmaaExpansionIntermediate[dispatchThreadID.xy] =
+        TSCMAAArmDualDownsample(uv, halfPixel);
+}
+
+[numthreads(8, 8, 1)]
+void TSCMAAArmDualUpsampleCS(
+    uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint inputWidth;
+    uint inputHeight;
+    tscmaaRawCandidateMaskInput.GetDimensions(inputWidth, inputHeight);
+    uint outputWidth;
+    uint outputHeight;
+    tscmaaExpansionIntermediate.GetDimensions(outputWidth, outputHeight);
+    if (dispatchThreadID.x >= outputWidth || dispatchThreadID.y >= outputHeight)
+        return;
+
+    float2 halfPixel;
+    float2 uv = TSCMAAArmDualSampleParameters(
+        dispatchThreadID.xy, uint2(outputWidth, outputHeight),
+        uint2(inputWidth, inputHeight), halfPixel);
+    tscmaaExpansionIntermediate[dispatchThreadID.xy] =
+        TSCMAAArmDualUpsample(uv, halfPixel);
+}
+
+[numthreads(8, 8, 1)]
+void TSCMAAArmDualUpsampleAndCompactRawUnionCS(
+    uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint width;
+    uint height;
+    tscmaaCandidateMask.GetDimensions(width, height);
+    if (dispatchThreadID.x >= width || dispatchThreadID.y >= height)
+        return;
+
+    uint inputWidth;
+    uint inputHeight;
+    tscmaaRawCandidateMaskInput.GetDimensions(inputWidth, inputHeight);
+    float2 halfPixel;
+    float2 uv = TSCMAAArmDualSampleParameters(
+        dispatchThreadID.xy, uint2(width, height),
+        uint2(inputWidth, inputHeight), halfPixel);
+    // Candidate expansion must never erase an original current-edge
+    // candidate. The reconstruction only contributes additional coverage.
+    bool rawCandidate =
+        tscmaaFilteredQuarterMaskInput.Load(int3(dispatchThreadID.xy, 0)) > 0.5;
+    bool candidate = rawCandidate
+        || TSCMAAArmDualUpsample(uv, halfPixel) >= 0.25;
     tscmaaCandidateMask[dispatchThreadID.xy] = candidate ? 1.0 : 0.0;
     if (!candidate)
         return;

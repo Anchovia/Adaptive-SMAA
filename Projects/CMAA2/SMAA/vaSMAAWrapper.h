@@ -91,7 +91,8 @@ namespace VertexAsylum
         {
             None,
             Dilate3x3,
-            FilteredQuarter
+            FilteredQuarter,
+            ArmDualFilter
         };
 
         enum class TemporalDebugView : int32

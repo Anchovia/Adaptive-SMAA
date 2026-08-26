@@ -59,7 +59,9 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -109,6 +111,7 @@ namespace
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DEJITTER_BASE:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER:
             // Controlled ablation against O-T2X-R: preserve reprojection,
             // deliberate T2X jitter and the Intel-family candidate policy,
             // then cumulatively enable one document-profile component at a
@@ -125,7 +128,8 @@ namespace
                 (aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R
                     || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_NO_JITTER
                     || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3
-                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER)?
+                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER
+                    || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER)?
                 vaSMAAWrapper::HistorySampler::Bilinear :
                 vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping =
@@ -142,6 +146,8 @@ namespace
                 settings.Expansion = vaSMAAWrapper::CandidateExpansion::Dilate3x3;
             else if( aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER )
                 settings.Expansion = vaSMAAWrapper::CandidateExpansion::FilteredQuarter;
+            else if( aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER )
+                settings.Expansion = vaSMAAWrapper::CandidateExpansion::ArmDualFilter;
             settings.HistoryWeight =
                 aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_CLIP_WEIGHT08_R?
                 0.8f : 0.5f;
@@ -166,16 +172,18 @@ namespace
             break;
         case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER:
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::EdgeSelective;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
             settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
             settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
-            settings.Expansion =
-                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3?
-                vaSMAAWrapper::CandidateExpansion::Dilate3x3 :
-                vaSMAAWrapper::CandidateExpansion::FilteredQuarter;
+            settings.Expansion = vaSMAAWrapper::CandidateExpansion::FilteredQuarter;
+            if( aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3 )
+                settings.Expansion = vaSMAAWrapper::CandidateExpansion::Dilate3x3;
+            else if( aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER )
+                settings.Expansion = vaSMAAWrapper::CandidateExpansion::ArmDualFilter;
             settings.HistoryWeight = 0.8f;
             settings.NonDominantRemovalAmount = 0.5f;
             break;
@@ -246,6 +254,7 @@ namespace
         case vaSMAAWrapper::CandidateExpansion::None:            return "None";
         case vaSMAAWrapper::CandidateExpansion::Dilate3x3:       return "Dilate3x3";
         case vaSMAAWrapper::CandidateExpansion::FilteredQuarter: return "FilteredQuarter";
+        case vaSMAAWrapper::CandidateExpansion::ArmDualFilter:   return "ArmDualFilter";
         default:                                                  return "Unknown";
         }
     }
@@ -564,6 +573,10 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
         return "ABL-Candidate-Jitter-FilteredQuarter-R - Candidate-Jitter plus filtered 1/4 candidate expansion";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER:
         return "ABL-Document-FilteredQuarter-R - O-ET2X-R document profile plus filtered 1/4 candidate expansion";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER:
+        return "ABL-Candidate-Jitter-ArmDual-R - Candidate-Jitter plus ARM Dual Filtering candidate expansion adaptation";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER:
+        return "ABL-Document-ArmDual-R - O-ET2X-R document profile plus ARM Dual Filtering candidate expansion adaptation";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -614,6 +627,8 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER:
         return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
@@ -3384,6 +3399,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     static const int    c_focusedModeCount = 3;
     static const int    c_dilationModeCount = 4;
     static const int    c_filteredQuarterModeCount = 6;
+    static const int    c_armDualFilterModeCount = 8;
     static const int    c_fullModeCount = 10;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SceneSelectionType m_scene;
@@ -3396,6 +3412,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_temporalRetentionMatrix;
     const bool          m_currentEdgeDilationMatrix;
     const bool          m_filteredQuarterMatrix;
+    const bool          m_armDualFilterMatrix;
     const bool          m_focusedComparisonMatrix;
     const bool          m_singleModeOnly;
     const CMAA2Sample::AAType m_singleModeAAType;
@@ -3432,6 +3449,21 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "ABL-Candidate-Jitter-FilteredQuarter-R"
             };
             return c_filteredQuarterModeIDs[mode];
+        }
+        if( m_armDualFilterMatrix )
+        {
+            static const char * c_armDualFilterModeIDs[c_armDualFilterModeCount] =
+            {
+                "O-ET2X-R-Document",
+                "ABL-Document-Dilate3x3-R",
+                "ABL-Document-FilteredQuarter-R",
+                "ABL-Document-ArmDual-R",
+                "ABL-Candidate-Jitter-R",
+                "ABL-Candidate-Jitter-Dilate3x3-R",
+                "ABL-Candidate-Jitter-FilteredQuarter-R",
+                "ABL-Candidate-Jitter-ArmDual-R"
+            };
+            return c_armDualFilterModeIDs[mode];
         }
         if( m_currentEdgeDilationMatrix )
         {
@@ -3488,6 +3520,21 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "ABL_Candidate_Jitter_FilteredQuarter_R"
             };
             return c_filteredQuarterModeDirectories[mode];
+        }
+        if( m_armDualFilterMatrix )
+        {
+            static const char * c_armDualFilterModeDirectories[c_armDualFilterModeCount] =
+            {
+                "O_ET2X_R_Document",
+                "ABL_Document_Dilate3x3_R",
+                "ABL_Document_FilteredQuarter_R",
+                "ABL_Document_ArmDual_R",
+                "ABL_Candidate_Jitter_R",
+                "ABL_Candidate_Jitter_Dilate3x3_R",
+                "ABL_Candidate_Jitter_FilteredQuarter_R",
+                "ABL_Candidate_Jitter_ArmDual_R"
+            };
+            return c_armDualFilterModeDirectories[mode];
         }
         if( m_currentEdgeDilationMatrix )
         {
@@ -3547,6 +3594,21 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             };
             return c_filteredQuarterModes[mode];
         }
+        if( m_armDualFilterMatrix )
+        {
+            static const CMAA2Sample::AAType c_armDualFilterModes[c_armDualFilterModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA_O_ET2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER
+            };
+            return c_armDualFilterModes[mode];
+        }
         if( m_currentEdgeDilationMatrix )
         {
             static const CMAA2Sample::AAType c_dilationModes[c_dilationModeCount] =
@@ -3599,6 +3661,7 @@ public:
         bool temporalRetentionMatrix = false,
         bool currentEdgeDilationMatrix = false,
         bool filteredQuarterMatrix = false,
+        bool armDualFilterMatrix = false,
         bool focusedComparisonMatrix = false,
         bool singleModeOnly = false,
         CMAA2Sample::AAType singleModeAAType = CMAA2Sample::AAType::SMAA,
@@ -3615,19 +3678,21 @@ public:
         m_temporalRetentionMatrix( temporalRetentionMatrix ),
         m_currentEdgeDilationMatrix( currentEdgeDilationMatrix ),
         m_filteredQuarterMatrix( filteredQuarterMatrix ),
+        m_armDualFilterMatrix( armDualFilterMatrix ),
         m_focusedComparisonMatrix( focusedComparisonMatrix ),
         m_singleModeOnly( singleModeOnly ),
         m_singleModeAAType( singleModeAAType ),
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
         m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 : (focusedComparisonMatrix?
-            c_focusedModeCount : (filteredQuarterMatrix?
+            c_focusedModeCount : (armDualFilterMatrix?
+            c_armDualFilterModeCount : (filteredQuarterMatrix?
             c_filteredQuarterModeCount : (currentEdgeDilationMatrix?
-            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount))))) )
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)))))) )
     {
         assert( (int)referenceOnly + (int)includeAdaptive
             + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix
-            + (int)filteredQuarterMatrix + (int)focusedComparisonMatrix
+            + (int)filteredQuarterMatrix + (int)armDualFilterMatrix + (int)focusedComparisonMatrix
             + (int)singleModeOnly <= 1 );
     }
 
@@ -3674,6 +3739,8 @@ protected:
                 "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n" :
                 (m_focusedComparisonMatrix?
                     "SMAA smooth camera-motion focused three-way quality capture\r\n\r\n" :
+                (m_armDualFilterMatrix?
+                    "SMAA ARM Dual Filtering candidate-expansion controlled ablation capture\r\n\r\n" :
                 (m_filteredQuarterMatrix?
                     "SMAA filtered-quarter candidate-expansion controlled ablation capture\r\n\r\n" :
                 (m_currentEdgeDilationMatrix?
@@ -3682,7 +3749,7 @@ protected:
                     "SMAA deterministic real-scene temporal-retention five-way capture\r\n\r\n" :
                 (m_includeAdaptive?
                     "SMAA deterministic camera-motion final eight-case plus O/A 1X controls capture\r\n\r\n" :
-                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n")))))) );
+                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n"))))))) );
             abTool.ReportAddText( vaStringTools::Format(
                 "Scene:           %s\r\n",
                 CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
@@ -3721,6 +3788,11 @@ protected:
                     (m_focusedComparisonMatrix?
                     "Comparison:      O-1X control, full-screen Standard T2X-R, and edge-selective O-ET2X-R\r\n"
                     "Purpose:         isolate rotation-only, translation-only, and combined camera motion before expanding to the final eight cases\r\n\r\n" :
+                    (m_armDualFilterMatrix?
+                    "Comparison:      Candidate-Jitter and document profile, each with expansion None, 3x3, filtered quarter, and ARM Dual Filtering\r\n"
+                    "Order control:   no-jitter document quartet first, then jitter quartet after an equal deterministic prelude\r\n"
+                    "ARM adaptation:  full-to-half-to-quarter-to-half-to-full linear-clamp dual-filter pyramid, R8 intermediates, threshold >= 0.25\r\n"
+                    "Purpose:         isolate candidate expansion; final 8-case modes remain unchanged\r\n\r\n" :
                     (m_filteredQuarterMatrix?
                     "Comparison:      Candidate-Jitter and document profile, each with expansion None, 3x3, and filtered quarter\r\n"
                     "Order control:   no-jitter document triplet first, then jitter triplet after an equal deterministic prelude\r\n"
@@ -3735,7 +3807,7 @@ protected:
                     "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
                 (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n"))))) );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n")))))) );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
@@ -4778,6 +4850,10 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         DilateCandidates3x3,
         FilteredQuarterDownsample,
         FilteredQuarterUpsample,
+        ArmDualDownsampleHalf,
+        ArmDualDownsampleQuarter,
+        ArmDualUpsampleHalf,
+        ArmDualUpsampleFull,
         ComputeDispatchArgs,
         ResolveCandidates,
         OutputCopy,
@@ -4803,6 +4879,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_fullComponentAblation;
     const bool m_currentEdgeDilationAblation;
     const bool m_filteredQuarterAblation;
+    const bool m_armDualFilterAblation;
     const int m_modeCount;
     const float m_frameDeltaTime = 1.0f / (float)c_framePerSecond;
 
@@ -4837,6 +4914,21 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                 "ABL-Candidate-Jitter-FilteredQuarter-R"
             };
             return c_filteredQuarterModeIDs[mode];
+        }
+        if( m_armDualFilterAblation )
+        {
+            static const char * c_armDualFilterModeIDs[c_modeCapacity] =
+            {
+                "O-ET2X-R-Document",
+                "ABL-Document-Dilate3x3-R",
+                "ABL-Document-FilteredQuarter-R",
+                "ABL-Document-ArmDual-R",
+                "ABL-Candidate-Jitter-R",
+                "ABL-Candidate-Jitter-Dilate3x3-R",
+                "ABL-Candidate-Jitter-FilteredQuarter-R",
+                "ABL-Candidate-Jitter-ArmDual-R"
+            };
+            return c_armDualFilterModeIDs[mode];
         }
         if( m_currentEdgeDilationAblation )
         {
@@ -4895,6 +4987,21 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             };
             return c_filteredQuarterModes[mode];
         }
+        if( m_armDualFilterAblation )
+        {
+            static const CMAA2Sample::AAType c_armDualFilterModes[c_modeCapacity] =
+            {
+                CMAA2Sample::AAType::SMAA_O_ET2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_DILATE3X3,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER
+            };
+            return c_armDualFilterModes[mode];
+        }
         if( m_currentEdgeDilationAblation )
         {
             static const CMAA2Sample::AAType c_dilationModes[4] =
@@ -4947,6 +5054,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( m_filteredQuarterAblation )
             return true;
+        if( m_armDualFilterAblation )
+            return true;
         if( m_currentEdgeDilationAblation )
             return true;
         if( m_candidateAblation )
@@ -4972,6 +5081,10 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case DilateCandidates3x3:       return "TSCMAADilateCandidates3x3";
         case FilteredQuarterDownsample: return "TSCMAAFilteredQuarterDownsample";
         case FilteredQuarterUpsample:   return "TSCMAAFilteredQuarterUpsample";
+        case ArmDualDownsampleHalf:     return "TSCMAAArmDualDownsampleHalf";
+        case ArmDualDownsampleQuarter:  return "TSCMAAArmDualDownsampleQuarter";
+        case ArmDualUpsampleHalf:       return "TSCMAAArmDualUpsampleHalf";
+        case ArmDualUpsampleFull:       return "TSCMAAArmDualUpsampleFull";
         case ComputeDispatchArgs:       return "TSCMAAComputeDispatchArgs";
         case ResolveCandidates:         return "TSCMAAResolveCandidates";
         case OutputCopy:                return "TSCMAAOutputCopy";
@@ -4984,7 +5097,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
 
-        if( m_currentEdgeDilationAblation || m_filteredQuarterAblation )
+        if( m_currentEdgeDilationAblation || m_filteredQuarterAblation || m_armDualFilterAblation )
         {
             if( metric == GenerateCameraVelocity || metric == SpatialSMAA1X
                 || metric == CopySpatialToHistory || metric == PrepareCandidates
@@ -4992,9 +5105,14 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                 || metric == ResolveCandidates || metric == OutputCopy )
                 return true;
             if( metric == DilateCandidates3x3 )
-                return m_filteredQuarterAblation? mode == 1 || mode == 4 : mode == 1 || mode == 3;
+                return m_armDualFilterAblation? mode == 1 || mode == 5 :
+                    (m_filteredQuarterAblation? mode == 1 || mode == 4 : mode == 1 || mode == 3);
             if( metric == FilteredQuarterDownsample || metric == FilteredQuarterUpsample )
-                return m_filteredQuarterAblation && (mode == 2 || mode == 5);
+                return m_armDualFilterAblation? mode == 2 || mode == 6 :
+                    (m_filteredQuarterAblation && (mode == 2 || mode == 5));
+            if( metric == ArmDualDownsampleHalf || metric == ArmDualDownsampleQuarter
+                || metric == ArmDualUpsampleHalf || metric == ArmDualUpsampleFull )
+                return m_armDualFilterAblation && (mode == 3 || mode == 7);
             return false;
         }
 
@@ -5017,6 +5135,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         if( metric == DilateCandidates3x3 )
             return false;
         if( metric == FilteredQuarterDownsample || metric == FilteredQuarterUpsample )
+            return false;
+        if( metric == ArmDualDownsampleHalf || metric == ArmDualDownsampleQuarter
+            || metric == ArmDualUpsampleHalf || metric == ArmDualUpsampleFull )
             return false;
         return false;
     }
@@ -5218,7 +5339,8 @@ public:
     BenchItemSMAATemporalPerformanceBenchmark( CMAA2Sample & parent, float startTime,
         int warmupFrameCount, int measureFrameCount, int repeatCount, bool includeAdaptive,
         bool candidateAblation = false, bool fullComponentAblation = false,
-        bool currentEdgeDilationAblation = false, bool filteredQuarterAblation = false )
+        bool currentEdgeDilationAblation = false, bool filteredQuarterAblation = false,
+        bool armDualFilterAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
         m_warmupFrameCount( vaMath::Max( 8, warmupFrameCount ) ),
@@ -5228,12 +5350,13 @@ public:
         m_fullComponentAblation( fullComponentAblation ),
         m_currentEdgeDilationAblation( currentEdgeDilationAblation ),
         m_filteredQuarterAblation( filteredQuarterAblation ),
-        m_modeCount( filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_armDualFilterAblation( armDualFilterAblation ),
+        m_modeCount( armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount)))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
-            + (int)filteredQuarterAblation <= 1 );
+            + (int)filteredQuarterAblation + (int)armDualFilterAblation <= 1 );
     }
 
 protected:
@@ -5256,7 +5379,16 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if( m_filteredQuarterAblation )
+            if( m_armDualFilterAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA ARM Dual Filtering candidate-expansion repeated performance benchmark\r\n\r\n" :
+                    "SMAA ARM Dual Filtering candidate-expansion GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This compares Candidate-Jitter and the document profile, each with expansion None, 3x3, filtered quarter, and ARM Dual Filtering.\r\n"
+                    "The ARM path reports both downsample passes, both upsample passes, indirect resolve, and total SMAA GPU timestamps separately.\r\n" );
+            }
+            else if( m_filteredQuarterAblation )
             {
                 abTool.ReportAddText( m_repeatCount > 1?
                     "SMAA filtered-quarter candidate-expansion repeated performance benchmark\r\n\r\n" :
@@ -5953,8 +6085,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         CandidateDeJitterR,
         CandidateDilate3x3R,
         CandidateFilteredQuarterR,
+        CandidateArmDualFilterR,
         DocumentDilate3x3R,
         DocumentFilteredQuarterR,
+        DocumentArmDualFilterR,
         ExplicitCameraCutReset,
         SceneChange,
         SceneRestore,
@@ -6000,10 +6134,14 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
             return "ABL-Candidate-Jitter-Dilate3x3-R mode change";
         case Phase::CandidateFilteredQuarterR:
             return "ABL-Candidate-Jitter-FilteredQuarter-R mode change";
+        case Phase::CandidateArmDualFilterR:
+            return "ABL-Candidate-Jitter-ArmDual-R mode change";
         case Phase::DocumentDilate3x3R:
             return "ABL-Document-Dilate3x3-R mode change";
         case Phase::DocumentFilteredQuarterR:
             return "ABL-Document-FilteredQuarter-R mode change";
+        case Phase::DocumentArmDualFilterR:
+            return "ABL-Document-ArmDual-R mode change";
         case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
         case Phase::SceneChange:            return "scene change";
         case Phase::SceneRestore:           return "scene restore";
@@ -6025,7 +6163,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 
     int RequiredTargetFrames( ) const
     {
-        return (int)m_phase <= (int)Phase::DocumentFilteredQuarterR? 3 : 2;
+        return (int)m_phase <= (int)Phase::DocumentArmDualFilterR? 3 : 2;
     }
 
     void EnterPhase( Phase phase )
@@ -6099,6 +6237,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER;
             break;
+        case Phase::CandidateArmDualFilterR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER;
+            break;
         case Phase::DocumentDilate3x3R:
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3;
@@ -6106,6 +6248,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::DocumentFilteredQuarterR:
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER;
+            break;
+        case Phase::DocumentArmDualFilterR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER;
             break;
         case Phase::ExplicitCameraCutReset:
             // LoadCamera and other known camera cuts use this same history-reset
@@ -6670,9 +6816,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         {
             int expansion = -1;
             std::wistringstream values(parameter.second);
-            if (!(values >> expansion) || expansion < -1 || expansion > 2)
+            if (!(values >> expansion) || expansion < -1 || expansion > 3)
             {
-                VA_LOG_ERROR("Invalid -smaaCandidateExpansionOverride value; expected -1 (disabled), 0 (none), 1 (current-edge 3x3 dilation), or 2 (filtered quarter)");
+                VA_LOG_ERROR("Invalid -smaaCandidateExpansionOverride value; expected -1 (disabled), 0 (none), 1 (current-edge 3x3 dilation), 2 (filtered quarter), or 3 (ARM Dual Filtering adaptation)");
                 return;
             }
             m_SMAA->SetCandidateExpansionOverride(expansion >= 0,
@@ -6855,6 +7001,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaFilteredQuarterPerformanceSmoke") == 0;
         const bool filteredQuarterPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaFilteredQuarterPerformanceBenchmark") == 0;
+        const bool armDualFilterPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaArmDualFilterPerformanceSmoke") == 0;
+        const bool armDualFilterPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaArmDualFilterPerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
@@ -6862,10 +7012,12 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || fullComponentAblationPerformance;
         const bool performanceSmoke = originalPerformanceSmoke || eightCasePerformanceSmoke
             || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke
-            || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke;
+            || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke
+            || armDualFilterPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
-            || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark;
+            || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
+            || armDualFilterPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -6898,7 +7050,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 currentEdgeDilationPerformanceSmoke
                     || currentEdgeDilationPerformanceBenchmark,
                 filteredQuarterPerformanceSmoke
-                    || filteredQuarterPerformanceBenchmark));
+                    || filteredQuarterPerformanceBenchmark,
+                armDualFilterPerformanceSmoke
+                    || armDualFilterPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -6911,6 +7065,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "current-edge 3x3 dilation ablation";
             if( filteredQuarterPerformanceSmoke || filteredQuarterPerformanceBenchmark )
                 performanceKind = "filtered-quarter candidate-expansion ablation";
+            if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark )
+                performanceKind = "ARM Dual Filtering candidate-expansion ablation";
             VA_LOG("Queued SMAA %s %s: start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
@@ -7134,7 +7290,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask( std::make_shared<BenchItemRecordSMAACameraMotion>(
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
                 warmupFrameCount, false, false, false, false, false,
-                false, true, mode, semanticID, modeDirectory ) );
+                false, false, true, mode, semanticID, modeDirectory ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA single-mode camera capture: scene=%s, profile=%s, mode=%s, profile frames [%d,%d], warm-up=%d",
@@ -7163,12 +7319,16 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool filteredQuarterAblation =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaFilteredQuarterAblationCapture" ) == 0;
+        const bool armDualFilterAblation =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaArmDualFilterAblationCapture" ) == 0;
         const bool smoothCameraFocusedThree =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaSmoothCameraFocusedThreeCapture" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
             || realSceneTemporalRetention || currentEdgeDilationAblation
-            || filteredQuarterAblation || smoothCameraFocusedThree )
+            || filteredQuarterAblation || armDualFilterAblation
+            || smoothCameraFocusedThree )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -7217,7 +7377,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     "Real-scene temporal-retention capture excludes the incomplete Power Plant renderer; use bistro, minecraft, or sanmiguel" );
                 return;
             }
-            if( (currentEdgeDilationAblation || filteredQuarterAblation)
+            if( (currentEdgeDilationAblation || filteredQuarterAblation || armDualFilterAblation)
                 && scene == SceneSelectionType::PowerPlantThinGeometry )
             {
                 VA_LOG_ERROR(
@@ -7248,17 +7408,19 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
                 warmupFrameCount, cameraMotionReference, cameraMotionEightCase,
                 realSceneTemporalRetention, currentEdgeDilationAblation,
-                filteredQuarterAblation, smoothCameraFocusedThree ) );
+                filteredQuarterAblation, armDualFilterAblation,
+                smoothCameraFocusedThree ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
                     (smoothCameraFocusedThree? "focused O-1X/O-T2X-R/O-ET2X-R capture" :
+                    (armDualFilterAblation? "ARM Dual Filtering candidate-expansion ablation capture" :
                     (filteredQuarterAblation? "filtered-quarter candidate-expansion ablation capture" :
                     (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture"))))),
+                        "Original five-way capture")))))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );

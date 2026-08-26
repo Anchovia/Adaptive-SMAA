@@ -85,9 +85,15 @@ controlled implementation의 명시적 가정이다.
 - sampler: D3D11 linear min/mag, mip point, clamp
 - intermediate: R8_UNORM
 - final candidate threshold: `>= 0.25`
+- final mask: `raw selected candidate OR reconstructed value >= 0.25`
 - odd resolution: 각 level을 `ceil(width/2) × ceil(height/2)`로 생성
 - 최종 full-resolution pass는 별도 mask를 만들지 않고 candidate mask 기록과 list
   compact를 함께 수행
+
+첫 기능 smoke에서 reconstruction만 threshold한 결과가 raw candidate의 약 43~44%만
+남겨 current-edge expansion이 아니라 erosion에 가까워지는 것을 확인했다. 따라서 원본
+selected candidate는 항상 보존하고 dual-filter reconstruction은 주변 coverage만 추가하는
+union 규칙을 사용한다. 이 union도 binary candidate mask에 맞춘 연구 adaptation이다.
 
 `0.25`는 기존 FilteredQuarter와 threshold 변수를 통제하기 위한 연구 설정이지 ARM
 공식 값이 아니다. 필요할 경우 후속 threshold sweep으로 분리하며 이번 첫 gate에서는
@@ -101,7 +107,7 @@ controlled implementation의 명시적 가정이다.
 | Down 0 | full raw R8 | half R8 | ARM downsample |
 | Down 1 | half R8 | quarter R8 | ARM downsample |
 | Up 0 | quarter R8 | half R8 | ARM upsample |
-| Up 1 + compact | half R8 | full candidate R8 + list | ARM upsample + threshold |
+| Up 1 + compact | half R8 + full raw R8 | full candidate R8 + list | raw union ARM upsample threshold |
 
 Half texture는 Down 0 결과를 Down 1에서 읽은 뒤 Up 0 output으로 재사용한다. 각 SRV/UAV
 전환 전에 D3D11 binding을 명시적으로 해제한다. Candidate counter, indirect args,
@@ -113,8 +119,8 @@ resolve와 history feedback은 기존 검증된 경로를 그대로 사용한다
 
 | Profile | None | 3×3 | FilteredQuarter | ArmDualFilter |
 |---|---|---|---|---|
-| Candidate-Jitter | `ABL-Candidate-Jitter-R` | `ABL-Candidate-Jitter-Dilate3x3-R` | `ABL-Candidate-Jitter-FilteredQuarter-R` | `ABL-Candidate-Jitter-ArmDualFilter-R` |
-| Document | `O-ET2X-R-Document` | `ABL-Document-Dilate3x3-R` | `ABL-Document-FilteredQuarter-R` | `ABL-Document-ArmDualFilter-R` |
+| Candidate-Jitter | `ABL-Candidate-Jitter-R` | `ABL-Candidate-Jitter-Dilate3x3-R` | `ABL-Candidate-Jitter-FilteredQuarter-R` | `ABL-Candidate-Jitter-ArmDual-R` |
+| Document | `O-ET2X-R-Document` | `ABL-Document-Dilate3x3-R` | `ABL-Document-FilteredQuarter-R` | `ABL-Document-ArmDual-R` |
 
 최종 8-case semantic mode는 변경하지 않는다. 두 Arm mode는 candidate expansion만을
 분리하는 ablation이다.
@@ -168,3 +174,10 @@ R8 변환과 GPU fused arithmetic 때문에 threshold 바로 주변에서 소수
 
 첫 gate 결과가 부정적이어도 수치와 구현 가정을 그대로 보존한다. ARM bloom의 장점이
 binary edge mask expansion에 자동으로 이어진다고 가정하지 않는다.
+
+## 9. Gate 상태
+
+2026-08-27 구현·correctness·60-frame reference quality와 120-frame readback-Off 성능
+engineering gate를 완료했다. 기능적 coverage 확장은 확인했지만 4-pass 비용이 3×3보다
+약 3배 높고 품질 이득도 작거나 장면 의존적이어서 formal 확대 조건을 통과하지 못했다.
+수치와 산출물은 `Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Smoke-ko.md`에 기록한다.
