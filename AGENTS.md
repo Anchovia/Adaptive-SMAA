@@ -1015,11 +1015,22 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     수정 후 Bistro 3-frame GPU mask에서 유실 최대 0, GPU/CPU 최대 mismatch 0.012240%로
     PASS했다. 따라서 기존 문서·표의 FilteredQuarter 열과 이를 사용한 pair 결론은
     pre-fix 자료로 분류하며 재사용하지 않는다. None·3×3·ARM 자체 결과는 보존한다.
-28. **다음:** 수정된 FilteredQuarter의 San Miguel thin-chair 품질·temporal retention과
-    candidate-readback-Off 반복 성능을 다시 측정한 뒤 3×3과 trade-off를 확정한다. ARM은
-    최적화 전까지 formal 확대하지 않고 5×5/7×7도 보류한다. 이후 candidate-aware
-    stabilization band, 별도 unjittered scene base, object motion vector·depth disocclusion을
-    독립 축으로 진행한다. 기존 최종 8-case와 expansion ablation은 회귀 기준으로 보존한다.
+28. **완료:** 수정된 FilteredQuarter를 San Miguel `yaw-fast-360` 60-frame에서 다시
+    측정했다. 두 profile 모두 raw 후보 유실 최대 0, GPU/CPU 최대 mismatch 0.010447%,
+    독립 반복 360 PNG hash/pixel mismatch 0으로 PASS했다. 얇은 의자 ROI에서 reference
+    MAE는 None보다 Document 9.402%, Candidate-Jitter 13.152% 낮았지만 3×3보다 각각
+    0.236%, 1.529% 높았다. readback-Off 60-frame×3회에서 Filtered mask는 3×3보다
+    41.423~41.777%, SMAA total은 4.734~5.171% 더 컸다. 후보는 13.897% 적었지만
+    품질·시간 변화량·비용을 합치면 3×3이 우세하므로 다음 단계의 기본 current-edge
+    expansion으로 선택한다. Filtered/ARM은 ablation으로 보존하고 formal 확대와 5×5/7×7은
+    보류한다. 상세 결과는 `Docs/SMAA-Filtered-Quarter-Postfix-SanMiguel-Results-ko.md`를
+    기준으로 한다.
+29. **다음:** 새 브랜치에서 object motion vector 지원 가능성을 먼저 설계·감사한다.
+    현재 `-R`은 depth와 camera matrix 기반 camera-motion reprojection만 지원한다.
+    object transform의 이전 상태, velocity render target, skinned/rigid mesh coverage,
+    invalid/disocclusion 판정과 history reset 경계를 확인한 뒤 최소 구현 범위를 확정한다.
+    구현 시 3×3 expansion은 직교 toggle로 유지하고 object motion 효과와 섞지 않는다.
+    기존 최종 8-case와 expansion ablation은 회귀 기준으로 보존한다.
 
 ## 7. 측정 규칙
 

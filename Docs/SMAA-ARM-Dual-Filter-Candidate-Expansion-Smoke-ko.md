@@ -4,6 +4,11 @@
 > 빠진 수정 전 FilteredQuarter 구현으로 측정됐다. 따라서 Filtered와의 후보·품질·성능
 > 비교는 무효이며 post-fix 재측정이 필요하다. `None`, `3×3`, `ARM` mode 자체의 결과는
 > 해당 결함의 영향을 받지 않는다.
+>
+> **후속 측정 완료:** 수정 후 FilteredQuarter의 San Miguel correctness, reference,
+> thin-ROI와 3회 성능 비교는
+> `Docs/SMAA-Filtered-Quarter-Postfix-SanMiguel-Results-ko.md`를 기준으로 한다. 그 결과
+> 현재 조건에서는 3×3이 Filtered보다 품질과 GPU 비용 모두 우세했다.
 
 ## 1. 목적과 연구 분류
 
@@ -156,8 +161,9 @@ WholeFrame GPU 평균도 ARM이 None보다 Document 3.71%, Candidate-Jitter 4.82
 6. ARM 구현과 장면 의존 결과는 ablation 근거로 보존한다. 후속으로 재검토한다면 pass fusion,
    group-shared tile, 더 얕은 pyramid 또는 lower-resolution resolve처럼 구조적 비용을
    줄이는 변경이 먼저 필요하다.
-7. 후보 확장 연구의 다음 비교 우선순위는 ARM이 아니라 3×3과 수정된
-   FilteredQuarter의 San Miguel ghosting·temporal retention·반복 성능 trade-off다.
+7. 후속 post-fix 비교에서 3×3이 수정된 FilteredQuarter보다 reference 품질과 GPU 비용
+   모두 우세해 다음 단계의 기본 current-edge expansion으로 선택됐다. 이 문서의 수정 전
+   Filtered 열은 계속 역사적 기록으로만 유지한다.
 
 ## 8. 산출물
 

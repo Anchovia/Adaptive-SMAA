@@ -297,9 +297,11 @@ separable 16-tap reference의 최대 오차 0.012019262를 기록했다. 후자�
 - 현재 구현을 Intel 공식 TSCMAA 포팅 또는 pixel-exact 재현으로 표현
 - camera reprojection 결과를 object motion까지 처리한다고 표현
 
-다음 순서는 수정된 FilteredQuarter의 San Miguel thin-chair 품질·temporal retention과
-candidate-readback-Off 반복 성능을 다시 측정하고, 그 뒤 3×3과 trade-off를 확정하는
-것이다.
+후속 San Miguel post-fix gate를 완료했다. 수정된 FilteredQuarter는 raw 후보 유실 0과
+독립 반복 결정성을 통과했지만, 3×3보다 reference 오차와 adjacent-frame 변화량이 조금
+높고 mask 비용은 약 41%, SMAA total은 약 5% 더 컸다. 따라서 다음 단계의 기본
+current-edge expansion은 3×3으로 확정했다. 상세 결과는
+`Docs/SMAA-Filtered-Quarter-Postfix-SanMiguel-Results-ko.md`를 기준으로 한다.
 
 ## 11. 1차 출처
 

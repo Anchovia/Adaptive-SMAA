@@ -1853,8 +1853,10 @@ candidate를 지운 사실을 확인했다. 따라서 앞 문단의 수치와 �
 역사적 기록이며 post-fix 구현의 결론으로 사용하지 않는다. 현재 shader와 CPU mirror는
 `raw OR reconstruction>=0.25`를 사용하며, 분석기는 raw 후보가 하나라도 지워지면 실패한다.
 수정 후 Bistro 3-frame smoke에서 raw 유실 최대 0, GPU/CPU 최대 mismatch 0.012240%로
-PASS했다. 품질·반복 성능 우열은 다시 측정해야 한다. 상세 정의, 검증 한계와 산출물은
-`Docs/SMAA-Filtered-Quarter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
+PASS했다. 후속 San Miguel 재측정 결과는 17.33과
+`Docs/SMAA-Filtered-Quarter-Postfix-SanMiguel-Results-ko.md`를 기준으로 한다. 최초
+정의와 수정 전 산출물은
+`Docs/SMAA-Filtered-Quarter-Candidate-Expansion-Smoke-ko.md`에 역사적 기록으로 남긴다.
 
 ### 17.32 Smooth flythrough + 360° camera-motion protocol
 
@@ -1879,3 +1881,24 @@ Bistro/Minecraft visible O-1X preview의 frame-start 평균은 모두 16.668 ms�
 먼저 `O-1X`, `O-T2X-R`, `O-ET2X-R`을 이동-only·회전-only·결합 경로로 비교하고,
 새 정보가 확인된 뒤에만 전체 8-case와 reference 측정으로 확대한다. 상세 프로토콜과
 산출물은 `Docs/SMAA-Smooth-Flythrough-360-Protocol-ko.md`를 기준으로 한다.
+
+### 17.33 수정 후 FilteredQuarter와 3×3 trade-off gate
+
+San Miguel `yaw-fast-360` frame 60~119에서 수정된 FilteredQuarter의 final/mask를 다시
+캡처했다. 두 profile 모두 raw 후보 유실 최대 0, GPU/CPU 최대 mismatch 0.010447%,
+독립 반복 360 PNG hash와 pixel mismatch 0으로 correctness와 결정성을 확인했다.
+
+동일 pose supersample spatial-reference에서 Filtered는 None보다 full-frame RGB MAE를
+10.342~10.722%, 얇은 의자 ROI에서는 9.402~13.152% 낮췄다. 따라서 filtered
+downsample-upsample도 current-edge 확장으로서 효과가 있었다. 그러나 3×3보다 reference
+MAE가 full frame 0.183~1.557%, thin ROI 0.236~1.529% 높았고 adjacent-frame 변화량도
+0.113~0.258% 높았다.
+
+별도 readback-On 실행에서 Filtered 후보는 3×3보다 13.897% 적었다. 반면 readback-Off
+300 warm-up + 60 measurement×3회에서 Filtered mask는 3×3보다 41.423~41.777%, SMAA
+total은 4.734~5.171% 더 컸다. 두-pass reconstruction 비용이 후보 감소 이득보다 컸다.
+
+따라서 현재 구현과 RTX 3060 Ti 조건에서는 3×3을 다음 단계의 기본 current-edge
+expansion으로 선택한다. FilteredQuarter와 ARM은 ablation으로 보존하되 최적화 전 formal
+확대는 하지 않고 5×5/7×7도 보류한다. 다음 독립 과제는 object motion vector와 depth
+disocclusion 설계 감사이며, 구현 시 3×3은 별도 toggle로 유지한다.
