@@ -309,6 +309,13 @@ Original mode는 기존 edge target/shader path를 유지한다.
 - `Tools/SMAA/analyze_arm_dual_filter_quality.py`와
   `analyze_arm_dual_filter_performance.py`: ARM CPU mirror, raw 보존, threshold-boundary
   mismatch, reference/temporal 지표, timing/pass/counter 표본을 검증한다.
+- `Tools/SMAA/analyze_san_miguel_arm_dual_thin_roi.py`: San Miguel `yaw-fast-360` frame
+  0~9의 화면 좌측·하단 의자/테이블 다리 ROI를 supersample spatial reference와 비교한다.
+  화면 고정 ROI이며 object tracking이나 절대 temporal ground truth로 표현하지 않는다.
+- `-smaaArmDualFilterPerformanceSmoke`/`Benchmark`의 값 앞에 선택적으로
+  `bistro|minecraft|sanmiguel`을 지정하면 해당 장면의 `yaw-fast-360` profile frame
+  60부터 측정하고 warm-up 동안 첫 pose를 유지한다. 장면 토큰을 생략한 기존 명령은
+  기존 Bistro flythrough 동작을 유지한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
@@ -994,15 +1001,19 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     supersample spatial-reference gate, lifecycle과 120-frame readback-Off 성능 smoke를
     통과했다. 그러나 ARM 4-pass mask는 약 0.133 ms로 3×3의 약 2.94~2.96배였고,
     Candidate-Jitter의 reference 이득은 작으며 document profile은 장면에 따라 악화됐다.
-    따라서 현재 구현은 기능적 ablation으로 보존하되 최종 개선안으로 채택하거나
-    600×3/CGVQM formal 측정으로 확대하지 않는다. 상세 결과는
+    후속 San Miguel 60-frame 측정에서는 전체 화면 reference MAE가 10.58~10.79%, 얇은
+    의자 ROI가 9.44~13.10% 개선돼 current-edge expansion 가설 자체는 지지됐다. 그러나
+    같은 ROI의 3×3이 9.62~14.46%로 약간 더 좋았고, San Miguel ARM mask는 0.133 ms로
+    3×3보다 약 2.75배 비쌌다. 따라서 ARM 구현은 기능적 ablation으로 보존하되 최종
+    개선안이나 600×3/CGVQM formal 대상으로 확대하지 않는다. 상세 결과는
     `Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Smoke-ko.md`를 기준으로 한다.
-27. **다음:** current-edge mask 확장 계열은 3×3, FilteredQuarter와 ArmDualFilter 모두
-    비용 또는 품질 gate를 통과하지 못했으므로 더 큰 5×5/7×7 kernel은 보류한다.
-    다음 우선순위는 candidate-aware stabilization band, 별도 unjittered scene base,
-    object motion vector·depth disocclusion처럼 temporal sample 유지와 ghost rejection을
-    직접 다루는 독립 축 중 하나를 명시적 protocol로 선택하는 것이다. 기존 최종 8-case와
-    모든 expansion ablation은 회귀 기준으로 보존한다.
+27. **다음:** San Miguel 결과로 current-edge mask 확장 자체의 얇은 geometry 이득이
+    확인됐으므로 3×3과 FilteredQuarter를 우선 후보로 남긴다. 동일 thin-chair 구간에서
+    ghosting·temporal retention을 직접 비교하고, candidate readback Off 반복 성능으로
+    품질/비용 trade-off를 확정한다. ARM은 최적화 전까지 formal 확대하지 않고, 더 큰
+    5×5/7×7도 보류한다. 이후 candidate-aware stabilization band, 별도 unjittered scene
+    base, object motion vector·depth disocclusion은 독립 축으로 진행한다. 기존 최종
+    8-case와 모든 expansion ablation은 회귀 기준으로 보존한다.
 
 ## 7. 측정 규칙
 

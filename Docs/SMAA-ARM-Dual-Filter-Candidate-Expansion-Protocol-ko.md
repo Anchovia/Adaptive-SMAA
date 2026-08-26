@@ -177,7 +177,10 @@ binary edge mask expansion에 자동으로 이어진다고 가정하지 않는�
 
 ## 9. Gate 상태
 
-2026-08-27 구현·correctness·60-frame reference quality와 120-frame readback-Off 성능
-engineering gate를 완료했다. 기능적 coverage 확장은 확인했지만 4-pass 비용이 3×3보다
-약 3배 높고 품질 이득도 작거나 장면 의존적이어서 formal 확대 조건을 통과하지 못했다.
-수치와 산출물은 `Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Smoke-ko.md`에 기록한다.
+2026-08-27 구현·correctness와 Bistro/Minecraft/San Miguel 60-frame reference quality
+engineering gate를 완료했다. San Miguel의 얇은 의자·테이블 다리 ROI에서는 ARM이 None
+대비 reference MAE를 9.44~13.10% 낮춰 current-edge expansion 가설 자체는 지지됐다.
+그러나 같은 ROI의 3×3이 9.62~14.46%로 약간 더 좋았고, San Miguel ARM mask 비용은
+3×3보다 약 2.75배 높았다. 따라서 ARM 4-pass 구현은 최종안 및 formal 확대 조건을
+통과하지 못했지만, 후보 확장 축은 3×3/FilteredQuarter 중심으로 후속 비교한다. 수치와
+산출물은 `Docs/SMAA-ARM-Dual-Filter-Candidate-Expansion-Smoke-ko.md`에 기록한다.
