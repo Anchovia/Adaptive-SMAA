@@ -257,6 +257,14 @@ Original mode는 기존 edge target/shader path를 유지한다.
   rotation-only, translation-only, combined 18 sequence를 검증하고 O-1X 대비 temporal
   영향 대용값, 시간 변화, edge strength, post-still plateau 안정화와 full/difference/
   peak-crop/GIF 자료를 생성한다. O-1X 차이를 절대 ghosting ground truth로 표현하지 않는다.
+- `Tools/SMAA/analyze_wide_camera_reference_quality.py`: Bistro/Minecraft wide 결합
+  profile의 `O-1X`, `O-T2X-R`, `O-ET2X-R` 480-frame sequence를 동일 pose의
+  supersample spatial reference와 비교한다. RGB MAE/PSNR, luma SSIM, edge strength,
+  O-1X 독립 capture hash bridge와 representative/difference sheet를 생성한다.
+- `Tools/SMAA/analyze_wide_camera_cgvqm.py`: wide 결합 profile의 central-motion과
+  motion→still 구간 12개 formal CGVQM-2 결과, Intel commit/CUDA/FFV1 round-trip과
+  reference hash를 검증한다. official score는 변경하지 않고, R3D-18 CGVQM-2 경로의
+  5-frame temporal receptive-field radius를 반영한 per-frame 보조 진단만 별도 생성한다.
 - `Tools/SMAA/analyze_eight_case_performance.py`: 8-case 반복 성능 CSV의 내부 PASS,
   mode별 표본 수와 반복 수, candidate readback Off를 검증하고 Original↔Adaptive,
   Standard↔Edge-selective, reprojection Off↔On 효과를 각각 분리한 CSV/JSON/한글
@@ -957,13 +965,24 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     preview를 통과했다. 장면별 O-1X 480 PNG와 constant 60 FPS 8초 MP4도 검증했고
     대표 프레임에서 장면 관통 없이 translation이 시각적으로 구분됐다. 경로 세부 내용은
     `Docs/SMAA-Smooth-Flythrough-360-Protocol-ko.md`를 기준으로 한다.
-25. **다음:** Bistro/Minecraft `flythrough-wide-yaw-360` 결합 profile의 동일 pose
+25. **완료:** Bistro/Minecraft `flythrough-wide-yaw-360` 결합 profile의 동일 pose
     supersample spatial-reference를 확보하고 `O-1X`, `O-T2X-R`, `O-ET2X-R`에
-    CGVQM-2/error-map을 적용한다. 이 gate에서 Standard의 넓은 history 차이와
-    Edge-selective의 O-1X 유사성을 reference 기준으로 구분한 뒤에만 전체 8-case와
-    Adaptive SMAA로 확대한다. Candidate-aware stabilization band와 별도 unjittered
-    scene base, object motion vector·depth disocclusion 지원은 camera-motion reference
-    평가와 분리한 후속 연구로 유지한다.
+    CGVQM-2/error-map을 적용했다. mode별 480-frame capture와 supersample reference,
+    O-1X 독립 capture SHA-256 mismatch 0, CGVQM 입력 FFV1 round-trip mismatch 0을
+    확인했다. Central motion에서 ET2X-R은 Standard보다 CGVQM-2가 Bistro +2.5474,
+    Minecraft +1.5360 높고 reference RGB MAE가 각각 19.20%, 15.62% 낮았다. 그러나
+    O-1X보다 CGVQM-2는 -0.3011/-0.0427, RGB MAE는 +4.77%/+0.03%여서 temporal
+    supersampling 유지 우위는 확인하지 못했다. Transition clip에서는 Standard가 더
+    높아 phase 의존성도 기록했다. 상세 결과는
+    `Docs/SMAA-Wide-Camera-Reference-Results-ko.md`를 기준으로 한다.
+26. **다음:** ARM Dual Filtering의 공개 downsample/upsample kernel을 current-edge
+    candidate mask 확장에 적용하는 별도 research adaptation의 정확한 수식·offset·
+    threshold protocol을 먼저 고정한다. 기존 `FilteredQuarter`는 자체 4×4 평균+bilinear
+    ablation으로 보존하고 ARM 방식으로 재명명하지 않는다. 구현 후 `None`, 정확한 3×3,
+    `FilteredQuarter`, `ArmDualFilter`의 mask correctness, candidate coverage, CGVQM,
+    temporal retention과 pass별 GPU 비용을 engineering gate부터 비교한다. Candidate-aware
+    stabilization band, 별도 unjittered scene base, object motion vector·depth disocclusion
+    지원은 이 expansion 평가와 분리한 후속 연구로 유지한다.
 
 ## 7. 측정 규칙
 
