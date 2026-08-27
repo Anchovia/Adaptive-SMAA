@@ -247,6 +247,12 @@ namespace
         }
     }
 
+    const char * GetCandidateEdgeSourceName( vaSMAAWrapper::CandidateEdgeSource value )
+    {
+        return value == vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges?
+            "SMAAFirstPassEdges" : "LegacyLumaRedetect";
+    }
+
     const char * GetCandidateExpansionName( vaSMAAWrapper::CandidateExpansion value )
     {
         switch( value )
@@ -1879,7 +1885,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
         m_SMAA->GetEffectiveHistoryClipping( ) : temporalSMAASettings.Clipping;
     if( IsSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
     {
-        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, nonCandidateBase=%s, candidates=%s%s, expansion=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
+        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, nonCandidateBase=%s, candidateSource=%s%s, candidates=%s%s, expansion=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
             GetAAName( m_settings.CurrentAAOption ),
             GetSpatialSearchName( spatialSMAASearch ),
             GetTemporalCoverageName( temporalSMAASettings.Coverage ),
@@ -1890,6 +1896,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
             GetHistoryClippingName( effectiveClipping ),
             edgeSelectiveProfile && m_SMAA->GetHistoryClippingOverrideEnabled( )? " [diagnostic override]" : "",
             GetNonCandidateBaseName( temporalSMAASettings.NonCandidate ),
+            GetCandidateEdgeSourceName( m_SMAA->GetEffectiveCandidateEdgeSource( ) ),
+            m_SMAA->GetCandidateEdgeSourceOverrideEnabled( )? " [diagnostic override]" : "",
             GetCandidatePolicyName( m_SMAA->GetEffectiveCandidatePolicy( ) ),
             m_SMAA->GetCandidatePolicyOverrideEnabled( )? " [diagnostic override]" : "",
             GetCandidateExpansionName( m_SMAA->GetEffectiveCandidateExpansion( ) ),
@@ -6941,7 +6949,21 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
-        if (_wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyOverride") == 0)
+        if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateEdgeSourceOverride") == 0)
+        {
+            int source = -1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> source) || source < -1 || source > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaCandidateEdgeSourceOverride value; expected -1 (disabled), 0 (legacy luma re-detection), or 1 (SMAA first-pass edges)");
+                return;
+            }
+            m_SMAA->SetCandidateEdgeSourceOverride(source >= 0,
+                source >= 0? (vaSMAAWrapper::CandidateEdgeSource)source : vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect);
+            VA_LOG("SMAA candidate edge source diagnostic override: %s",
+                source >= 0? GetCandidateEdgeSourceName((vaSMAAWrapper::CandidateEdgeSource)source) : "disabled");
+        }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyOverride") == 0)
         {
             int policy = -1;
             std::wistringstream values(parameter.second);

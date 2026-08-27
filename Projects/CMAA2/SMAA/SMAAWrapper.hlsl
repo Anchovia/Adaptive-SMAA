@@ -51,6 +51,9 @@ struct SMAAReprojectionConstants
     // x: history sampler enum (0 bilinear, 1 Catmull-Rom 5-tap),
     // y: history clipping enum (0 off, 1 YCoCg variance).
     float4 TSCMAAResolveParams;
+    // x: candidate edge source enum
+    // (0 legacy luma re-detection, 1 SMAA first-pass edge reuse).
+    float4 TSCMAACandidateSourceParams;
     // xy: current projection jitter in pixel units,
     // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial),
     // w: candidate expansion enum (0 none, 1 current-edge 3x3 dilation,
@@ -66,6 +69,7 @@ struct SMAAReprojectionConstants
     VertexAsylum::vaVector4 TSCMAAParams;
     VertexAsylum::vaVector4 TSCMAACandidateParams;
     VertexAsylum::vaVector4 TSCMAAResolveParams;
+    VertexAsylum::vaVector4 TSCMAACandidateSourceParams;
     VertexAsylum::vaVector4 TSCMAAHybridParams;
 #endif
 };
@@ -389,7 +393,7 @@ int2 TSCMAAClampPixel(int2 pixel, int2 dimensions) {
     return clamp(pixel, int2(0, 0), dimensions - 1);
 }
 
-float2 TSCMAABaseEdgeStrength(int2 pixel, int2 dimensions) {
+float2 TSCMAALegacyLumaEdgeStrength(int2 pixel, int2 dimensions) {
     pixel = TSCMAAClampPixel(pixel, dimensions);
     float center = tscmaaLuma.Load(int3(pixel, 0));
     float left = tscmaaLuma.Load(int3(TSCMAAClampPixel(pixel + int2(-1, 0), dimensions), 0));
@@ -397,8 +401,37 @@ float2 TSCMAABaseEdgeStrength(int2 pixel, int2 dimensions) {
     return float2(abs(center - left), abs(center - top));
 }
 
-bool TSCMAAIsBaseEdge(float2 directionalStrength) {
+float2 TSCMAAFirstPassEdgeDirections(int2 pixel, int2 dimensions) {
+    pixel = TSCMAAClampPixel(pixel, dimensions);
+    return edgesTex.Load(int3(pixel, 0)).rg;
+}
+
+bool TSCMAAUsesFirstPassEdges() {
+    return g_SMAAReprojection.TSCMAACandidateSourceParams.x > 0.5;
+}
+
+bool TSCMAAIsLegacyBaseEdge(float2 directionalStrength) {
     return any(directionalStrength > g_SMAAReprojection.TSCMAACandidateParams.x);
+}
+
+// The first-pass source changes only how the base mask is obtained. For the
+// Intel-family policy, luma strengths are still evaluated at surviving SMAA
+// edge pixels so its existing contrast ranking remains comparable. AllBase
+// needs no luma reads in the first-pass source path.
+void TSCMAAGetBaseEdgeAndStrength(
+    int2 pixel, int2 dimensions, uint policy,
+    out bool baseEdge, out float2 directionalStrength) {
+    baseEdge = false;
+    directionalStrength = float2(0.0, 0.0);
+    if (TSCMAAUsesFirstPassEdges()) {
+        baseEdge = any(TSCMAAFirstPassEdgeDirections(pixel, dimensions) > 0.0);
+        if (baseEdge && policy == 1)
+            directionalStrength = TSCMAALegacyLumaEdgeStrength(pixel, dimensions);
+        return;
+    }
+
+    directionalStrength = TSCMAALegacyLumaEdgeStrength(pixel, dimensions);
+    baseEdge = TSCMAAIsLegacyBaseEdge(directionalStrength);
 }
 
 // Adaptation of the local-contrast structure in Intel's public CMAA2 shader:
@@ -407,16 +440,16 @@ bool TSCMAAIsBaseEdge(float2 directionalStrength) {
 // lost sample's exact candidate-selection shader.
 bool TSCMAAIsIntelFamilyNonDominantCandidate(int2 pixel, int2 dimensions, float2 directionalStrength) {
     float maximumPerpendicularForVertical = 0.0;
-    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel, dimensions).y);
-    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel + int2(-1, 0), dimensions).y);
-    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel + int2(0, 1), dimensions).y);
-    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAABaseEdgeStrength(pixel + int2(-1, 1), dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAALegacyLumaEdgeStrength(pixel, dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAALegacyLumaEdgeStrength(pixel + int2(-1, 0), dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAALegacyLumaEdgeStrength(pixel + int2(0, 1), dimensions).y);
+    maximumPerpendicularForVertical = max(maximumPerpendicularForVertical, TSCMAALegacyLumaEdgeStrength(pixel + int2(-1, 1), dimensions).y);
 
     float maximumPerpendicularForHorizontal = 0.0;
-    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel, dimensions).x);
-    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel + int2(0, -1), dimensions).x);
-    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel + int2(1, 0), dimensions).x);
-    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAABaseEdgeStrength(pixel + int2(1, -1), dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAALegacyLumaEdgeStrength(pixel, dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAALegacyLumaEdgeStrength(pixel + int2(0, -1), dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAALegacyLumaEdgeStrength(pixel + int2(1, 0), dimensions).x);
+    maximumPerpendicularForHorizontal = max(maximumPerpendicularForHorizontal, TSCMAALegacyLumaEdgeStrength(pixel + int2(1, -1), dimensions).x);
 
     float removalAmount = g_SMAAReprojection.TSCMAAParams.y;
     float threshold = g_SMAAReprojection.TSCMAACandidateParams.x;
@@ -458,15 +491,16 @@ bool TSCMAAIsExperimentalLocallyDominantCandidate(int2 pixel, int2 dimensions, f
 }
 
 bool TSCMAAIsCandidateAtPixel(
-    int2 pixel, int2 dimensions, uint policy, float2 directionalStrength) {
+    int2 pixel, int2 dimensions, uint policy, bool baseEdge,
+    float2 directionalStrength) {
     if (policy == 0)
-        return TSCMAAIsBaseEdge(directionalStrength);
+        return baseEdge;
     if (policy == 1)
-        return TSCMAAIsIntelFamilyNonDominantCandidate(
+        return baseEdge && TSCMAAIsIntelFamilyNonDominantCandidate(
             pixel, dimensions, directionalStrength);
     float experimentalStrength =
         TSCMAAExperimentalEdgeStrength(pixel, dimensions);
-    return TSCMAAIsExperimentalLocallyDominantCandidate(
+    return baseEdge && TSCMAAIsExperimentalLocallyDominantCandidate(
         pixel, dimensions, experimentalStrength);
 }
 
@@ -480,12 +514,16 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
     int2 pixel = int2(dispatchThreadID.xy);
     int2 dimensions = int2(width, height);
-    float2 directionalStrength = TSCMAABaseEdgeStrength(pixel, dimensions);
     bool forcedCountDiagnostics = g_SMAAReprojection.TSCMAACandidateParams.w > 0.5;
     uint linearPixelIndex = dispatchThreadID.y * width + dispatchThreadID.x;
     uint forcedCandidateCount = min((uint)(g_SMAAReprojection.TSCMAACandidateParams.z + 0.5), width * height);
-    bool baseEdge = forcedCountDiagnostics?
-        linearPixelIndex < forcedCandidateCount : TSCMAAIsBaseEdge(directionalStrength);
+    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
+    bool baseEdge = false;
+    float2 directionalStrength = float2(0.0, 0.0);
+    TSCMAAGetBaseEdgeAndStrength(
+        pixel, dimensions, policy, baseEdge, directionalStrength);
+    if (forcedCountDiagnostics)
+        baseEdge = linearPixelIndex < forcedCandidateCount;
     tscmaaBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
 
     if (baseEdge) {
@@ -493,12 +531,11 @@ void TSCMAAExtractCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
         tscmaaControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
     }
 
-    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
     // Keep exact-count diagnostics independent of candidate expansion so the
     // established 0/1/63/64/65/full-capacity boundary test remains exact.
     bool candidate = forcedCountDiagnostics?
         baseEdge : TSCMAAIsCandidateAtPixel(
-            pixel, dimensions, policy, directionalStrength);
+            pixel, dimensions, policy, baseEdge, directionalStrength);
 
     tscmaaCandidateMask[pixel] = candidate ? 1.0 : 0.0;
     if (!candidate)
@@ -526,8 +563,11 @@ void TSCMAAExtractRawCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) 
 
     int2 pixel = int2(dispatchThreadID.xy);
     int2 dimensions = int2(width, height);
-    float2 directionalStrength = TSCMAABaseEdgeStrength(pixel, dimensions);
-    bool baseEdge = TSCMAAIsBaseEdge(directionalStrength);
+    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
+    bool baseEdge = false;
+    float2 directionalStrength = float2(0.0, 0.0);
+    TSCMAAGetBaseEdgeAndStrength(
+        pixel, dimensions, policy, baseEdge, directionalStrength);
     tscmaaBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
     if (baseEdge) {
         uint ignoredEdgeIndex;
@@ -535,9 +575,8 @@ void TSCMAAExtractRawCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) 
             TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
     }
 
-    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
     bool rawCandidate = TSCMAAIsCandidateAtPixel(
-        pixel, dimensions, policy, directionalStrength);
+        pixel, dimensions, policy, baseEdge, directionalStrength);
     tscmaaExpansionIntermediate[pixel] = rawCandidate ? 1.0 : 0.0;
 }
 

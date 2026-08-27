@@ -333,6 +333,7 @@ namespace VertexAsylum
         void                                    RequestSMAAVarianceClippingDiagnostics( ) { m_SMAA->RequestVarianceClippingDiagnostics( ); }
         const vaSMAAWrapper::VarianceClippingDiagnostics &
                                                 GetSMAAVarianceClippingDiagnostics( ) const { return m_SMAA->GetVarianceClippingDiagnostics( ); }
+        void                                    SetSMAACandidateEdgeSourceOverride( bool enabled, vaSMAAWrapper::CandidateEdgeSource source ) { m_SMAA->SetCandidateEdgeSourceOverride( enabled, source ); }
         void                                    SetSMAACandidatePolicyOverride( bool enabled, vaSMAAWrapper::CandidatePolicy policy ) { m_SMAA->SetCandidatePolicyOverride( enabled, policy ); }
         void                                    SetSMAACandidateExpansionOverride( bool enabled, vaSMAAWrapper::CandidateExpansion expansion ) { m_SMAA->SetCandidateExpansionOverride( enabled, expansion ); }
         void                                    SetSMAANonDominantRemovalOverride( bool enabled, float value ) { m_SMAA->SetNonDominantRemovalOverride( enabled, value ); }

@@ -97,6 +97,17 @@ namespace VertexAsylum
             ExperimentalLocalMeanMax3x3
         };
 
+        // Selects where the edge-selective temporal candidate stage obtains
+        // its directional edge input. The legacy path re-evaluates luma after
+        // the complete spatial SMAA pass. The first-pass path reuses the
+        // thresholded/local-contrast-filtered RG edge result already produced
+        // by SMAA pass 1.
+        enum class CandidateEdgeSource : int32
+        {
+            LegacyLumaRedetect,
+            SMAAFirstPassEdges
+        };
+
         enum class CandidateExpansion : int32
         {
             None,
@@ -124,6 +135,7 @@ namespace VertexAsylum
             uint32                      ProcessCount                = 0;
             uint32                      DispatchGroupCount          = 0;
             uint32                      PixelCount                  = 0;
+            CandidateEdgeSource         Source                      = CandidateEdgeSource::LegacyLumaRedetect;
             CandidatePolicy             Policy                      = CandidatePolicy::AllBaseEdges;
             CandidateExpansion          Expansion                   = CandidateExpansion::None;
 
@@ -277,6 +289,7 @@ namespace VertexAsylum
             HistorySampler               Sampler                     = HistorySampler::Bilinear;
             HistoryClipping              Clipping                    = HistoryClipping::Off;
             NonCandidateBase             NonCandidate                = NonCandidateBase::CurrentSpatial;
+            CandidateEdgeSource          CandidateSource             = CandidateEdgeSource::LegacyLumaRedetect;
             CandidatePolicy              Candidates                  = CandidatePolicy::AllBaseEdges;
             CandidateExpansion           Expansion                   = CandidateExpansion::None;
             float                        HistoryWeight               = 0.5f;
@@ -291,6 +304,7 @@ namespace VertexAsylum
                     && Sampler == other.Sampler
                     && Clipping == other.Clipping
                     && NonCandidate == other.NonCandidate
+                    && CandidateSource == other.CandidateSource
                     && Candidates == other.Candidates
                     && Expansion == other.Expansion
                     && HistoryWeight == other.HistoryWeight
@@ -328,6 +342,8 @@ namespace VertexAsylum
         int                         m_temporalFrameIndex                = 0;
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
+        bool                        m_candidateEdgeSourceOverrideEnabled = false;
+        CandidateEdgeSource         m_candidateEdgeSourceOverride       = CandidateEdgeSource::SMAAFirstPassEdges;
         bool                        m_candidatePolicyOverrideEnabled    = false;
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
         bool                        m_candidateExpansionOverrideEnabled = false;
@@ -415,6 +431,22 @@ namespace VertexAsylum
         {
             return m_temporalSettings.NonCandidate == NonCandidateBase::DeJitteredSpatial;
         }
+        CandidateEdgeSource         GetEffectiveCandidateEdgeSource( ) const
+        {
+            return m_candidateEdgeSourceOverrideEnabled?
+                m_candidateEdgeSourceOverride : m_temporalSettings.CandidateSource;
+        }
+        void                        SetCandidateEdgeSourceOverride( bool enabled, CandidateEdgeSource source )
+        {
+            if( m_candidateEdgeSourceOverrideEnabled != enabled
+                || m_candidateEdgeSourceOverride != source )
+            {
+                m_candidateEdgeSourceOverrideEnabled = enabled;
+                m_candidateEdgeSourceOverride = source;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetCandidateEdgeSourceOverrideEnabled( ) const { return m_candidateEdgeSourceOverrideEnabled; }
         CandidatePolicy             GetEffectiveCandidatePolicy( ) const { return m_candidatePolicyOverrideEnabled? m_candidatePolicyOverride : m_temporalSettings.Candidates; }
         void                        SetCandidatePolicyOverride( bool enabled, CandidatePolicy policy )
         {

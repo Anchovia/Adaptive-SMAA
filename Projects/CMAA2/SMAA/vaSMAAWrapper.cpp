@@ -48,6 +48,20 @@ void vaSMAAWrapper::UIPanelDraw( )
         ImGui::Separator( );
         ImGui::TextUnformatted( "TSCMAA candidate diagnostics" );
 
+        bool sourceOverrideEnabled = m_candidateEdgeSourceOverrideEnabled;
+        if( ImGui::Checkbox( "Override candidate edge source", &sourceOverrideEnabled ) )
+            SetCandidateEdgeSourceOverride(
+                sourceOverrideEnabled, m_candidateEdgeSourceOverride );
+
+        if( sourceOverrideEnabled )
+        {
+            int source = (int)m_candidateEdgeSourceOverride;
+            if( ImGuiEx_Combo( "Candidate edge source", source,
+                { string("Legacy luma re-detection"), string("SMAA first-pass edges") } ) )
+                SetCandidateEdgeSourceOverride(
+                    true, (CandidateEdgeSource)source );
+        }
+
         bool policyOverrideEnabled = m_candidatePolicyOverrideEnabled;
         if( ImGui::Checkbox( "Override candidate policy", &policyOverrideEnabled ) )
             SetCandidatePolicyOverride( policyOverrideEnabled, m_candidatePolicyOverride );
@@ -147,6 +161,9 @@ void vaSMAAWrapper::UIPanelDraw( )
         const TemporalCandidateStatistics & statistics = GetTemporalCandidateStatistics( );
         if( statistics.Valid )
         {
+            ImGui::Text( "Candidate edge source: %s",
+                statistics.Source == CandidateEdgeSource::SMAAFirstPassEdges?
+                "SMAA first-pass edges" : "Legacy luma re-detection" );
             ImGui::Text( "Base edges: %u (%.3f%% of pixels)", statistics.BaseEdgeCount,
                 statistics.PixelCount > 0? 100.0f * (float)statistics.BaseEdgeCount / (float)statistics.PixelCount : 0.0f );
             ImGui::Text( "Candidates: %u (%.3f%% of pixels)", statistics.CandidateCount,

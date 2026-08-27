@@ -1062,6 +1062,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.TSCMAAResolveParams = vaVector4( (float)(int)GetEffectiveHistorySampler( ),
             (float)(int)GetEffectiveHistoryClipping( ), GetClippingDebugViewsEnabled( )? 1.0f : 0.0f,
             GetClippingDebugViewsEnabled( )? (float)((int)GetTemporalDebugView( ) - (int)TemporalDebugView::CurrentSpatial) : 0.0f );
+        m_reprojectionConstants.TSCMAACandidateSourceParams = vaVector4(
+            (float)(int)GetEffectiveCandidateEdgeSource( ), 0.0f, 0.0f, 0.0f );
         vaVector2 currentProjectionJitter( 0.0f, 0.0f );
         if( optionalCamera != nullptr )
             currentProjectionJitter = const_cast<vaCameraBase *>( optionalCamera )->GetSubpixelOffset( );
@@ -2454,6 +2456,7 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
             m_temporalCandidateStatistics.BaseEdgeCount = counters[2];
             m_temporalCandidateStatistics.DispatchGroupCount = counters[3];
             m_temporalCandidateStatistics.PixelCount = pixelCount;
+            m_temporalCandidateStatistics.Source = GetEffectiveCandidateEdgeSource( );
             m_temporalCandidateStatistics.Policy = GetEffectiveCandidatePolicy( );
             m_temporalCandidateStatistics.Expansion = GetForcedCandidateCountEnabled( )?
                 CandidateExpansion::None : GetEffectiveCandidateExpansion( );
@@ -2474,8 +2477,10 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
                     expansionName = "FilteredQuarter";
                 else if( m_temporalCandidateStatistics.Expansion == CandidateExpansion::ArmDualFilter )
                     expansionName = "ArmDualFilter";
-                VA_LOG( "TSCMAA candidate counters [%s, expansion=%s%s]: base=%u (%.3f%% pixels), candidates=%u (%.3f%% pixels, %.3f%% of base), indirect=%u, groups=%u",
-                    policyName, expansionName,
+                const char * sourceName = m_temporalCandidateStatistics.Source == CandidateEdgeSource::SMAAFirstPassEdges?
+                    "SMAAFirstPassEdges" : "LegacyLumaRedetect";
+                VA_LOG( "TSCMAA candidate counters [source=%s, policy=%s, expansion=%s%s]: base=%u (%.3f%% pixels), candidates=%u (%.3f%% pixels, %.3f%% of base), indirect=%u, groups=%u",
+                    sourceName, policyName, expansionName,
                     GetForcedCandidateCountEnabled( )? ", forced-count diagnostics" : "",
                     m_temporalCandidateStatistics.BaseEdgeCount,
                     pixelCount > 0? 100.0f * (float)m_temporalCandidateStatistics.BaseEdgeCount / (float)pixelCount : 0.0f,
