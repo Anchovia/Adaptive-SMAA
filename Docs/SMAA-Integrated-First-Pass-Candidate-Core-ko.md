@@ -184,3 +184,11 @@ Intel 문서의 약 50% 목표에 가장 가까운 값은 고정 pose 기준 Bis
 - candidate formula 자체는 여전히 공개 자료 기반 SMAA adaptation이다.
 - 현재 `-R`은 camera/depth reprojection이며 object motion vector는 기본 8-case에 아직
   포함되지 않는다.
+
+## 9. 후속 removal 품질 gate
+
+계획한 `0.50/0.65/0.70/0.75` matched quality gate를 Bistro/Minecraft에서 완료했다.
+네 값 모두 catastrophic artifact 없이 engineering gate를 통과했으며, 공개 기본값
+`0.50`, 장면 공통 robust 중심 후보 `0.70`, bracket `0.65/0.75`의 역할을 사전에
+구분한 상태로 readback-Off 반복 성능 측정에 올린다. 상세 조건과 결과는
+`Docs/SMAA-Integrated-Candidate-Removal-Quality-Gate-ko.md`를 기준으로 한다.

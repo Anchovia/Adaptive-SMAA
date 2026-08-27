@@ -1095,6 +1095,20 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     달랐다. 기본값 0.50과 0.65/0.70/0.75를 matched quality gate 후 readback-Off 반복
     성능에 올리며, 후보 비율만으로 최적값을 선택하지 않는다. 상세 내용은
     `Docs/SMAA-Integrated-First-Pass-Candidate-Core-ko.md`를 기준으로 한다.
+33. **Integrated removal 품질 gate 완료:** `O-1X`, `O-T2X-R` control과 integrated
+    `O-ET2X-R` removal 0.50/0.65/0.70/0.75를 Bistro/Minecraft
+    `flythrough-wide-yaw-360` frame 150~209에서 동일 pose supersample spatial
+    reference와 비교했다. Release x64, 6-mode×60 PNG, clean-process와 분석 검증을
+    통과했고 대표 frame에서 catastrophic artifact는 없었다. removal 증가에 따라 두
+    장면 모두 reference MAE와 edge/reference 비율은 소폭 개선됐지만 출력이 O-1X에 더
+    가까워지고 unaligned temporal change가 소폭 증가해 history 감소 trade-off도 함께
+    나타났다. `0.70`은 고정-pose candidate/base가 Bistro 51.351%, Minecraft 49.745%로
+    장면 공통 약 50%에 가장 가까워 robust 중심 후보로 사전 지정한다. `0.50`은 Intel
+    공개 기본 control, `0.65/0.75`는 bracket ablation으로 유지한다. 작은 품질 차이를
+    근거로 사후 제거하지 않고 네 값 모두 다음 readback-Off 반복 성능 gate에서 측정한다.
+    이 60-frame subset은 첫 pose 정지 warm-up을 사용하는 engineering screening이며 최종
+    8-case 또는 temporal ground truth가 아니다. 상세 결과는
+    `Docs/SMAA-Integrated-Candidate-Removal-Quality-Gate-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
