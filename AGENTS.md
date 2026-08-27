@@ -317,6 +317,15 @@ Original mode는 기존 edge target/shader path를 유지한다.
   `bistro|minecraft|sanmiguel`을 지정하면 해당 장면의 `yaw-fast-360` profile frame
   60부터 측정하고 warm-up 동안 첫 pose를 유지한다. 장면 토큰을 생략한 기존 명령은
   기존 Bistro flythrough 동작을 유지한다.
+- `-smaaIntegratedCandidateRemovalPerformanceSmoke`/`Benchmark`: Original
+  `O-ET2X`와 `O-ET2X-R` 각각에서 integrated source, Intel-family policy, expansion
+  None을 고정하고 removal 0.50/0.65/0.70/0.75 총 8 configuration을 교차 순서로
+  측정한다. `bistro|minecraft` 장면 토큰으로 장면을 선택하며 본 benchmark는 300 warm-up,
+  4,800 frame×3회와 candidate readback Off를 사용한다.
+- `Tools/SMAA/analyze_integrated_candidate_removal_performance.py`: 8 configuration의
+  mode/metric/sample/run 수, integrated timer 구성, reprojection velocity 유무,
+  readback 상태와 내부 PASS를 검증한다. readback-On smoke에서는 후보 비율 단조성,
+  candidate=process와 Off/On 후보 동일성도 확인하며 removal/reprojection 효과를 분리한다.
 - Object-motion reprojection 구현 전 설계 감사는
   `Docs/SMAA-Object-Motion-Reprojection-Design-Audit-ko.md`를 기준으로 한다. 현재 `-R`은
   여전히 camera/depth reprojection만 의미한다. Rigid-object velocity 1차 구현은 previous
@@ -1109,6 +1118,19 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     이 60-frame subset은 첫 pose 정지 warm-up을 사용하는 engineering screening이며 최종
     8-case 또는 temporal ground truth가 아니다. 상세 결과는
     `Docs/SMAA-Integrated-Candidate-Removal-Quality-Gate-ko.md`를 기준으로 한다.
+34. **Integrated removal 반복 성능 gate 완료:** RTX 3060 Ti, 1920×1017, visible,
+    readback Off, 300 warm-up, 4,800 frame×3회로 Bistro/Minecraft의 `O-ET2X`와
+    `O-ET2X-R` removal 0.50/0.65/0.70/0.75를 측정했다. mode당 14,400 timing sample과
+    run mean 3개, 내부 validation은 모두 PASS했고 각 장면은 독립 clean process로
+    실행했다. `0.70`은 `0.50`보다 candidate resolve가 두 장면/Off·On에서
+    4.102~4.950% 감소했다. 그러나 SMAA total은 Bistro -0.020%/+0.027%, Minecraft
+    -0.624%/-0.817%였고 WholeFrame 변화도 -0.217~+0.058%로 일관되지 않았다.
+    `0.75`는 resolve 5.401~6.556% 감소와 Minecraft SMAA 최대 1.204% 감소를 보였지만
+    WholeFrame 개선은 재현되지 않았고 품질 gate의 O-1X 회귀 trade-off가 더 컸다.
+    따라서 `0.70`을 robust 중심 후보로 유지하되 기본 `0.50`은 아직 변경하지 않는다.
+    다음은 full-timeline matched quality와 Standard T2X control을 포함한 fresh 비교다.
+    상세 결과는 `Docs/SMAA-Integrated-Candidate-Removal-Performance-Results-ko.md`를
+    기준으로 한다.
 
 ## 7. 측정 규칙
 
