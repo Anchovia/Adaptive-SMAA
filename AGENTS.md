@@ -1077,6 +1077,24 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     따라서 성능 또는 temporal 품질 개선으로 판정하지 않으며 first-pass source는
     controlled ablation으로만 보존한다. 기본값과 기존 8-case 결과는 legacy를 유지한다.
     상세 결과는 `Docs/SMAA-First-Pass-Edge-Reuse-Formal-Results-ko.md`를 기준으로 한다.
+32. **구조 교정 및 engineering gate 완료:** `codex/smaa-integrated-edge-candidates`에서
+    `SMAAFirstPassIntegratedCandidates` source를 추가했다. 이 경로는 원본/Adaptive SMAA
+    1차 luma edge pixel shader가 기존 edge RT와 temporal base/candidate mask, compact
+    list/counter를 같은 draw에서 출력하므로 후속 full-screen candidate extraction을
+    실행하지 않는다. 일반 SMAA 호출은 optional 출력이 `nullptr`라 기존 shader를 그대로
+    사용하고 Standard T2X/1X를 변경하지 않는다. `LegacyLumaRedetect`와 post-pass
+    `SMAAFirstPassEdges`는 source ablation으로 보존한다. candidate 공식은 여전히 공개된
+    Intel 원본 식이 아니라 기존 `IntelFamilyNonDominant` SMAA adaptation이다. Release x64,
+    lifecycle, Bistro/Minecraft counter, candidate/base mask, current spatial과 final output
+    gate를 통과했고 post-pass source와 검증 frame의 pixel mismatch는 전부 0이었다.
+    같은 30 warm-up+60-frame readback-On engineering smoke에서 integrated SMAA total은
+    post-pass source보다 `O-ET2X` 23.662%, `O-ET2X-R` 20.937% 낮았지만 정식 반복 성능
+    결론은 아니다. `-smaaIntegratedCandidateRemovalSweep`는 threshold `1/22`를 고정하고
+    removal 0.00~1.00을 0.05 간격으로 Bistro/Minecraft에서 측정하며 두 번의 clean-process
+    결과가 byte-identical PASS였다. 약 50% 후보 지점은 Bistro 0.75, Minecraft 0.70으로
+    달랐다. 기본값 0.50과 0.65/0.70/0.75를 matched quality gate 후 readback-Off 반복
+    성능에 올리며, 후보 비율만으로 최적값을 선택하지 않는다. 상세 내용은
+    `Docs/SMAA-Integrated-First-Pass-Candidate-Core-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
