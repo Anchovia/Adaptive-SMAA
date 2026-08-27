@@ -1805,7 +1805,8 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     colorScratchContainsFinal = true;
                     if (IsSMAASingleSample(m_settings.CurrentAAOption))
                         //m_SMAA->Draw( mainContext, mainColorRT ); 
-                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
+                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera,
+                            m_currentSceneMainRenderSelection.MeshList.get());
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
                         drawResults |= m_SMAA->Draw(mainContext, m_MSTonemappedColor);
                     ppAAApplied = true;
@@ -6438,7 +6439,7 @@ protected:
 
             abTool.ReportStart( );
             abTool.ReportAddText( "SMAA camera-motion GPU velocity engineering validation\r\n\r\n" );
-            abTool.ReportAddText( "O-ET2X-R only; object motion vectors are not connected.\r\n" );
+            abTool.ReportAddText( "O-ET2X-R only; the independent rigid-object extension is disabled so this remains a camera/depth-only control.\r\n" );
             abTool.ReportAddText( "The diagnostic staging readback is enabled only for this test and is not a performance path.\r\n\r\n" );
             abTool.ReportAddRowValues( { "Phase", "Mean X", "Mean Y", "Max abs", "Negative-X ratio", "History UV in bounds", "Result" } );
             return;
@@ -6492,6 +6493,116 @@ protected:
                 aggregatePassed? "PASS" : "FAIL" ) );
             m_parent.SetSMAATemporalVelocityDiagnosticMode(
                 vaSMAAWrapper::TemporalVelocityDiagnosticMode::Disabled );
+            abTool.ReportFinish( );
+            m_phase = Phase::Complete;
+            m_isDone = true;
+        }
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override { return (float)(int)m_phase / (float)(int)Phase::Complete; }
+};
+
+class BenchItemValidateSMAARigidObjectVelocity : public AutoBenchToolWorkItem
+{
+    enum class Phase : int
+    {
+        CameraOnlyControl,
+        RigidObjectMotion,
+        Complete
+    };
+
+    Phase               m_phase                 = Phase::CameraOnlyControl;
+    bool                m_started               = false;
+    bool                m_isDone                = false;
+    bool                m_controlPassed         = false;
+    bool                m_objectPassed          = false;
+
+public:
+    explicit BenchItemValidateSMAARigidObjectVelocity( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_T2X_R;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetSMAAObjectMotionReprojection( vaSMAAWrapper::ObjectMotionReprojection::Off );
+            m_parent.SetSMAATemporalStressTestState(
+                CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion, 0.0f );
+            m_parent.SetSMAATemporalVelocityDiagnosticMode(
+                vaSMAAWrapper::TemporalVelocityDiagnosticMode::StaticCameraZero );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA rigid-object GPU velocity engineering validation\r\n\r\n" );
+            abTool.ReportAddText( "The existing -R path remains camera/depth-only by default. This test enables the rigid-transform overwrite only in its second phase.\r\n" );
+            abTool.ReportAddText( "The fixed-camera stress scene advances from t=0 to t=1/60 s so any non-zero velocity must come from the moving occluder or rotor.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Phase", "Significant pixels", "Ratio", "Max abs", "History UV in bounds", "Result" } );
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalVelocityDiagnostics & diagnostics =
+            m_parent.GetSMAATemporalVelocityDiagnostics( );
+        if( !diagnostics.Valid )
+            return;
+
+        if( m_phase == Phase::CameraOnlyControl )
+        {
+            m_controlPassed = diagnostics.Mode == vaSMAAWrapper::TemporalVelocityDiagnosticMode::StaticCameraZero
+                && diagnostics.Passed && diagnostics.SignificantVelocityCount == 0;
+            abTool.ReportAddRowValues( {
+                "Camera/depth only control",
+                vaStringTools::Format( "%u", diagnostics.SignificantVelocityCount ),
+                vaStringTools::Format( "%.6f%%", 100.0f * diagnostics.GetSignificantVelocityRatio( ) ),
+                vaStringTools::Format( "%.8f", diagnostics.MaximumAbsoluteVelocity ),
+                vaStringTools::Format( "%.3f%%", 100.0f * diagnostics.GetHistoryUVInBoundsRatio( ) ),
+                m_controlPassed? "PASS" : "FAIL" } );
+
+            m_parent.SetSMAAObjectMotionReprojection(
+                vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms );
+            m_parent.SetSMAATemporalStressTestState(
+                CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion, 1.0f / 60.0f );
+            m_parent.SetSMAATemporalVelocityDiagnosticMode(
+                vaSMAAWrapper::TemporalVelocityDiagnosticMode::RigidObjectMotion );
+            m_phase = Phase::RigidObjectMotion;
+            return;
+        }
+
+        if( m_phase == Phase::RigidObjectMotion )
+        {
+            m_objectPassed = diagnostics.Mode == vaSMAAWrapper::TemporalVelocityDiagnosticMode::RigidObjectMotion
+                && diagnostics.Passed;
+            abTool.ReportAddRowValues( {
+                "Rigid transforms enabled",
+                vaStringTools::Format( "%u", diagnostics.SignificantVelocityCount ),
+                vaStringTools::Format( "%.6f%%", 100.0f * diagnostics.GetSignificantVelocityRatio( ) ),
+                vaStringTools::Format( "%.8f", diagnostics.MaximumAbsoluteVelocity ),
+                vaStringTools::Format( "%.3f%%", 100.0f * diagnostics.GetHistoryUVInBoundsRatio( ) ),
+                m_objectPassed? "PASS" : "FAIL" } );
+
+            const bool aggregatePassed = m_controlPassed && m_objectPassed;
+            VA_LOG( "SMAA rigid-object GPU velocity validation: control=%s, object=%s => %s",
+                m_controlPassed? "PASS" : "FAIL", m_objectPassed? "PASS" : "FAIL",
+                aggregatePassed? "PASS" : "FAIL" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "\r\nAggregate: camera-only control %s, rigid-object motion %s => %s\r\n",
+                m_controlPassed? "PASS" : "FAIL", m_objectPassed? "PASS" : "FAIL",
+                aggregatePassed? "PASS" : "FAIL" ) );
+            m_parent.SetSMAATemporalVelocityDiagnosticMode(
+                vaSMAAWrapper::TemporalVelocityDiagnosticMode::Disabled );
+            m_parent.SetSMAAObjectMotionReprojection( vaSMAAWrapper::ObjectMotionReprojection::Off );
             abTool.ReportFinish( );
             m_phase = Phase::Complete;
             m_isDone = true;
@@ -6843,6 +6954,20 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 policy >= 0? (vaSMAAWrapper::CandidatePolicy)policy : vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant);
             VA_LOG("SMAA candidate policy diagnostic override: %s",
                 policy >= 0? GetCandidatePolicyName((vaSMAAWrapper::CandidatePolicy)policy) : "disabled");
+        }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionOverride") == 0)
+        {
+            int enabled = 0;
+            std::wistringstream values(parameter.second);
+            if (!(values >> enabled) || enabled < 0 || enabled > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaObjectMotionReprojectionOverride value; expected 0 (camera/depth only) or 1 (add rigid-object transforms)");
+                return;
+            }
+            m_SMAA->SetObjectMotionReprojection(enabled != 0?
+                vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
+                vaSMAAWrapper::ObjectMotionReprojection::Off);
+            VA_LOG("SMAA rigid-object motion reprojection diagnostic override: %s", enabled != 0? "enabled" : "disabled");
         }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateExpansionOverride") == 0)
         {
@@ -7205,6 +7330,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA temporal lifecycle engineering validation");
+            return;
+        }
+
+        if (_wcsicmp(parameter.first.c_str(), L"smaaRigidObjectVelocityTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAARigidObjectVelocity>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA rigid-object transform GPU velocity validation");
             return;
         }
 

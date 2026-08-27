@@ -30,6 +30,7 @@
 namespace VertexAsylum
 {
     class vaCameraBase;
+    class vaRenderMeshDrawList;
 
     class vaSMAAWrapper : public VertexAsylum::vaRenderingModule, public vaUIPanel
     {
@@ -54,6 +55,15 @@ namespace VertexAsylum
         {
             Off,
             CameraDepthMatrices
+        };
+
+        // Independent research toggle. The existing -R semantic cases remain
+        // camera/depth reprojection only until this rigid-object extension is
+        // validated and promoted as a separately named experiment.
+        enum class ObjectMotionReprojection : int32
+        {
+            Off,
+            RigidTransforms
         };
 
         enum class JitterPolicy : int32
@@ -177,7 +187,8 @@ namespace VertexAsylum
         {
             Disabled,
             StaticCameraZero,
-            CameraRightTranslation
+            CameraRightTranslation,
+            RigidObjectMotion
         };
 
         struct TemporalVelocityDiagnostics
@@ -189,6 +200,7 @@ namespace VertexAsylum
             uint32                      PixelCount                  = 0;
             uint32                      FinitePixelCount            = 0;
             uint32                      SignificantXCount          = 0;
+            uint32                      SignificantVelocityCount   = 0;
             uint32                      ExpectedNegativeXCount     = 0;
             uint32                      HistoryUVInBoundsCount      = 0;
             vaVector2                   MeanVelocity                = vaVector2( 0.0f, 0.0f );
@@ -204,6 +216,11 @@ namespace VertexAsylum
             float GetHistoryUVInBoundsRatio( ) const
             {
                 return FinitePixelCount > 0? (float)HistoryUVInBoundsCount / (float)FinitePixelCount : 0.0f;
+            }
+
+            float GetSignificantVelocityRatio( ) const
+            {
+                return PixelCount > 0? (float)SignificantVelocityCount / (float)PixelCount : 0.0f;
             }
         };
 
@@ -307,6 +324,7 @@ namespace VertexAsylum
                                     m_constantsBuffer;
 
         TemporalSettings            m_temporalSettings;
+        ObjectMotionReprojection    m_objectMotionReprojection          = ObjectMotionReprojection::Off;
         int                         m_temporalFrameIndex                = 0;
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
@@ -377,6 +395,20 @@ namespace VertexAsylum
         const TemporalSettings &    GetTemporalSettings( ) const       { return m_temporalSettings; }
         bool                        GetTemporalModeEnabled( ) const      { return m_temporalSettings.Coverage != TemporalCoverage::Disabled; }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalSettings.Reprojection == ReprojectionMode::CameraDepthMatrices; }
+        void                        SetObjectMotionReprojection( ObjectMotionReprojection value )
+        {
+            if( m_objectMotionReprojection != value )
+            {
+                m_objectMotionReprojection = value;
+                ResetTemporalHistory( );
+            }
+        }
+        ObjectMotionReprojection    GetObjectMotionReprojection( ) const { return m_objectMotionReprojection; }
+        bool                        GetRigidObjectMotionReprojectionEnabled( ) const
+        {
+            return GetTemporalReprojectionEnabled( )
+                && m_objectMotionReprojection == ObjectMotionReprojection::RigidTransforms;
+        }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
         bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }
         bool                        GetDeJitteredNonCandidateBaseEnabled( ) const
@@ -548,7 +580,8 @@ namespace VertexAsylum
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
-                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr )  = 0;
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
+                                            const vaRenderMeshDrawList * optionalObjectVelocityDrawList = nullptr )  = 0;
 
         // if SMAA is no longer used make sure it's not reserving any memory
         virtual void                CleanupTemporaryResources( )                                                            = 0;

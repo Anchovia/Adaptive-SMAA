@@ -319,12 +319,16 @@ Original mode는 기존 edge target/shader path를 유지한다.
   기존 Bistro flythrough 동작을 유지한다.
 - Object-motion reprojection 구현 전 설계 감사는
   `Docs/SMAA-Object-Motion-Reprojection-Design-Audit-ko.md`를 기준으로 한다. 현재 `-R`은
-  여전히 camera/depth reprojection만 의미하며, rigid object velocity는 아직 구현되지
-  않았다. 첫 구현은 previous rigid world transform을 draw entry에 전달하고 기존
-  full-screen camera velocity 위에 움직인 opaque/alpha-tested object만 depth-equal로
-  덮어쓰는 default-Off engineering toggle로 진행한다. Skinned/deforming/transparent
-  motion과 previous-depth disocclusion rejection은 별도 후속 범위다. Object toggle의
-  기능·회귀·품질 gate 전에는 기존 8-case `-R` 의미나 formal 결과를 변경하지 않는다.
+  여전히 camera/depth reprojection만 의미한다. Rigid-object velocity 1차 구현은 previous
+  rigid world transform을 draw entry에 전달하고 기존 full-screen camera velocity 위에
+  움직인 opaque object의 현재-depth 일치 pixel만 덮어쓰는 default-Off engineering
+  toggle로 추가됐다. `-smaaObjectMotionReprojectionOverride 1`로만 활성화하며
+  `-smaaRigidObjectVelocityTest`에서 camera-only 0 pixel, rigid On 21,284 pixel(1.090011%),
+  history UV 100% in-bounds로 PASS했다. 기존 camera velocity와 8-mode lifecycle 회귀도
+  PASS했다. Temporal feedback mismatch와 static-stability history hash 변화도 0으로
+  PASS했다. Skinned/deforming/transparent motion과 previous-depth disocclusion
+  rejection은 별도 후속 범위다. 품질·성능 gate 전에는 기존 8-case `-R` 의미나
+  formal 결과를 변경하지 않는다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
@@ -1039,6 +1043,19 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     invalid/disocclusion 판정과 history reset 경계를 확인한 뒤 최소 구현 범위를 확정한다.
     구현 시 3×3 expansion은 직교 toggle로 유지하고 object motion 효과와 섞지 않는다.
     기존 최종 8-case와 expansion ablation은 회귀 기준으로 보존한다.
+30. **구조 정정 필요:** 현재 edge-selective document profile은 `SMAA::go`로 SMAA의
+    edge detection→weight calculation→neighborhood blending 전체 spatial path를 실행한
+    뒤, `TSCMAAExtractCandidatesCS`를 full resolution으로 dispatch한다. SMAA 1st-pass
+    `edgesRT`도 SRV로 bind하지만 기본 `AllBaseEdges`와 `IntelFamilyNonDominant` 정책은
+    이를 후보 근거로 사용하지 않고 luma에서 방향 edge strength를 다시 계산한다.
+    `ExperimentalLocalMeanMax3x3`만 SMAA edges를 gate로 참고한다. 따라서 현재 기본
+    경로에는 중복 edge 판정과 SMAA edge/candidate 불일치 가능성이 있으며, 기존에
+    측정된 ET2X overhead의 원인 후보이기도 하다. 다음 핵심 작업은 SMAA 1st-pass edge
+    output을 candidate source로 직접 재사용하는 controlled path를 구현·검증하는 것이다.
+    기존 luma 재검출은 삭제하지 말고 `LegacyLumaRedetect` ablation으로 보존한다.
+    Full SMAA spatial AA 뒤 선택 edge에만 temporal resolve를 적용하는 큰 순서 자체는
+    TSCMAA-style adaptation과 양립하지만, temporal 후보 edge를 별도 재검출하는 현재
+    기본 방식은 최종 구조로 확정하지 않는다.
 
 ## 7. 측정 규칙
 

@@ -521,3 +521,42 @@ triangle 수를 함께 기록해 비용을 해석한다.
 8. GPU 비용 측정
 9. 결과에 따라 final `-R` 정의 결정
 10. 필요한 경우 previous-depth disocclusion rejection 별도 구현
+
+---
+
+## 15. 2026-08-27 1차 구현 및 engineering 검증 결과
+
+설계 감사 뒤 다음 최소 경로를 구현했다.
+
+- scene object가 previous/current rigid world transform과 validity를 보존
+- render draw entry가 두 transform을 함께 전달
+- `-smaaObjectMotionReprojectionOverride 0|1` default-Off 진단 옵션
+- 기존 full-screen camera velocity를 먼저 생성
+- transform이 실제로 변한 opaque rigid mesh만 추가 draw
+- 현재 scene depth와 shader-side `1e-5` tolerance로 일치하는 보이는 pixel만 object
+  velocity로 덮어쓰기
+- velocity convention은 기존과 같은 `currentUV-previousUV`
+- skinned/deforming/transparent motion과 previous-depth disocclusion rejection은 미지원
+
+Release x64 빌드는 통과했다. 짧은 deterministic object-motion capture에서 toggle Off/On을
+비교한 결과, reprojection Off인 `O-T2X`, `O-ET2X`, `A-T2X`, `A-ET2X`는 모두
+byte-identical이었다. Reprojection On인 네 mode만 달라졌고 변경 bounding box는 절차적
+장면의 rotor와 occluder 영역에 한정됐다. 이는 기존 8-case 의미가 default-Off에서
+유지되고 object extension이 의도한 mode에만 작동한다는 engineering 증거다.
+
+전용 `-smaaRigidObjectVelocityTest` 결과는 다음과 같다.
+
+| Phase | 비영 velocity pixel | 전체 비율 | 최대 절댓값 | history UV 유효 | 결과 |
+|---|---:|---:|---:|---:|---|
+| camera/depth-only control | 0 | 0.000000% | 0.00000000 | 100.000% | PASS |
+| rigid transforms enabled | 21,284 | 1.090011% | 0.01061249 | 100.000% | PASS |
+
+기존 `-smaaTemporalVelocityTest`도 static camera와 +right camera translation을 모두
+PASS했다. 전체 temporal lifecycle test는 reset 48회, completed frame 130개, seed
+25개, resolve 105개, reprojection 62개, failure 0으로 PASS했다. Temporal feedback은
+output/history mismatch byte 0, previous-history hash mismatch 0으로 PASS했고, static
+stability는 `O-ET2X`와 `O-ET2X-R` 각각 32개 연속 history hash 변화 0으로 PASS했다.
+
+이 결과는 rigid-object velocity 생성의 기능 검증이며 ghosting 품질 개선이나 성능 개선
+결론이 아니다. 다음 gate는 camera-only와 camera+rigid의 object-motion 품질 비교,
+object velocity pass GPU 비용, previous-depth disocclusion rejection 필요성 평가다.

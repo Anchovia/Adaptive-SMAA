@@ -321,6 +321,7 @@ namespace VertexAsylum
                                                 GetSMAATemporalLifecycleDiagnostics( ) const { return m_SMAA->GetTemporalLifecycleDiagnostics( ); }
         void                                    ResetSMAATemporalHistoryForDiagnostics( ) { m_SMAA->ResetTemporalHistory( ); }
         void                                    SetSMAATemporalVelocityDiagnosticMode( vaSMAAWrapper::TemporalVelocityDiagnosticMode mode ) { m_SMAA->SetTemporalVelocityDiagnosticMode( mode ); }
+        void                                    SetSMAAObjectMotionReprojection( vaSMAAWrapper::ObjectMotionReprojection value ) { m_SMAA->SetObjectMotionReprojection( value ); }
         const vaSMAAWrapper::TemporalVelocityDiagnostics &
                                                 GetSMAATemporalVelocityDiagnostics( ) const { return m_SMAA->GetTemporalVelocityDiagnostics( ); }
         void                                    SetSMAATemporalFeedbackDiagnosticsEnabled( bool enabled ) { m_SMAA->SetTemporalFeedbackDiagnosticsEnabled( enabled ); }

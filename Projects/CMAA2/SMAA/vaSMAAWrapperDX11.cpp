@@ -400,7 +400,12 @@ namespace VertexAsylum
         SMAAReprojectionConstants   m_reprojectionConstants;
         vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
                                     m_reprojectionConstantsBuffer;
+        SMAAObjectVelocityConstants m_objectVelocityConstants;
+        vaTypedConstantBufferWrapper<SMAAObjectVelocityConstants>
+                                    m_objectVelocityConstantsBuffer;
         vaAutoRMI<vaPixelShader>    m_generateCameraVelocityPS;
+        vaAutoRMI<vaVertexShader>   m_generateRigidObjectVelocityVS;
+        vaAutoRMI<vaPixelShader>    m_generateRigidObjectVelocityPS;
         vaAutoRMI<vaPixelShader>    m_tscmaaDebugMaskPS;
         vaAutoRMI<vaPixelShader>    m_tscmaaDebugColorPS;
         vaAutoRMI<vaComputeShader>  m_tscmaaExtractCandidatesCS;
@@ -457,7 +462,8 @@ namespace VertexAsylum
 
     private:
         virtual vaDrawResultFlags       Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
-                                                const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
+                                                const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
+                                                const vaRenderMeshDrawList * optionalObjectVelocityDrawList = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
 
@@ -512,10 +518,11 @@ namespace VertexAsylum
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
-                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
+                                            const vaRenderMeshDrawList * optionalObjectVelocityDrawList = nullptr ) override
         { 
             // NOT IMPLEMENTED IN DX12
-            deviceContext; inputColor, optionalInLuma, optionalDepth, optionalCamera;
+            deviceContext; inputColor, optionalInLuma, optionalDepth, optionalCamera, optionalObjectVelocityDrawList;
             deviceContext.GetRenderTarget()->ClearRTV( deviceContext, vaVector4( 1.0f, 0.0f, 1.0f, 0.0f ) );
             return vaDrawResultFlags::None;  
         }
@@ -556,7 +563,10 @@ static HRESULT CreateSMAATemporalBufferAndUAV( ID3D11Device * device, const D3D1
 }
 
 vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
-    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice ), m_tscmaaDebugMaskPS( params.RenderDevice ),
+    m_reprojectionConstantsBuffer( params ), m_objectVelocityConstantsBuffer( params ),
+    m_generateCameraVelocityPS( params.RenderDevice ),
+    m_generateRigidObjectVelocityVS( params.RenderDevice ), m_generateRigidObjectVelocityPS( params.RenderDevice ),
+    m_tscmaaDebugMaskPS( params.RenderDevice ),
     m_tscmaaDebugColorPS( params.RenderDevice ),
     m_tscmaaExtractCandidatesCS( params.RenderDevice ), m_tscmaaExtractRawCandidatesCS( params.RenderDevice ),
     m_tscmaaDilateCandidates3x3CS( params.RenderDevice ),
@@ -574,6 +584,14 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
     m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
+    std::vector<vaVertexInputElementDesc> objectVelocityInputElements;
+    objectVelocityInputElements.push_back( { "SV_Position", 0, vaResourceFormat::R32G32B32_FLOAT, 0, vaVertexInputElementDesc::AppendAlignedElement, vaVertexInputElementDesc::InputClassification::PerVertexData, 0 } );
+    objectVelocityInputElements.push_back( { "COLOR", 0, vaResourceFormat::R8G8B8A8_UNORM, 0, vaVertexInputElementDesc::AppendAlignedElement, vaVertexInputElementDesc::InputClassification::PerVertexData, 0 } );
+    objectVelocityInputElements.push_back( { "NORMAL", 0, vaResourceFormat::R32G32B32A32_FLOAT, 0, vaVertexInputElementDesc::AppendAlignedElement, vaVertexInputElementDesc::InputClassification::PerVertexData, 0 } );
+    objectVelocityInputElements.push_back( { "TEXCOORD", 0, vaResourceFormat::R32G32_FLOAT, 0, vaVertexInputElementDesc::AppendAlignedElement, vaVertexInputElementDesc::InputClassification::PerVertexData, 0 } );
+    objectVelocityInputElements.push_back( { "TEXCOORD", 1, vaResourceFormat::R32G32_FLOAT, 0, vaVertexInputElementDesc::AppendAlignedElement, vaVertexInputElementDesc::InputClassification::PerVertexData, 0 } );
+    m_generateRigidObjectVelocityVS->CreateShaderAndILFromFile( L"SMAA/SMAAWrapper.hlsl", "vs_5_0", "DX10_SMAAGenerateRigidObjectVelocityVS", objectVelocityInputElements, {}, true );
+    m_generateRigidObjectVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateRigidObjectVelocityPS", {}, true );
     m_tscmaaDebugMaskPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "TSCMAADebugMaskPS", {}, true );
     m_tscmaaDebugColorPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "TSCMAADebugColorPS", {}, true );
     const vector<pair<string, string>> tscmaaShaderMacros = { { "SMAA_TSCMAA_COMPUTE", "1" } };
@@ -933,7 +951,8 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
 }
 
 vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma,
-    const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera )
+    const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera,
+    const vaRenderMeshDrawList * optionalObjectVelocityDrawList )
 {
     vaRenderDeviceContext::RenderOutputsState rtState = deviceContext.GetOutputs( );
 
@@ -987,6 +1006,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     }
 
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
+    const bool rigidObjectMotionEnabled = GetRigidObjectMotionReprojectionEnabled( );
     const bool edgeSelectiveTemporalEnabled = GetEdgeSelectiveTemporalEnabled( );
     const bool temporalLifecycleDiagnosticsEnabled = m_temporalLifecycleDiagnostics.Enabled && GetTemporalModeEnabled( );
     const int temporalFrameIndexBefore = GetTemporalFrameIndex( );
@@ -1022,6 +1042,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_temporalLastSubsampleIndicesValid = false;
     }
 
+    vaMatrix4x4 currentJitteredViewProjForVelocity = vaMatrix4x4::Identity;
     vaMatrix4x4 currentUnjitteredViewProjForHistory = vaMatrix4x4::Identity;
     if( temporalReprojectionEnabled || edgeSelectiveTemporalEnabled )
     {
@@ -1065,6 +1086,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
             m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
             currentUnjitteredViewProjForHistory = currentUnjitteredViewProj;
+            currentJitteredViewProjForVelocity = currentJitteredViewProj;
 
             if( temporalLifecycleDiagnosticsEnabled )
             {
@@ -1098,6 +1120,58 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         deviceContext.SetRenderTarget( nullptr, nullptr, false );
         if( velocityResult != vaDrawResultFlags::None )
             return velocityResult;
+
+        if( rigidObjectMotionEnabled && optionalObjectVelocityDrawList != nullptr )
+        {
+            if( optionalDepth == nullptr || optionalCamera == nullptr
+                || !m_generateRigidObjectVelocityVS->IsCreated( )
+                || !m_generateRigidObjectVelocityPS->IsCreated( ) )
+                return vaDrawResultFlags::ShadersStillCompiling;
+
+            vaRenderMeshDrawList movingRigidObjects;
+            for( int entryIndex = 0; entryIndex < optionalObjectVelocityDrawList->Count( ); entryIndex++ )
+            {
+                const vaRenderMeshDrawList::Entry & entry = (*optionalObjectVelocityDrawList)[entryIndex];
+                if( !entry.PreviousTransformValid
+                    || vaMatrix4x4::NearEqual( entry.Transform, entry.PreviousTransform, 1.0e-6f ) )
+                    continue;
+                movingRigidObjects.Insert( entry.Mesh, entry.Transform, entry.PreviousTransform, true,
+                    optionalCamera->GetPosition( ), vaSortType::None );
+            }
+
+            if( movingRigidObjects.Count( ) > 0 )
+            {
+                VA_SCOPE_CPUGPU_TIMER( SMAAGenerateRigidObjectVelocity, deviceContext );
+                deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, false );
+                vaSceneDrawContext objectVelocityDrawContext( deviceContext,
+                    *const_cast<vaCameraBase *>( optionalCamera ), vaDrawContextOutputType::Forward );
+                const vaDrawResultFlags objectVelocityResult = GetRenderDevice( ).GetMeshManager( ).Draw(
+                    objectVelocityDrawContext, movingRigidObjects, vaBlendMode::Opaque,
+                    vaRenderMeshDrawFlags::SkipTransparencies,
+                    [this, &currentJitteredViewProjForVelocity, &currentUnjitteredViewProjForHistory,
+                        &optionalDepth, &deviceContext]( const vaRenderMeshDrawList::Entry & entry,
+                            const vaRenderMaterial &, vaGraphicsItem & renderItem )
+                    {
+                        m_objectVelocityConstants.CurrentObjectToJitteredClip =
+                            entry.Transform * currentJitteredViewProjForVelocity;
+                        m_objectVelocityConstants.CurrentObjectToUnjitteredClip =
+                            entry.Transform * currentUnjitteredViewProjForHistory;
+                        m_objectVelocityConstants.PreviousObjectToClip =
+                            entry.PreviousTransform * m_reprojectionConstants.PreviousViewProj;
+                        m_objectVelocityConstantsBuffer.Update( deviceContext, m_objectVelocityConstants );
+                        renderItem.ConstantBuffers[3] = m_objectVelocityConstantsBuffer;
+                        renderItem.ShaderResourceViews[6] = optionalDepth;
+                        renderItem.VertexShader = m_generateRigidObjectVelocityVS;
+                        renderItem.PixelShader = m_generateRigidObjectVelocityPS;
+                        renderItem.BlendMode = vaBlendMode::Opaque;
+                        renderItem.DepthEnable = false;
+                        renderItem.DepthWriteEnable = false;
+                    } );
+                deviceContext.SetRenderTarget( nullptr, nullptr, false );
+                if( objectVelocityResult != vaDrawResultFlags::None )
+                    return objectVelocityResult;
+            }
+        }
 
         if( GetTemporalVelocityDiagnosticsEnabled( ) )
             ReadbackTemporalVelocityDiagnostics( dx11Context, (uint32)inputColor->GetSizeX( ), (uint32)inputColor->GetSizeY( ) );
@@ -1591,6 +1665,7 @@ void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext
     const uint32 pixelCount = width * height;
     uint32 finitePixelCount = 0;
     uint32 significantXCount = 0;
+    uint32 significantVelocityCount = 0;
     uint32 expectedNegativeXCount = 0;
     uint32 historyUVInBoundsCount = 0;
     double velocitySumX = 0.0;
@@ -1627,6 +1702,8 @@ void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext
                 if( velocityX < 0.0f )
                     expectedNegativeXCount++;
             }
+            if( vaMath::Abs( velocityX ) > 1e-5f || vaMath::Abs( velocityY ) > 1e-5f )
+                significantVelocityCount++;
 
             const float currentU = ((float)x + 0.5f) / (float)width;
             const float currentV = ((float)y + 0.5f) / (float)height;
@@ -1643,6 +1720,7 @@ void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext
     m_temporalVelocityDiagnostics.PixelCount = pixelCount;
     m_temporalVelocityDiagnostics.FinitePixelCount = finitePixelCount;
     m_temporalVelocityDiagnostics.SignificantXCount = significantXCount;
+    m_temporalVelocityDiagnostics.SignificantVelocityCount = significantVelocityCount;
     m_temporalVelocityDiagnostics.ExpectedNegativeXCount = expectedNegativeXCount;
     m_temporalVelocityDiagnostics.HistoryUVInBoundsCount = historyUVInBoundsCount;
     if( finitePixelCount > 0 )
@@ -1668,18 +1746,33 @@ void vaSMAAWrapperDX11::ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext
             && m_temporalVelocityDiagnostics.MeanVelocity.x < -1e-5f
             && m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ) >= 0.95f;
         break;
+    case TemporalVelocityDiagnosticMode::RigidObjectMotion:
+        // The diagnostic scene uses a fixed camera and two moving rigid
+        // objects. Motion must therefore be non-zero but spatially selective,
+        // finite, bounded, and map mostly to valid history coordinates.
+        m_temporalVelocityDiagnostics.Passed = finitePixelCount == pixelCount
+            && significantVelocityCount >= 128
+            && significantVelocityCount <= pixelCount / 4
+            && maximumAbsoluteVelocity > 1e-5f
+            && maximumAbsoluteVelocity <= 1.0f
+            && m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ) >= 0.95f;
+        break;
     default:
         m_temporalVelocityDiagnostics.Passed = false;
         break;
     }
 
-    const char * modeName = (m_temporalVelocityDiagnostics.Mode == TemporalVelocityDiagnosticMode::StaticCameraZero)?
-        "static-zero" : "camera-right";
-    VA_LOG( "SMAA GPU velocity diagnostics [%s]: finite=%u/%u, mean=(%.8f, %.8f), rangeX=[%.8f, %.8f], maxAbs=%.8f, negativeX=%u/%u (%.3f%%), historyUVInBounds=%u/%u (%.3f%%) => %s",
+    const char * modeName =
+        (m_temporalVelocityDiagnostics.Mode == TemporalVelocityDiagnosticMode::StaticCameraZero)? "static-zero" :
+        (m_temporalVelocityDiagnostics.Mode == TemporalVelocityDiagnosticMode::CameraRightTranslation)? "camera-right" :
+        (m_temporalVelocityDiagnostics.Mode == TemporalVelocityDiagnosticMode::RigidObjectMotion)? "rigid-object" : "disabled";
+    VA_LOG( "SMAA GPU velocity diagnostics [%s]: finite=%u/%u, mean=(%.8f, %.8f), rangeX=[%.8f, %.8f], maxAbs=%.8f, significant=%u/%u (%.3f%%), negativeX=%u/%u (%.3f%%), historyUVInBounds=%u/%u (%.3f%%) => %s",
         modeName, finitePixelCount, pixelCount,
         m_temporalVelocityDiagnostics.MeanVelocity.x, m_temporalVelocityDiagnostics.MeanVelocity.y,
         m_temporalVelocityDiagnostics.MinimumVelocity.x, m_temporalVelocityDiagnostics.MaximumVelocity.x,
-        maximumAbsoluteVelocity, expectedNegativeXCount, significantXCount,
+        maximumAbsoluteVelocity, significantVelocityCount, pixelCount,
+        100.0f * m_temporalVelocityDiagnostics.GetSignificantVelocityRatio( ),
+        expectedNegativeXCount, significantXCount,
         100.0f * m_temporalVelocityDiagnostics.GetExpectedNegativeXRatio( ),
         historyUVInBoundsCount, finitePixelCount,
         100.0f * m_temporalVelocityDiagnostics.GetHistoryUVInBoundsRatio( ),

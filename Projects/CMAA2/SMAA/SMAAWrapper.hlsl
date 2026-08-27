@@ -70,6 +70,22 @@ struct SMAAReprojectionConstants
 #endif
 };
 
+// Per-draw rigid-object velocity matrices. These deliberately live outside
+// the existing SMAA temporal settings so the object-motion experiment can be
+// enabled without changing the meaning of the established camera-only modes.
+struct SMAAObjectVelocityConstants
+{
+#ifndef INCLUDED_FROM_CPP
+    float4x4 CurrentObjectToJitteredClip;
+    float4x4 CurrentObjectToUnjitteredClip;
+    float4x4 PreviousObjectToClip;
+#else
+    VertexAsylum::vaMatrix4x4 CurrentObjectToJitteredClip;
+    VertexAsylum::vaMatrix4x4 CurrentObjectToUnjitteredClip;
+    VertexAsylum::vaMatrix4x4 PreviousObjectToClip;
+#endif
+};
+
 // the rest below is shader only code
 #ifndef INCLUDED_FROM_CPP
 
@@ -87,6 +103,11 @@ cbuffer SMAAGlobals : register( b0 )
 cbuffer SMAAReprojectionGlobals : register( b1 )
 {
     SMAAReprojectionConstants g_SMAAReprojection;
+}
+
+cbuffer SMAAObjectVelocityGlobals : register( b3 )
+{
+    SMAAObjectVelocityConstants g_SMAAObjectVelocity;
 }
 
 
@@ -264,6 +285,59 @@ float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
     // Official SMAA resolve negates this value before adding it to the current
     // UV, so store currentUV - previousUV (the motion-blur convention).
     return currentUnjitteredUV - previousUV;
+}
+
+struct SMAAObjectVelocityVertexInput
+{
+    float3 Position : SV_Position;
+    float4 Color : COLOR;
+    float4 Normal : NORMAL;
+    float2 Texcoord0 : TEXCOORD0;
+    float2 Texcoord1 : TEXCOORD1;
+};
+
+struct SMAAObjectVelocityVertexOutput
+{
+    float4 Position : SV_Position;
+    float4 CurrentUnjitteredClip : TEXCOORD0;
+    float4 PreviousClip : TEXCOORD1;
+};
+
+SMAAObjectVelocityVertexOutput DX10_SMAAGenerateRigidObjectVelocityVS(
+    const in SMAAObjectVelocityVertexInput input)
+{
+    SMAAObjectVelocityVertexOutput output;
+    const float4 localPosition = float4(input.Position, 1.0);
+    output.Position = mul(g_SMAAObjectVelocity.CurrentObjectToJitteredClip, localPosition);
+    output.CurrentUnjitteredClip = mul(g_SMAAObjectVelocity.CurrentObjectToUnjitteredClip, localPosition);
+    output.PreviousClip = mul(g_SMAAObjectVelocity.PreviousObjectToClip, localPosition);
+    return output;
+}
+
+float2 DX10_SMAAGenerateRigidObjectVelocityPS(
+    const in SMAAObjectVelocityVertexOutput input) : SV_TARGET
+{
+    const int2 pixel = int2(input.Position.xy);
+    const float sceneDepth = depthTex.Load(int3(pixel, 0)).r;
+    // The current scene depth already contains alpha-tested coverage. Reject
+    // occluded triangles and material holes without needing to reproduce every
+    // material shader in this rigid-transform-only pass.
+    if(abs(input.Position.z - sceneDepth) > 1.0e-5)
+        discard;
+
+    // A point behind either camera cannot provide a valid previous sample.
+    // Emit an out-of-bounds displacement so the temporal resolve rejects it.
+    if(input.CurrentUnjitteredClip.w <= 1.0e-6 || input.PreviousClip.w <= 1.0e-6)
+        return float2(2.0, 2.0);
+
+    const float2 currentNDC = input.CurrentUnjitteredClip.xy / input.CurrentUnjitteredClip.w;
+    const float2 previousNDC = input.PreviousClip.xy / input.PreviousClip.w;
+    const float2 currentUV = float2(currentNDC.x * 0.5 + 0.5, 0.5 - currentNDC.y * 0.5);
+    const float2 previousUV = float2(previousNDC.x * 0.5 + 0.5, 0.5 - previousNDC.y * 0.5);
+
+    // Match the camera velocity convention consumed by both SMAA resolves:
+    // historyUV = currentUV - velocity.
+    return currentUV - previousUV;
 }
 
 #if !defined(SMAA_TSCMAA_COMPUTE)
