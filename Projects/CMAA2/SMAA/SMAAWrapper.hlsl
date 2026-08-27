@@ -160,7 +160,160 @@ SamplerState                        PointSampler                        : regist
  Texture2D                          edgesTex                            : register( t8 );
  Texture2D                          blendTex                            : register( t9 );
  Texture2D                          metaTex                             : register( t16 );
-                                                                        
+
+#define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
+#define TSCMAA_PROCESS_COUNT_OFFSET           4
+#define TSCMAA_EDGE_COUNTER_OFFSET            8
+#define TSCMAA_DISPATCH_GROUP_COUNT_OFFSET    12
+#define TSCMAA_RESOLVE_NUM_THREADS            64
+
+#if defined(SMAA_INTEGRATED_TEMPORAL_CANDIDATES)
+// Research-only first-pass outputs. UAV slots start at u2 so the same shader
+// remains valid for Original SMAA (one edge RTV) and Adaptive SMAA (edge +
+// metadata RTVs). The ordinary SMAA shaders never compile this declaration.
+RWStructuredBuffer<uint>             tscmaaIntegratedCandidates        : register( u2 );
+RWByteAddressBuffer                  tscmaaIntegratedControl           : register( u3 );
+RWTexture2D<float>                   tscmaaIntegratedBaseEdgeMask      : register( u4 );
+RWTexture2D<float>                   tscmaaIntegratedCandidateMask     : register( u5 );
+RWTexture2D<float>                   tscmaaIntegratedRawCandidateMask  : register( u7 );
+
+float TSCMAAIntegratedSampleLuma(float2 texcoord) {
+    float4 sampleValue = SMAASamplePoint(colorTexGamma, texcoord);
+    #if defined(SMAA_INTEGRATED_RAW_LUMA)
+    return sampleValue.r;
+    #else
+    return dot(sampleValue.rgb, float3(0.2126, 0.7152, 0.0722));
+    #endif
+}
+
+float TSCMAAIntegratedLoadLuma(int2 pixel, int2 dimensions) {
+    pixel = clamp(pixel, int2(0, 0), dimensions - 1);
+    float4 sampleValue = colorTexGamma.Load(int3(pixel, 0));
+    #if defined(SMAA_INTEGRATED_RAW_LUMA)
+    return sampleValue.r;
+    #else
+    return dot(sampleValue.rgb, float3(0.2126, 0.7152, 0.0722));
+    #endif
+}
+
+// Intel's public TSCMAA material exposes the non-dominant-removal parameter,
+// but not the lost sample's exact candidate equation. This SMAA adaptation
+// relocates the already-established Intel-family ablation into the SMAA edge
+// pass and reuses the luma values needed by that pass. It must not be described
+// as Intel's original candidate shader.
+bool TSCMAAIntegratedSelectCandidate(
+    uint2 pixel) {
+    uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
+    if (policy == 0)
+        return true;
+    if (policy != 1)
+        return false;
+
+    uint width;
+    uint height;
+    colorTexGamma.GetDimensions(width, height);
+    int2 dimensions = int2(width, height);
+    int2 centerPixel = int2(pixel);
+
+    #define TSCMAA_INTEGRATED_LOAD_LUMA(P) TSCMAAIntegratedLoadLuma(P, dimensions)
+    float L = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel);
+    float Lleft = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(-1, 0));
+    float Ltop = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(0, -1));
+    float Lright = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(1, 0));
+    float Lbottom = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(0, 1));
+    float LtopLeft = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(-1, -1));
+    float LbottomLeft = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(-1, 1));
+    float LtopRight = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(1, -1));
+    #undef TSCMAA_INTEGRATED_LOAD_LUMA
+
+    float2 directionalDelta = abs(L - float2(Lleft, Ltop));
+    float2 rightBottomDelta = abs(L - float2(Lright, Lbottom));
+
+    float maximumPerpendicularForVertical = max(
+        max(directionalDelta.y, abs(Lleft - LtopLeft)),
+        max(rightBottomDelta.y, abs(LbottomLeft - Lleft)));
+    float maximumPerpendicularForHorizontal = max(
+        max(directionalDelta.x, abs(Ltop - LtopLeft)),
+        max(rightBottomDelta.x, abs(LtopRight - Ltop)));
+
+    float removalAmount = g_SMAAReprojection.TSCMAAParams.y;
+    float threshold = g_SMAAReprojection.TSCMAACandidateParams.x;
+    bool verticalDominant = directionalDelta.x
+        - maximumPerpendicularForVertical * removalAmount > threshold;
+    bool horizontalDominant = directionalDelta.y
+        - maximumPerpendicularForHorizontal * removalAmount > threshold;
+    return verticalDominant || horizontalDominant;
+}
+
+SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
+    float4 position : SV_POSITION,
+    float2 texcoord : TEXCOORD0,
+    float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {
+    #if SMAA_PREDICATION
+    float2 threshold = SMAACalculatePredicatedThreshold(
+        texcoord, offset, SMAATexturePass2D(depthTex));
+    #else
+    float2 threshold = float2(SMAA_THRESHOLD, SMAA_THRESHOLD);
+    #endif
+
+    float L = TSCMAAIntegratedSampleLuma(texcoord);
+    float Lleft = TSCMAAIntegratedSampleLuma(offset[0].xy);
+    float Ltop = TSCMAAIntegratedSampleLuma(offset[0].zw);
+
+    float4 delta;
+    delta.xy = abs(L - float2(Lleft, Ltop));
+    float2 edges = step(threshold, delta.xy);
+    if (dot(edges, float2(1.0, 1.0)) == 0.0)
+        discard;
+
+    float Lright = TSCMAAIntegratedSampleLuma(offset[1].xy);
+    float Lbottom = TSCMAAIntegratedSampleLuma(offset[1].zw);
+    delta.zw = abs(L - float2(Lright, Lbottom));
+    float2 maxDelta = max(delta.xy, delta.zw);
+
+    float Lleftleft = TSCMAAIntegratedSampleLuma(offset[2].xy);
+    float Ltoptop = TSCMAAIntegratedSampleLuma(offset[2].zw);
+    delta.zw = abs(float2(Lleft, Ltop) - float2(Lleftleft, Ltoptop));
+    maxDelta = max(maxDelta.xy, delta.zw);
+    float finalDelta = max(maxDelta.x, maxDelta.y);
+    edges.xy *= step(finalDelta,
+        SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
+
+    uint2 pixel = uint2(position.xy);
+    bool baseEdge = any(edges > 0.0);
+    bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(pixel);
+    tscmaaIntegratedBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
+
+    if (baseEdge) {
+        uint ignoredEdgeIndex;
+        tscmaaIntegratedControl.InterlockedAdd(
+            TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
+    }
+
+    bool expansionEnabled = g_SMAAReprojection.TSCMAAHybridParams.w > 0.5;
+    if (expansionEnabled) {
+        tscmaaIntegratedRawCandidateMask[pixel] = candidate ? 1.0 : 0.0;
+        tscmaaIntegratedCandidateMask[pixel] = 0.0;
+    } else {
+        tscmaaIntegratedCandidateMask[pixel] = candidate ? 1.0 : 0.0;
+        if (candidate) {
+            uint candidateIndex;
+            tscmaaIntegratedControl.InterlockedAdd(
+                TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
+            uint candidateCapacity;
+            uint candidateStride;
+            tscmaaIntegratedCandidates.GetDimensions(
+                candidateCapacity, candidateStride);
+            if (candidateIndex < candidateCapacity)
+                tscmaaIntegratedCandidates[candidateIndex] =
+                    (pixel.x << 16) | pixel.y;
+        }
+    }
+
+    return SMAAEncodeEdgeOutput(edges, finalDelta);
+}
+#endif
+
  /**
  * Function wrappers
  */
@@ -382,12 +535,6 @@ RWTexture2D<float4>                  tscmaaClippingDebug                  : regi
 // The u7 intermediate is rebound between passes: full-resolution raw mask
 // during extraction and quarter-resolution filtered mask during downsample.
 RWTexture2D<float>                   tscmaaExpansionIntermediate          : register( u7 );
-
-#define TSCMAA_CANDIDATE_COUNTER_OFFSET       0
-#define TSCMAA_PROCESS_COUNT_OFFSET           4
-#define TSCMAA_EDGE_COUNTER_OFFSET            8
-#define TSCMAA_DISPATCH_GROUP_COUNT_OFFSET    12
-#define TSCMAA_RESOLVE_NUM_THREADS            64
 
 int2 TSCMAAClampPixel(int2 pixel, int2 dimensions) {
     return clamp(pixel, int2(0, 0), dimensions - 1);

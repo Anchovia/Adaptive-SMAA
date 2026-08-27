@@ -57,7 +57,8 @@ void vaSMAAWrapper::UIPanelDraw( )
         {
             int source = (int)m_candidateEdgeSourceOverride;
             if( ImGuiEx_Combo( "Candidate edge source", source,
-                { string("Legacy luma re-detection"), string("SMAA first-pass edges") } ) )
+                { string("Legacy luma re-detection"), string("Post-pass SMAA edge reuse"),
+                  string("Integrated SMAA first-pass candidates") } ) )
                 SetCandidateEdgeSourceOverride(
                     true, (CandidateEdgeSource)source );
         }
@@ -162,8 +163,10 @@ void vaSMAAWrapper::UIPanelDraw( )
         if( statistics.Valid )
         {
             ImGui::Text( "Candidate edge source: %s",
-                statistics.Source == CandidateEdgeSource::SMAAFirstPassEdges?
-                "SMAA first-pass edges" : "Legacy luma re-detection" );
+                statistics.Source == CandidateEdgeSource::SMAAFirstPassIntegratedCandidates?
+                "Integrated SMAA first-pass candidates" :
+                (statistics.Source == CandidateEdgeSource::SMAAFirstPassEdges?
+                "Post-pass SMAA edge reuse" : "Legacy luma re-detection") );
             ImGui::Text( "Base edges: %u (%.3f%% of pixels)", statistics.BaseEdgeCount,
                 statistics.PixelCount > 0? 100.0f * (float)statistics.BaseEdgeCount / (float)statistics.PixelCount : 0.0f );
             ImGui::Text( "Candidates: %u (%.3f%% of pixels)", statistics.CandidateCount,

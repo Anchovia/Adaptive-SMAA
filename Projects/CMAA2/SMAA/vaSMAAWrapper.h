@@ -101,11 +101,14 @@ namespace VertexAsylum
         // its directional edge input. The legacy path re-evaluates luma after
         // the complete spatial SMAA pass. The first-pass path reuses the
         // thresholded/local-contrast-filtered RG edge result already produced
-        // by SMAA pass 1.
+        // by SMAA pass 1. The integrated path emits the temporal candidate
+        // list during that same first pass and avoids the later full-screen
+        // extraction dispatch.
         enum class CandidateEdgeSource : int32
         {
             LegacyLumaRedetect,
-            SMAAFirstPassEdges
+            SMAAFirstPassEdges,
+            SMAAFirstPassIntegratedCandidates
         };
 
         enum class CandidateExpansion : int32

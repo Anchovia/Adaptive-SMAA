@@ -95,6 +95,30 @@ class SMAA {
     public:
         class ExternalStorage;
 
+        /**
+         * Optional research-only outputs written by the luma edge-detection
+         * pixel shader. Keeping these resources outside the ordinary go()
+         * path preserves the original SMAA 1X/T2X behavior unless the caller
+         * explicitly requests integrated temporal-candidate generation.
+         *
+         * UAV slots u2..u7 are used so the same binding works with both the
+         * original one-RT edge pass and the Adaptive SMAA two-RT edge pass.
+         */
+        struct IntegratedTemporalCandidateOutputs {
+            ID3D11UnorderedAccessView *Candidates = nullptr;       // u2
+            ID3D11UnorderedAccessView *Control = nullptr;          // u3
+            ID3D11UnorderedAccessView *BaseEdgeMask = nullptr;     // u4
+            ID3D11UnorderedAccessView *CandidateMask = nullptr;    // u5
+            ID3D11UnorderedAccessView *RawCandidateMask = nullptr; // u7, expansion only
+            bool WriteRawCandidateMask = false;
+
+            bool IsValid() const {
+                return Candidates != nullptr && Control != nullptr
+                    && BaseEdgeMask != nullptr && CandidateMask != nullptr
+                    && (!WriteRawCandidateMask || RawCandidateMask != nullptr);
+            }
+        };
+
         enum Mode { MODE_SMAA_1X, MODE_SMAA_T2X, MODE_SMAA_S2X, MODE_SMAA_4X, MODE_SMAA_COUNT=MODE_SMAA_4X };
         enum Preset { PRESET_LOW, PRESET_MEDIUM, PRESET_HIGH, PRESET_ULTRA, PRESET_CUSTOM, PRESET_COUNT=PRESET_CUSTOM };
         enum Input { INPUT_LUMA, INPUT_LUMA_RAW, INPUT_COLOR, INPUT_DEPTH, INPUT_COUNT=INPUT_DEPTH };
@@ -142,7 +166,8 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, // Selects the S2x or 4x pass (either 0 or 1).
+                const IntegratedTemporalCandidateOutputs * integratedTemporalCandidates=nullptr);
 
         /**
          * This function perform a temporal resolve of two buffers. They must
@@ -273,7 +298,8 @@ class SMAA {
 
         void loadAreaTex();
         void loadSearchTex();
-        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input);
+        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input,
+                                const IntegratedTemporalCandidateOutputs * integratedTemporalCandidates);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
         void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv);
 
@@ -312,6 +338,7 @@ class SMAA {
         SMAATechniqueManagerInterface * techniqueManagerInterface;
 
         SMAATechniqueInterface *        edgeDetectionTechniques[3];
+        SMAATechniqueInterface *        integratedTemporalEdgeDetectionTechniques[2];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        resolveTechnique;

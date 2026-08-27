@@ -166,6 +166,7 @@ namespace
             // choices and independently selectable diagnostic overrides.
             settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
+            settings.CandidateSource = vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates;
             settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
             settings.HistoryWeight = 0.8f;
             settings.NonDominantRemovalAmount = 0.5f;
@@ -178,6 +179,7 @@ namespace
             settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
             settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
+            settings.CandidateSource = vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates;
             settings.Candidates = vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant;
             settings.Expansion = vaSMAAWrapper::CandidateExpansion::FilteredQuarter;
             if( aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3 )
@@ -249,8 +251,13 @@ namespace
 
     const char * GetCandidateEdgeSourceName( vaSMAAWrapper::CandidateEdgeSource value )
     {
-        return value == vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges?
-            "SMAAFirstPassEdges" : "LegacyLumaRedetect";
+        switch( value )
+        {
+        case vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect:              return "LegacyLumaRedetect";
+        case vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges:              return "SMAAFirstPassEdges";
+        case vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates:return "SMAAFirstPassIntegratedCandidates";
+        default:                                                                  return "Unknown";
+        }
     }
 
     const char * GetCandidateExpansionName( vaSMAAWrapper::CandidateExpansion value )
@@ -4958,6 +4965,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         StandardTemporalResolve,
         SpatialSMAA1X,
         CopySpatialToHistory,
+        ClearIntegratedCandidateBuffers,
         PrepareCandidates,
         ExtractCandidates,
         DilateCandidates3x3,
@@ -5018,16 +5026,29 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     bool m_passed = true;
     bool m_candidateReadbackEnabled = true;
 
+    vaSMAAWrapper::CandidateEdgeSource GetCandidateEdgeSourceForAblationMode( int mode ) const
+    {
+        assert( m_candidateEdgeSourceAblation );
+        switch( mode % 3 )
+        {
+        case 0: return vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect;
+        case 1: return vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges;
+        default:return vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates;
+        }
+    }
+
     const char * GetModeID( int mode ) const
     {
         if( m_candidateEdgeSourceAblation )
         {
-            static const char * c_candidateEdgeSourceModeIDs[4] =
+            static const char * c_candidateEdgeSourceModeIDs[6] =
             {
                 "O-ET2X / LegacyLumaRedetect",
                 "O-ET2X / SMAAFirstPassEdges",
+                "O-ET2X / SMAAFirstPassIntegratedCandidates",
                 "O-ET2X-R / LegacyLumaRedetect",
-                "O-ET2X-R / SMAAFirstPassEdges"
+                "O-ET2X-R / SMAAFirstPassEdges",
+                "O-ET2X-R / SMAAFirstPassIntegratedCandidates"
             };
             return c_candidateEdgeSourceModeIDs[mode];
         }
@@ -5104,7 +5125,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
         if( m_candidateEdgeSourceAblation )
-            return mode >= 2? CMAA2Sample::AAType::SMAA_O_ET2X_R :
+            return mode >= 3? CMAA2Sample::AAType::SMAA_O_ET2X_R :
                 CMAA2Sample::AAType::SMAA_O_ET2X;
         if( m_filteredQuarterAblation )
         {
@@ -5198,6 +5219,15 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         return temporalProfile == 2 || temporalProfile == 3;
     }
 
+    bool IsIntegratedCandidateMode( int mode ) const
+    {
+        if( m_candidateEdgeSourceAblation )
+            return GetCandidateEdgeSourceForAblationMode( mode )
+                == vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates;
+        return GetSMAATemporalSettingsForAAType( GetModeAAType( mode ) ).CandidateSource
+            == vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates;
+    }
+
     static const char * GetMetricNodeName( Metric metric )
     {
         switch( metric )
@@ -5210,6 +5240,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case StandardTemporalResolve:   return "SMAAStandardTemporalResolve";
         case SpatialSMAA1X:             return "SMAASpatial1X";
         case CopySpatialToHistory:      return "TSCMAACopySpatialToHistory";
+        case ClearIntegratedCandidateBuffers:return "TSCMAAClearIntegratedCandidateBuffers";
         case PrepareCandidates:         return "TSCMAAPrepareCandidates";
         case ExtractCandidates:         return "TSCMAAExtractCandidates";
         case DilateCandidates3x3:       return "TSCMAADilateCandidates3x3";
@@ -5234,20 +5265,29 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         if( m_candidateEdgeSourceAblation )
         {
             if( metric == GenerateCameraVelocity )
-                return mode >= 2;
-            return metric == SpatialSMAA1X || metric == CopySpatialToHistory
-                || metric == PrepareCandidates || metric == ExtractCandidates
+                return mode >= 3;
+            if( metric == SpatialSMAA1X || metric == CopySpatialToHistory
                 || metric == ComputeDispatchArgs || metric == ResolveCandidates
-                || metric == OutputCopy;
+                || metric == OutputCopy )
+                return true;
+            if( metric == ClearIntegratedCandidateBuffers )
+                return IsIntegratedCandidateMode( mode );
+            if( metric == PrepareCandidates || metric == ExtractCandidates )
+                return !IsIntegratedCandidateMode( mode );
+            return false;
         }
 
         if( m_currentEdgeDilationAblation || m_filteredQuarterAblation || m_armDualFilterAblation )
         {
+            const bool integratedCandidates = IsIntegratedCandidateMode( mode );
             if( metric == GenerateCameraVelocity || metric == SpatialSMAA1X
-                || metric == CopySpatialToHistory || metric == PrepareCandidates
-                || metric == ExtractCandidates || metric == ComputeDispatchArgs
+                || metric == CopySpatialToHistory || metric == ComputeDispatchArgs
                 || metric == ResolveCandidates || metric == OutputCopy )
                 return true;
+            if( metric == ClearIntegratedCandidateBuffers )
+                return integratedCandidates;
+            if( metric == PrepareCandidates || metric == ExtractCandidates )
+                return !integratedCandidates;
             if( metric == DilateCandidates3x3 )
                 return m_armDualFilterAblation? mode == 1 || mode == 5 :
                     (m_filteredQuarterAblation? mode == 1 || mode == 4 : mode == 1 || mode == 3);
@@ -5265,6 +5305,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             temporalProfile == 0 || temporalProfile == 1;
         const bool edgeSelective = m_candidateAblation? mode >= 1 :
             temporalProfile == 2 || temporalProfile == 3;
+        const bool integratedCandidates = edgeSelective && IsIntegratedCandidateMode( mode );
         const bool reprojected = m_candidateAblation? true :
             temporalProfile == 1 || temporalProfile == 3;
 
@@ -5272,10 +5313,14 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             return reprojected;
         if( metric == StandardSpatialT2X || metric == StandardTemporalResolve )
             return standard;
-        if( metric == SpatialSMAA1X || metric == CopySpatialToHistory || metric == PrepareCandidates
-            || metric == ExtractCandidates || metric == ComputeDispatchArgs || metric == ResolveCandidates
+        if( metric == SpatialSMAA1X || metric == CopySpatialToHistory
+            || metric == ComputeDispatchArgs || metric == ResolveCandidates
             || metric == OutputCopy )
             return edgeSelective;
+        if( metric == ClearIntegratedCandidateBuffers )
+            return integratedCandidates;
+        if( metric == PrepareCandidates || metric == ExtractCandidates )
+            return edgeSelective && !integratedCandidates;
         if( metric == DilateCandidates3x3 )
             return false;
         if( metric == FilteredQuarterDownsample || metric == FilteredQuarterUpsample )
@@ -5371,9 +5416,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             {
                 if( m_candidateEdgeSourceAblation )
                 {
-                    const vaSMAAWrapper::CandidateEdgeSource expectedSource = (m_currentMode & 1) != 0?
-                        vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges :
-                        vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect;
+                    const vaSMAAWrapper::CandidateEdgeSource expectedSource =
+                        GetCandidateEdgeSourceForAblationMode( m_currentMode );
                     if( statistics.Source != expectedSource )
                         m_passed = false;
                 }
@@ -5513,7 +5557,7 @@ public:
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( candidateEdgeSourceAblation? 4 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
             (includeAdaptive? c_modeCapacity : c_originalModeCount))))) )
     {
@@ -5550,7 +5594,7 @@ protected:
                     "SMAA candidate edge-source repeated performance benchmark\r\n\r\n" :
                     "SMAA candidate edge-source GPU performance smoke\r\n\r\n" );
                 abTool.ReportAddText(
-                    "This compares the legacy post-SMAA luma re-detection path with direct reuse of SMAA pass-1 edges.\r\n"
+                    "This compares legacy post-SMAA luma re-detection, post-pass reuse of the SMAA pass-1 edge texture, and candidate generation integrated into the SMAA pass-1 pixel shader.\r\n"
                     "Candidate policy, expansion, sampling, clipping, history weight, reprojection setting, and camera path remain paired.\r\n" );
             }
             else if( m_armDualFilterAblation )
@@ -5670,10 +5714,8 @@ protected:
 
         m_currentFrame++;
         if( m_candidateEdgeSourceAblation )
-            m_parent.SetSMAACandidateEdgeSourceOverride( true,
-                (m_currentMode & 1) != 0?
-                vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges :
-                vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                true, GetCandidateEdgeSourceForAblationMode( m_currentMode ) );
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
         if( m_useCameraMotionProfile )
         {
@@ -7072,6 +7114,161 @@ protected:
     }
 };
 
+class BenchItemSweepSMAAIntegratedCandidateRemoval : public AutoBenchToolWorkItem
+{
+    static constexpr int c_removalStepCount = 21;
+    static constexpr float c_removalStep = 0.05f;
+
+    const CMAA2Sample::SceneSelectionType m_scenes[2] =
+    {
+        CMAA2Sample::SceneSelectionType::LumberyardBistro,
+        CMAA2Sample::SceneSelectionType::MinecraftLostEmpire
+    };
+    const char *        m_sceneNames[2]          = { "LumberyardBistro", "MinecraftLostEmpire" };
+    int                 m_sceneIndex             = 0;
+    int                 m_removalIndex           = 0;
+    uint32              m_expectedBaseCount      = 0;
+    uint32              m_previousCandidateCount = 0;
+    bool                m_started                = false;
+    bool                m_lightingStableArmed    = false;
+    bool                m_passed                 = true;
+    bool                m_isDone                 = false;
+
+    float GetRemovalAmount( ) const
+    {
+        return vaMath::Min( 1.0f, (float)m_removalIndex * c_removalStep );
+    }
+
+public:
+    explicit BenchItemSweepSMAAIntegratedCandidateRemoval( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings().SceneChoice = m_scenes[m_sceneIndex];
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( true );
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                true, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride(
+                true, vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, GetRemovalAmount( ) );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText( "SMAA integrated first-pass temporal candidate removal fine sweep\r\n\r\n" );
+            abTool.ReportAddText( "This is a deterministic candidate-count characterization, not an optimum-quality or final-performance result.\r\n" );
+            abTool.ReportAddText( "The integrated SMAA first edge pass is forced, edge threshold is held at the public TSCMAA default 1/22, and the adaptation-specific non-dominant removal amount is swept from 0.00 to 1.00 in 0.05 increments.\r\n" );
+            abTool.ReportAddText( "Bistro and Minecraft are evaluated independently at fixed cameras after shadow-map stabilization.\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Source", "Scene", "Edge threshold", "Removal", "Base edges", "Candidates", "Candidate/base", "Indirect process", "Dispatch groups", "Checks", "Result" } );
+            return;
+        }
+
+        if( !m_lightingStableArmed )
+        {
+            if( m_parent.HasPendingShadowmapUpdates( ) )
+                return;
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            m_lightingStableArmed = true;
+            return;
+        }
+
+        const vaSMAAWrapper::TemporalCandidateStatistics & statistics =
+            m_parent.GetSMAATemporalCandidateStatistics( );
+        if( !statistics.Valid
+            || statistics.Source != vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
+            || statistics.Policy != vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant
+            || statistics.Expansion != vaSMAAWrapper::CandidateExpansion::None )
+            return;
+
+        const uint32 expectedGroupCount = (statistics.CandidateCount + 63u) / 64u;
+        bool stepPassed = statistics.ProcessCount == statistics.CandidateCount
+            && statistics.DispatchGroupCount == expectedGroupCount;
+        string checks = "source=integrated, process=candidate, groups=ceil(candidate/64)";
+        if( m_removalIndex == 0 )
+        {
+            m_expectedBaseCount = statistics.BaseEdgeCount;
+            m_previousCandidateCount = statistics.CandidateCount;
+            stepPassed = stepPassed && statistics.CandidateCount == statistics.BaseEdgeCount;
+            checks += ", removal0=base";
+        }
+        else
+        {
+            stepPassed = stepPassed && statistics.BaseEdgeCount == m_expectedBaseCount;
+            stepPassed = stepPassed && statistics.CandidateCount <= m_previousCandidateCount;
+            checks += ", base stable, monotonic";
+            m_previousCandidateCount = statistics.CandidateCount;
+        }
+        m_passed = m_passed && stepPassed;
+
+        abTool.ReportAddRowValues( {
+            "SMAA first-pass integrated",
+            m_sceneNames[m_sceneIndex],
+            vaStringTools::Format( "%.9f", 1.0f / 22.0f ),
+            vaStringTools::Format( "%.2f", GetRemovalAmount( ) ),
+            vaStringTools::Format( "%u", statistics.BaseEdgeCount ),
+            vaStringTools::Format( "%u", statistics.CandidateCount ),
+            vaStringTools::Format( "%.3f%%", 100.0f * statistics.GetCandidateToBaseRatio( ) ),
+            vaStringTools::Format( "%u", statistics.ProcessCount ),
+            vaStringTools::Format( "%u", statistics.DispatchGroupCount ),
+            checks,
+            stepPassed? "PASS" : "FAIL" } );
+
+        m_removalIndex++;
+        if( m_removalIndex < c_removalStepCount )
+        {
+            m_parent.SetSMAANonDominantRemovalOverride( true, GetRemovalAmount( ) );
+            return;
+        }
+
+        m_sceneIndex++;
+        if( m_sceneIndex < 2 )
+        {
+            m_removalIndex = 0;
+            m_expectedBaseCount = 0;
+            m_previousCandidateCount = 0;
+            m_lightingStableArmed = false;
+            m_parent.Settings().SceneChoice = m_scenes[m_sceneIndex];
+            m_parent.SetSMAANonDominantRemovalOverride( true, GetRemovalAmount( ) );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            return;
+        }
+
+        abTool.ReportAddText( m_passed? "\r\nAggregate: PASS\r\n" : "\r\nAggregate: FAIL\r\n" );
+        abTool.ReportAddText( "\r\nSelection rule: do not choose an optimum from candidate ratio alone. Use this table to nominate values for matched quality and repeated GPU-timing gates.\r\n" );
+        m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
+        m_parent.SetSMAACandidateExpansionOverride(
+            false, vaSMAAWrapper::CandidateExpansion::None );
+        m_parent.SetSMAACandidatePolicyOverride(
+            false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+        m_parent.SetSMAACandidateEdgeSourceOverride(
+            false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+        abTool.ReportFinish( );
+        m_isDone = true;
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual float GetProgress( ) const override
+    {
+        return m_isDone? 1.0f
+            : (float)(m_sceneIndex * c_removalStepCount + m_removalIndex)
+                / (float)(2 * c_removalStepCount);
+    }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -7112,9 +7309,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         {
             int source = -1;
             std::wistringstream values(parameter.second);
-            if (!(values >> source) || source < -1 || source > 1)
+            if (!(values >> source) || source < -1 || source > 2)
             {
-                VA_LOG_ERROR("Invalid -smaaCandidateEdgeSourceOverride value; expected -1 (disabled), 0 (legacy luma re-detection), or 1 (SMAA first-pass edges)");
+                VA_LOG_ERROR("Invalid -smaaCandidateEdgeSourceOverride value; expected -1 (disabled), 0 (legacy luma re-detection), 1 (post-pass SMAA edge reuse), or 2 (integrated first-pass candidates)");
                 return;
             }
             m_SMAA->SetCandidateEdgeSourceOverride(source >= 0,
@@ -7487,6 +7684,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAACandidatePolicy>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA Intel-family candidate policy removal sweep");
+            return;
+        }
+
+        if (_wcsicmp(parameter.first.c_str(), L"smaaIntegratedCandidateRemovalSweep") == 0)
+        {
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemSweepSMAAIntegratedCandidateRemoval>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA integrated first-pass candidate removal fine sweep (0.00..1.00, step 0.05)");
             return;
         }
 

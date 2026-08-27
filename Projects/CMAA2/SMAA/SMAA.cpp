@@ -249,6 +249,10 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     edgeDetectionTechniques[SMAA::INPUT_LUMA_RAW]   = techniqueManagerInterface->CreateTechnique("LumaRawEdgeDetection", defines);
     edgeDetectionTechniques[SMAA::INPUT_COLOR]      = techniqueManagerInterface->CreateTechnique("ColorEdgeDetection", defines);
     edgeDetectionTechniques[SMAA::INPUT_DEPTH]      = techniqueManagerInterface->CreateTechnique("DepthEdgeDetection", defines);
+    integratedTemporalEdgeDetectionTechniques[SMAA::INPUT_LUMA] =
+        techniqueManagerInterface->CreateTechnique("LumaEdgeDetectionIntegratedTemporalCandidates", defines);
+    integratedTemporalEdgeDetectionTechniques[SMAA::INPUT_LUMA_RAW] =
+        techniqueManagerInterface->CreateTechnique("LumaRawEdgeDetectionIntegratedTemporalCandidates", defines);
     blendingWeightCalculationTechnique = techniqueManagerInterface->CreateTechnique("BlendingWeightCalculation", defines);
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
@@ -283,7 +287,8 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass) {
+              int pass,
+              const IntegratedTemporalCandidateOutputs * integratedTemporalCandidates) {
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -355,7 +360,7 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
     // And here we go!
-    edgesDetectionPass(context, dsv, input);
+    edgesDetectionPass(context, dsv, input, integratedTemporalCandidates);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     if (adaptiveSearch)
         texturesInterface->SetResource_metaTex(context, *metaRT);
@@ -539,24 +544,47 @@ void SMAA::loadSearchTex() {
 }
 
 
-void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input) {
+void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input,
+                              const IntegratedTemporalCandidateOutputs * integratedTemporalCandidates) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Edge Detection Pass");
 
     // Select the technique accordingly:
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
-    edgeDetectionTechniques[int(input)]->ApplyStates(context);
+    const bool integratedTemporal = integratedTemporalCandidates != nullptr;
+    assert(!integratedTemporal || integratedTemporalCandidates->IsValid());
+    assert(!integratedTemporal || input == INPUT_LUMA || input == INPUT_LUMA_RAW);
+    SMAATechniqueInterface * technique = integratedTemporal?
+        integratedTemporalEdgeDetectionTechniques[int(input)] : edgeDetectionTechniques[int(input)];
+    technique->ApplyStates(context);
 
     // Do it!
-    if (adaptiveSearch) {
-        ID3D11RenderTargetView * renderTargets[2] = { *edgesRT, *metaRT };
-        context->OMSetRenderTargets(2, renderTargets, dsv);
+    ID3D11RenderTargetView * renderTargets[2] = { *edgesRT, adaptiveSearch? (ID3D11RenderTargetView *)*metaRT : nullptr };
+    const UINT renderTargetCount = adaptiveSearch? 2u : 1u;
+    if (integratedTemporal) {
+        ID3D11UnorderedAccessView * candidateUAVs[6] = {
+            integratedTemporalCandidates->Candidates,
+            integratedTemporalCandidates->Control,
+            integratedTemporalCandidates->BaseEdgeMask,
+            integratedTemporalCandidates->CandidateMask,
+            nullptr,
+            integratedTemporalCandidates->WriteRawCandidateMask?
+                integratedTemporalCandidates->RawCandidateMask : nullptr
+        };
+        context->OMSetRenderTargetsAndUnorderedAccessViews(
+            renderTargetCount, renderTargets, dsv, 2, _countof(candidateUAVs), candidateUAVs, nullptr);
     } else {
-        context->OMSetRenderTargets(1, *edgesRT, dsv);
+        context->OMSetRenderTargets(renderTargetCount, renderTargets, dsv);
     }
     triangle->draw(context);
-    context->OMSetRenderTargets(0, nullptr, nullptr);
+    if (integratedTemporal) {
+        ID3D11UnorderedAccessView * nullUAVs[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+        context->OMSetRenderTargetsAndUnorderedAccessViews(
+            0, nullptr, nullptr, 2, _countof(nullUAVs), nullUAVs, nullptr);
+    } else {
+        context->OMSetRenderTargets(0, nullptr, nullptr);
+    }
 }
 
 
