@@ -3469,6 +3469,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     static const int    c_focusedModeCount = 3;
     static const int    c_candidateEdgeSourceModeCount = 2;
     static const int    c_candidateRemovalModeCount = 6;
+    static const int    c_candidateRemovalFullTimelineModeCount = 9;
     static const int    c_dilationModeCount = 4;
     static const int    c_filteredQuarterModeCount = 6;
     static const int    c_armDualFilterModeCount = 8;
@@ -3493,6 +3494,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const string        m_singleModeID;
     const string        m_singleModeDirectory;
     const bool          m_candidateRemovalMatrix;
+    const bool          m_candidateRemovalFullTimelineMatrix;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
@@ -3512,10 +3514,24 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
 
     float GetCandidateRemovalAmount( int mode ) const
     {
+        if( m_candidateRemovalFullTimelineMatrix )
+        {
+            assert( (mode >= 2 && mode <= 4) || (mode >= 6 && mode <= 8) );
+            static const float c_fullTimelineRemovalAmounts[3] =
+                { 0.50f, 0.70f, 0.75f };
+            return c_fullTimelineRemovalAmounts[mode <= 4? mode - 2 : mode - 6];
+        }
         assert( m_candidateRemovalMatrix && mode >= 2
             && mode < c_candidateRemovalModeCount );
         static const float c_removalAmounts[4] = { 0.50f, 0.65f, 0.70f, 0.75f };
         return c_removalAmounts[mode - 2];
+    }
+
+    bool IsCandidateRemovalEdgeSelectiveMode( int mode ) const
+    {
+        if( m_candidateRemovalFullTimelineMatrix )
+            return (mode >= 2 && mode <= 4) || (mode >= 6 && mode <= 8);
+        return m_candidateRemovalMatrix && mode >= 2;
     }
 
     const char * GetModeID( int mode ) const
@@ -3539,6 +3555,22 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "O-ET2X-R [removal=0.75]"
             };
             return c_candidateRemovalModeIDs[mode];
+        }
+        if( m_candidateRemovalFullTimelineMatrix )
+        {
+            static const char * c_candidateRemovalFullTimelineModeIDs[
+                c_candidateRemovalFullTimelineModeCount] =
+            {
+                "O-1X", "O-T2X",
+                "O-ET2X [removal=0.50]",
+                "O-ET2X [removal=0.70]",
+                "O-ET2X [removal=0.75]",
+                "O-T2X-R",
+                "O-ET2X-R [removal=0.50]",
+                "O-ET2X-R [removal=0.70]",
+                "O-ET2X-R [removal=0.75]"
+            };
+            return c_candidateRemovalFullTimelineModeIDs[mode];
         }
         if( m_focusedComparisonMatrix )
         {
@@ -3627,6 +3659,19 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             };
             return c_candidateRemovalDirectories[mode];
         }
+        if( m_candidateRemovalFullTimelineMatrix )
+        {
+            static const char * c_candidateRemovalFullTimelineDirectories[
+                c_candidateRemovalFullTimelineModeCount] =
+            {
+                "O_1X", "O_T2X",
+                "O_ET2X_Removal_050", "O_ET2X_Removal_070",
+                "O_ET2X_Removal_075", "O_T2X_R",
+                "O_ET2X_R_Removal_050", "O_ET2X_R_Removal_070",
+                "O_ET2X_R_Removal_075"
+            };
+            return c_candidateRemovalFullTimelineDirectories[mode];
+        }
         if( m_focusedComparisonMatrix )
         {
             static const char * c_focusedModeDirectories[c_focusedModeCount] =
@@ -3707,6 +3752,23 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             if( mode == 1 )
                 return CMAA2Sample::AAType::SMAA_O_T2X_R;
             return CMAA2Sample::AAType::SMAA_O_ET2X_R;
+        }
+        if( m_candidateRemovalFullTimelineMatrix )
+        {
+            static const CMAA2Sample::AAType c_candidateRemovalFullTimelineModes[
+                c_candidateRemovalFullTimelineModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA,
+                CMAA2Sample::AAType::SMAA_O_T2X,
+                CMAA2Sample::AAType::SMAA_O_ET2X,
+                CMAA2Sample::AAType::SMAA_O_ET2X,
+                CMAA2Sample::AAType::SMAA_O_ET2X,
+                CMAA2Sample::AAType::SMAA_O_T2X_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R
+            };
+            return c_candidateRemovalFullTimelineModes[mode];
         }
         if( m_focusedComparisonMatrix )
         {
@@ -3806,7 +3868,8 @@ public:
         CMAA2Sample::AAType singleModeAAType = CMAA2Sample::AAType::SMAA,
         const string & singleModeID = "O-1X",
         const string & singleModeDirectory = "O_1X",
-        bool candidateRemovalMatrix = false )
+        bool candidateRemovalMatrix = false,
+        bool candidateRemovalFullTimelineMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_profile( profile ),
@@ -3827,19 +3890,23 @@ public:
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
         m_candidateRemovalMatrix( candidateRemovalMatrix ),
-        m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 : (candidateRemovalMatrix?
+        m_candidateRemovalFullTimelineMatrix( candidateRemovalFullTimelineMatrix ),
+        m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 :
+            (candidateRemovalFullTimelineMatrix? c_candidateRemovalFullTimelineModeCount :
+            (candidateRemovalMatrix?
             c_candidateRemovalModeCount : (candidateEdgeSourceMatrix?
             c_candidateEdgeSourceModeCount : (focusedComparisonMatrix?
             c_focusedModeCount : (armDualFilterMatrix?
             c_armDualFilterModeCount : (filteredQuarterMatrix?
             c_filteredQuarterModeCount : (currentEdgeDilationMatrix?
-            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)))))))) )
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount))))))))) )
     {
         assert( (int)referenceOnly + (int)includeAdaptive
             + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix
             + (int)filteredQuarterMatrix + (int)armDualFilterMatrix + (int)focusedComparisonMatrix
             + (int)candidateEdgeSourceMatrix
             + (int)candidateRemovalMatrix
+            + (int)candidateRemovalFullTimelineMatrix
             + (int)singleModeOnly <= 1 );
         assert( !candidateEdgeSourceReverseOrder || candidateEdgeSourceMatrix );
     }
@@ -3889,6 +3956,8 @@ protected:
                 captureTitle = "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n";
             else if( m_candidateRemovalMatrix )
                 captureTitle = "SMAA integrated candidate-removal wide camera-motion quality gate\r\n\r\n";
+            else if( m_candidateRemovalFullTimelineMatrix )
+                captureTitle = "SMAA integrated candidate-removal full-timeline matched quality capture\r\n\r\n";
             else if( m_candidateEdgeSourceMatrix )
                 captureTitle = "SMAA candidate edge-source wide camera-motion quality capture\r\n\r\n";
             else if( m_focusedComparisonMatrix )
@@ -3939,6 +4008,11 @@ protected:
             {
                 abTool.ReportAddText( m_singleModeOnly?
                     "Purpose:         rendered path inspection and constant-frame-rate playback generation; not a quality comparison\r\n\r\n" :
+                    (m_candidateRemovalFullTimelineMatrix?
+                    "Comparison:      shared O-1X control; O-T2X versus integrated O-ET2X removal 0.50/0.70/0.75; O-T2X-R versus integrated O-ET2X-R removal 0.50/0.70/0.75\r\n"
+                    "Removal control: within each O-ET2X trio only non-dominant removal changes; integrated source, no deliberate jitter, Catmull-Rom, YCoCg clipping, weight 0.8, expansion None, and camera path stay fixed\r\n"
+                    "Comparison limit: Standard T2X differs from the document profile in coverage, jitter, sampler, clipping, and history weight; this is not a candidate-only comparison\r\n"
+                    "Purpose:         validate temporal retention across the complete wide camera timeline before selecting a document-profile removal value\r\n\r\n" :
                     (m_candidateRemovalMatrix?
                     "Comparison:      O-1X, O-T2X-R, and integrated O-ET2X-R at removal 0.50/0.65/0.70/0.75\r\n"
                     "Pairing:         all O-ET2X-R variants share camera reprojection, no deliberate jitter, Catmull-Rom, YCoCg clipping, history weight 0.8, expansion None, and the same camera path\r\n"
@@ -3969,7 +4043,7 @@ protected:
                     "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
                 (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n")))))))) );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n"))))))))) );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
@@ -4012,7 +4086,7 @@ protected:
                 if( m_candidateEdgeSourceMatrix )
                     m_parent.SetSMAACandidateEdgeSourceOverride(
                         false, vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
-                if( m_candidateRemovalMatrix )
+                if( m_candidateRemovalMatrix || m_candidateRemovalFullTimelineMatrix )
                 {
                     m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
                     m_parent.SetSMAACandidateExpansionOverride(
@@ -4033,9 +4107,10 @@ protected:
         if( m_candidateEdgeSourceMatrix )
             m_parent.SetSMAACandidateEdgeSourceOverride(
                 true, GetCandidateEdgeSource( m_currentMode ) );
-        if( m_candidateRemovalMatrix )
+        if( m_candidateRemovalMatrix || m_candidateRemovalFullTimelineMatrix )
         {
-            const bool edgeSelective = m_currentMode >= 2;
+            const bool edgeSelective =
+                IsCandidateRemovalEdgeSelectiveMode( m_currentMode );
             m_parent.SetSMAACandidateEdgeSourceOverride(
                 edgeSelective, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
             m_parent.SetSMAACandidatePolicyOverride(
@@ -8102,12 +8177,16 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool integratedCandidateRemovalQuality =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaIntegratedCandidateRemovalQualityCapture" ) == 0;
+        const bool integratedCandidateRemovalFullTimeline =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaIntegratedCandidateRemovalFullTimelineCapture" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
             || realSceneTemporalRetention || currentEdgeDilationAblation
             || filteredQuarterAblation || armDualFilterAblation
             || smoothCameraFocusedThree || candidateEdgeSourceCameraMotion
             || candidateEdgeSourceCameraMotionReverse
-            || integratedCandidateRemovalQuality )
+            || integratedCandidateRemovalQuality
+            || integratedCandidateRemovalFullTimeline )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -8171,19 +8250,21 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     "Invalid SMAA camera-motion profile; expected yaw-slow-360, yaw-fast-360, yaw-extreme-360, strafe-fast, yaw-strafe-fast, yaw-smooth-360, flythrough-smooth, flythrough-smooth-yaw-360, flythrough-wide, or flythrough-wide-yaw-360" );
                 return;
             }
-            if( integratedCandidateRemovalQuality
+            if( (integratedCandidateRemovalQuality
+                    || integratedCandidateRemovalFullTimeline)
                 && scene != SceneSelectionType::LumberyardBistro
                 && scene != SceneSelectionType::MinecraftLostEmpire )
             {
                 VA_LOG_ERROR(
-                    "Integrated candidate-removal quality gate is defined only for bistro and minecraft" );
+                    "Integrated candidate-removal quality capture is defined only for bistro and minecraft" );
                 return;
             }
-            if( integratedCandidateRemovalQuality
+            if( (integratedCandidateRemovalQuality
+                    || integratedCandidateRemovalFullTimeline)
                 && profile != SMAACameraMotionProfile::FlythroughWideYaw360 )
             {
                 VA_LOG_ERROR(
-                    "Integrated candidate-removal quality gate requires flythrough-wide-yaw-360" );
+                    "Integrated candidate-removal quality capture requires flythrough-wide-yaw-360" );
                 return;
             }
 
@@ -8207,11 +8288,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 candidateEdgeSourceCameraMotion || candidateEdgeSourceCameraMotionReverse,
                 candidateEdgeSourceCameraMotionReverse,
                 false, CMAA2Sample::AAType::SMAA, "O-1X", "O_1X",
-                integratedCandidateRemovalQuality ) );
+                integratedCandidateRemovalQuality,
+                integratedCandidateRemovalFullTimeline ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    (integratedCandidateRemovalFullTimeline?
+                        "integrated candidate-removal full-timeline Off/On matched capture" :
                     (integratedCandidateRemovalQuality?
                         "integrated candidate-removal O-1X/O-T2X-R/O-ET2X-R quality gate" :
                     ((candidateEdgeSourceCameraMotion || candidateEdgeSourceCameraMotionReverse)?
@@ -8224,7 +8308,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture")))))))),
+                        "Original five-way capture"))))))))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );
