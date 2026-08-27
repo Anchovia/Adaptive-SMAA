@@ -317,6 +317,14 @@ Original mode는 기존 edge target/shader path를 유지한다.
   `bistro|minecraft|sanmiguel`을 지정하면 해당 장면의 `yaw-fast-360` profile frame
   60부터 측정하고 warm-up 동안 첫 pose를 유지한다. 장면 토큰을 생략한 기존 명령은
   기존 Bistro flythrough 동작을 유지한다.
+- Object-motion reprojection 구현 전 설계 감사는
+  `Docs/SMAA-Object-Motion-Reprojection-Design-Audit-ko.md`를 기준으로 한다. 현재 `-R`은
+  여전히 camera/depth reprojection만 의미하며, rigid object velocity는 아직 구현되지
+  않았다. 첫 구현은 previous rigid world transform을 draw entry에 전달하고 기존
+  full-screen camera velocity 위에 움직인 opaque/alpha-tested object만 depth-equal로
+  덮어쓰는 default-Off engineering toggle로 진행한다. Skinned/deforming/transparent
+  motion과 previous-depth disocclusion rejection은 별도 후속 범위다. Object toggle의
+  기능·회귀·품질 gate 전에는 기존 8-case `-R` 의미나 formal 결과를 변경하지 않는다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
