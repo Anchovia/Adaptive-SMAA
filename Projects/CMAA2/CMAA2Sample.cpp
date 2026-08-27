@@ -3460,6 +3460,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     static const int    c_framePerSecond = 60;
     static const int    c_originalModeCount = 5;
     static const int    c_focusedModeCount = 3;
+    static const int    c_candidateEdgeSourceModeCount = 2;
     static const int    c_dilationModeCount = 4;
     static const int    c_filteredQuarterModeCount = 6;
     static const int    c_armDualFilterModeCount = 8;
@@ -3477,6 +3478,8 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_filteredQuarterMatrix;
     const bool          m_armDualFilterMatrix;
     const bool          m_focusedComparisonMatrix;
+    const bool          m_candidateEdgeSourceMatrix;
+    const bool          m_candidateEdgeSourceReverseOrder;
     const bool          m_singleModeOnly;
     const CMAA2Sample::AAType m_singleModeAAType;
     const string        m_singleModeID;
@@ -3488,10 +3491,26 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     bool                m_isDone = false;
     wstring             m_outputDirs[c_fullModeCount];
 
+    vaSMAAWrapper::CandidateEdgeSource GetCandidateEdgeSource( int mode ) const
+    {
+        assert( m_candidateEdgeSourceMatrix );
+        const int sourceIndex = m_candidateEdgeSourceReverseOrder?
+            c_candidateEdgeSourceModeCount - 1 - mode : mode;
+        return sourceIndex == 0?
+            vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect :
+            vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges;
+    }
+
     const char * GetModeID( int mode ) const
     {
         if( m_singleModeOnly )
             return m_singleModeID.c_str( );
+        if( m_candidateEdgeSourceMatrix )
+        {
+            return GetCandidateEdgeSource( mode ) ==
+                vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect?
+                "O-ET2X-R-LegacyLuma" : "O-ET2X-R-SMAAEdges";
+        }
         if( m_focusedComparisonMatrix )
         {
             static const char * c_focusedModeIDs[c_focusedModeCount] =
@@ -3563,6 +3582,12 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     {
         if( m_singleModeOnly )
             return m_singleModeDirectory.c_str( );
+        if( m_candidateEdgeSourceMatrix )
+        {
+            return GetCandidateEdgeSource( mode ) ==
+                vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect?
+                "O_ET2X_R_LegacyLuma" : "O_ET2X_R_SMAAEdges";
+        }
         if( m_focusedComparisonMatrix )
         {
             static const char * c_focusedModeDirectories[c_focusedModeCount] =
@@ -3634,6 +3659,8 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     {
         if( m_singleModeOnly )
             return m_singleModeAAType;
+        if( m_candidateEdgeSourceMatrix )
+            return CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if( m_focusedComparisonMatrix )
         {
             static const CMAA2Sample::AAType c_focusedModes[c_focusedModeCount] =
@@ -3726,6 +3753,8 @@ public:
         bool filteredQuarterMatrix = false,
         bool armDualFilterMatrix = false,
         bool focusedComparisonMatrix = false,
+        bool candidateEdgeSourceMatrix = false,
+        bool candidateEdgeSourceReverseOrder = false,
         bool singleModeOnly = false,
         CMAA2Sample::AAType singleModeAAType = CMAA2Sample::AAType::SMAA,
         const string & singleModeID = "O-1X",
@@ -3743,20 +3772,25 @@ public:
         m_filteredQuarterMatrix( filteredQuarterMatrix ),
         m_armDualFilterMatrix( armDualFilterMatrix ),
         m_focusedComparisonMatrix( focusedComparisonMatrix ),
+        m_candidateEdgeSourceMatrix( candidateEdgeSourceMatrix ),
+        m_candidateEdgeSourceReverseOrder( candidateEdgeSourceReverseOrder ),
         m_singleModeOnly( singleModeOnly ),
         m_singleModeAAType( singleModeAAType ),
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
-        m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 : (focusedComparisonMatrix?
+        m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 : (candidateEdgeSourceMatrix?
+            c_candidateEdgeSourceModeCount : (focusedComparisonMatrix?
             c_focusedModeCount : (armDualFilterMatrix?
             c_armDualFilterModeCount : (filteredQuarterMatrix?
             c_filteredQuarterModeCount : (currentEdgeDilationMatrix?
-            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)))))) )
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount))))))) )
     {
         assert( (int)referenceOnly + (int)includeAdaptive
             + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix
             + (int)filteredQuarterMatrix + (int)armDualFilterMatrix + (int)focusedComparisonMatrix
+            + (int)candidateEdgeSourceMatrix
             + (int)singleModeOnly <= 1 );
+        assert( !candidateEdgeSourceReverseOrder || candidateEdgeSourceMatrix );
     }
 
 protected:
@@ -3800,6 +3834,8 @@ protected:
                 "SMAA deterministic camera-motion single-mode visualization capture\r\n\r\n" :
                 (m_referenceOnly?
                 "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n" :
+                (m_candidateEdgeSourceMatrix?
+                    "SMAA candidate edge-source wide camera-motion quality capture\r\n\r\n" :
                 (m_focusedComparisonMatrix?
                     "SMAA smooth camera-motion focused three-way quality capture\r\n\r\n" :
                 (m_armDualFilterMatrix?
@@ -3812,7 +3848,7 @@ protected:
                     "SMAA deterministic real-scene temporal-retention five-way capture\r\n\r\n" :
                 (m_includeAdaptive?
                     "SMAA deterministic camera-motion final eight-case plus O/A 1X controls capture\r\n\r\n" :
-                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n"))))))) );
+                    "SMAA deterministic camera-motion Original five-way capture\r\n\r\n")))))))) );
             abTool.ReportAddText( vaStringTools::Format(
                 "Scene:           %s\r\n",
                 CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
@@ -3848,6 +3884,10 @@ protected:
             {
                 abTool.ReportAddText( m_singleModeOnly?
                     "Purpose:         rendered path inspection and constant-frame-rate playback generation; not a quality comparison\r\n\r\n" :
+                    (m_candidateEdgeSourceMatrix?
+                    "Comparison:      O-ET2X-R with LegacyLumaRedetect versus SMAAFirstPassEdges\r\n"
+                    "Pairing:         identical camera reprojection, candidate policy, expansion, history sampling, clipping, weight, and camera path\r\n"
+                    "Purpose:         isolate candidate base-edge provenance against the existing wide-camera supersample spatial reference\r\n\r\n" :
                     (m_focusedComparisonMatrix?
                     "Comparison:      O-1X control, full-screen Standard T2X-R, and edge-selective O-ET2X-R\r\n"
                     "Purpose:         isolate rotation-only, translation-only, and combined camera motion before expanding to the final eight cases\r\n\r\n" :
@@ -3870,10 +3910,14 @@ protected:
                     "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
                 (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n")))))) );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n"))))))) );
                 abTool.ReportAddRowValues( { "Mode", "Output directory" } );
                 for( int mode = 0; mode < m_modeCount; mode++ )
                     abTool.ReportAddRowValues( { GetModeID( mode ), GetModeDirectory( mode ) } );
+                if( m_candidateEdgeSourceMatrix )
+                    abTool.ReportAddText( m_candidateEdgeSourceReverseOrder?
+                        "Capture order:  SMAAFirstPassEdges, then LegacyLumaRedetect\r\n" :
+                        "Capture order:  LegacyLumaRedetect, then SMAAFirstPassEdges\r\n" );
             }
 
             m_currentMode = 0;
@@ -3906,6 +3950,9 @@ protected:
             if( m_currentMode >= m_modeCount )
             {
                 m_parent.ClearSMAACameraMotionTestState( );
+                if( m_candidateEdgeSourceMatrix )
+                    m_parent.SetSMAACandidateEdgeSourceOverride(
+                        false, vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
                 m_isDone = true;
                 abTool.ReportFinish( );
                 return;
@@ -3914,6 +3961,9 @@ protected:
             m_parent.ResetSMAATemporalHistoryForDiagnostics( );
         }
 
+        if( m_candidateEdgeSourceMatrix )
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                true, GetCandidateEdgeSource( m_currentMode ) );
         m_parent.Settings( ).CurrentAAOption = m_referenceOnly?
             CMAA2Sample::AAType::SuperSampleReference : GetModeAAType( m_currentMode );
         const int profileFrame = m_firstProfileFrame
@@ -7630,7 +7680,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask( std::make_shared<BenchItemRecordSMAACameraMotion>(
                 *this, scene, profile, firstProfileFrame, captureFrameCount,
                 warmupFrameCount, false, false, false, false, false,
-                false, false, true, mode, semanticID, modeDirectory ) );
+                false, false, false, false, true, mode, semanticID, modeDirectory ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA single-mode camera capture: scene=%s, profile=%s, mode=%s, profile frames [%d,%d], warm-up=%d",
@@ -7665,10 +7715,17 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool smoothCameraFocusedThree =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaSmoothCameraFocusedThreeCapture" ) == 0;
+        const bool candidateEdgeSourceCameraMotion =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaCandidateEdgeSourceCameraMotionCapture" ) == 0;
+        const bool candidateEdgeSourceCameraMotionReverse =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaCandidateEdgeSourceCameraMotionCaptureReverse" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
             || realSceneTemporalRetention || currentEdgeDilationAblation
             || filteredQuarterAblation || armDualFilterAblation
-            || smoothCameraFocusedThree )
+            || smoothCameraFocusedThree || candidateEdgeSourceCameraMotion
+            || candidateEdgeSourceCameraMotionReverse )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -7749,18 +7806,24 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 warmupFrameCount, cameraMotionReference, cameraMotionEightCase,
                 realSceneTemporalRetention, currentEdgeDilationAblation,
                 filteredQuarterAblation, armDualFilterAblation,
-                smoothCameraFocusedThree ) );
+                smoothCameraFocusedThree,
+                candidateEdgeSourceCameraMotion || candidateEdgeSourceCameraMotionReverse,
+                candidateEdgeSourceCameraMotionReverse ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    ((candidateEdgeSourceCameraMotion || candidateEdgeSourceCameraMotionReverse)?
+                        (candidateEdgeSourceCameraMotionReverse?
+                            "candidate edge-source O-ET2X-R reverse-order capture" :
+                            "candidate edge-source O-ET2X-R forward-order capture") :
                     (smoothCameraFocusedThree? "focused O-1X/O-T2X-R/O-ET2X-R capture" :
                     (armDualFilterAblation? "ARM Dual Filtering candidate-expansion ablation capture" :
                     (filteredQuarterAblation? "filtered-quarter candidate-expansion ablation capture" :
                     (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture")))))),
+                        "Original five-way capture"))))))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );

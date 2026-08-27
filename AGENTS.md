@@ -1056,7 +1056,7 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     Full SMAA spatial AA 뒤 선택 edge에만 temporal resolve를 적용하는 큰 순서 자체는
     TSCMAA-style adaptation과 양립하지만, temporal 후보 edge를 별도 재검출하는 현재
     기본 방식은 최종 구조로 확정하지 않는다.
-31. **Engineering gate 완료:** `codex/smaa-first-pass-edge-reuse`에서 temporal base edge
+31. **정식 gate 완료:** `codex/smaa-first-pass-edge-reuse`에서 temporal base edge
     source를 `LegacyLumaRedetect`와 `SMAAFirstPassEdges`로 직교 분리했다. first-pass
     source는 기존 SMAA edge RT의 RG 방향 mask를 base gate로 직접 사용하며, 원본 SMAA
     공간 shader와 edge→weight→blend 순서는 변경하지 않았다. Intel-family non-dominant
@@ -1065,12 +1065,18 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     static stability와 policy sweep가 PASS했다. 고정 pose에서 legacy 대비 base edge는
     Bistro/Minecraft 15.12%/16.57%, candidate는 7.00%/3.45% 감소했다. 동일 프로세스
     2회×240-frame engineering smoke의 extract pass는 `O-ET2X` 2.80%, `O-ET2X-R`
-    2.77% 감소했지만 SMAA total과 WholeFrame은 일관되게 줄지 않아 성능 결론은 보류한다.
+    2.77% 감소했지만, 이 신호는 정식 반복 측정에서 재현되지 않았다.
     동일 프로세스 16-frame pair capture는 연속·고유 PNG를 통과했고 source 교체로 바뀐
     픽셀은 평균 0.083864%/0.160965%였다. 현재 기본값은 기존 연구를 보존하도록 legacy로
-    유지한다. 정식 visible 4,800-frame×3회 성능과 Bistro/Minecraft reference 품질 gate를
-    통과하기 전에는 first-pass source를 기본값으로 승격하지 않는다. 상세 결과는
-    `Docs/SMAA-First-Pass-Edge-Reuse-Engineering-Gate-ko.md`를 기준으로 한다.
+    유지한다. visible, readback Off, 300 warm-up, 4,800-frame×3회 정식 측정에서
+    first-pass의 candidate resolve는 `O-ET2X` 2.652%, `O-ET2X-R` 2.857% 감소했지만
+    extraction은 1.497%/1.475%, SMAA total은 0.298%/0.664%, WholeFrame은
+    0.373%/0.586% 증가했다. Bistro/Minecraft wide 결합 경로의 supersample spatial
+    reference와 CGVQM-2 비교도 매우 작고 장면·구간에 따라 방향이 달랐다. 두 장면 모두
+    first-pass 출력은 legacy보다 O-1X에 가까워졌고 adjacent-frame MAE는 소폭 증가했다.
+    따라서 성능 또는 temporal 품질 개선으로 판정하지 않으며 first-pass source는
+    controlled ablation으로만 보존한다. 기본값과 기존 8-case 결과는 legacy를 유지한다.
+    상세 결과는 `Docs/SMAA-First-Pass-Edge-Reuse-Formal-Results-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 

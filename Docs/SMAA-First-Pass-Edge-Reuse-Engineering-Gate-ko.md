@@ -166,3 +166,15 @@ candidate extraction pass 시간이 감소하는 방향을 확인했다.
 3. supersample spatial reference, CGVQM-2, temporal retention 및 ghosting 보조 지표 비교
 4. 품질 회귀가 없고 전체 비용 감소가 반복 오차보다 클 때만 first-pass source의 기본값
    승격 검토
+
+## 9. 정식 gate 완료 후 정정
+
+위 1~3단계 정식 측정은 2026-08-27 완료했다. 4,800-frame×3회 반복 성능에서
+first-pass source의 candidate resolve는 소폭 감소했지만 extraction, SMAA total과
+WholeFrame은 개선되지 않았다. Bistro/Minecraft reference 및 CGVQM-2 결과도 변화가
+매우 작고 장면·구간에 따라 방향이 달랐으며, 출력은 legacy보다 O-1X에 가까워졌다.
+
+따라서 first-pass source는 ablation으로 보존하고 기본값은 legacy로 유지한다. 이 문서의
+engineering 수치보다 다음 정식 결과 문서를 최종 판정 근거로 우선한다.
+
+- `Docs/SMAA-First-Pass-Edge-Reuse-Formal-Results-ko.md`
