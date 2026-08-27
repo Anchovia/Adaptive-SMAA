@@ -1137,6 +1137,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 || !m_generateRigidObjectVelocityPS->IsCreated( ) )
                 return vaDrawResultFlags::ShadersStillCompiling;
 
+            // Keep this scope unconditional for every rigid-object reprojection
+            // frame.  The filtered list can legitimately be empty, but the
+            // performance benchmark still needs one timing sample per frame.
+            VA_SCOPE_CPUGPU_TIMER( SMAAGenerateRigidObjectVelocity, deviceContext );
             vaRenderMeshDrawList movingRigidObjects;
             for( int entryIndex = 0; entryIndex < optionalObjectVelocityDrawList->Count( ); entryIndex++ )
             {
@@ -1150,7 +1154,6 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             if( movingRigidObjects.Count( ) > 0 )
             {
-                VA_SCOPE_CPUGPU_TIMER( SMAAGenerateRigidObjectVelocity, deviceContext );
                 deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, false );
                 vaSceneDrawContext objectVelocityDrawContext( deviceContext,
                     *const_cast<vaCameraBase *>( optionalCamera ), vaDrawContextOutputType::Forward );

@@ -1164,6 +1164,21 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     성능 개선은 미달로 기록한다. 다음 object-motion, 3×3 expansion, Adaptive gate는
     integrated source를 고정하고 독립적으로 수행한다. 상세 결과는
     `Docs/SMAA-Integrated-Source-Overhead-Formal-Results-ko.md`를 기준으로 한다.
+37. **Rigid-object motion reprojection 품질·성능 gate 완료:** 기존 `-R`은 계속
+    camera/depth reprojection만 의미하며, previous rigid world transform으로 움직이는
+    opaque object velocity를 덮어쓰는 경로는 default-Off 독립 ablation으로 유지한다.
+    절차적 object-motion fixture의 240-frame supersample spatial-reference proxy
+    비교에서 Standard camera+rigid는 camera-only보다 occluder/rotor reference MAE가
+    37.251%/70.928% 감소했다. ET2X의 감소는 1.844%/0.971%로 작았으며, 이는 ET2X가
+    이미 움직이는 object의 history를 대부분 거부해 O-1X에 가까웠기 때문이다. RTX
+    3060 Ti, 1920×1017, visible, readback Off, 300 warm-up, 4,800 frame×3회 성능 gate는
+    mode당 14,400 sample과 3 run mean으로 PASS했다. camera+rigid의 SMAA 비용은 Standard
+    +0.001245 ms(+0.881%), ET2X +0.000626 ms(+0.344%)였고 직접 rigid pass는 각각
+    0.000362/0.000371 ms였다. Rigid velocity, 8-mode lifecycle, feedback, static stability,
+    camera velocity 회귀도 모두 PASS했다. 다만 이 fixture는 실제 textured scene이 아니고
+    skinned/deforming/transparent motion과 previous-depth disocclusion rejection이 없으므로
+    최종 8-case의 `-R` 의미는 변경하지 않는다. 자세한 결과는
+    `Docs/SMAA-Object-Motion-Reprojection-Quality-Performance-Gate-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 

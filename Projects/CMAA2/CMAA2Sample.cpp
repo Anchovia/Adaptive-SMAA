@@ -3326,6 +3326,204 @@ protected:
     }
 };
 
+class BenchItemRecordSMAAObjectMotionReprojectionQuality : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 5;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const CMAA2Sample::SMAATemporalStressScenario m_scenario;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    int                 m_currentMode = 0;
+    int                 m_currentFrame = 0;
+    bool                m_started = false;
+    bool                m_isDone = false;
+    wstring             m_outputDirs[c_modeCount];
+
+    static const char * GetModeID( int mode )
+    {
+        static const char * c_modeIDs[c_modeCount] =
+        {
+            "O-1X",
+            "O-T2X-R / camera-only",
+            "O-T2X-R / camera+rigid",
+            "O-ET2X-R / camera-only",
+            "O-ET2X-R / camera+rigid"
+        };
+        return c_modeIDs[mode];
+    }
+
+    static const char * GetModeDirectory( int mode )
+    {
+        static const char * c_modeDirectories[c_modeCount] =
+        {
+            "O_1X",
+            "O_T2X_R_CameraOnly",
+            "O_T2X_R_Rigid",
+            "O_ET2X_R_CameraOnly",
+            "O_ET2X_R_Rigid"
+        };
+        return c_modeDirectories[mode];
+    }
+
+    static CMAA2Sample::AAType GetModeAAType( int mode )
+    {
+        if( mode == 0 )
+            return CMAA2Sample::AAType::SMAA;
+        return mode <= 2? CMAA2Sample::AAType::SMAA_O_T2X_R :
+            CMAA2Sample::AAType::SMAA_O_ET2X_R;
+    }
+
+    static bool GetRigidObjectMotionEnabled( int mode )
+    {
+        return mode == 2 || mode == 4;
+    }
+
+public:
+    BenchItemRecordSMAAObjectMotionReprojectionQuality(
+        CMAA2Sample & parent,
+        CMAA2Sample::SMAATemporalStressScenario scenario,
+        int captureFrameCount,
+        int warmupFrameCount )
+        : AutoBenchToolWorkItem( parent ),
+        m_scenario( scenario ),
+        m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
+        m_warmupFrameCount( vaMath::Max( 1, warmupFrameCount ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( c_frameDeltaTime );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( false );
+            m_parent.SetSMAACandidateEdgeSourceOverride( true,
+                vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride( true,
+                vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride( true,
+                vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity( );
+
+            abTool.ReportStart( );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+            {
+                m_outputDirs[mode] = abTool.ReportGetDir( )
+                    + vaStringTools::SimpleWiden( GetModeDirectory( mode ) ) + L"\\";
+                vaFileTools::EnsureDirectoryExists( m_outputDirs[mode] );
+            }
+
+            abTool.ReportAddText(
+                "SMAA rigid-object reprojection engineering quality gate\r\n\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Scenario:       %s\r\n",
+                CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ) ) );
+            abTool.ReportAddText(
+                "Scene:          procedural moving occluder and rotor; engineering fixture only\r\n" );
+            abTool.ReportAddText(
+                "API/preset:     DirectX 11, Original SMAA Ultra\r\n" );
+            abTool.ReportAddText(
+                "ET2X core:      integrated first-pass candidates, removal 0.50, expansion None\r\n" );
+            abTool.ReportAddText(
+                "Timeline:       fixed 60 Hz and identical per mode\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Warm-up/capture: %d / %d frames per mode\r\n",
+                m_warmupFrameCount, m_captureFrameCount ) );
+            abTool.ReportAddText(
+                "Classification: engineering correctness/quality gate; not a real-scene paper result\r\n\r\n" );
+            abTool.ReportAddRowValues( { "Mode", "Object velocity", "Output directory" } );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+                abTool.ReportAddRowValues( {
+                    GetModeID( mode ),
+                    GetRigidObjectMotionEnabled( mode )? "camera + rigid transforms" : "camera/depth only",
+                    GetModeDirectory( mode ) } );
+
+            m_currentMode = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if( m_currentFrame >= m_captureFrameCount )
+        {
+            m_currentMode++;
+            if( m_currentMode >= c_modeCount )
+            {
+                m_parent.SetSMAAObjectMotionReprojection(
+                    vaSMAAWrapper::ObjectMotionReprojection::Off );
+                m_parent.SetSMAACandidateEdgeSourceOverride( false,
+                    vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+                m_parent.SetSMAACandidatePolicyOverride( false,
+                    vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+                m_parent.SetSMAACandidateExpansionOverride( false,
+                    vaSMAAWrapper::CandidateExpansion::None );
+                m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
+                abTool.ReportFinish( );
+                m_isDone = true;
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
+        m_parent.SetSMAAObjectMotionReprojection(
+            GetRigidObjectMotionEnabled( m_currentMode )?
+                vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
+                vaSMAAWrapper::ObjectMotionReprojection::Off );
+        m_parent.SetSMAATemporalStressTestState(
+            m_scenario, (float)m_currentFrame * c_frameDeltaTime );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+
+    virtual void OnRenderComparePoint( AutoBenchTool & abTool,
+        vaImageCompareTool & imageCompareTool,
+        vaRenderDeviceContext & renderContext,
+        const shared_ptr<vaTexture> & colorInOut,
+        shared_ptr<vaPostProcess> & postProcess ) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if( m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount )
+        {
+            const char * modeName = GetModeDirectory( m_currentMode );
+            const wstring fileName = m_outputDirs[m_currentMode]
+                + vaStringTools::SimpleWiden( vaStringTools::Format(
+                    "%s_%s_frame_%05d.png",
+                    CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ),
+                    modeName, m_currentFrame ) );
+            if( !colorInOut->SaveToPNGFile( renderContext, fileName ) )
+                VA_LOG_ERROR( L"Failed to save SMAA object-motion quality frame '%s'",
+                    fileName.c_str( ) );
+        }
+    }
+
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override
+    {
+        return m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount;
+    }
+    virtual float GetProgress( ) const override
+    {
+        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int completedFrames = m_currentMode * framesPerMode
+            + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp( (float)completedFrames
+            / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f );
+    }
+};
+
 class BenchItemRecordSMAASupersampleStressReference : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
@@ -5110,6 +5308,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         WholeFrame,
         SMAATotal,
         GenerateCameraVelocity,
+        GenerateRigidObjectVelocity,
         StandardSpatialT2X,
         StandardTemporalResolve,
         SpatialSMAA1X,
@@ -5154,6 +5353,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_candidateEdgeSourceAblation;
     const bool m_integratedRemovalAblation;
     const bool m_integratedSourceOverheadComparison;
+    const bool m_objectMotionReprojectionAblation;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
     const int m_firstProfileFrame;
@@ -5199,6 +5399,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_objectMotionReprojectionAblation )
+        {
+            static const char * c_objectMotionModeIDs[4] =
+            {
+                "O-T2X-R / camera-only",
+                "O-T2X-R / camera+rigid",
+                "O-ET2X-R / camera-only",
+                "O-ET2X-R / camera+rigid"
+            };
+            return c_objectMotionModeIDs[mode];
+        }
         if( m_integratedSourceOverheadComparison )
         {
             static const char * c_integratedSourceOverheadModeIDs[c_modeCapacity] =
@@ -5314,6 +5525,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_objectMotionReprojectionAblation )
+            return mode < 2? CMAA2Sample::AAType::SMAA_O_T2X_R :
+                CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if( m_integratedSourceOverheadComparison )
         {
             const bool reprojected = mode >= 4;
@@ -5408,6 +5622,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_objectMotionReprojectionAblation )
+            return mode >= 2;
         if( m_integratedSourceOverheadComparison )
             return (mode % 4) != 0;
         if( m_integratedRemovalAblation )
@@ -5428,6 +5644,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsIntegratedCandidateMode( int mode ) const
     {
+        if( m_objectMotionReprojectionAblation )
+            return mode >= 2;
         if( m_integratedSourceOverheadComparison )
             return (mode % 4) == 3;
         if( m_integratedRemovalAblation )
@@ -5447,6 +5665,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case WholeFrame:                return "WholeFrame";
         case SMAATotal:                 return "SMAA";
         case GenerateCameraVelocity:    return "SMAAGenerateCameraVelocity";
+        case GenerateRigidObjectVelocity:return "SMAAGenerateRigidObjectVelocity";
         case StandardSpatialT2X:        return "SMAAStandardSpatialT2X";
         case StandardTemporalResolve:   return "SMAAStandardTemporalResolve";
         case SpatialSMAA1X:             return "SMAASpatial1X";
@@ -5472,6 +5691,24 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
+
+        if( m_objectMotionReprojectionAblation )
+        {
+            const bool edgeSelective = IsEdgeSelectiveMode( mode );
+            const bool rigidObjectMotion = mode == 1 || mode == 3;
+            if( metric == GenerateCameraVelocity )
+                return true;
+            if( metric == GenerateRigidObjectVelocity )
+                return rigidObjectMotion;
+            if( metric == StandardSpatialT2X || metric == StandardTemporalResolve )
+                return !edgeSelective;
+            if( metric == SpatialSMAA1X || metric == CopySpatialToHistory
+                || metric == ClearIntegratedCandidateBuffers
+                || metric == ComputeDispatchArgs || metric == ResolveCandidates
+                || metric == OutputCopy )
+                return edgeSelective;
+            return false;
+        }
 
         if( m_integratedSourceOverheadComparison )
         {
@@ -5642,7 +5879,10 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                 milliseconds = node->GetFrameLastTotalTimeGPU( ) * 1000.0;
             }
 
-            if( std::isfinite( milliseconds ) && milliseconds > 0.0 )
+            const bool validTiming = std::isfinite( milliseconds )
+                && (milliseconds > 0.0
+                    || (metric == GenerateRigidObjectVelocity && milliseconds == 0.0));
+            if( validTiming )
             {
                 m_samples[m_currentMode][metricIndex].push_back( milliseconds );
                 m_currentRunSamples[metricIndex].push_back( milliseconds );
@@ -5800,7 +6040,8 @@ public:
             CMAA2Sample::SMAACameraMotionProfile::YawFast360,
         int firstProfileFrame = 60,
         bool integratedRemovalAblation = false,
-        bool integratedSourceOverheadComparison = false )
+        bool integratedSourceOverheadComparison = false,
+        bool objectMotionReprojectionAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -5815,17 +6056,19 @@ public:
         m_candidateEdgeSourceAblation( candidateEdgeSourceAblation ),
         m_integratedRemovalAblation( integratedRemovalAblation ),
         m_integratedSourceOverheadComparison( integratedSourceOverheadComparison ),
+        m_objectMotionReprojectionAblation( objectMotionReprojectionAblation ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount))))))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount)))))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
             + (int)filteredQuarterAblation + (int)armDualFilterAblation
             + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation
-            + (int)integratedSourceOverheadComparison <= 1 );
+            + (int)integratedSourceOverheadComparison
+            + (int)objectMotionReprojectionAblation <= 1 );
     }
 
 protected:
@@ -5837,7 +6080,7 @@ protected:
         {
             m_started = true;
             m_parent.Settings( ).SceneChoice = m_scene;
-            if( m_useCameraMotionProfile )
+            if( m_useCameraMotionProfile || m_objectMotionReprojectionAblation )
                 m_parent.SetFlythroughCameraEnabled( false );
             m_parent.SetRequireDeterminism( true );
             m_parent.SetFixedDeltaTime( m_frameDeltaTime );
@@ -5850,7 +6093,18 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if( m_integratedSourceOverheadComparison )
+            if( m_objectMotionReprojectionAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA rigid-object reprojection repeated performance benchmark\r\n\r\n" :
+                    "SMAA rigid-object reprojection GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This pairs camera/depth-only and camera+rigid-object velocity for Standard O-T2X-R and integrated O-ET2X-R.\r\n"
+                    "The procedural moving-occluder/rotor scene is an engineering fixture, not a real-scene paper result.\r\n"
+                    "ET2X keeps integrated first-pass candidates, IntelFamilyNonDominant, removal 0.50, and expansion None.\r\n"
+                    "A zero rigid-object pass timestamp is retained as a valid below-resolution or empty-work sample.\r\n" );
+            }
+            else if( m_integratedSourceOverheadComparison )
             {
                 abTool.ReportAddText( m_repeatCount > 1?
                     "SMAA integrated source-overhead repeated performance benchmark\r\n\r\n" :
@@ -5940,8 +6194,11 @@ protected:
             abTool.ReportAddText( "ApplicationFrameWall is the observed CPU wall interval between corresponding AutoBench ticks and includes Present/OS scheduling.\r\n" );
             abTool.ReportAddText( "1% low FPS is computed as 1000 / p99 frame time.\r\n" );
             abTool.ReportAddText( "Repeat traversal alternates forward and reverse mode order to reduce order bias.\r\n" );
-            abTool.ReportAddText( vaStringTools::Format( "Scene: %s.\r\n",
-                CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
+            if( m_objectMotionReprojectionAblation )
+                abTool.ReportAddText( "Scene: procedural object-motion.\r\n" );
+            else
+                abTool.ReportAddText( vaStringTools::Format( "Scene: %s.\r\n",
+                    CMAA2Sample::GetSMAACameraMotionSceneName( m_scene ) ) );
             if( m_useCameraMotionProfile )
                 abTool.ReportAddText( vaStringTools::Format(
                     "Camera profile: %s, measured profile frames %d..%d; warm-up holds the first pose.\r\n",
@@ -5994,6 +6251,18 @@ protected:
                         m_parent.SetSMAACandidateEdgeSourceOverride(
                             false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
                     }
+                    if( m_objectMotionReprojectionAblation )
+                    {
+                        m_parent.SetSMAAObjectMotionReprojection(
+                            vaSMAAWrapper::ObjectMotionReprojection::Off );
+                        m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
+                        m_parent.SetSMAACandidateExpansionOverride(
+                            false, vaSMAAWrapper::CandidateExpansion::None );
+                        m_parent.SetSMAACandidatePolicyOverride(
+                            false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+                        m_parent.SetSMAACandidateEdgeSourceOverride(
+                            false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+                    }
                     FinishReport( abTool );
                     m_isDone = true;
                     return;
@@ -6032,8 +6301,28 @@ protected:
             m_parent.SetSMAANonDominantRemovalOverride(
                 true, GetIntegratedRemovalAmount( m_currentMode ) );
         }
+        if( m_objectMotionReprojectionAblation )
+        {
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                true, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride(
+                true, vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+            m_parent.SetSMAAObjectMotionReprojection(
+                (m_currentMode == 1 || m_currentMode == 3)?
+                    vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
+                    vaSMAAWrapper::ObjectMotionReprojection::Off );
+        }
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
-        if( m_useCameraMotionProfile )
+        if( m_objectMotionReprojectionAblation )
+        {
+            m_parent.SetSMAATemporalStressTestState(
+                CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion,
+                (float)vaMath::Max( 0, m_currentFrame ) * m_frameDeltaTime );
+        }
+        else if( m_useCameraMotionProfile )
         {
             const int profileFrame = m_firstProfileFrame + vaMath::Max( 0, m_currentFrame );
             m_parent.SetSMAACameraMotionTestState(
@@ -7868,6 +8157,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaIntegratedSourceOverheadPerformanceSmoke") == 0;
         const bool integratedSourceOverheadPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaIntegratedSourceOverheadPerformanceBenchmark") == 0;
+        const bool objectMotionReprojectionPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionPerformanceSmoke") == 0;
+        const bool objectMotionReprojectionPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionPerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
@@ -7877,12 +8170,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke
             || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke
             || armDualFilterPerformanceSmoke || candidateEdgeSourcePerformanceSmoke
-            || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke;
+            || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke
+            || objectMotionReprojectionPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
             || armDualFilterPerformanceBenchmark || candidateEdgeSourcePerformanceBenchmark
-            || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark;
+            || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark
+            || objectMotionReprojectionPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -7937,6 +8232,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             warmupFrameCount = vaMath::Clamp(warmupFrameCount, 8, 600);
             measureFrameCount = vaMath::Clamp(measureFrameCount, 16, 4800);
             repeatCount = vaMath::Clamp(repeatCount, 1, 9);
+            const bool objectMotionReprojectionPerformance =
+                objectMotionReprojectionPerformanceSmoke
+                || objectMotionReprojectionPerformanceBenchmark;
+            if( objectMotionReprojectionPerformance )
+            {
+                performanceScene = SceneSelectionType::SMAATemporalStressTest;
+                usePerformanceCameraMotion = false;
+            }
             if( (integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
                     || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark)
                 && performanceScene != SceneSelectionType::LumberyardBistro
@@ -7967,7 +8270,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 usePerformanceCameraMotion,
                 SMAACameraMotionProfile::YawFast360, 60,
                 integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark,
-                integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark));
+                integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark,
+                objectMotionReprojectionPerformance));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -7988,10 +8292,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "integrated candidate-removal ablation";
             if( integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark )
                 performanceKind = "integrated source-overhead comparison";
+            if( objectMotionReprojectionPerformance )
+                performanceKind = "rigid-object reprojection ablation";
             VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
-                GetSMAACameraMotionSceneName( performanceScene ), startTime, repeatCount,
+                objectMotionReprojectionPerformance? "procedural-object-motion" :
+                    GetSMAACameraMotionSceneName( performanceScene ), startTime, repeatCount,
                 warmupFrameCount, measureFrameCount,
                 m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled()? "On" : "Off");
             return;
@@ -8517,6 +8824,48 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                             (temporalComponentAblationCapture? "temporal component" : "candidate-only"))),
                 GetSMAATemporalStressScenarioName(scenario),
                 frameCount, warmupFrameCount);
+            return;
+        }
+
+        if( _wcsicmp( parameter.first.c_str( ),
+            L"smaaObjectMotionReprojectionQualityCapture" ) == 0 )
+        {
+            wstring scenarioToken = L"object-motion";
+            int frameCount = 240;
+            int warmupFrameCount = 60;
+            if( !parameter.second.empty( ) )
+            {
+                std::wistringstream values( parameter.second );
+                if( !(values >> scenarioToken >> frameCount >> warmupFrameCount) )
+                {
+                    VA_LOG_ERROR(
+                        "Invalid SMAA object-motion reprojection capture values; expected: <object-motion|combined> <captureFrames> <warmupFrames>" );
+                    return;
+                }
+            }
+
+            SMAATemporalStressScenario scenario = SMAATemporalStressScenario::MaxValue;
+            if( _wcsicmp( scenarioToken.c_str( ), L"object-motion" ) == 0 )
+                scenario = SMAATemporalStressScenario::ObjectMotionDisocclusion;
+            else if( _wcsicmp( scenarioToken.c_str( ), L"combined" ) == 0 )
+                scenario = SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+            else
+            {
+                VA_LOG_ERROR(
+                    "Invalid SMAA object-motion reprojection scenario; expected object-motion or combined" );
+                return;
+            }
+
+            frameCount = vaMath::Clamp( frameCount, 1, 1800 );
+            warmupFrameCount = vaMath::Clamp( warmupFrameCount, 1, 600 );
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemRecordSMAAObjectMotionReprojectionQuality>(
+                    *this, scenario, frameCount, warmupFrameCount ) );
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG(
+                "Queued SMAA rigid-object reprojection quality gate '%s': %d capture frames, %d warm-up frames",
+                GetSMAATemporalStressScenarioName( scenario ),
+                frameCount, warmupFrameCount );
             return;
         }
 
