@@ -5153,6 +5153,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_armDualFilterAblation;
     const bool m_candidateEdgeSourceAblation;
     const bool m_integratedRemovalAblation;
+    const bool m_integratedSourceOverheadComparison;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
     const int m_firstProfileFrame;
@@ -5178,8 +5179,10 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     vaSMAAWrapper::CandidateEdgeSource GetCandidateEdgeSourceForAblationMode( int mode ) const
     {
-        assert( m_candidateEdgeSourceAblation );
-        switch( mode % 3 )
+        assert( m_candidateEdgeSourceAblation || m_integratedSourceOverheadComparison );
+        const int sourceIndex = m_integratedSourceOverheadComparison? (mode % 4) - 1 : mode % 3;
+        assert( sourceIndex >= 0 && sourceIndex < 3 );
+        switch( sourceIndex )
         {
         case 0: return vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect;
         case 1: return vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges;
@@ -5196,6 +5199,21 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_integratedSourceOverheadComparison )
+        {
+            static const char * c_integratedSourceOverheadModeIDs[c_modeCapacity] =
+            {
+                "O-T2X",
+                "O-ET2X / LegacyLumaRedetect",
+                "O-ET2X / SMAAFirstPassEdges",
+                "O-ET2X / SMAAFirstPassIntegratedCandidates",
+                "O-T2X-R",
+                "O-ET2X-R / LegacyLumaRedetect",
+                "O-ET2X-R / SMAAFirstPassEdges",
+                "O-ET2X-R / SMAAFirstPassIntegratedCandidates"
+            };
+            return c_integratedSourceOverheadModeIDs[mode];
+        }
         if( m_integratedRemovalAblation )
         {
             static const char * c_integratedRemovalModeIDs[c_modeCapacity] =
@@ -5296,6 +5314,16 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_integratedSourceOverheadComparison )
+        {
+            const bool reprojected = mode >= 4;
+            const bool standard = (mode % 4) == 0;
+            if( standard )
+                return reprojected? CMAA2Sample::AAType::SMAA_O_T2X_R :
+                    CMAA2Sample::AAType::SMAA_O_T2X;
+            return reprojected? CMAA2Sample::AAType::SMAA_O_ET2X_R :
+                CMAA2Sample::AAType::SMAA_O_ET2X;
+        }
         if( m_integratedRemovalAblation )
             return mode >= 4? CMAA2Sample::AAType::SMAA_O_ET2X_R :
                 CMAA2Sample::AAType::SMAA_O_ET2X;
@@ -5380,6 +5408,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_integratedSourceOverheadComparison )
+            return (mode % 4) != 0;
         if( m_integratedRemovalAblation )
             return true;
         if( m_candidateEdgeSourceAblation )
@@ -5398,6 +5428,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsIntegratedCandidateMode( int mode ) const
     {
+        if( m_integratedSourceOverheadComparison )
+            return (mode % 4) == 3;
         if( m_integratedRemovalAblation )
             return true;
         if( m_candidateEdgeSourceAblation )
@@ -5440,6 +5472,26 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
+
+        if( m_integratedSourceOverheadComparison )
+        {
+            const bool edgeSelective = IsEdgeSelectiveMode( mode );
+            const bool integratedCandidates = IsIntegratedCandidateMode( mode );
+            const bool reprojected = mode >= 4;
+            if( metric == GenerateCameraVelocity )
+                return reprojected;
+            if( metric == StandardSpatialT2X || metric == StandardTemporalResolve )
+                return !edgeSelective;
+            if( metric == SpatialSMAA1X || metric == CopySpatialToHistory
+                || metric == ComputeDispatchArgs || metric == ResolveCandidates
+                || metric == OutputCopy )
+                return edgeSelective;
+            if( metric == ClearIntegratedCandidateBuffers )
+                return integratedCandidates;
+            if( metric == PrepareCandidates || metric == ExtractCandidates )
+                return edgeSelective && !integratedCandidates;
+            return false;
+        }
 
         if( m_integratedRemovalAblation )
         {
@@ -5612,6 +5664,15 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                     if( statistics.Source != expectedSource )
                         m_passed = false;
                 }
+                if( m_integratedSourceOverheadComparison )
+                {
+                    const vaSMAAWrapper::CandidateEdgeSource expectedSource =
+                        GetCandidateEdgeSourceForAblationMode( m_currentMode );
+                    if( statistics.Source != expectedSource
+                        || statistics.Policy != vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant
+                        || statistics.Expansion != vaSMAAWrapper::CandidateExpansion::None )
+                        m_passed = false;
+                }
                 if( m_integratedRemovalAblation
                     && (statistics.Source != vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
                         || statistics.Policy != vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant
@@ -5738,7 +5799,8 @@ public:
         CMAA2Sample::SMAACameraMotionProfile cameraMotionProfile =
             CMAA2Sample::SMAACameraMotionProfile::YawFast360,
         int firstProfileFrame = 60,
-        bool integratedRemovalAblation = false )
+        bool integratedRemovalAblation = false,
+        bool integratedSourceOverheadComparison = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -5752,16 +5814,18 @@ public:
         m_armDualFilterAblation( armDualFilterAblation ),
         m_candidateEdgeSourceAblation( candidateEdgeSourceAblation ),
         m_integratedRemovalAblation( integratedRemovalAblation ),
+        m_integratedSourceOverheadComparison( integratedSourceOverheadComparison ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount)))))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount))))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
             + (int)filteredQuarterAblation + (int)armDualFilterAblation
-            + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation <= 1 );
+            + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation
+            + (int)integratedSourceOverheadComparison <= 1 );
     }
 
 protected:
@@ -5786,7 +5850,17 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if( m_integratedRemovalAblation )
+            if( m_integratedSourceOverheadComparison )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA integrated source-overhead repeated performance benchmark\r\n\r\n" :
+                    "SMAA integrated source-overhead GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This compares Standard T2X with LegacyLumaRedetect, post-pass SMAAFirstPassEdges, and SMAAFirstPassIntegratedCandidates for reprojection Off and On.\r\n"
+                    "The three edge-selective sources keep IntelFamilyNonDominant, removal 0.50, expansion None, sampling, clipping, history weight, and camera path paired.\r\n"
+                    "Standard-versus-edge-selective is the actual semantic pipeline comparison and is not a candidate-source-only comparison because temporal settings differ.\r\n" );
+            }
+            else if( m_integratedRemovalAblation )
             {
                 abTool.ReportAddText( m_repeatCount > 1?
                     "SMAA integrated candidate-removal repeated performance benchmark\r\n\r\n" :
@@ -5907,10 +5981,10 @@ protected:
                 {
                     if( m_useCameraMotionProfile )
                         m_parent.ClearSMAACameraMotionTestState( );
-                    if( m_candidateEdgeSourceAblation )
+                    if( m_candidateEdgeSourceAblation || m_integratedSourceOverheadComparison )
                         m_parent.SetSMAACandidateEdgeSourceOverride(
                             false, vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
-                    if( m_integratedRemovalAblation )
+                    if( m_integratedRemovalAblation || m_integratedSourceOverheadComparison )
                     {
                         m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
                         m_parent.SetSMAACandidateExpansionOverride(
@@ -5934,6 +6008,19 @@ protected:
         if( m_candidateEdgeSourceAblation )
             m_parent.SetSMAACandidateEdgeSourceOverride(
                 true, GetCandidateEdgeSourceForAblationMode( m_currentMode ) );
+        if( m_integratedSourceOverheadComparison )
+        {
+            const bool edgeSelective = IsEdgeSelectiveMode( m_currentMode );
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                edgeSelective,
+                edgeSelective? GetCandidateEdgeSourceForAblationMode( m_currentMode ) :
+                    vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride(
+                true, vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+        }
         if( m_integratedRemovalAblation )
         {
             m_parent.SetSMAACandidateEdgeSourceOverride(
@@ -7777,6 +7864,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaIntegratedCandidateRemovalPerformanceSmoke") == 0;
         const bool integratedRemovalPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaIntegratedCandidateRemovalPerformanceBenchmark") == 0;
+        const bool integratedSourceOverheadPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaIntegratedSourceOverheadPerformanceSmoke") == 0;
+        const bool integratedSourceOverheadPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaIntegratedSourceOverheadPerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
@@ -7786,12 +7877,12 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke
             || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke
             || armDualFilterPerformanceSmoke || candidateEdgeSourcePerformanceSmoke
-            || integratedRemovalPerformanceSmoke;
+            || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
             || armDualFilterPerformanceBenchmark || candidateEdgeSourcePerformanceBenchmark
-            || integratedRemovalPerformanceBenchmark;
+            || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -7805,7 +7896,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             {
                 std::wistringstream values(parameter.second);
                 if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark
-                    || integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark )
+                    || integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
+                    || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark )
                 {
                     wstring possibleScene;
                     values >> possibleScene;
@@ -7845,7 +7937,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             warmupFrameCount = vaMath::Clamp(warmupFrameCount, 8, 600);
             measureFrameCount = vaMath::Clamp(measureFrameCount, 16, 4800);
             repeatCount = vaMath::Clamp(repeatCount, 1, 9);
-            if( (integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark)
+            if( (integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
+                    || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark)
                 && performanceScene != SceneSelectionType::LumberyardBistro
                 && performanceScene != SceneSelectionType::MinecraftLostEmpire )
             {
@@ -7873,7 +7966,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     || candidateEdgeSourcePerformanceBenchmark,
                 usePerformanceCameraMotion,
                 SMAACameraMotionProfile::YawFast360, 60,
-                integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark));
+                integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark,
+                integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -7892,6 +7986,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "candidate edge-source ablation";
             if( integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark )
                 performanceKind = "integrated candidate-removal ablation";
+            if( integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark )
+                performanceKind = "integrated source-overhead comparison";
             VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
