@@ -2894,6 +2894,7 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
+    const bool          m_candidateEdgeSourceAblation;
     const int           m_modeCount;
     float               m_captureStartTime;
     int                 m_currentMode;
@@ -2902,8 +2903,17 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
     bool                m_isDone;
     wstring             m_outputDirs[c_modeCapacity];
 
-    static const char * GetModeID( int mode )
+    const char * GetModeID( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+        {
+            static const char * c_candidateEdgeSourceModeIDs[c_originalModeCount] =
+            {
+                "O-ET2X-LegacyLuma", "O-ET2X-SMAAEdges",
+                "O-ET2X-R-LegacyLuma", "O-ET2X-R-SMAAEdges"
+            };
+            return c_candidateEdgeSourceModeIDs[mode];
+        }
         static const char * c_modeIDs[c_modeCapacity] =
         {
             "O-T2X", "O-T2X-R", "O-ET2X", "O-ET2X-R",
@@ -2912,8 +2922,17 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
         return c_modeIDs[mode];
     }
 
-    static const char * GetModeDirectory( int mode )
+    const char * GetModeDirectory( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+        {
+            static const char * c_candidateEdgeSourceDirectories[c_originalModeCount] =
+            {
+                "O_ET2X_LegacyLuma", "O_ET2X_SMAAEdges",
+                "O_ET2X_R_LegacyLuma", "O_ET2X_R_SMAAEdges"
+            };
+            return c_candidateEdgeSourceDirectories[mode];
+        }
         static const char * c_modeDirectories[c_modeCapacity] =
         {
             "O_T2X", "O_T2X_R", "O_ET2X", "O_ET2X_R",
@@ -2922,8 +2941,19 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
         return c_modeDirectories[mode];
     }
 
-    static const char * GetModeDescription( int mode )
+    const char * GetModeDescription( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+        {
+            static const char * c_candidateEdgeSourceDescriptions[c_originalModeCount] =
+            {
+                "O-ET2X with legacy post-SMAA luma edge re-detection",
+                "O-ET2X reusing SMAA pass-1 edge output",
+                "O-ET2X-R with legacy post-SMAA luma edge re-detection",
+                "O-ET2X-R reusing SMAA pass-1 edge output"
+            };
+            return c_candidateEdgeSourceDescriptions[mode];
+        }
         static const char * c_modeDescriptions[c_modeCapacity] =
         {
             "Original SMAA Standard T2X",
@@ -2938,8 +2968,11 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
         return c_modeDescriptions[mode];
     }
 
-    static CMAA2Sample::AAType GetModeAAType( int mode )
+    CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+            return mode >= 2? CMAA2Sample::AAType::SMAA_O_ET2X_R :
+                CMAA2Sample::AAType::SMAA_O_ET2X;
         static const CMAA2Sample::AAType c_modes[c_modeCapacity] =
         {
             CMAA2Sample::AAType::SMAA_O_T2X,
@@ -2955,11 +2988,13 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
     }
 
 public:
-    BenchItemRecordSMAATemporalMatrix(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, bool includeAdaptive)
+    BenchItemRecordSMAATemporalMatrix(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, bool includeAdaptive,
+        bool candidateEdgeSourceAblation = false)
         : AutoBenchToolWorkItem(parent),
         m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
         m_warmupFrameCount(vaMath::Max(1, warmupFrameCount)),
-        m_modeCount(includeAdaptive? c_modeCapacity : c_originalModeCount),
+        m_candidateEdgeSourceAblation(candidateEdgeSourceAblation),
+        m_modeCount(candidateEdgeSourceAblation? c_originalModeCount : (includeAdaptive? c_modeCapacity : c_originalModeCount)),
         m_captureStartTime(startTime),
         m_currentMode(0),
         m_currentFrame(0),
@@ -2993,13 +3028,24 @@ protected:
                 vaFileTools::EnsureDirectoryExists(m_outputDirs[i]);
             }
 
-            abTool.ReportAddText(m_modeCount == c_modeCapacity?
-                "SMAA eight-case temporal capture\r\n\r\n" :
-                "Original SMAA four-mode temporal capture\r\n\r\n");
+            abTool.ReportAddText(m_candidateEdgeSourceAblation?
+                "SMAA candidate edge-source ablation capture\r\n\r\n" :
+                (m_modeCount == c_modeCapacity?
+                    "SMAA eight-case temporal capture\r\n\r\n" :
+                    "Original SMAA four-mode temporal capture\r\n\r\n"));
             abTool.ReportAddText("Engineering comparison capture; this is not a formal quality or performance result.\r\n");
-            abTool.ReportAddText("O-T2X and O-T2X-R use the official SMAA T2X jitter pattern.\r\n");
-            abTool.ReportAddText("O-ET2X and O-ET2X-R use the Intel-document-family edge-selective SMAA adaptation without deliberate projection jitter.\r\n");
-            abTool.ReportAddText("O-ET2X is the no-reprojection ablation; O-ET2X-R uses camera-motion reprojection only.\r\n");
+            if( m_candidateEdgeSourceAblation )
+            {
+                abTool.ReportAddText("LegacyLumaRedetect and SMAAFirstPassEdges are captured in the same process for O-ET2X and O-ET2X-R; all downstream temporal settings remain paired.\r\n");
+                abTool.ReportAddText("Both source variants use the same Intel-family candidate policy, no deliberate projection jitter, Catmull-Rom history sampling, YCoCg clipping, and 0.8 history weight.\r\n");
+                abTool.ReportAddText("O-ET2X is the no-reprojection ablation; O-ET2X-R uses camera-motion reprojection only.\r\n");
+            }
+            else
+            {
+                abTool.ReportAddText("O-T2X and O-T2X-R use the official SMAA T2X jitter pattern.\r\n");
+                abTool.ReportAddText("O-ET2X and O-ET2X-R use the Intel-document-family edge-selective SMAA adaptation without deliberate projection jitter.\r\n");
+                abTool.ReportAddText("O-ET2X is the no-reprojection ablation; O-ET2X-R uses camera-motion reprojection only.\r\n");
+            }
             abTool.ReportAddText("Both use IntelFamilyNonDominant candidates, Catmull-Rom 5-tap history sampling, YCoCg variance clipping, and history weight 0.8.\r\n\r\n");
             abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
             abTool.ReportAddText("SMAA preset:   Ultra\r\n");
@@ -3026,6 +3072,9 @@ protected:
             m_currentMode++;
             if (m_currentMode >= m_modeCount)
             {
+                if( m_candidateEdgeSourceAblation )
+                    m_parent.SetSMAACandidateEdgeSourceOverride(
+                        false, vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
                 m_isDone = true;
                 abTool.ReportFinish();
                 return;
@@ -3033,6 +3082,11 @@ protected:
             m_currentFrame = -m_warmupFrameCount;
         }
 
+        if( m_candidateEdgeSourceAblation )
+            m_parent.SetSMAACandidateEdgeSourceOverride( true,
+                (m_currentMode & 1) != 0?
+                vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges :
+                vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
         m_parent.Settings().CurrentAAOption = GetModeAAType(m_currentMode);
 
         const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
@@ -4890,6 +4944,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_currentEdgeDilationAblation;
     const bool m_filteredQuarterAblation;
     const bool m_armDualFilterAblation;
+    const bool m_candidateEdgeSourceAblation;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
     const int m_firstProfileFrame;
@@ -4915,6 +4970,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+        {
+            static const char * c_candidateEdgeSourceModeIDs[4] =
+            {
+                "O-ET2X / LegacyLumaRedetect",
+                "O-ET2X / SMAAFirstPassEdges",
+                "O-ET2X-R / LegacyLumaRedetect",
+                "O-ET2X-R / SMAAFirstPassEdges"
+            };
+            return c_candidateEdgeSourceModeIDs[mode];
+        }
         if( m_filteredQuarterAblation )
         {
             static const char * c_filteredQuarterModeIDs[6] =
@@ -4987,6 +5053,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+            return mode >= 2? CMAA2Sample::AAType::SMAA_O_ET2X_R :
+                CMAA2Sample::AAType::SMAA_O_ET2X;
         if( m_filteredQuarterAblation )
         {
             static const CMAA2Sample::AAType c_filteredQuarterModes[6] =
@@ -5065,6 +5134,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_candidateEdgeSourceAblation )
+            return true;
         if( m_filteredQuarterAblation )
             return true;
         if( m_armDualFilterAblation )
@@ -5109,6 +5180,16 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
+
+        if( m_candidateEdgeSourceAblation )
+        {
+            if( metric == GenerateCameraVelocity )
+                return mode >= 2;
+            return metric == SpatialSMAA1X || metric == CopySpatialToHistory
+                || metric == PrepareCandidates || metric == ExtractCandidates
+                || metric == ComputeDispatchArgs || metric == ResolveCandidates
+                || metric == OutputCopy;
+        }
 
         if( m_currentEdgeDilationAblation || m_filteredQuarterAblation || m_armDualFilterAblation )
         {
@@ -5238,6 +5319,14 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                 m_parent.GetSMAATemporalCandidateStatistics( );
             if( statistics.Valid )
             {
+                if( m_candidateEdgeSourceAblation )
+                {
+                    const vaSMAAWrapper::CandidateEdgeSource expectedSource = (m_currentMode & 1) != 0?
+                        vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges :
+                        vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect;
+                    if( statistics.Source != expectedSource )
+                        m_passed = false;
+                }
                 m_baseEdgeCounts[m_currentMode].push_back( (double)statistics.BaseEdgeCount );
                 m_candidateCounts[m_currentMode].push_back( (double)statistics.CandidateCount );
                 m_processCounts[m_currentMode].push_back( (double)statistics.ProcessCount );
@@ -5354,7 +5443,8 @@ public:
         int warmupFrameCount, int measureFrameCount, int repeatCount, bool includeAdaptive,
         bool candidateAblation = false, bool fullComponentAblation = false,
         bool currentEdgeDilationAblation = false, bool filteredQuarterAblation = false,
-        bool armDualFilterAblation = false, bool useCameraMotionProfile = false,
+        bool armDualFilterAblation = false, bool candidateEdgeSourceAblation = false,
+        bool useCameraMotionProfile = false,
         CMAA2Sample::SMAACameraMotionProfile cameraMotionProfile =
             CMAA2Sample::SMAACameraMotionProfile::YawFast360,
         int firstProfileFrame = 60 )
@@ -5369,15 +5459,17 @@ public:
         m_currentEdgeDilationAblation( currentEdgeDilationAblation ),
         m_filteredQuarterAblation( filteredQuarterAblation ),
         m_armDualFilterAblation( armDualFilterAblation ),
+        m_candidateEdgeSourceAblation( candidateEdgeSourceAblation ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( candidateEdgeSourceAblation? 4 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount)))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
-            + (int)filteredQuarterAblation + (int)armDualFilterAblation <= 1 );
+            + (int)filteredQuarterAblation + (int)armDualFilterAblation
+            + (int)candidateEdgeSourceAblation <= 1 );
     }
 
 protected:
@@ -5402,7 +5494,16 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if( m_armDualFilterAblation )
+            if( m_candidateEdgeSourceAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA candidate edge-source repeated performance benchmark\r\n\r\n" :
+                    "SMAA candidate edge-source GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This compares the legacy post-SMAA luma re-detection path with direct reuse of SMAA pass-1 edges.\r\n"
+                    "Candidate policy, expansion, sampling, clipping, history weight, reprojection setting, and camera path remain paired.\r\n" );
+            }
+            else if( m_armDualFilterAblation )
             {
                 abTool.ReportAddText( m_repeatCount > 1?
                     "SMAA ARM Dual Filtering candidate-expansion repeated performance benchmark\r\n\r\n" :
@@ -5504,6 +5605,9 @@ protected:
                 {
                     if( m_useCameraMotionProfile )
                         m_parent.ClearSMAACameraMotionTestState( );
+                    if( m_candidateEdgeSourceAblation )
+                        m_parent.SetSMAACandidateEdgeSourceOverride(
+                            false, vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
                     FinishReport( abTool );
                     m_isDone = true;
                     return;
@@ -5515,6 +5619,11 @@ protected:
         }
 
         m_currentFrame++;
+        if( m_candidateEdgeSourceAblation )
+            m_parent.SetSMAACandidateEdgeSourceOverride( true,
+                (m_currentMode & 1) != 0?
+                vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges :
+                vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
         if( m_useCameraMotionProfile )
         {
@@ -7184,6 +7293,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaArmDualFilterPerformanceSmoke") == 0;
         const bool armDualFilterPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaArmDualFilterPerformanceBenchmark") == 0;
+        const bool candidateEdgeSourcePerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidateEdgeSourcePerformanceSmoke") == 0;
+        const bool candidateEdgeSourcePerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidateEdgeSourcePerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
@@ -7192,11 +7305,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool performanceSmoke = originalPerformanceSmoke || eightCasePerformanceSmoke
             || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke
             || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke
-            || armDualFilterPerformanceSmoke;
+            || armDualFilterPerformanceSmoke || candidateEdgeSourcePerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
-            || armDualFilterPerformanceBenchmark;
+            || armDualFilterPerformanceBenchmark || candidateEdgeSourcePerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -7265,6 +7378,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     || filteredQuarterPerformanceBenchmark,
                 armDualFilterPerformanceSmoke
                     || armDualFilterPerformanceBenchmark,
+                candidateEdgeSourcePerformanceSmoke
+                    || candidateEdgeSourcePerformanceBenchmark,
                 usePerformanceCameraMotion,
                 SMAACameraMotionProfile::YawFast360, 60));
             m_quitAfterCommandLineCapture = true;
@@ -7281,6 +7396,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "filtered-quarter candidate-expansion ablation";
             if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark )
                 performanceKind = "ARM Dual Filtering candidate-expansion ablation";
+            if( candidateEdgeSourcePerformanceSmoke || candidateEdgeSourcePerformanceBenchmark )
+                performanceKind = "candidate edge-source ablation";
             VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
@@ -7807,7 +7924,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool originalFourCapture = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourCapture") == 0;
         const bool eightCaseCapture = _wcsicmp(parameter.first.c_str(), L"smaaEightCaseCapture") == 0;
         const bool legacyPairCaptureAlias = _wcsicmp(parameter.first.c_str(), L"smaaTemporalPairCapture") == 0;
-        if (!originalFourCapture && !eightCaseCapture && !legacyPairCaptureAlias)
+        const bool candidateEdgeSourceCapture =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidateEdgeSourceCapture") == 0;
+        if (!originalFourCapture && !eightCaseCapture && !legacyPairCaptureAlias
+            && !candidateEdgeSourceCapture)
             continue;
 
         float startTime = m_temporalComparisonStartTime;
@@ -7827,10 +7947,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         warmupFrameCount = vaMath::Clamp(warmupFrameCount, 0, 600);
         startTime = vaMath::Max(0.0f, startTime);
         m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalMatrix>(
-            *this, startTime, frameCount, warmupFrameCount, eightCaseCapture));
+            *this, startTime, frameCount, warmupFrameCount, eightCaseCapture,
+            candidateEdgeSourceCapture));
         m_quitAfterCommandLineCapture = true;
         VA_LOG("Queued SMAA %s temporal capture: start %.3f s, %d capture frames, %d warm-up frames",
-            eightCaseCapture? "eight-case" : "Original four-mode", startTime, frameCount, warmupFrameCount);
+            candidateEdgeSourceCapture? "candidate edge-source ablation" :
+                (eightCaseCapture? "eight-case" : "Original four-mode"),
+            startTime, frameCount, warmupFrameCount);
         return;
     }
 }

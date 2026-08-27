@@ -1056,6 +1056,21 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     Full SMAA spatial AA 뒤 선택 edge에만 temporal resolve를 적용하는 큰 순서 자체는
     TSCMAA-style adaptation과 양립하지만, temporal 후보 edge를 별도 재검출하는 현재
     기본 방식은 최종 구조로 확정하지 않는다.
+31. **Engineering gate 완료:** `codex/smaa-first-pass-edge-reuse`에서 temporal base edge
+    source를 `LegacyLumaRedetect`와 `SMAAFirstPassEdges`로 직교 분리했다. first-pass
+    source는 기존 SMAA edge RT의 RG 방향 mask를 base gate로 직접 사용하며, 원본 SMAA
+    공간 shader와 edge→weight→blend 순서는 변경하지 않았다. Intel-family non-dominant
+    ranking은 binary edge에 잃어버린 contrast 정보를 보완하기 위해 살아남은 SMAA edge
+    위치에서 기존 luma strength를 사용한다. Release x64, FXC, lifecycle, feedback,
+    static stability와 policy sweep가 PASS했다. 고정 pose에서 legacy 대비 base edge는
+    Bistro/Minecraft 15.12%/16.57%, candidate는 7.00%/3.45% 감소했다. 동일 프로세스
+    2회×240-frame engineering smoke의 extract pass는 `O-ET2X` 2.80%, `O-ET2X-R`
+    2.77% 감소했지만 SMAA total과 WholeFrame은 일관되게 줄지 않아 성능 결론은 보류한다.
+    동일 프로세스 16-frame pair capture는 연속·고유 PNG를 통과했고 source 교체로 바뀐
+    픽셀은 평균 0.083864%/0.160965%였다. 현재 기본값은 기존 연구를 보존하도록 legacy로
+    유지한다. 정식 visible 4,800-frame×3회 성능과 Bistro/Minecraft reference 품질 gate를
+    통과하기 전에는 first-pass source를 기본값으로 승격하지 않는다. 상세 결과는
+    `Docs/SMAA-First-Pass-Edge-Reuse-Engineering-Gate-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
