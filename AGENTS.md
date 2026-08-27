@@ -1131,6 +1131,22 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     다음은 full-timeline matched quality와 Standard T2X control을 포함한 fresh 비교다.
     상세 결과는 `Docs/SMAA-Integrated-Candidate-Removal-Performance-Results-ko.md`를
     기준으로 한다.
+35. **Integrated removal 전체 timeline 품질 gate 완료:** Bistro/Minecraft의
+    `flythrough-wide-yaw-360` 전체 480 frame에서 `O-1X`, 대응 Standard T2X와 integrated
+    `O-ET2X`/`O-ET2X-R` removal 0.50/0.70/0.75를 비교했다. 9 mode×480 PNG와 동일 pose
+    supersample spatial reference 분석이 PASS했고, central-motion 및 motion→still 두
+    window의 IntelLabs/CGVQM 공식 commit `8302ff45b4ff5a691682baf23f7c007d6b591e98`
+    CGVQM-2 36 jobs도 CUDA에서 PASS했다. 모든 최종 FFV1 decode는 원본 PNG와 mismatch
+    0이었다. `0.70`은 reprojection Off central 구간에서 CGVQM과 spatial proxy를
+    개선했지만, reprojection On에서는 이득이 거의 없거나 Minecraft central과 두 장면의
+    motion→still에서 악화됐다. `0.50→0.70`은 motion 구간 출력의 O-1X 거리를
+    10.495~17.456% 줄이고 temporal change를 0.119~1.667% 늘렸다. 앞선 반복 성능에서도
+    candidate resolve만 4.102~4.950% 감소하고 WholeFrame 개선은 재현되지 않았다.
+    따라서 document profile 기본 removal은 `0.50`을 유지하며 `0.70`은 장면 의존
+    cost/quality ablation, `0.75`는 경계 ablation으로 보존한다. 이 판정은 parameter
+    gate이며 기존 final 8-case 결과를 아직 변경하지 않는다. 다음은 기본 `0.50`을 고정한
+    fresh Standard-vs-integrated matched overhead benchmark다. 상세 결과는
+    `Docs/SMAA-Integrated-Candidate-Removal-Full-Timeline-Results-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
