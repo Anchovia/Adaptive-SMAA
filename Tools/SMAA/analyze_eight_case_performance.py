@@ -59,6 +59,12 @@ def parse_args() -> argparse.Namespace:
         default="engineering",
         help="Mark whether the run is engineering evidence or a formal research result.",
     )
+    parser.add_argument(
+        "--scene",
+        choices=("bistro", "minecraft", "unknown"),
+        default="unknown",
+        help="Expected scene recorded by the benchmark.",
+    )
     return parser.parse_args()
 
 
@@ -112,6 +118,9 @@ def extract_metadata(lines: list[str]) -> dict[str, Any]:
                 "measurement_frames": int(settings.group(4)),
             }
         )
+
+    scene = re.search(r"^Scene:\s*([^\.\r\n]+)", text, re.MULTILINE)
+    metadata["scene"] = scene.group(1).strip().lower() if scene else "unknown"
 
     metadata["candidate_readback_disabled"] = (
         "Candidate counter readback was disabled" in text
@@ -179,6 +188,9 @@ def validate(
     metadata: dict[str, Any],
     timings: dict[str, dict[str, dict[str, Any]]],
     frame_rates: dict[str, dict[str, float]],
+    expected_scene: str = "unknown",
+    classification: str = "engineering",
+    window_state: str = "unknown",
 ) -> dict[str, Any]:
     errors: list[str] = []
     expected_samples: int | None = None
@@ -206,6 +218,19 @@ def validate(
         errors.append("benchmark did not report PASS")
     if not metadata.get("candidate_readback_disabled", False):
         errors.append("candidate readback was not reported disabled")
+    if expected_scene != "unknown" and metadata.get("scene") != expected_scene:
+        errors.append(
+            f"scene {metadata.get('scene', 'unknown')} != {expected_scene}"
+        )
+    if classification == "formal":
+        if window_state != "visible":
+            errors.append("formal run requires a visible application window")
+        if metadata.get("warmup_frames") != 300:
+            errors.append("formal run must use 300 warm-up frames")
+        if metadata.get("measurement_frames") != 4800:
+            errors.append("formal run must use 4800 measurement frames")
+        if metadata.get("repeats", 0) < 3:
+            errors.append("formal run must use at least 3 repeats")
 
     return {
         "pass": not errors,
@@ -399,6 +424,7 @@ def write_markdown(
             f"- 해상도: {metadata.get('resolution', '미기록')}",
             f"- VSync: {metadata.get('vsync', '미기록')}",
             f"- 화면 모드: {metadata.get('fullscreen', '미기록')}",
+            f"- 장면: {metadata.get('scene', '미기록')}",
             f"- 시작 시각: {metadata.get('start_time_seconds', '미기록')}초",
             f"- 반복: {metadata.get('repeats', '미기록')}회",
             f"- warm-up: {metadata.get('warmup_frames', '미기록')}프레임",
@@ -475,7 +501,14 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
 
     metadata, timings, frame_rates = parse_results(source)
-    validation = validate(metadata, timings, frame_rates)
+    validation = validate(
+        metadata,
+        timings,
+        frame_rates,
+        args.scene,
+        args.classification,
+        args.window_state,
+    )
     if not validation["pass"]:
         raise RuntimeError("; ".join(validation["errors"]))
 
@@ -501,6 +534,7 @@ def main() -> None:
         "output_directory": str(output),
         "classification": args.classification,
         "window_state": args.window_state,
+        "scene": metadata.get("scene", "unknown"),
         "formal_measurement": (
             args.classification == "formal" and args.window_state == "visible"
         ),

@@ -8192,7 +8192,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 std::wistringstream values(parameter.second);
                 if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark
                     || integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
-                    || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark )
+                    || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
+                    || eightCasePerformanceSmoke || eightCasePerformanceBenchmark )
                 {
                     wstring possibleScene;
                     values >> possibleScene;
