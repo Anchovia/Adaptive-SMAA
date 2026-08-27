@@ -52,7 +52,9 @@ struct SMAAReprojectionConstants
     // y: history clipping enum (0 off, 1 YCoCg variance).
     float4 TSCMAAResolveParams;
     // x: candidate edge source enum
-    // (0 legacy luma re-detection, 1 SMAA first-pass edge reuse).
+    // (0 legacy luma re-detection, 1 SMAA first-pass edge reuse),
+    // y: write full-resolution base/candidate diagnostic masks,
+    // z: collect the optional base-edge statistics counter.
     float4 TSCMAACandidateSourceParams;
     // xy: current projection jitter in pixel units,
     // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial),
@@ -282,9 +284,14 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     uint2 pixel = uint2(position.xy);
     bool baseEdge = any(edges > 0.0);
     bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(pixel);
-    tscmaaIntegratedBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
+    bool writeDiagnosticMasks =
+        g_SMAAReprojection.TSCMAACandidateSourceParams.y > 0.5;
+    if (writeDiagnosticMasks)
+        tscmaaIntegratedBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
 
-    if (baseEdge) {
+    bool collectBaseEdgeStatistics =
+        g_SMAAReprojection.TSCMAACandidateSourceParams.z > 0.5;
+    if (baseEdge && collectBaseEdgeStatistics) {
         uint ignoredEdgeIndex;
         tscmaaIntegratedControl.InterlockedAdd(
             TSCMAA_EDGE_COUNTER_OFFSET, 1, ignoredEdgeIndex);
@@ -293,9 +300,9 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     bool expansionEnabled = g_SMAAReprojection.TSCMAAHybridParams.w > 0.5;
     if (expansionEnabled) {
         tscmaaIntegratedRawCandidateMask[pixel] = candidate ? 1.0 : 0.0;
-        tscmaaIntegratedCandidateMask[pixel] = 0.0;
     } else {
-        tscmaaIntegratedCandidateMask[pixel] = candidate ? 1.0 : 0.0;
+        if (writeDiagnosticMasks)
+            tscmaaIntegratedCandidateMask[pixel] = candidate ? 1.0 : 0.0;
         if (candidate) {
             uint candidateIndex;
             tscmaaIntegratedControl.InterlockedAdd(

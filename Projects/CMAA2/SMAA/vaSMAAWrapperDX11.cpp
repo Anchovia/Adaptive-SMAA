@@ -1063,8 +1063,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.TSCMAAResolveParams = vaVector4( (float)(int)GetEffectiveHistorySampler( ),
             (float)(int)GetEffectiveHistoryClipping( ), GetClippingDebugViewsEnabled( )? 1.0f : 0.0f,
             GetClippingDebugViewsEnabled( )? (float)((int)GetTemporalDebugView( ) - (int)TemporalDebugView::CurrentSpatial) : 0.0f );
+        const bool writeCandidateDiagnosticMasks =
+            GetTemporalDebugView( ) == TemporalDebugView::BaseEdges
+            || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates;
         m_reprojectionConstants.TSCMAACandidateSourceParams = vaVector4(
-            (float)(int)GetEffectiveCandidateEdgeSource( ), 0.0f, 0.0f, 0.0f );
+            (float)(int)GetEffectiveCandidateEdgeSource( ),
+            writeCandidateDiagnosticMasks? 1.0f : 0.0f,
+            GetTemporalCandidateStatisticsReadbackEnabled( )? 1.0f : 0.0f,
+            0.0f );
         vaVector2 currentProjectionJitter( 0.0f, 0.0f );
         if( optionalCamera != nullptr )
             currentProjectionJitter = const_cast<vaCameraBase *>( optionalCamera )->GetSubpixelOffset( );
@@ -1233,16 +1239,27 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                         return vaDrawResultFlags::UnspecifiedError;
                     }
 
-                    // Candidate counters and masks must be reset before the
-                    // SMAA edge pixel shader emits this frame's compact list.
+                    // The compact-list counters must be reset before the SMAA
+                    // edge pixel shader emits this frame's candidates. The
+                    // indirect args shader overwrites all three dispatch words,
+                    // so clearing that buffer is unnecessary. Full-resolution
+                    // masks are diagnostic/expansion resources and are cleared
+                    // only when the active path consumes them.
                     const UINT zeroes[4] = { 0, 0, 0, 0 };
                     const FLOAT maskZeroes[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+                    const bool writeCandidateDiagnosticMasks =
+                        GetTemporalDebugView( ) == TemporalDebugView::BaseEdges
+                        || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates;
                     {
                         VA_SCOPE_CPUGPU_TIMER( TSCMAAClearIntegratedCandidateBuffers, deviceContext );
                         dx11Context->ClearUnorderedAccessViewUint( m_tscmaaControlBufferUAV, zeroes );
-                        dx11Context->ClearUnorderedAccessViewUint( m_tscmaaDispatchArgsBufferUAV, zeroes );
-                        dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.BaseEdgeMask, maskZeroes );
-                        dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.CandidateMask, maskZeroes );
+                        if( writeCandidateDiagnosticMasks )
+                            dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.BaseEdgeMask, maskZeroes );
+                        // Expansion passes overwrite every output candidate-mask
+                        // pixel; the integrated edge pass only needs a cleared
+                        // sparse raw mask as their source.
+                        if( writeCandidateDiagnosticMasks && !expansionEnabled )
+                            dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.CandidateMask, maskZeroes );
                         if( expansionEnabled )
                             dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.RawCandidateMask, maskZeroes );
                     }
