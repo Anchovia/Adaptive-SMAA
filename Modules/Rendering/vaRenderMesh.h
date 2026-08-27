@@ -196,6 +196,8 @@ namespace VertexAsylum
             shared_ptr<vaRenderMesh>                    Mesh;
             // shared_ptr<vaRenderMaterial>                OverrideMaterial;    // was not needed so far
             vaMatrix4x4                                 Transform;
+            vaMatrix4x4                                 PreviousTransform;
+            bool                                        PreviousTransformValid;
 
             float                                       SortDistance;
 
@@ -203,8 +205,13 @@ namespace VertexAsylum
             vaRenderMeshCustomHandler *                 CustomHandler;  // handler  (and can be used as a type identifier through RTTI or similar)
             uint64                                      CustomPayload;  // per-entry payload
 
-            Entry( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, float sortDistance = 0.0f,
-                    vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0 ) : Mesh( mesh ), Transform( transform ), SortDistance( sortDistance ), CustomHandler( customHandler ), CustomPayload( customPayload ) { }
+            Entry( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform,
+                    const vaMatrix4x4 & previousTransform, bool previousTransformValid,
+                    float sortDistance = 0.0f, vaRenderMeshCustomHandler * customHandler = nullptr,
+                    uint64 customPayload = 0 )
+                : Mesh( mesh ), Transform( transform ), PreviousTransform( previousTransform ),
+                PreviousTransformValid( previousTransformValid ), SortDistance( sortDistance ),
+                CustomHandler( customHandler ), CustomPayload( customPayload ) { }
         };
 
     private:
@@ -224,6 +231,10 @@ namespace VertexAsylum
         int                                             Count( ) const                      { return (int)m_drawList.size(); }
         
         void                                            Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, const vaVector3 & sortFromReference, vaSortType sortType = vaSortType::FrontToBack, vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0 );
+        void                                            Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform,
+                                                                    const vaMatrix4x4 & previousTransform, bool previousTransformValid,
+                                                                    const vaVector3 & sortFromReference, vaSortType sortType = vaSortType::FrontToBack,
+                                                                    vaRenderMeshCustomHandler * customHandler = nullptr, uint64 customPayload = 0 );
 
         const Entry &                                   operator[] ( int index ) const      { return m_drawList[index]; }
     };
@@ -288,6 +299,16 @@ namespace VertexAsylum
 
     inline void vaRenderMeshDrawList::Insert( const std::shared_ptr<vaRenderMesh> & mesh, const vaMatrix4x4 & transform, const vaVector3 & sortFromReference, vaSortType sortType, vaRenderMeshCustomHandler * customHandler, uint64 customPayload )
     {
+        Insert( mesh, transform, transform, false, sortFromReference, sortType,
+            customHandler, customPayload );
+    }
+
+    inline void vaRenderMeshDrawList::Insert( const std::shared_ptr<vaRenderMesh> & mesh,
+        const vaMatrix4x4 & transform, const vaMatrix4x4 & previousTransform,
+        bool previousTransformValid, const vaVector3 & sortFromReference,
+        vaSortType sortType, vaRenderMeshCustomHandler * customHandler,
+        uint64 customPayload )
+    {
         if( mesh == nullptr )
         {
             VA_WARN( "vaRenderMeshDrawList::Insert - trying to add nullptr mesh, ignoring" );
@@ -295,7 +316,8 @@ namespace VertexAsylum
         }
         float distance = ( vaVector3::TransformCoord( mesh->GetAABB().Center(), transform ) - sortFromReference ).Length();
         
-        Entry newEntry( mesh, transform, distance, customHandler, customPayload );
+        Entry newEntry( mesh, transform, previousTransform,
+            previousTransformValid, distance, customHandler, customPayload );
 
         if( sortType != vaSortType::None )
         {
