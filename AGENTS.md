@@ -1147,6 +1147,23 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     gate이며 기존 final 8-case 결과를 아직 변경하지 않는다. 다음은 기본 `0.50`을 고정한
     fresh Standard-vs-integrated matched overhead benchmark다. 상세 결과는
     `Docs/SMAA-Integrated-Candidate-Removal-Full-Timeline-Results-ko.md`를 기준으로 한다.
+36. **Integrated source 성능 gate 및 진단 비용 최적화 완료:** Standard T2X와
+    edge-selective Legacy/Post-pass/Integrated source를 reprojection Off/On으로 분리한
+    8-configuration benchmark/analyzer를 추가했다. RTX 3060 Ti, 1920×1017, visible,
+    readback Off, 300 warm-up, 4,800 frame×3회로 Bistro/Minecraft를 독립 clean process에서
+    측정했고 mode별 14,400 sample과 3개 run mean 검증이 PASS했다. integrated first-pass
+    경로에서 일반 resolve가 사용하지 않는 base/candidate debug mask 초기화·기록,
+    전부 덮어쓰는 indirect args clear, readback-Off base-edge 통계 atomic을 제거했다.
+    readback-On에서는 counter가 post-pass와 정확히 일치하고 lifecycle expansion 회귀도
+    failure 0으로 PASS했다. 최종 integrated SMAA는 최초 측정보다 Bistro 12.50~13.91%,
+    Minecraft 17.09~18.86% 감소했다. Legacy 대비 22.671~25.148%, post-pass 대비
+    22.849~25.709% 빠르므로 integrated source를 이후 core 기본 구조로 선택한다. 그러나
+    Standard semantic control 대비 integrated는 Bistro SMAA +23.683~30.868% / WholeFrame
+    +1.413~1.970%, Minecraft SMAA +31.300~38.585% / WholeFrame +8.422~9.152%로 여전히
+    느리다. 따라서 두 번째 full-screen candidate extraction 제거는 성공했지만 전체
+    성능 개선은 미달로 기록한다. 다음 object-motion, 3×3 expansion, Adaptive gate는
+    integrated source를 고정하고 독립적으로 수행한다. 상세 결과는
+    `Docs/SMAA-Integrated-Source-Overhead-Formal-Results-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
