@@ -1208,6 +1208,26 @@ bool TSCMAAResolveTemporalPixel(int2 pixel, int2 dimensions, out float4 resolved
     return true;
 }
 
+// Copy the current spatial result into both the next history and the visible
+// destination in one pass. u6 is an auxiliary output in this optimized path;
+// clipping debug and dual-output execution are intentionally mutually
+// exclusive on the C++ side.
+[numthreads(8, 8, 1)]
+void TSCMAAInitializeDualOutputCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    int2 pixel = int2(dispatchThreadID.xy);
+    if (any(pixel >= dimensions))
+        return;
+
+    // C++ binds a non-sRGB SRV for this entry point, so this load returns the
+    // stored UNORM values directly. Writing them to the two UNORM UAVs keeps
+    // byte-equivalent spatial initialization without an expensive pow-based
+    // linear-to-sRGB round trip.
+    float4 spatialColor = tscmaaCurrentColor.Load(int3(pixel, 0));
+    tscmaaOutput[pixel] = spatialColor;
+    tscmaaClippingDebug[pixel] = spatialColor;
+}
+
 [numthreads(TSCMAA_RESOLVE_NUM_THREADS, 1, 1)]
 void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     uint candidateCount = tscmaaControl.Load(TSCMAA_PROCESS_COUNT_OFFSET);
@@ -1224,6 +1244,23 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     tscmaaOutput[pixel] = resolvedColor;
 }
 
+[numthreads(TSCMAA_RESOLVE_NUM_THREADS, 1, 1)]
+void TSCMAAResolveCandidatesDualOutputCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint candidateCount = tscmaaControl.Load(TSCMAA_PROCESS_COUNT_OFFSET);
+    if (dispatchThreadID.x >= candidateCount)
+        return;
+
+    uint packedPixel = tscmaaCandidates[dispatchThreadID.x];
+    int2 pixel = int2(packedPixel >> 16, packedPixel & 0xffff);
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    float4 resolvedColor;
+    if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
+        return;
+
+    tscmaaOutput[pixel] = resolvedColor;
+    tscmaaClippingDebug[pixel] = resolvedColor;
+}
+
 // Diagnostic matched-kernel control. It deliberately uses the exact same
 // per-pixel document-profile resolve helper as the indirect candidate path,
 // while changing only coverage/dispatch from selected pixels to full-screen.
@@ -1238,6 +1275,21 @@ void TSCMAAResolveFullScreenCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
         return;
     tscmaaOutput[pixel] = resolvedColor;
+}
+
+
+[numthreads(8, 8, 1)]
+void TSCMAAResolveFullScreenDualOutputCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    int2 pixel = int2(dispatchThreadID.xy);
+    if (any(pixel >= dimensions))
+        return;
+
+    float4 resolvedColor;
+    if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
+        return;
+    tscmaaOutput[pixel] = resolvedColor;
+    tscmaaClippingDebug[pixel] = resolvedColor;
 }
 
 #endif // SMAA_TSCMAA_COMPUTE

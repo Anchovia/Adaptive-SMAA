@@ -343,6 +343,8 @@ namespace VertexAsylum
                                                 GetSMAATemporalCandidateStatistics( ) const { return m_SMAA->GetTemporalCandidateStatistics( ); }
         void                                    SetSMAATemporalCandidateStatisticsReadbackEnabled( bool enabled ) { m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled( enabled ); }
         bool                                    GetSMAATemporalCandidateStatisticsReadbackEnabled( ) const { return m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled( ); }
+        void                                    SetSMAATemporalDualOutputOptimizationEnabled( bool enabled ) { m_SMAA->SetTemporalDualOutputOptimizationEnabled( enabled ); }
+        bool                                    GetSMAATemporalDualOutputOptimizationEnabled( ) const { return m_SMAA->GetTemporalDualOutputOptimizationEnabled( ); }
         void                                    SetWindowClientAreaSizeForDiagnostics( const vaVector2i & size ) { m_application.SetWindowClientAreaSize( size ); }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }

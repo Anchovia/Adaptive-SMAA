@@ -5334,6 +5334,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         StandardTemporalResolve,
         SpatialSMAA1X,
         CopySpatialToHistory,
+        InitializeDualOutput,
         ClearIntegratedCandidateBuffers,
         PrepareCandidates,
         ExtractCandidates,
@@ -5377,6 +5378,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_integratedSourceOverheadComparison;
     const bool m_objectMotionReprojectionAblation;
     const bool m_matchedKernelAblation;
+    const bool m_dualOutputOptimizationEnabled;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
     const int m_firstProfileFrame;
@@ -5719,6 +5721,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case StandardTemporalResolve:   return "SMAAStandardTemporalResolve";
         case SpatialSMAA1X:             return "SMAASpatial1X";
         case CopySpatialToHistory:      return "TSCMAACopySpatialToHistory";
+        case InitializeDualOutput:      return "TSCMAAInitializeDualOutput";
         case ClearIntegratedCandidateBuffers:return "TSCMAAClearIntegratedCandidateBuffers";
         case PrepareCandidates:         return "TSCMAAPrepareCandidates";
         case ExtractCandidates:         return "TSCMAAExtractCandidates";
@@ -5741,6 +5744,14 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
+
+        const bool documentKernelMode = IsEdgeSelectiveMode( mode )
+            || (m_matchedKernelAblation && !IsEdgeSelectiveMode( mode ));
+        if( metric == InitializeDualOutput )
+            return m_dualOutputOptimizationEnabled && documentKernelMode;
+        if( m_dualOutputOptimizationEnabled && documentKernelMode
+            && (metric == CopySpatialToHistory || metric == OutputCopy) )
+            return false;
 
         if( m_matchedKernelAblation )
         {
@@ -6124,6 +6135,7 @@ public:
         m_integratedSourceOverheadComparison( integratedSourceOverheadComparison ),
         m_objectMotionReprojectionAblation( objectMotionReprojectionAblation ),
         m_matchedKernelAblation( matchedKernelAblation ),
+        m_dualOutputOptimizationEnabled( parent.GetSMAATemporalDualOutputOptimizationEnabled( ) ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
@@ -8029,6 +8041,18 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
                 vaSMAAWrapper::ObjectMotionReprojection::Off);
             VA_LOG("SMAA rigid-object motion reprojection diagnostic override: %s", enabled != 0? "enabled" : "disabled");
+        }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalDualOutputOptimization") == 0)
+        {
+            int enabled = 1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> enabled) || enabled < 0 || enabled > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaTemporalDualOutputOptimization value; expected 0 (legacy two-copy path) or 1 (dual-output initialization)");
+                return;
+            }
+            m_SMAA->SetTemporalDualOutputOptimizationEnabled(enabled != 0);
+            VA_LOG("SMAA temporal dual-output optimization: %s", enabled != 0? "enabled" : "disabled");
         }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateExpansionOverride") == 0)
         {

@@ -364,6 +364,10 @@ namespace VertexAsylum
         HistoryClipping             m_historyClippingOverride           = HistoryClipping::YCoCgVariance;
         bool                        m_forcedCandidateCountEnabled        = false;
         uint32                      m_forcedCandidateCount               = 65;
+        // A fused dual-output initialization was measured as slower on the
+        // RTX 3060 Ti because candidate pixels require a second UAV write.
+        // Preserve it as a reproducible default-Off performance ablation.
+        bool                        m_temporalDualOutputOptimizationEnabled = false;
         TemporalDebugView           m_temporalDebugView                  = TemporalDebugView::None;
         TemporalCandidateValidation m_temporalCandidateValidation;
         TemporalLifecycleDiagnostics m_temporalLifecycleDiagnostics;
@@ -542,6 +546,18 @@ namespace VertexAsylum
         }
         bool                        GetForcedCandidateCountEnabled( ) const { return m_forcedCandidateCountEnabled; }
         uint32                      GetForcedCandidateCount( ) const    { return m_forcedCandidateCount; }
+        void                        SetTemporalDualOutputOptimizationEnabled( bool enabled )
+        {
+            if( m_temporalDualOutputOptimizationEnabled != enabled )
+            {
+                m_temporalDualOutputOptimizationEnabled = enabled;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTemporalDualOutputOptimizationEnabled( ) const
+        {
+            return m_temporalDualOutputOptimizationEnabled;
+        }
         const TemporalCandidateValidation & GetTemporalCandidateValidation( ) const { return m_temporalCandidateValidation; }
         TemporalDebugView           GetTemporalDebugView( ) const       { return m_temporalDebugView; }
         void                        SetTemporalDebugView( TemporalDebugView value ) { m_temporalDebugView = value; }
