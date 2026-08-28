@@ -22,8 +22,7 @@ MODES = (
 PROFILES = {"Document": MODES[0:4], "Candidate-Jitter": MODES[4:8]}
 COMMON = (
     "ApplicationFrameWall", "WholeFrame", "SMAA", "SMAAGenerateCameraVelocity",
-    "SMAASpatial1X", "TSCMAACopySpatialToHistory", "TSCMAAPrepareCandidates",
-    "TSCMAAExtractCandidates", "TSCMAAComputeDispatchArgs",
+    "SMAASpatial1X", "TSCMAACopySpatialToHistory", "TSCMAAComputeDispatchArgs",
     "TSCMAAResolveCandidates", "TSCMAAOutputCopy",
 )
 ARM_METRICS = (
@@ -62,8 +61,19 @@ def main() -> int:
         }
         index += 1
     expected_samples = args.expected_frames * args.expected_repeats
+    candidate_sources: dict[str, str] = {}
     for mode in MODES:
         required = list(COMMON)
+        if "TSCMAAClearIntegratedCandidateBuffers" in timing[mode]:
+            required.append("TSCMAAClearIntegratedCandidateBuffers")
+            candidate_sources[mode] = "integrated SMAA first-pass edges"
+        elif all(metric in timing[mode] for metric in (
+            "TSCMAAPrepareCandidates", "TSCMAAExtractCandidates"
+        )):
+            required.extend(("TSCMAAPrepareCandidates", "TSCMAAExtractCandidates"))
+            candidate_sources[mode] = "legacy separate edge re-detection"
+        else:
+            raise RuntimeError(f"{mode}: no recognized candidate-source timer set")
         if "Dilate3x3" in mode:
             required.append("TSCMAADilateCandidates3x3")
         if "FilteredQuarter" in mode:
@@ -148,6 +158,7 @@ def main() -> int:
         "expected_frames": args.expected_frames, "expected_repeats": args.expected_repeats,
         "candidate_readback": "separate characterization" if args.candidate_result_csv else "enabled",
         "candidate_result_csv": str(args.candidate_result_csv.resolve()) if args.candidate_result_csv else str(source),
+        "candidate_sources": candidate_sources,
         "internal_validation": "PASS",
         "comparisons": comparisons,
     }, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -157,6 +168,7 @@ def main() -> int:
         f"- 분류: `{args.classification}`",
         f"- 표본: mode당 {expected_samples} frame, {args.expected_repeats}회",
         "- timing 실행의 candidate readback: `Off`; 후보 배수는 별도 readback-On characterization에서 결합" if args.candidate_result_csv else "- candidate readback: `On`; 정식 timing 결과가 아닌 engineering smoke",
+        f"- candidate source: `{', '.join(sorted(set(candidate_sources.values())))}`",
         "- 내부 benchmark validation: `PASS`",
         "",
         "| Profile | 3×3 후보 배수 | Filtered 후보 배수 | ARM 후보 배수 | 3×3 mask ms | Filtered mask ms | ARM mask ms | 3×3 SMAA 변화 | Filtered SMAA 변화 | ARM SMAA 변화 |",
@@ -172,11 +184,16 @@ def main() -> int:
         )
     lines.extend((
         "", "## 해석 제한", "",
-        f"{expected_samples}-frame engineering 측정이며 반복은 {args.expected_repeats}회다. "
-        "pass 실행과 상대 비용 구조를 확인하는 결과일 뿐 정식 성능 우열이나 "
-        "통계적 유의성을 뜻하지 않는다."
+        f"{expected_samples}-frame `{args.classification}` 측정이며 반복은 {args.expected_repeats}회다. "
+        "후보 확장 방식의 상대 GPU 비용을 설명하지만, 품질 개선과 통계적 유의성은 "
+        "별도 품질 및 반복 분석과 함께 판단해야 한다."
     ))
-    (output / "SMAA-ARM-Dual-Performance-Smoke-ko.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    report_name = (
+        "SMAA-ARM-Dual-Performance-Analysis-ko.md"
+        if args.classification == "formal"
+        else "SMAA-ARM-Dual-Performance-Smoke-ko.md"
+    )
+    (output / report_name).write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(output)
     return 0
 
