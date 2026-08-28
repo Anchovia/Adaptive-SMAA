@@ -48,6 +48,11 @@ namespace VertexAsylum
         {
             Disabled,
             FullScreen,
+            // Diagnostic control: run the document-profile temporal kernel
+            // over every pixel. This is not a ninth research case; it exists
+            // only to isolate edge-selection/indirect-dispatch overhead from
+            // sampler, clipping, jitter, and history-weight differences.
+            FullScreenDocument,
             EdgeSelective
         };
 
@@ -429,6 +434,7 @@ namespace VertexAsylum
                 && m_objectMotionReprojection == ObjectMotionReprojection::RigidTransforms;
         }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
+        bool                        GetDocumentFullScreenTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::FullScreenDocument; }
         bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }
         bool                        GetDeJitteredNonCandidateBaseEnabled( ) const
         {

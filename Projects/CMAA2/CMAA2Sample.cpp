@@ -61,7 +61,9 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_FILTERED_QUARTER
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -102,6 +104,18 @@ namespace
             settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
             settings.HistoryWeight = 0.5f;
+            break;
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
+            settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreenDocument;
+            settings.Reprojection =
+                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R?
+                vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices :
+                vaSMAAWrapper::ReprojectionMode::Off;
+            settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
+            settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
+            settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
+            settings.HistoryWeight = 0.8f;
             break;
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_CATMULL_R:
@@ -202,6 +216,7 @@ namespace
         {
         case vaSMAAWrapper::TemporalCoverage::Disabled:      return "Disabled";
         case vaSMAAWrapper::TemporalCoverage::FullScreen:    return "FullScreen";
+        case vaSMAAWrapper::TemporalCoverage::FullScreenDocument:return "FullScreenDocument";
         case vaSMAAWrapper::TemporalCoverage::EdgeSelective: return "EdgeSelective";
         default:                                             return "Unknown";
         }
@@ -590,6 +605,10 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
         return "ABL-Candidate-Jitter-ArmDual-R - Candidate-Jitter plus ARM Dual Filtering candidate expansion adaptation";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER:
         return "ABL-Document-ArmDual-R - O-ET2X-R document profile plus ARM Dual Filtering candidate expansion adaptation";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
+        return "ABL-Document-FullScreen - O-ET2X document temporal kernel applied full-screen";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
+        return "ABL-Document-FullScreen-R - O-ET2X-R document temporal kernel applied full-screen";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -642,6 +661,8 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
         return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
@@ -5325,6 +5346,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         ArmDualUpsampleFull,
         ComputeDispatchArgs,
         ResolveCandidates,
+        ResolveFullScreen,
         OutputCopy,
         MetricCount
     };
@@ -5354,6 +5376,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_integratedRemovalAblation;
     const bool m_integratedSourceOverheadComparison;
     const bool m_objectMotionReprojectionAblation;
+    const bool m_matchedKernelAblation;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
     const int m_firstProfileFrame;
@@ -5399,6 +5422,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_matchedKernelAblation )
+        {
+            static const char * c_matchedKernelModeIDs[4] =
+            {
+                "ABL-Document-FullScreen",
+                "O-ET2X / integrated edge-selective",
+                "ABL-Document-FullScreen-R",
+                "O-ET2X-R / integrated edge-selective"
+            };
+            return c_matchedKernelModeIDs[mode];
+        }
         if( m_objectMotionReprojectionAblation )
         {
             static const char * c_objectMotionModeIDs[4] =
@@ -5525,6 +5559,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_matchedKernelAblation )
+        {
+            static const CMAA2Sample::AAType c_matchedKernelModes[4] =
+            {
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN,
+                CMAA2Sample::AAType::SMAA_O_ET2X,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R
+            };
+            return c_matchedKernelModes[mode];
+        }
         if( m_objectMotionReprojectionAblation )
             return mode < 2? CMAA2Sample::AAType::SMAA_O_T2X_R :
                 CMAA2Sample::AAType::SMAA_O_ET2X_R;
@@ -5622,6 +5667,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_matchedKernelAblation )
+            return mode == 1 || mode == 3;
         if( m_objectMotionReprojectionAblation )
             return mode >= 2;
         if( m_integratedSourceOverheadComparison )
@@ -5644,6 +5691,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsIntegratedCandidateMode( int mode ) const
     {
+        if( m_matchedKernelAblation )
+            return IsEdgeSelectiveMode( mode );
         if( m_objectMotionReprojectionAblation )
             return mode >= 2;
         if( m_integratedSourceOverheadComparison )
@@ -5682,6 +5731,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case ArmDualUpsampleFull:       return "TSCMAAArmDualUpsampleFull";
         case ComputeDispatchArgs:       return "TSCMAAComputeDispatchArgs";
         case ResolveCandidates:         return "TSCMAAResolveCandidates";
+        case ResolveFullScreen:         return "TSCMAAResolveFullScreen";
         case OutputCopy:                return "TSCMAAOutputCopy";
         default:                        return "Unknown";
         }
@@ -5691,6 +5741,21 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     {
         if( metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal )
             return true;
+
+        if( m_matchedKernelAblation )
+        {
+            const bool edgeSelective = IsEdgeSelectiveMode( mode );
+            if( metric == GenerateCameraVelocity )
+                return mode >= 2;
+            if( metric == SpatialSMAA1X || metric == CopySpatialToHistory || metric == OutputCopy )
+                return true;
+            if( metric == ResolveFullScreen )
+                return !edgeSelective;
+            if( metric == ClearIntegratedCandidateBuffers
+                || metric == ComputeDispatchArgs || metric == ResolveCandidates )
+                return edgeSelective;
+            return false;
+        }
 
         if( m_objectMotionReprojectionAblation )
         {
@@ -6041,7 +6106,8 @@ public:
         int firstProfileFrame = 60,
         bool integratedRemovalAblation = false,
         bool integratedSourceOverheadComparison = false,
-        bool objectMotionReprojectionAblation = false )
+        bool objectMotionReprojectionAblation = false,
+        bool matchedKernelAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -6057,18 +6123,19 @@ public:
         m_integratedRemovalAblation( integratedRemovalAblation ),
         m_integratedSourceOverheadComparison( integratedSourceOverheadComparison ),
         m_objectMotionReprojectionAblation( objectMotionReprojectionAblation ),
+        m_matchedKernelAblation( matchedKernelAblation ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount)))))))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount))))))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
             + (int)filteredQuarterAblation + (int)armDualFilterAblation
             + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation
             + (int)integratedSourceOverheadComparison
-            + (int)objectMotionReprojectionAblation <= 1 );
+            + (int)objectMotionReprojectionAblation + (int)matchedKernelAblation <= 1 );
     }
 
 protected:
@@ -6093,7 +6160,18 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if( m_objectMotionReprojectionAblation )
+            if( m_matchedKernelAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA matched document-kernel repeated performance benchmark\r\n\r\n" :
+                    "SMAA matched document-kernel GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This pairs full-screen and integrated edge-selective coverage for reprojection Off and On.\r\n"
+                    "All four modes keep SMAA 1X spatial input, deliberate jitter Off, Catmull-Rom 5-tap sampling, YCoCg variance clipping, history weight 0.8, and the same camera path.\r\n"
+                    "Both paths deliberately retain CopySpatialToHistory and OutputCopy so this control changes only candidate selection and resolve dispatch coverage.\r\n"
+                    "The full-screen modes are diagnostic controls and do not expand the formal eight-case matrix.\r\n" );
+            }
+            else if( m_objectMotionReprojectionAblation )
             {
                 abTool.ReportAddText( m_repeatCount > 1?
                     "SMAA rigid-object reprojection repeated performance benchmark\r\n\r\n" :
@@ -8161,6 +8239,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionPerformanceSmoke") == 0;
         const bool objectMotionReprojectionPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionPerformanceBenchmark") == 0;
+        const bool matchedKernelPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaMatchedKernelPerformanceSmoke") == 0;
+        const bool matchedKernelPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaMatchedKernelPerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
@@ -8171,13 +8253,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke
             || armDualFilterPerformanceSmoke || candidateEdgeSourcePerformanceSmoke
             || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke
-            || objectMotionReprojectionPerformanceSmoke;
+            || objectMotionReprojectionPerformanceSmoke || matchedKernelPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
             || armDualFilterPerformanceBenchmark || candidateEdgeSourcePerformanceBenchmark
             || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark
-            || objectMotionReprojectionPerformanceBenchmark;
+            || objectMotionReprojectionPerformanceBenchmark || matchedKernelPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -8193,6 +8275,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark
                     || integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
                     || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
+                    || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark
                     || eightCasePerformanceSmoke || eightCasePerformanceBenchmark )
                 {
                     wstring possibleScene;
@@ -8242,7 +8325,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 usePerformanceCameraMotion = false;
             }
             if( (integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
-                    || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark)
+                    || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
+                    || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark)
                 && performanceScene != SceneSelectionType::LumberyardBistro
                 && performanceScene != SceneSelectionType::MinecraftLostEmpire )
             {
@@ -8272,7 +8356,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 SMAACameraMotionProfile::YawFast360, 60,
                 integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark,
                 integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark,
-                objectMotionReprojectionPerformance));
+                objectMotionReprojectionPerformance,
+                matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -8295,6 +8380,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "integrated source-overhead comparison";
             if( objectMotionReprojectionPerformance )
                 performanceKind = "rigid-object reprojection ablation";
+            if( matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark )
+                performanceKind = "matched document-kernel coverage ablation";
             VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",

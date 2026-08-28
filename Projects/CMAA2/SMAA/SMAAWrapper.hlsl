@@ -1162,15 +1162,7 @@ void TSCMAADeJitterSpatialCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     tscmaaOutput[dispatchThreadID.xy] = spatialColor;
 }
 
-[numthreads(TSCMAA_RESOLVE_NUM_THREADS, 1, 1)]
-void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
-    uint candidateCount = tscmaaControl.Load(TSCMAA_PROCESS_COUNT_OFFSET);
-    if (dispatchThreadID.x >= candidateCount)
-        return;
-
-    uint packedPixel = tscmaaCandidates[dispatchThreadID.x];
-    int2 pixel = int2(packedPixel >> 16, packedPixel & 0xffff);
-    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+bool TSCMAAResolveTemporalPixel(int2 pixel, int2 dimensions, out float4 resolvedColor) {
     float2 inverseDimensions = g_SMAAReprojection.TemporalResolution.zw;
 
     float4 currentColor = tscmaaCurrentColor.Load(int3(pixel, 0));
@@ -1180,8 +1172,10 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     if (g_SMAAReprojection.TSCMAAParams.z > 0.5)
         historyUV -= velocityTex.Load(int3(pixel, 0)).xy;
 
-    if (any(historyUV <= 0.0) || any(historyUV >= 1.0))
-        return;
+    if (any(historyUV <= 0.0) || any(historyUV >= 1.0)) {
+        resolvedColor = currentColor;
+        return false;
+    }
 
     float4 historyColor;
     [branch]
@@ -1207,10 +1201,42 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     }
 
     float historyWeight = g_SMAAReprojection.TSCMAAParams.x;
-    float4 resolvedColor = float4(lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);
+    resolvedColor = float4(lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);
     if (g_SMAAReprojection.TSCMAAParams.w > 0.5)
         resolvedColor.rgb = TSCMAALinearToSRGB(resolvedColor.rgb);
 
+    return true;
+}
+
+[numthreads(TSCMAA_RESOLVE_NUM_THREADS, 1, 1)]
+void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint candidateCount = tscmaaControl.Load(TSCMAA_PROCESS_COUNT_OFFSET);
+    if (dispatchThreadID.x >= candidateCount)
+        return;
+
+    uint packedPixel = tscmaaCandidates[dispatchThreadID.x];
+    int2 pixel = int2(packedPixel >> 16, packedPixel & 0xffff);
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    float4 resolvedColor;
+    if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
+        return;
+
+    tscmaaOutput[pixel] = resolvedColor;
+}
+
+// Diagnostic matched-kernel control. It deliberately uses the exact same
+// per-pixel document-profile resolve helper as the indirect candidate path,
+// while changing only coverage/dispatch from selected pixels to full-screen.
+[numthreads(8, 8, 1)]
+void TSCMAAResolveFullScreenCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    int2 pixel = int2(dispatchThreadID.xy);
+    if (any(pixel >= dimensions))
+        return;
+
+    float4 resolvedColor;
+    if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
+        return;
     tscmaaOutput[pixel] = resolvedColor;
 }
 

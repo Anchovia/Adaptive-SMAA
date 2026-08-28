@@ -393,6 +393,7 @@ namespace VertexAsylum
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeSelectiveEnabled      = false;
+        bool                        m_smaaDocumentFullScreenEnabled = false;
         bool                        m_smaaAdaptiveSearchEnabled     = false;
         bool                        m_velocityDiagnosticsResourcesEnabled = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
@@ -419,6 +420,7 @@ namespace VertexAsylum
         vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaDeJitterSpatialCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaResolveFullScreenCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaCatmullRomDiagnosticCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaVarianceDiagnosticCS;
 
@@ -473,6 +475,11 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination,
                                                 bool integratedCandidatesPrepared );
+        vaDrawResultFlags               ExecuteTSCMAADocumentFullScreenResolve( vaRenderDeviceContext & deviceContext,
+                                                const shared_ptr<vaTexture> & currentSpatial,
+                                                const shared_ptr<vaTexture> & previousHistory,
+                                                const shared_ptr<vaTexture> & outputHistory,
+                                                const shared_ptr<vaTexture> & destination );
         void                            QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height );
         void                            ReadbackTemporalVelocityDiagnostics( ID3D11DeviceContext * context, uint32 width, uint32 height );
         bool                            EnsureTemporalFeedbackReadbackTextures( ID3D11Texture2D * source );
@@ -578,6 +585,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaArmDualUpsampleAndCompactCS( params.RenderDevice ),
     m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
     m_tscmaaDeJitterSpatialCS( params.RenderDevice ), m_tscmaaResolveCandidatesCS( params.RenderDevice ),
+    m_tscmaaResolveFullScreenCS( params.RenderDevice ),
     m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice ),
     m_tscmaaVarianceDiagnosticCS( params.RenderDevice )
 {
@@ -607,6 +615,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
     m_tscmaaDeJitterSpatialCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADeJitterSpatialCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
+    m_tscmaaResolveFullScreenCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveFullScreenCS", tscmaaShaderMacros, true );
     m_tscmaaCatmullRomDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAACatmullRomDiagnosticCS", tscmaaShaderMacros, true );
     m_tscmaaVarianceDiagnosticCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAVarianceDiagnosticCS", tscmaaShaderMacros, true );
     HRESULT hr;
@@ -701,6 +710,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_tscmaaClippingDebug = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaEdgeSelectiveEnabled = false;
+    m_smaaDocumentFullScreenEnabled = false;
     m_smaaAdaptiveSearchEnabled = false;
     m_velocityDiagnosticsResourcesEnabled = false;
     m_clippingDebugResourcesEnabled = false;
@@ -761,6 +771,8 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool smaaPredication = false;   // search for SMAA_PREDICATION - this is for additional edge detection (depth-based, or etc.)
     bool smaaProjection = GetTemporalReprojectionEnabled( );
     bool edgeSelective = GetEdgeSelectiveTemporalEnabled( );
+    bool documentFullScreen = GetDocumentFullScreenTemporalEnabled( );
+    bool documentTemporal = edgeSelective || documentFullScreen;
     bool adaptiveSearch = GetAdaptiveSpatialSearchEnabled( );
     const CandidateExpansion effectiveExpansion = GetEffectiveCandidateExpansion( );
     bool candidateExpansion = edgeSelective
@@ -774,14 +786,16 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
         || m_smaaEdgeSelectiveEnabled != edgeSelective
+        || m_smaaDocumentFullScreenEnabled != documentFullScreen
         || m_smaaAdaptiveSearchEnabled != adaptiveSearch
         || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
         || m_clippingDebugResourcesEnabled != GetClippingDebugViewsEnabled( )
         || m_candidateExpansionResourcesEnabled != candidateExpansion
         || m_filteredQuarterResourcesEnabled != filteredQuarter
         || m_armDualFilterResourcesEnabled != armDualFilter
-        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
+        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || documentTemporal) && m_temporalVelocity == nullptr)
             || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
+            || (documentTemporal && m_temporalSpatialCurrent == nullptr)
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                 || (candidateExpansion && m_tscmaaRawCandidateMask == nullptr)
                 || (filteredQuarter && m_tscmaaFilteredQuarterMask == nullptr)
@@ -797,6 +811,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, nullptr, SMAA::ExternalStorage( ), adaptiveSearch );
         m_smaaReprojectionEnabled = smaaProjection;
         m_smaaEdgeSelectiveEnabled = edgeSelective;
+        m_smaaDocumentFullScreenEnabled = documentFullScreen;
         m_smaaAdaptiveSearchEnabled = adaptiveSearch;
         m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
         m_clippingDebugResourcesEnabled = GetClippingDebugViewsEnabled( );
@@ -832,15 +847,15 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         {
             assert( m_sampleCount == 1 );
             const vaResourceBindSupportFlags historyBindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource
-                | (edgeSelective? vaResourceBindSupportFlags::UnorderedAccess : vaResourceBindSupportFlags::None);
-            const vaResourceFormat historyUAVFormat = edgeSelective? vaResourceFormatHelpers::StripSRGB( inputColor->GetSRVFormat( ) ) : vaResourceFormat::Unknown;
+                | (documentTemporal? vaResourceBindSupportFlags::UnorderedAccess : vaResourceBindSupportFlags::None);
+            const vaResourceFormat historyUAVFormat = documentTemporal? vaResourceFormatHelpers::StripSRGB( inputColor->GetSRVFormat( ) ) : vaResourceFormat::Unknown;
             for( int i = 0; i < 2; i++ )
             {
                 m_temporalHistory[i] = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, historyUAVFormat,
                     vaTextureFlags::None, inputColor->GetContentsType() );
             }
-            if( smaaProjection || edgeSelective )
+            if( smaaProjection || documentTemporal )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
 
@@ -865,12 +880,16 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                     return false;
             }
 
-            if( edgeSelective )
+            if( documentTemporal )
             {
                 const vaResourceBindSupportFlags spatialBindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource;
                 m_temporalSpatialCurrent = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     spatialBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
                     vaTextureFlags::None, inputColor->GetContentsType() );
+            }
+
+            if( edgeSelective )
+            {
                 const vaResourceBindSupportFlags maskBindFlags = vaResourceBindSupportFlags::ShaderResource | vaResourceBindSupportFlags::UnorderedAccess;
                 m_tscmaaBaseEdgeMask = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R8_UNORM, inputColor->GetSizeX(), inputColor->GetSizeY(),
                     1, 1, 1, maskBindFlags, vaResourceAccessFlags::Default );
@@ -933,8 +952,9 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             bool readbackBuffersReady = true;
             for( int i = 0; i < c_tscmaaReadbackBufferCount; i++ )
                 readbackBuffersReady = readbackBuffersReady && (m_tscmaaControlReadback[i] != nullptr);
-            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || edgeSelective) && m_temporalVelocity == nullptr)
+            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || documentTemporal) && m_temporalVelocity == nullptr)
                 || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
+                || (documentTemporal && m_temporalSpatialCurrent == nullptr)
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
                     || (candidateExpansion && m_tscmaaRawCandidateMask == nullptr)
                     || (filteredQuarter && m_tscmaaFilteredQuarterMask == nullptr)
@@ -992,6 +1012,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             && !m_tscmaaDebugMaskPS->IsCreated( ))
         || (GetClippingDebugViewsEnabled( ) && !m_tscmaaDebugColorPS->IsCreated( ))) )
         return vaDrawResultFlags::ShadersStillCompiling;
+    if( GetDocumentFullScreenTemporalEnabled( ) && !m_tscmaaResolveFullScreenCS->IsCreated( ) )
+        return vaDrawResultFlags::ShadersStillCompiling;
 
     if( GetCatmullRomDiagnosticPending( ) )
     {
@@ -1009,6 +1031,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
     const bool rigidObjectMotionEnabled = GetRigidObjectMotionReprojectionEnabled( );
     const bool edgeSelectiveTemporalEnabled = GetEdgeSelectiveTemporalEnabled( );
+    const bool documentFullScreenTemporalEnabled = GetDocumentFullScreenTemporalEnabled( );
+    const bool documentTemporalEnabled = edgeSelectiveTemporalEnabled || documentFullScreenTemporalEnabled;
     const bool temporalLifecycleDiagnosticsEnabled = m_temporalLifecycleDiagnostics.Enabled && GetTemporalModeEnabled( );
     const int temporalFrameIndexBefore = GetTemporalFrameIndex( );
     const bool temporalHistoryValidBefore = m_temporalHistoryValid;
@@ -1045,7 +1069,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     vaMatrix4x4 currentJitteredViewProjForVelocity = vaMatrix4x4::Identity;
     vaMatrix4x4 currentUnjitteredViewProjForHistory = vaMatrix4x4::Identity;
-    if( temporalReprojectionEnabled || edgeSelectiveTemporalEnabled )
+    if( temporalReprojectionEnabled || documentTemporalEnabled )
     {
         const TemporalSettings & temporalSettings = GetTemporalSettings( );
         m_reprojectionConstants.CurrentViewProjInv = vaMatrix4x4::Identity;
@@ -1300,6 +1324,29 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
                     dstRT, temporalHistoryValidBefore );
             }
+            else if( GetDocumentFullScreenTemporalEnabled( ) )
+            {
+                assert( m_temporalSpatialCurrent != nullptr );
+                ID3D11RenderTargetView * currentSpatialRTV =
+                    m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetRTV( );
+                {
+                    VA_SCOPE_CPUGPU_TIMER( SMAASpatial1X, deviceContext );
+                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr,
+                        velocitySRV, currentSpatialRTV, depthDSV, inputMode, SMAA::MODE_SMAA_1X );
+                }
+                const vaDrawResultFlags fullScreenResult = ExecuteTSCMAADocumentFullScreenResolve(
+                    deviceContext, m_temporalSpatialCurrent,
+                    m_temporalHistoryValid? previousHistory : m_temporalSpatialCurrent,
+                    currentHistory, dstRT );
+                if( fullScreenResult != vaDrawResultFlags::None )
+                {
+                    UnsetGlobalStates( deviceContext );
+                    deviceContext.SetOutputs( rtState );
+                    return fullScreenResult;
+                }
+                ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
+                    dstRT, temporalHistoryValidBefore );
+            }
             else
             {
                 vaTextureDX11 * currentHistoryDX11 = currentHistory->SafeCast<vaTextureDX11*>( );
@@ -1392,6 +1439,81 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     // restore previous RTs
     deviceContext.SetOutputs( rtState );
 
+    return vaDrawResultFlags::None;
+}
+
+vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
+    vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & currentSpatial,
+    const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
+    const shared_ptr<vaTexture> & destination )
+{
+    assert( currentSpatial != nullptr && previousHistory != nullptr
+        && outputHistory != nullptr && destination != nullptr );
+
+    ID3D11DeviceContext * dx11Context =
+        deviceContext.SafeCast<vaRenderDeviceContextDX11*>( )->GetDXContext( );
+    vaTextureDX11 * currentSpatialDX11 = currentSpatial->SafeCast<vaTextureDX11*>( );
+    vaTextureDX11 * previousHistoryDX11 = previousHistory->SafeCast<vaTextureDX11*>( );
+    vaTextureDX11 * outputHistoryDX11 = outputHistory->SafeCast<vaTextureDX11*>( );
+    vaTextureDX11 * destinationDX11 = destination->SafeCast<vaTextureDX11*>( );
+
+    // Keep the same two full-resource copies as the current edge-selective
+    // pipeline. This first control intentionally changes only temporal
+    // coverage/dispatch; copy optimization is measured in a later commit.
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAACopySpatialToHistory, deviceContext );
+        dx11Context->CopyResource( outputHistoryDX11->GetResource( ), currentSpatialDX11->GetResource( ) );
+    }
+
+    if( !m_temporalHistoryValid )
+    {
+        dx11Context->CopyResource( destinationDX11->GetResource( ), outputHistoryDX11->GetResource( ) );
+        return vaDrawResultFlags::None;
+    }
+
+    ID3D11ComputeShader * resolveShader =
+        m_tscmaaResolveFullScreenCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    ID3D11UnorderedAccessView * outputUAV = outputHistoryDX11->GetUAV( );
+    if( resolveShader == nullptr || outputUAV == nullptr )
+        return vaDrawResultFlags::ShadersStillCompiling;
+
+    ID3D11ShaderResourceView * SRVs[5] =
+    {
+        m_temporalVelocity != nullptr?
+            m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr,
+        nullptr,
+        nullptr,
+        currentSpatialDX11->GetSRV( ),
+        previousHistoryDX11->GetSRV( )
+    };
+    ID3D11ShaderResourceView * nullSRVs[5] = { nullptr, nullptr, nullptr, nullptr, nullptr };
+    ID3D11Buffer * reprojectionConstants =
+        m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>( )->GetBuffer( );
+
+    dx11Context->CSSetUnorderedAccessViews( 0, 1, &outputUAV, nullptr );
+    dx11Context->CSSetShaderResources( 7, _countof( SRVs ), SRVs );
+    dx11Context->CSSetConstantBuffers( 1, 1, &reprojectionConstants );
+    dx11Context->CSSetSamplers( 0, 1, &m_LinearSampler );
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAResolveFullScreen, deviceContext );
+        dx11Context->CSSetShader( resolveShader, nullptr, 0 );
+        dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8,
+            (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
+    }
+
+    ID3D11UnorderedAccessView * nullUAV = nullptr;
+    ID3D11Buffer * nullConstantBuffer = nullptr;
+    ID3D11SamplerState * nullSampler = nullptr;
+    dx11Context->CSSetShader( nullptr, nullptr, 0 );
+    dx11Context->CSSetUnorderedAccessViews( 0, 1, &nullUAV, nullptr );
+    dx11Context->CSSetShaderResources( 7, _countof( nullSRVs ), nullSRVs );
+    dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
+    dx11Context->CSSetSamplers( 0, 1, &nullSampler );
+
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAAOutputCopy, deviceContext );
+        dx11Context->CopyResource( destinationDX11->GetResource( ), outputHistoryDX11->GetResource( ) );
+    }
     return vaDrawResultFlags::None;
 }
 

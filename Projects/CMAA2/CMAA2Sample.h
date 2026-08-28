@@ -136,6 +136,8 @@ namespace VertexAsylum
             SMAA_O_ABLATION_DOCUMENT_R_FILTERED_QUARTER, // Diagnostic: O-ET2X-R document profile plus filtered 1/4 candidate expansion
             SMAA_O_ABLATION_CANDIDATE_ONLY_R_ARM_DUAL_FILTER, // Diagnostic: Candidate-Jitter plus ARM Dual Filtering candidate expansion adaptation
             SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER, // Diagnostic: O-ET2X-R document profile plus ARM Dual Filtering candidate expansion adaptation
+            SMAA_O_ABLATION_DOCUMENT_FULLSCREEN, // Diagnostic: O-ET2X document kernel applied full-screen, reprojection Off
+            SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R, // Diagnostic: O-ET2X-R document kernel applied full-screen, camera reprojection On
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
