@@ -1179,6 +1179,25 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     skinned/deforming/transparent motion과 previous-depth disocclusion rejection이 없으므로
     최종 8-case의 `-R` 의미는 변경하지 않는다. 자세한 결과는
     `Docs/SMAA-Object-Motion-Reprojection-Quality-Performance-Gate-ko.md`를 기준으로 한다.
+38. **Integrated core final 8-case formal gate 완료:** SMAA 1st-pass edge를 직접
+    candidate source로 쓰는 구조에서 Bistro/Minecraft의 최종 8개 mode 성능과 10-mode
+    wide quality capture를 다시 측정했다. 성능은 RTX 3060 Ti, 1920×1017, visible,
+    readback Off, 300 warm-up, 4,800 frame×3회이며 mode별 14,400 samples와 3 run mean
+    validation이 PASS했다. Adaptive는 대응 Original보다 SMAA GPU 시간을 Bistro
+    9.476~14.149%, Minecraft 5.238~8.033% 줄였다. 반면 integrated edge-selective는
+    대응 Standard보다 SMAA가 Bistro 23.182~36.558%, Minecraft 31.330~42.238%,
+    WholeFrame이 0.924~9.382% 느려 성능 목표는 아직 미달이다. 품질은 smooth 3.72 m
+    flythrough+360° yaw 480 frames와 같은 pose 2×/3×3/8×MSAA spatial reference를
+    사용했고, 10 modes×2 scenes 총 9,600 PNG validation이 PASS했다. IntelLabs/CGVQM
+    official commit `8302ff45b4ff5a691682baf23f7c007d6b591e98`, model 2, CUDA의
+    central-motion/transition 총 40 jobs도 final RGB round-trip mismatch 0으로 PASS했다.
+    Central motion에서 `O-ET2X-R`은 `O-T2X-R`보다 CGVQM이 Bistro +2.5556,
+    Minecraft +1.5293점 높고 spatial-reference MAE가 31.545%/29.786% 낮았다. 그러나
+    motion→still에서는 CGVQM이 -0.5658/-0.9078점 낮았다. Adaptive 대응 pair도 같은
+    경향이다. 따라서 움직임 중 history 오정렬 제한 효과는 확인했지만 정지 전환의
+    temporal accumulation 손실과 compact/indirect/resolve 성능 비용이 남았다. `-R`은
+    계속 camera/depth reprojection만 의미하고 object motion은 별도 gate로 유지한다.
+    상세 결과는 `Docs/SMAA-Final-Integrated-Eight-Case-Results-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
