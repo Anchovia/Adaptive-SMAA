@@ -1198,6 +1198,38 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     temporal accumulation 손실과 compact/indirect/resolve 성능 비용이 남았다. `-R`은
     계속 camera/depth reprojection만 의미하고 object motion은 별도 gate로 유지한다.
     상세 결과는 `Docs/SMAA-Final-Integrated-Eight-Case-Results-ko.md`를 기준으로 한다.
+39. **Matched-kernel 성능 원인 분리 및 copy 융합 ablation 완료:**
+    `codex/smaa-et2x-pipeline-optimization`에 document temporal kernel을 화면 전체에
+    실행하는 `FullScreenDocument` 진단 control을 추가했다. 이 control은 integrated
+    edge-selective와 SMAA 1X spatial input, jitter Off, Catmull-Rom 5-tap, YCoCg
+    variance clipping, history weight 0.8, history lifecycle을 같게 유지하고 coverage와
+    dispatch만 바꾸며 정식 8-case를 늘리지 않는다. RTX 3060 Ti,
+    1920×1017, readback Off, 300 warm-up, 4,800 frame×3회에서 edge-selective SMAA
+    GPU 시간은 matched full-screen보다 Bistro Off/On 23.55%/21.50%, Minecraft
+    15.43%/13.75% 낮았다. Candidate resolve도 full resolve보다 크게 저렴했다.
+    따라서 후보 제한 자체의 temporal 연산 절감은 확인되며, Standard T2X 대비
+    ET2X total overhead는 다른 kernel 구성과 compact/indirect/copy 파이프라인 비용을 함께
+    분리해 해석해야 한다. 두 full-resource copy를 하나의 dual-output initialization으로
+    융합하는 경로도 byte-identical 출력으로 구현했지만, candidate pixel이 history와
+    destination 두 UAV에 쓰는 비용 때문에 legacy two-copy보다 Bistro
+    1.75~2.72%, Minecraft 3.98~4.70% 느려졌다. 따라서
+    `-smaaTemporalDualOutputOptimization` default는 Off로 유지하고 재현 가능한
+    negative-result ablation으로만 보존한다. 분석 경로는
+    `D:/SMAA-Research-Data/AutoBench/20260828_ET2XPipelineOptimizationAnalysis`이다.
+40. **Integrated core 후보 확장 성능 재측정 완료:** 같은 GPU/해상도/실행
+    조건에서 document profile과 Candidate-Jitter profile의 None/3×3/FilteredQuarter/
+    ARM Dual Filter 8개 구성을 300 warm-up, 4,800 frame×3회로 재측정했고
+    mode당 14,400 sample, 3 run mean, 내부 validation이 PASS했다. Document
+    profile에서 None 대비 SMAA GPU 변화는 3×3 +22.067%, FilteredQuarter
+    +27.943%, ARM +47.525%였다. mask pass 비용은 각각 0.051586,
+    0.072542, 0.140447 ms였고, 별도 readback-On characterization의 후보 배수는
+    3.372×, 1.671×, 1.430×였다. ARM은 확장 후보가 더 적지만 mask
+    재구성 비용이 가장 크므로 성능 기준 우선안은 계속 3×3이다. 품질은 기존
+    San Miguel postfix gate와 함께 판단하며, 이 성능 결과만으로 최종 결론을
+    내리지 않는다. 원시 및 분석 경로는
+    `D:/SMAA-Research-Data/AutoBench/20260828_180723`이다. 최종 Release x64 빌드,
+    temporal lifecycle `failures 0`, feedback output/history mismatch `0 byte`, previous-history
+    hash mismatch `0`도 PASS했다.
 
 ## 7. 측정 규칙
 
