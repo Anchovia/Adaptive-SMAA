@@ -5444,6 +5444,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_integratedSourceOverheadComparison;
     const bool m_objectMotionReprojectionAblation;
     const bool m_matchedKernelAblation;
+    const bool m_armThresholdAblation;
     const bool m_dualOutputOptimizationEnabled;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
@@ -5488,8 +5489,27 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         return c_removalAmounts[mode % 4];
     }
 
+    float GetArmThresholdAmount( int mode ) const
+    {
+        assert( m_armThresholdAblation && mode >= 1 && mode <= 4 );
+        static const float c_thresholds[4] = { 0.10f, 0.15f, 0.20f, 0.25f };
+        return c_thresholds[mode - 1];
+    }
+
     const char * GetModeID( int mode ) const
     {
+        if( m_armThresholdAblation )
+        {
+            static const char * c_armThresholdModeIDs[5] =
+            {
+                "ABL-Document-Dilate3x3-R",
+                "ABL-Document-ArmDual-R [threshold=0.10]",
+                "ABL-Document-ArmDual-R [threshold=0.15]",
+                "ABL-Document-ArmDual-R [threshold=0.20]",
+                "ABL-Document-ArmDual-R [threshold=0.25]"
+            };
+            return c_armThresholdModeIDs[mode];
+        }
         if( m_matchedKernelAblation )
         {
             static const char * c_matchedKernelModeIDs[4] =
@@ -5627,6 +5647,10 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_armThresholdAblation )
+            return mode == 0?
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3 :
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER;
         if( m_matchedKernelAblation )
         {
             static const CMAA2Sample::AAType c_matchedKernelModes[4] =
@@ -5735,6 +5759,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_armThresholdAblation )
+            return true;
         if( m_matchedKernelAblation )
             return mode == 1 || mode == 3;
         if( m_objectMotionReprojectionAblation )
@@ -5899,7 +5925,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             return false;
         }
 
-        if( m_currentEdgeDilationAblation || m_filteredQuarterAblation || m_armDualFilterAblation )
+        if( m_currentEdgeDilationAblation || m_filteredQuarterAblation
+            || m_armDualFilterAblation || m_armThresholdAblation )
         {
             const bool integratedCandidates = IsIntegratedCandidateMode( mode );
             if( metric == GenerateCameraVelocity || metric == SpatialSMAA1X
@@ -5911,14 +5938,16 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             if( metric == PrepareCandidates || metric == ExtractCandidates )
                 return !integratedCandidates;
             if( metric == DilateCandidates3x3 )
-                return m_armDualFilterAblation? mode == 1 || mode == 5 :
-                    (m_filteredQuarterAblation? mode == 1 || mode == 4 : mode == 1 || mode == 3);
+                return m_armThresholdAblation? mode == 0 :
+                    (m_armDualFilterAblation? mode == 1 || mode == 5 :
+                    (m_filteredQuarterAblation? mode == 1 || mode == 4 : mode == 1 || mode == 3));
             if( metric == FilteredQuarterDownsample || metric == FilteredQuarterUpsample )
                 return m_armDualFilterAblation? mode == 2 || mode == 6 :
                     (m_filteredQuarterAblation && (mode == 2 || mode == 5));
             if( metric == ArmDualDownsampleHalf || metric == ArmDualDownsampleQuarter
                 || metric == ArmDualUpsampleHalf || metric == ArmDualUpsampleFull )
-                return m_armDualFilterAblation && (mode == 3 || mode == 7);
+                return m_armThresholdAblation? mode >= 1 :
+                    (m_armDualFilterAblation && (mode == 3 || mode == 7));
             return false;
         }
 
@@ -6184,7 +6213,8 @@ public:
         bool integratedRemovalAblation = false,
         bool integratedSourceOverheadComparison = false,
         bool objectMotionReprojectionAblation = false,
-        bool matchedKernelAblation = false )
+        bool matchedKernelAblation = false,
+        bool armThresholdAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -6201,19 +6231,21 @@ public:
         m_integratedSourceOverheadComparison( integratedSourceOverheadComparison ),
         m_objectMotionReprojectionAblation( objectMotionReprojectionAblation ),
         m_matchedKernelAblation( matchedKernelAblation ),
+        m_armThresholdAblation( armThresholdAblation ),
         m_dualOutputOptimizationEnabled( parent.GetSMAATemporalDualOutputOptimizationEnabled( ) ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount))))))))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount)))))))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
             + (int)filteredQuarterAblation + (int)armDualFilterAblation
             + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation
             + (int)integratedSourceOverheadComparison
-            + (int)objectMotionReprojectionAblation + (int)matchedKernelAblation <= 1 );
+            + (int)objectMotionReprojectionAblation + (int)matchedKernelAblation
+            + (int)armThresholdAblation <= 1 );
     }
 
 protected:
@@ -6288,6 +6320,15 @@ protected:
                 abTool.ReportAddText(
                     "This compares legacy post-SMAA luma re-detection, post-pass reuse of the SMAA pass-1 edge texture, and candidate generation integrated into the SMAA pass-1 pixel shader.\r\n"
                     "Candidate policy, expansion, sampling, clipping, history weight, reprojection setting, and camera path remain paired.\r\n" );
+            }
+            else if( m_armThresholdAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA ARM threshold paired repeated performance benchmark\r\n\r\n" :
+                    "SMAA ARM threshold paired GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This compares one document 3x3 control with ARM Dual Filtering thresholds 0.10, 0.15, 0.20, and 0.25 inside one interleaved benchmark process.\r\n"
+                    "All modes share the integrated candidate source, reprojection, sampling, clipping, history weight, and camera path; only candidate expansion and ARM threshold differ.\r\n" );
             }
             else if( m_armDualFilterAblation )
             {
@@ -6419,6 +6460,8 @@ protected:
                         m_parent.SetSMAACandidateEdgeSourceOverride(
                             false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
                     }
+                    if( m_armThresholdAblation )
+                        m_parent.SetSMAAArmDualReconstructionThresholdOverride( false, 0.25f );
                     FinishReport( abTool );
                     m_isDone = true;
                     return;
@@ -6470,6 +6513,12 @@ protected:
                 (m_currentMode == 1 || m_currentMode == 3)?
                     vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
                     vaSMAAWrapper::ObjectMotionReprojection::Off );
+        }
+        if( m_armThresholdAblation )
+        {
+            m_parent.SetSMAAArmDualReconstructionThresholdOverride(
+                m_currentMode >= 1,
+                m_currentMode >= 1? GetArmThresholdAmount( m_currentMode ) : 0.25f );
         }
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
         if( m_objectMotionReprojectionAblation )
@@ -8327,6 +8376,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaArmDualFilterPerformanceSmoke") == 0;
         const bool armDualFilterPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaArmDualFilterPerformanceBenchmark") == 0;
+        const bool armThresholdPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaArmThresholdPerformanceSmoke") == 0;
+        const bool armThresholdPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaArmThresholdPerformanceBenchmark") == 0;
         const bool candidateEdgeSourcePerformanceSmoke =
             _wcsicmp(parameter.first.c_str(), L"smaaCandidateEdgeSourcePerformanceSmoke") == 0;
         const bool candidateEdgeSourcePerformanceBenchmark =
@@ -8355,13 +8408,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool performanceSmoke = originalPerformanceSmoke || eightCasePerformanceSmoke
             || candidateAblationPerformanceSmoke || componentAblationPerformanceSmoke
             || currentEdgeDilationPerformanceSmoke || filteredQuarterPerformanceSmoke
-            || armDualFilterPerformanceSmoke || candidateEdgeSourcePerformanceSmoke
+            || armDualFilterPerformanceSmoke || armThresholdPerformanceSmoke
+            || candidateEdgeSourcePerformanceSmoke
             || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke
             || objectMotionReprojectionPerformanceSmoke || matchedKernelPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
-            || armDualFilterPerformanceBenchmark || candidateEdgeSourcePerformanceBenchmark
+            || armDualFilterPerformanceBenchmark || armThresholdPerformanceBenchmark
+            || candidateEdgeSourcePerformanceBenchmark
             || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark
             || objectMotionReprojectionPerformanceBenchmark || matchedKernelPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
@@ -8377,6 +8432,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             {
                 std::wistringstream values(parameter.second);
                 if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark
+                    || armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark
                     || integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
                     || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
                     || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark
@@ -8399,7 +8455,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                         }
                         performanceScene = parsedScene;
                         usePerformanceCameraMotion = armDualFilterPerformanceSmoke
-                            || armDualFilterPerformanceBenchmark;
+                            || armDualFilterPerformanceBenchmark
+                            || armThresholdPerformanceSmoke
+                            || armThresholdPerformanceBenchmark;
                     }
                     else
                     {
@@ -8461,7 +8519,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark,
                 integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark,
                 objectMotionReprojectionPerformance,
-                matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark));
+                matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark,
+                armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -8476,6 +8535,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "filtered-quarter candidate-expansion ablation";
             if( armDualFilterPerformanceSmoke || armDualFilterPerformanceBenchmark )
                 performanceKind = "ARM Dual Filtering candidate-expansion ablation";
+            if( armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark )
+                performanceKind = "ARM reconstruction-threshold paired ablation";
             if( candidateEdgeSourcePerformanceSmoke || candidateEdgeSourcePerformanceBenchmark )
                 performanceKind = "candidate edge-source ablation";
             if( integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark )

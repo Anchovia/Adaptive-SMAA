@@ -26,6 +26,8 @@ param(
 
     [switch] $SkipReference,
 
+    [switch] $CandidateMask,
+
     [switch] $Hidden
 )
 
@@ -76,6 +78,13 @@ $controlArguments = $commonArguments + @(
     '-smaaArmDualReconstructionThresholdOverride', $thresholdText,
     '-smaaCandidateExpansionControlCapture', $captureSpec
 )
+if ($CandidateMask) {
+    $controlArguments = $commonArguments + @(
+        '-smaaArmDualReconstructionThresholdOverride', $thresholdText,
+        '-smaaTemporalDebugView', '2',
+        '-smaaCandidateExpansionControlCapture', $captureSpec
+    )
+}
 & $cleanRunner -CMAA2Arguments $controlArguments @runnerParameters
 
 Write-Output 'PASS: paired San Miguel candidate-expansion control workflow completed.'

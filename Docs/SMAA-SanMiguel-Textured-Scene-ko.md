@@ -163,6 +163,24 @@ py -3 Tools/SMAA/analyze_san_miguel_expansion_controls.py `
 분석기는 full frame과 화면 좌측·하단의 thin-geometry ROI를 각각 비교한다. 동일 pose의
 supersample sequence는 spatial-reference proxy이며 temporal ground truth로 표현하지 않는다.
 
+ARM reconstruction threshold의 품질/coverage sweep은 다음 명령을 사용한다.
+
+```powershell
+.\Tools\SMAA\run_san_miguel_arm_threshold_sweep.ps1 `
+  -CachePath "D:\SMAA-Research-Data\Scenes\SanMiguel\PreparedLowPoly\san-miguel-low-poly.smaasm" `
+  -MinimumThreshold 0.0 -MaximumThreshold 1.0 -ThresholdStep 0.05 `
+  -FirstProfileFrame 60 -CaptureFrames 60 -WarmupFrames 60 -Hidden
+```
+
+threshold 성능은 서로 다른 프로세스의 절대 시간을 직접 비교하지 않고, 3×3과 shortlist를
+한 프로세스에서 교차 순회하는 paired matrix를 사용한다.
+
+```powershell
+.\Tools\SMAA\run_san_miguel_arm_threshold_paired_performance.ps1 `
+  -CachePath "D:\SMAA-Research-Data\Scenes\SanMiguel\PreparedLowPoly\san-miguel-low-poly.smaasm" `
+  -WarmupFrames 300 -MeasureFrames 60 -Repeats 3 -Hidden
+```
+
 ## 5. Engineering 검증 결과
 
 - Release x64 DX11 빌드 PASS

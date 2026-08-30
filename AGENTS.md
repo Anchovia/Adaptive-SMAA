@@ -322,6 +322,16 @@ Original mode는 기존 edge target/shader path를 유지한다.
   reference를 별도 clean process에서 짝지어 실행하고,
   `Tools/SMAA/analyze_san_miguel_expansion_controls.py`로 full frame과 thin-geometry ROI를
   분석한다. supersample 자료는 temporal ground truth로 표현하지 않는다.
+- `Tools/SMAA/run_san_miguel_arm_threshold_sweep.ps1`는 ARM reconstruction threshold
+  `0.00~1.00`을 기본 `0.05` 간격으로 final/mask 각각 별도 clean process에서 캡처한다.
+  threshold `0.00`은 full-screen 경계 진단이며 실용 후보로 선택하지 않는다.
+  `Tools/SMAA/analyze_san_miguel_arm_threshold_sweep.py`는 mask 단조성, candidate coverage,
+  spatial-reference 오차와 temporal-delta residual을 검증한다.
+- `-smaaArmThresholdPerformanceSmoke`/`Benchmark`는 document 3x3 control과 ARM threshold
+  0.10/0.15/0.20/0.25를 한 프로세스 안에서 교차 순회하는 paired 성능 matrix다.
+  `Tools/SMAA/run_san_miguel_arm_threshold_paired_performance.ps1`와
+  `analyze_san_miguel_arm_threshold_paired_performance.py`를 기준으로 사용한다. 서로 다른
+  프로세스에서 얻은 절대 timing을 threshold 효과로 직접 비교하지 않는다.
 - `-smaaArmDualFilterPerformanceSmoke`/`Benchmark`의 값 앞에 선택적으로
   `bistro|minecraft|sanmiguel`을 지정하면 해당 장면의 `yaw-fast-360` profile frame
   60부터 측정하고 warm-up 동안 첫 pose를 유지한다. 장면 토큰을 생략한 기존 명령은

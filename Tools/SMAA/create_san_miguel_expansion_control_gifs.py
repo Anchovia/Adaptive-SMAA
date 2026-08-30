@@ -25,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fps", type=int, default=10)
     parser.add_argument("--tile-width", type=int, default=420)
     parser.add_argument("--diff-gain", type=float, default=4.0)
+    parser.add_argument("--arm-threshold", type=float, default=0.25)
     return parser.parse_args()
 
 
@@ -84,6 +85,8 @@ def main() -> int:
     args = parse_args()
     if args.expected_frames < 1 or args.fps < 1 or args.tile_width < 1:
         raise RuntimeError("Frame count, FPS, and tile width must be positive")
+    if not 0.0 <= args.arm_threshold <= 1.0:
+        raise RuntimeError("--arm-threshold must be in [0,1]")
     roi = tuple(args.roi)
     control = args.control_capture_root.resolve()
     reference_root = args.reference_capture_root.resolve()
@@ -93,13 +96,14 @@ def main() -> int:
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
 
+    arm_label = f"O-ET2X-R ARM {args.arm_threshold:.2f}"
     paths = {
         "SS spatial reference": collect(reference_dir, args.expected_frames),
         "O-1X": collect(control / "O_1X", args.expected_frames),
         "O-T2X-R": collect(control / "O_T2X_R", args.expected_frames),
         "O-ET2X-R None": collect(control / "O_ET2X_R_Document", args.expected_frames),
         "O-ET2X-R 3x3": collect(control / "ABL_Document_Dilate3x3_R", args.expected_frames),
-        "O-ET2X-R ARM": collect(control / "ABL_Document_ArmDual_R", args.expected_frames),
+        arm_label: collect(control / "ABL_Document_ArmDual_R", args.expected_frames),
     }
 
     temporal_frames: list[Image.Image] = []
@@ -116,12 +120,12 @@ def main() -> int:
             ("SS spatial reference", crops["SS spatial reference"]),
             ("ET2X-R None", crops["O-ET2X-R None"]),
             ("ET2X-R 3x3", crops["O-ET2X-R 3x3"]),
-            ("ET2X-R ARM", crops["O-ET2X-R ARM"]),
+            (f"ET2X-R ARM {args.arm_threshold:.2f}", crops[arm_label]),
         ], frame, args.tile_width))
 
         reference = np.asarray(crops["SS spatial reference"], dtype=np.int16)
         difference_entries: list[tuple[str, Image.Image]] = []
-        for label in ("O-ET2X-R None", "O-ET2X-R 3x3", "O-ET2X-R ARM"):
+        for label in ("O-ET2X-R None", "O-ET2X-R 3x3", arm_label):
             current = np.asarray(crops[label], dtype=np.int16)
             difference = np.clip(np.abs(current - reference) * args.diff_gain, 0, 255).astype(np.uint8)
             difference_entries.append((f"{label} | diff x{args.diff_gain:g}", Image.fromarray(difference)))
@@ -143,6 +147,7 @@ def main() -> int:
         "fps": args.fps,
         "duration_seconds": args.expected_frames / args.fps,
         "roi": roi,
+        "arm_threshold": args.arm_threshold,
         "files": {key: str(path) for key, path in files.items()},
     }
     (output / "sanmiguel_expansion_control_gifs.json").write_text(
