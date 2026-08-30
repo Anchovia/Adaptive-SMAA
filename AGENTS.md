@@ -345,6 +345,16 @@ Original mode는 기존 edge target/shader path를 유지한다.
   mode/metric/sample/run 수, integrated timer 구성, reprojection velocity 유무,
   readback 상태와 내부 PASS를 검증한다. readback-On smoke에서는 후보 비율 단조성,
   candidate=process와 Off/On 후보 동일성도 확인하며 removal/reprojection 효과를 분리한다.
+- `-smaaTemporalDirectMaskedResolve 0|1`: integrated first-pass candidate를 기존 packed-list
+  compact + indirect dispatch 대신 full-resolution R8 mask와 full-screen early-exit compute로
+  처리하는 default-Off 실행 구조 ablation. sampling, clipping, history weight, reprojection과
+  history copy는 동일하게 유지한다. `-smaaCandidateExecutionPerformanceSmoke`/`Benchmark`는
+  Off/On reprojection에서 `CompactIndirect`와 `DirectMaskedFullScreen`을 짝 비교한다.
+  12-frame 최종 출력은 두 mode 모두 SHA-256 mismatch 0이었지만 RTX 3060 Ti,
+  1920×1017, 4,800 frame×3회에서 Direct는 Compact보다 SMAA가 Bistro +14.84~16.57%,
+  Minecraft +18.79~21.03% 느렸고 WholeFrame도 +2.03~6.12% 증가했다. 따라서 기본
+  `CompactIndirect`를 유지하고 Direct는 negative-result ablation으로만 보존한다. 결과는
+  `Docs/SMAA-Candidate-Execution-Structure-Results-ko.md`를 기준으로 한다.
 - Object-motion reprojection 구현 전 설계 감사는
   `Docs/SMAA-Object-Motion-Reprojection-Design-Audit-ko.md`를 기준으로 한다. 현재 `-R`은
   여전히 camera/depth reprojection만 의미한다. Rigid-object velocity 1차 구현은 previous
