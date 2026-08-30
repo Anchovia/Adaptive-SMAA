@@ -3693,6 +3693,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     static const int    c_filteredQuarterModeCount = 6;
     static const int    c_armDualFilterModeCount = 8;
     static const int    c_expansionControlModeCount = 5;
+    static const int    c_motionToStillCoverageModeCount = 4;
     static const int    c_fullModeCount = 10;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SceneSelectionType m_scene;
@@ -3716,6 +3717,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_candidateRemovalMatrix;
     const bool          m_candidateRemovalFullTimelineMatrix;
     const bool          m_expansionControlMatrix;
+    const bool          m_motionToStillCoverageMatrix;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
@@ -3805,6 +3807,18 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "ABL-Document-ArmDual-R"
             };
             return c_expansionControlModeIDs[mode];
+        }
+        if( m_motionToStillCoverageMatrix )
+        {
+            static const char * c_motionToStillCoverageModeIDs[
+                c_motionToStillCoverageModeCount] =
+            {
+                "O-1X",
+                "O-T2X-R",
+                "ABL-Document-FullScreen-R",
+                "O-ET2X-R"
+            };
+            return c_motionToStillCoverageModeIDs[mode];
         }
         if( m_focusedComparisonMatrix )
         {
@@ -3919,6 +3933,18 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             };
             return c_expansionControlModeDirectories[mode];
         }
+        if( m_motionToStillCoverageMatrix )
+        {
+            static const char * c_motionToStillCoverageModeDirectories[
+                c_motionToStillCoverageModeCount] =
+            {
+                "O_1X",
+                "O_T2X_R",
+                "ABL_Document_FullScreen_R",
+                "O_ET2X_R"
+            };
+            return c_motionToStillCoverageModeDirectories[mode];
+        }
         if( m_focusedComparisonMatrix )
         {
             static const char * c_focusedModeDirectories[c_focusedModeCount] =
@@ -4030,6 +4056,18 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             };
             return c_expansionControlModes[mode];
         }
+        if( m_motionToStillCoverageMatrix )
+        {
+            static const CMAA2Sample::AAType c_motionToStillCoverageModes[
+                c_motionToStillCoverageModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA,
+                CMAA2Sample::AAType::SMAA_O_T2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R,
+                CMAA2Sample::AAType::SMAA_O_ET2X_R
+            };
+            return c_motionToStillCoverageModes[mode];
+        }
         if( m_focusedComparisonMatrix )
         {
             static const CMAA2Sample::AAType c_focusedModes[c_focusedModeCount] =
@@ -4130,7 +4168,8 @@ public:
         const string & singleModeDirectory = "O_1X",
         bool candidateRemovalMatrix = false,
         bool candidateRemovalFullTimelineMatrix = false,
-        bool expansionControlMatrix = false )
+        bool expansionControlMatrix = false,
+        bool motionToStillCoverageMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_profile( profile ),
@@ -4153,7 +4192,9 @@ public:
         m_candidateRemovalMatrix( candidateRemovalMatrix ),
         m_candidateRemovalFullTimelineMatrix( candidateRemovalFullTimelineMatrix ),
         m_expansionControlMatrix( expansionControlMatrix ),
+        m_motionToStillCoverageMatrix( motionToStillCoverageMatrix ),
         m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 :
+            (motionToStillCoverageMatrix? c_motionToStillCoverageModeCount :
             (expansionControlMatrix? c_expansionControlModeCount :
             (candidateRemovalFullTimelineMatrix? c_candidateRemovalFullTimelineModeCount :
             (candidateRemovalMatrix?
@@ -4162,7 +4203,7 @@ public:
             c_focusedModeCount : (armDualFilterMatrix?
             c_armDualFilterModeCount : (filteredQuarterMatrix?
             c_filteredQuarterModeCount : (currentEdgeDilationMatrix?
-            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)))))))))) )
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount))))))))))) )
     {
         assert( (int)referenceOnly + (int)includeAdaptive
             + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix
@@ -4171,6 +4212,7 @@ public:
             + (int)candidateRemovalMatrix
             + (int)candidateRemovalFullTimelineMatrix
             + (int)expansionControlMatrix
+            + (int)motionToStillCoverageMatrix
             + (int)singleModeOnly <= 1 );
         assert( !candidateEdgeSourceReverseOrder || candidateEdgeSourceMatrix );
     }
@@ -4224,6 +4266,8 @@ protected:
                 captureTitle = "SMAA integrated candidate-removal full-timeline matched quality capture\r\n\r\n";
             else if( m_expansionControlMatrix )
                 captureTitle = "SMAA candidate-expansion Standard/control matched quality capture\r\n\r\n";
+            else if( m_motionToStillCoverageMatrix )
+                captureTitle = "SMAA motion-to-still temporal-coverage isolation capture\r\n\r\n";
             else if( m_candidateEdgeSourceMatrix )
                 captureTitle = "SMAA candidate edge-source wide camera-motion quality capture\r\n\r\n";
             else if( m_focusedComparisonMatrix )
@@ -4281,6 +4325,15 @@ protected:
                         "Reference:       run the paired -smaaCameraMotionReferenceCapture command with the same scene/profile/frame range\r\n"
                         "Purpose:         determine whether candidate expansion recovers thin-geometry temporal quality relative to O-1X and Standard T2X-R\r\n\r\n",
                         m_parent.GetSMAAArmDualReconstructionThreshold( ) ) );
+                }
+                else if( m_motionToStillCoverageMatrix )
+                {
+                    abTool.ReportAddText(
+                        "Comparison:      O-1X, Standard O-T2X-R, full-screen document-kernel control, and edge-selective O-ET2X-R\r\n"
+                        "Isolation:       FullScreenDocument-R and O-ET2X-R keep no deliberate jitter, Catmull-Rom 5-tap, YCoCg clipping, history weight 0.8, camera/depth reprojection, spatial SMAA 1X, and history lifecycle identical\r\n"
+                        "Changed axis:    temporal coverage/execution only (full-screen versus integrated first-pass edge candidates)\r\n"
+                        "Purpose:         determine whether restricted candidate coverage causes the motion-to-still accumulation deficit before adding persistence or confidence heuristics\r\n"
+                        "Classification:  diagnostic quality gate; FullScreenDocument-R is not an additional final research case\r\n\r\n" );
                 }
                 else
                 {
@@ -8934,6 +8987,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool integratedCandidateRemovalFullTimeline =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaIntegratedCandidateRemovalFullTimelineCapture" ) == 0;
+        const bool motionToStillCoverage =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaMotionToStillCoverageCapture" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
             || realSceneTemporalRetention || currentEdgeDilationAblation
             || filteredQuarterAblation || armDualFilterAblation
@@ -8941,7 +8997,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || smoothCameraFocusedThree || candidateEdgeSourceCameraMotion
             || candidateEdgeSourceCameraMotionReverse
             || integratedCandidateRemovalQuality
-            || integratedCandidateRemovalFullTimeline )
+            || integratedCandidateRemovalFullTimeline
+            || motionToStillCoverage )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -9023,6 +9080,21 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     "Integrated candidate-removal quality capture requires flythrough-wide-yaw-360" );
                 return;
             }
+            if( motionToStillCoverage
+                && scene != SceneSelectionType::LumberyardBistro
+                && scene != SceneSelectionType::MinecraftLostEmpire )
+            {
+                VA_LOG_ERROR(
+                    "Motion-to-still coverage capture is defined only for bistro and minecraft" );
+                return;
+            }
+            if( motionToStillCoverage
+                && profile != SMAACameraMotionProfile::FlythroughWideYaw360 )
+            {
+                VA_LOG_ERROR(
+                    "Motion-to-still coverage capture requires flythrough-wide-yaw-360" );
+                return;
+            }
 
             const int profileFrameCount =
                 GetSMAACameraMotionProfileFrameCount( profile );
@@ -9046,11 +9118,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 false, CMAA2Sample::AAType::SMAA, "O-1X", "O_1X",
                 integratedCandidateRemovalQuality,
                 integratedCandidateRemovalFullTimeline,
-                candidateExpansionControl ) );
+                candidateExpansionControl,
+                motionToStillCoverage ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    (motionToStillCoverage?
+                        "motion-to-still temporal-coverage isolation capture" :
                     (integratedCandidateRemovalFullTimeline?
                         "integrated candidate-removal full-timeline Off/On matched capture" :
                     (integratedCandidateRemovalQuality?
@@ -9067,7 +9142,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture")))))))))),
+                        "Original five-way capture"))))))))))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );
