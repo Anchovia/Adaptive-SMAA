@@ -5413,6 +5413,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         ArmDualUpsampleFull,
         ComputeDispatchArgs,
         ResolveCandidates,
+        ResolveCandidateMask,
         ResolveFullScreen,
         OutputCopy,
         MetricCount
@@ -5445,6 +5446,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_objectMotionReprojectionAblation;
     const bool m_matchedKernelAblation;
     const bool m_armThresholdAblation;
+    const bool m_candidateExecutionAblation;
     const bool m_dualOutputOptimizationEnabled;
     const bool m_useCameraMotionProfile;
     const CMAA2Sample::SMAACameraMotionProfile m_cameraMotionProfile;
@@ -5498,6 +5500,17 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if( m_candidateExecutionAblation )
+        {
+            static const char * c_candidateExecutionModeIDs[4] =
+            {
+                "O-ET2X / CompactIndirect",
+                "O-ET2X / DirectMaskedFullScreen",
+                "O-ET2X-R / CompactIndirect",
+                "O-ET2X-R / DirectMaskedFullScreen"
+            };
+            return c_candidateExecutionModeIDs[mode];
+        }
         if( m_armThresholdAblation )
         {
             static const char * c_armThresholdModeIDs[5] =
@@ -5647,6 +5660,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if( m_candidateExecutionAblation )
+            return mode >= 2? CMAA2Sample::AAType::SMAA_O_ET2X_R :
+                CMAA2Sample::AAType::SMAA_O_ET2X;
         if( m_armThresholdAblation )
             return mode == 0?
                 CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_DILATE3X3 :
@@ -5759,6 +5775,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if( m_candidateExecutionAblation )
+            return true;
         if( m_armThresholdAblation )
             return true;
         if( m_matchedKernelAblation )
@@ -5785,6 +5803,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsIntegratedCandidateMode( int mode ) const
     {
+        if( m_candidateExecutionAblation )
+            return true;
         if( m_matchedKernelAblation )
             return IsEdgeSelectiveMode( mode );
         if( m_objectMotionReprojectionAblation )
@@ -5826,6 +5846,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case ArmDualUpsampleFull:       return "TSCMAAArmDualUpsampleFull";
         case ComputeDispatchArgs:       return "TSCMAAComputeDispatchArgs";
         case ResolveCandidates:         return "TSCMAAResolveCandidates";
+        case ResolveCandidateMask:      return "TSCMAAResolveCandidateMask";
         case ResolveFullScreen:         return "TSCMAAResolveFullScreen";
         case OutputCopy:                return "TSCMAAOutputCopy";
         default:                        return "Unknown";
@@ -5844,6 +5865,23 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         if( m_dualOutputOptimizationEnabled && documentKernelMode
             && (metric == CopySpatialToHistory || metric == OutputCopy) )
             return false;
+
+        if( m_candidateExecutionAblation )
+        {
+            const bool directMasked = (mode & 1) != 0;
+            if( metric == GenerateCameraVelocity )
+                return mode >= 2;
+            if( metric == SpatialSMAA1X || metric == CopySpatialToHistory
+                || metric == ClearIntegratedCandidateBuffers || metric == OutputCopy )
+                return true;
+            if( metric == ComputeDispatchArgs )
+                return !directMasked || m_candidateReadbackEnabled;
+            if( metric == ResolveCandidates )
+                return !directMasked;
+            if( metric == ResolveCandidateMask )
+                return directMasked;
+            return false;
+        }
 
         if( m_matchedKernelAblation )
         {
@@ -6214,7 +6252,8 @@ public:
         bool integratedSourceOverheadComparison = false,
         bool objectMotionReprojectionAblation = false,
         bool matchedKernelAblation = false,
-        bool armThresholdAblation = false )
+        bool armThresholdAblation = false,
+        bool candidateExecutionAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -6232,20 +6271,21 @@ public:
         m_objectMotionReprojectionAblation( objectMotionReprojectionAblation ),
         m_matchedKernelAblation( matchedKernelAblation ),
         m_armThresholdAblation( armThresholdAblation ),
+        m_candidateExecutionAblation( candidateExecutionAblation ),
         m_dualOutputOptimizationEnabled( parent.GetSMAATemporalDualOutputOptimizationEnabled( ) ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount)))))))))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount))))))))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
             + (int)filteredQuarterAblation + (int)armDualFilterAblation
             + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation
             + (int)integratedSourceOverheadComparison
             + (int)objectMotionReprojectionAblation + (int)matchedKernelAblation
-            + (int)armThresholdAblation <= 1 );
+            + (int)armThresholdAblation + (int)candidateExecutionAblation <= 1 );
     }
 
 protected:
@@ -6270,7 +6310,17 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if( m_matchedKernelAblation )
+            if( m_candidateExecutionAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA candidate-execution repeated performance benchmark\r\n\r\n" :
+                    "SMAA candidate-execution GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This pairs the current compact-list plus indirect-dispatch path with a direct full-screen candidate-mask path for reprojection Off and On.\r\n"
+                    "Both execution paths consume candidates generated in the SMAA first edge pass and keep spatial input, candidate equation, sampling, clipping, history weight, copies, and camera path identical.\r\n"
+                    "The direct path is a default-Off execution-structure ablation and does not expand the formal eight-case matrix.\r\n" );
+            }
+            else if( m_matchedKernelAblation )
             {
                 abTool.ReportAddText( m_repeatCount > 1?
                     "SMAA matched document-kernel repeated performance benchmark\r\n\r\n" :
@@ -6462,6 +6512,17 @@ protected:
                     }
                     if( m_armThresholdAblation )
                         m_parent.SetSMAAArmDualReconstructionThresholdOverride( false, 0.25f );
+                    if( m_candidateExecutionAblation )
+                    {
+                        m_parent.SetSMAATemporalDirectMaskedResolveEnabled( false );
+                        m_parent.SetSMAANonDominantRemovalOverride( false, 0.5f );
+                        m_parent.SetSMAACandidateExpansionOverride(
+                            false, vaSMAAWrapper::CandidateExpansion::None );
+                        m_parent.SetSMAACandidatePolicyOverride(
+                            false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+                        m_parent.SetSMAACandidateEdgeSourceOverride(
+                            false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+                    }
                     FinishReport( abTool );
                     m_isDone = true;
                     return;
@@ -6519,6 +6580,17 @@ protected:
             m_parent.SetSMAAArmDualReconstructionThresholdOverride(
                 m_currentMode >= 1,
                 m_currentMode >= 1? GetArmThresholdAmount( m_currentMode ) : 0.25f );
+        }
+        if( m_candidateExecutionAblation )
+        {
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                true, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride(
+                true, vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+            m_parent.SetSMAATemporalDirectMaskedResolveEnabled( (m_currentMode & 1) != 0 );
         }
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
         if( m_objectMotionReprojectionAblation )
@@ -8169,6 +8241,18 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_SMAA->SetTemporalDualOutputOptimizationEnabled(enabled != 0);
             VA_LOG("SMAA temporal dual-output optimization: %s", enabled != 0? "enabled" : "disabled");
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalDirectMaskedResolve") == 0)
+        {
+            int enabled = 1;
+            std::wistringstream values(parameter.second);
+            if (!(values >> enabled) || enabled < 0 || enabled > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaTemporalDirectMaskedResolve value; expected 0 (compact indirect path) or 1 (direct full-screen candidate-mask path)");
+                return;
+            }
+            m_SMAA->SetTemporalDirectMaskedResolveEnabled(enabled != 0);
+            VA_LOG("SMAA temporal direct candidate-mask resolve ablation: %s", enabled != 0? "enabled" : "disabled");
+        }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaCandidateExpansionOverride") == 0)
         {
             int expansion = -1;
@@ -8400,6 +8484,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaMatchedKernelPerformanceSmoke") == 0;
         const bool matchedKernelPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaMatchedKernelPerformanceBenchmark") == 0;
+        const bool candidateExecutionPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidateExecutionPerformanceSmoke") == 0;
+        const bool candidateExecutionPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaCandidateExecutionPerformanceBenchmark") == 0;
         const bool fullComponentAblationPerformance =
             componentAblationPerformanceSmoke || componentAblationPerformanceBenchmark;
         const bool candidateAblationPerformance =
@@ -8411,14 +8499,16 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || armDualFilterPerformanceSmoke || armThresholdPerformanceSmoke
             || candidateEdgeSourcePerformanceSmoke
             || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke
-            || objectMotionReprojectionPerformanceSmoke || matchedKernelPerformanceSmoke;
+            || objectMotionReprojectionPerformanceSmoke || matchedKernelPerformanceSmoke
+            || candidateExecutionPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
             || armDualFilterPerformanceBenchmark || armThresholdPerformanceBenchmark
             || candidateEdgeSourcePerformanceBenchmark
             || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark
-            || objectMotionReprojectionPerformanceBenchmark || matchedKernelPerformanceBenchmark;
+            || objectMotionReprojectionPerformanceBenchmark || matchedKernelPerformanceBenchmark
+            || candidateExecutionPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -8436,6 +8526,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     || integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
                     || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
                     || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark
+                    || candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark
                     || eightCasePerformanceSmoke || eightCasePerformanceBenchmark )
                 {
                     wstring possibleScene;
@@ -8488,7 +8579,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             }
             if( (integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark
                     || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
-                    || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark)
+                    || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark
+                    || candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark)
                 && performanceScene != SceneSelectionType::LumberyardBistro
                 && performanceScene != SceneSelectionType::MinecraftLostEmpire )
             {
@@ -8520,7 +8612,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark,
                 objectMotionReprojectionPerformance,
                 matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark,
-                armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark));
+                armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark,
+                candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
             const char * performanceKind = "Original four-mode";
             if( includeAdaptive )
@@ -8547,6 +8640,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "rigid-object reprojection ablation";
             if( matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark )
                 performanceKind = "matched document-kernel coverage ablation";
+            if( candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark )
+                performanceKind = "candidate execution-structure ablation";
             VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",

@@ -285,8 +285,16 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     uint2 pixel = uint2(position.xy);
     bool baseEdge = any(edges > 0.0);
     bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(pixel);
+    // Candidate-mask mode encoding (set by the DX11 wrapper):
+    //   0 = no mask output, 1 = diagnostic masks,
+    //   2 = direct-mask execution, 3 = direct-mask + diagnostics.
+    float candidateMaskMode =
+        g_SMAAReprojection.TSCMAACandidateSourceParams.y;
+    bool directMaskedResolve = candidateMaskMode > 1.5;
     bool writeDiagnosticMasks =
-        g_SMAAReprojection.TSCMAACandidateSourceParams.y > 0.5;
+        (candidateMaskMode > 0.5 && candidateMaskMode < 1.5)
+        || candidateMaskMode > 2.5;
+    bool writeCandidateMask = writeDiagnosticMasks || directMaskedResolve;
     if (writeDiagnosticMasks)
         tscmaaIntegratedBaseEdgeMask[pixel] = baseEdge ? 1.0 : 0.0;
 
@@ -302,19 +310,26 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     if (expansionEnabled) {
         tscmaaIntegratedRawCandidateMask[pixel] = candidate ? 1.0 : 0.0;
     } else {
-        if (writeDiagnosticMasks)
+        if (writeCandidateMask)
             tscmaaIntegratedCandidateMask[pixel] = candidate ? 1.0 : 0.0;
         if (candidate) {
             uint candidateIndex;
-            tscmaaIntegratedControl.InterlockedAdd(
-                TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
-            uint candidateCapacity;
-            uint candidateStride;
-            tscmaaIntegratedCandidates.GetDimensions(
-                candidateCapacity, candidateStride);
-            if (candidateIndex < candidateCapacity)
-                tscmaaIntegratedCandidates[candidateIndex] =
-                    (pixel.x << 16) | pixel.y;
+            // Direct-mask timing runs avoid both the compact-list atomic and
+            // the list write. Diagnostic readback may still request the count;
+            // the tiny dispatch-args pass then mirrors it into process count.
+            if (!directMaskedResolve || collectBaseEdgeStatistics) {
+                tscmaaIntegratedControl.InterlockedAdd(
+                    TSCMAA_CANDIDATE_COUNTER_OFFSET, 1, candidateIndex);
+                if (!directMaskedResolve) {
+                    uint candidateCapacity;
+                    uint candidateStride;
+                    tscmaaIntegratedCandidates.GetDimensions(
+                        candidateCapacity, candidateStride);
+                    if (candidateIndex < candidateCapacity)
+                        tscmaaIntegratedCandidates[candidateIndex] =
+                            (pixel.x << 16) | pixel.y;
+                }
+            }
         }
     }
 
@@ -532,6 +547,7 @@ Texture2D<float4>                    tscmaaHistoryColor                  : regis
 Texture2D<float>                     tscmaaLuma                          : register( t12 );
 Texture2D<float>                     tscmaaRawCandidateMaskInput         : register( t13 );
 Texture2D<float>                     tscmaaFilteredQuarterMaskInput      : register( t14 );
+Texture2D<float>                     tscmaaCandidateMaskInput            : register( t15 );
 
 RWTexture2D<float4>                  tscmaaOutput                        : register( u0 );
 RWStructuredBuffer<uint>             tscmaaCandidates                    : register( u1 );
@@ -1243,6 +1259,25 @@ void TSCMAAResolveCandidatesCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
     if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
         return;
 
+    tscmaaOutput[pixel] = resolvedColor;
+}
+
+// Execution-structure ablation for the integrated first-pass candidate mask.
+// It deliberately calls the exact same temporal pixel helper as the compact
+// indirect path; only candidate scheduling differs. Non-candidate threads do
+// one R8 mask load and return without touching history or the output UAV.
+[numthreads(8, 8, 1)]
+void TSCMAAResolveCandidateMaskCS(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    int2 dimensions = int2(g_SMAAReprojection.TemporalResolution.xy);
+    int2 pixel = int2(dispatchThreadID.xy);
+    if (any(pixel >= dimensions))
+        return;
+    if (tscmaaCandidateMaskInput.Load(int3(pixel, 0)) < 0.5)
+        return;
+
+    float4 resolvedColor;
+    if (!TSCMAAResolveTemporalPixel(pixel, dimensions, resolvedColor))
+        return;
     tscmaaOutput[pixel] = resolvedColor;
 }
 

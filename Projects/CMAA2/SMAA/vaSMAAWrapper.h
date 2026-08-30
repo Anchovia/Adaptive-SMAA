@@ -376,6 +376,12 @@ namespace VertexAsylum
         // RTX 3060 Ti because candidate pixels require a second UAV write.
         // Preserve it as a reproducible default-Off performance ablation.
         bool                        m_temporalDualOutputOptimizationEnabled = false;
+        // Default-Off execution-structure ablation. The integrated SMAA edge
+        // pass writes a full-resolution candidate mask and a full-screen
+        // compute dispatch exits immediately for non-candidates. This keeps
+        // the document temporal kernel unchanged while removing candidate-list
+        // compaction and indirect dispatch from the measured path.
+        bool                        m_temporalDirectMaskedResolveEnabled = false;
         TemporalDebugView           m_temporalDebugView                  = TemporalDebugView::None;
         TemporalCandidateValidation m_temporalCandidateValidation;
         TemporalLifecycleDiagnostics m_temporalLifecycleDiagnostics;
@@ -586,6 +592,27 @@ namespace VertexAsylum
         bool                        GetTemporalDualOutputOptimizationEnabled( ) const
         {
             return m_temporalDualOutputOptimizationEnabled;
+        }
+        void                        SetTemporalDirectMaskedResolveEnabled( bool enabled )
+        {
+            if( m_temporalDirectMaskedResolveEnabled != enabled )
+            {
+                m_temporalDirectMaskedResolveEnabled = enabled;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetTemporalDirectMaskedResolveEnabled( ) const
+        {
+            return m_temporalDirectMaskedResolveEnabled;
+        }
+        bool                        GetDirectMaskedCandidateResolveActive( ) const
+        {
+            return m_temporalDirectMaskedResolveEnabled
+                && GetEdgeSelectiveTemporalEnabled( )
+                && GetEffectiveCandidateEdgeSource( ) == CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
+                && GetEffectiveCandidatePolicy( ) != CandidatePolicy::ExperimentalLocalMeanMax3x3
+                && GetEffectiveCandidateExpansion( ) == CandidateExpansion::None
+                && !GetForcedCandidateCountEnabled( );
         }
         const TemporalCandidateValidation & GetTemporalCandidateValidation( ) const { return m_temporalCandidateValidation; }
         TemporalDebugView           GetTemporalDebugView( ) const       { return m_temporalDebugView; }

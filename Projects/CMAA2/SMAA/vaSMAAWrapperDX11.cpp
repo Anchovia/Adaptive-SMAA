@@ -422,6 +422,7 @@ namespace VertexAsylum
         vaAutoRMI<vaComputeShader>  m_tscmaaDeJitterSpatialCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaInitializeDualOutputCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
+        vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidateMaskCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesDualOutputCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveFullScreenCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveFullScreenDualOutputCS;
@@ -593,7 +594,8 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaArmDualUpsampleAndCompactCS( params.RenderDevice ),
     m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
     m_tscmaaDeJitterSpatialCS( params.RenderDevice ), m_tscmaaInitializeDualOutputCS( params.RenderDevice ),
-    m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaResolveCandidatesDualOutputCS( params.RenderDevice ),
+    m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaResolveCandidateMaskCS( params.RenderDevice ),
+    m_tscmaaResolveCandidatesDualOutputCS( params.RenderDevice ),
     m_tscmaaResolveFullScreenCS( params.RenderDevice ), m_tscmaaResolveFullScreenDualOutputCS( params.RenderDevice ),
     m_tscmaaCatmullRomDiagnosticCS( params.RenderDevice ),
     m_tscmaaVarianceDiagnosticCS( params.RenderDevice )
@@ -625,6 +627,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaDeJitterSpatialCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADeJitterSpatialCS", tscmaaShaderMacros, true );
     m_tscmaaInitializeDualOutputCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAInitializeDualOutputCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
+    m_tscmaaResolveCandidateMaskCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidateMaskCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesDualOutputCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesDualOutputCS", tscmaaShaderMacros, true );
     m_tscmaaResolveFullScreenCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveFullScreenCS", tscmaaShaderMacros, true );
     m_tscmaaResolveFullScreenDualOutputCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveFullScreenDualOutputCS", tscmaaShaderMacros, true );
@@ -1026,6 +1029,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         || !m_tscmaaComputeDispatchArgsCS->IsCreated( )
         || (GetDeJitteredNonCandidateBaseEnabled( ) && !m_tscmaaDeJitterSpatialCS->IsCreated( ))
         || !m_tscmaaResolveCandidatesCS->IsCreated( )
+        || (GetDirectMaskedCandidateResolveActive( ) && !m_tscmaaResolveCandidateMaskCS->IsCreated( ))
         || (GetTemporalDualOutputOptimizationEnabled( )
             && (!m_tscmaaInitializeDualOutputCS->IsCreated( )
                 || !m_tscmaaResolveCandidatesDualOutputCS->IsCreated( )))
@@ -1114,9 +1118,13 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         const bool writeCandidateDiagnosticMasks =
             GetTemporalDebugView( ) == TemporalDebugView::BaseEdges
             || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates;
+        const bool directMaskedCandidateResolve = GetDirectMaskedCandidateResolveActive( );
+        const float candidateMaskMode = directMaskedCandidateResolve?
+            (writeCandidateDiagnosticMasks? 3.0f : 2.0f) :
+            (writeCandidateDiagnosticMasks? 1.0f : 0.0f);
         m_reprojectionConstants.TSCMAACandidateSourceParams = vaVector4(
             (float)(int)GetEffectiveCandidateEdgeSource( ),
-            writeCandidateDiagnosticMasks? 1.0f : 0.0f,
+            candidateMaskMode,
             GetTemporalCandidateStatisticsReadbackEnabled( )? 1.0f : 0.0f,
             GetEffectiveArmDualReconstructionThreshold( ) );
         vaVector2 currentProjectionJitter( 0.0f, 0.0f );
@@ -1276,6 +1284,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 if( integratedCandidatesPrepared )
                 {
                     const bool expansionEnabled = GetEffectiveCandidateExpansion( ) != CandidateExpansion::None;
+                    const bool directMaskedCandidateResolve = GetDirectMaskedCandidateResolveActive( );
                     integratedCandidateOutputs.Candidates = m_tscmaaCandidatesUAV;
                     integratedCandidateOutputs.Control = m_tscmaaControlBufferUAV;
                     integratedCandidateOutputs.BaseEdgeMask = m_tscmaaBaseEdgeMask->SafeCast<vaTextureDX11*>( )->GetUAV( );
@@ -1303,13 +1312,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                         || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates;
                     {
                         VA_SCOPE_CPUGPU_TIMER( TSCMAAClearIntegratedCandidateBuffers, deviceContext );
-                        dx11Context->ClearUnorderedAccessViewUint( m_tscmaaControlBufferUAV, zeroes );
+                        if( !directMaskedCandidateResolve || GetTemporalCandidateStatisticsReadbackEnabled( ) )
+                            dx11Context->ClearUnorderedAccessViewUint( m_tscmaaControlBufferUAV, zeroes );
                         if( writeCandidateDiagnosticMasks )
                             dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.BaseEdgeMask, maskZeroes );
                         // Expansion passes overwrite every output candidate-mask
                         // pixel; the integrated edge pass only needs a cleared
                         // sparse raw mask as their source.
-                        if( writeCandidateDiagnosticMasks && !expansionEnabled )
+                        if( (writeCandidateDiagnosticMasks || directMaskedCandidateResolve) && !expansionEnabled )
                             dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.CandidateMask, maskZeroes );
                         if( expansionEnabled )
                             dx11Context->ClearUnorderedAccessViewFloat( integratedCandidateOutputs.RawCandidateMask, maskZeroes );
@@ -1616,7 +1626,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     vaTextureDX11 * previousHistoryDX11 = previousHistory->SafeCast<vaTextureDX11*>( );
     vaTextureDX11 * outputHistoryDX11 = outputHistory->SafeCast<vaTextureDX11*>( );
     vaTextureDX11 * destinationDX11 = destination->SafeCast<vaTextureDX11*>( );
-    const bool dualOutput = GetTemporalDualOutputOptimizationEnabled( )
+    const bool directMaskedResolve = integratedCandidatesPrepared
+        && GetDirectMaskedCandidateResolveActive( );
+    const bool dualOutput = !directMaskedResolve
+        && GetTemporalDualOutputOptimizationEnabled( )
         && !GetDeJitteredNonCandidateBaseEnabled( )
         && !GetClippingDebugViewsEnabled( ) && destinationDX11->GetUAV( ) != nullptr;
 
@@ -1707,12 +1720,17 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     ID3D11ComputeShader * resolveCandidatesShader =
         (dualOutput? m_tscmaaResolveCandidatesDualOutputCS : m_tscmaaResolveCandidatesCS)
             ->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    ID3D11ComputeShader * resolveCandidateMaskShader = directMaskedResolve?
+        m_tscmaaResolveCandidateMaskCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
     if( (!integratedCandidatesPrepared && extractCandidatesShader == nullptr)
         || (dilate3x3 && dilateCandidatesShader == nullptr)
         || (filteredQuarter && (downsampleCandidatesShader == nullptr || upsampleCandidatesShader == nullptr))
         || (armDualFilter && (armDualDownsampleShader == nullptr || armDualUpsampleShader == nullptr
             || armDualUpsampleAndCompactShader == nullptr))
-        || computeDispatchArgsShader == nullptr || resolveCandidatesShader == nullptr )
+        || ((!directMaskedResolve || GetTemporalCandidateStatisticsReadbackEnabled( ))
+            && computeDispatchArgsShader == nullptr)
+        || (!directMaskedResolve && resolveCandidatesShader == nullptr)
+        || (directMaskedResolve && resolveCandidateMaskShader == nullptr) )
         return vaDrawResultFlags::ShadersStillCompiling;
 
     ID3D11UnorderedAccessView * UAVs[8] =
@@ -1746,7 +1764,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         || m_tscmaaArmDualQuarterMask->SafeCast<vaTextureDX11*>( )->GetSRV( ) == nullptr) )
         return vaDrawResultFlags::UnspecifiedError;
 
-    ID3D11ShaderResourceView * SRVs[8] =
+    ID3D11ShaderResourceView * SRVs[9] =
     {
         m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ),
         *m_smaa->getEdgesRenderTarget( ),
@@ -1755,9 +1773,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         previousHistoryDX11->GetSRV( ),
         luma->SafeCast<vaTextureDX11*>( )->GetSRV( ),
         nullptr,
+        nullptr,
         nullptr
     };
-    ID3D11ShaderResourceView * nullSRVs[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    ID3D11ShaderResourceView * nullSRVs[9] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 
     const UINT zeroes[4] = { 0, 0, 0, 0 };
     const FLOAT maskZeroes[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -1914,6 +1933,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         dx11Context->CSSetShaderResources( 14, 1, &nullRawCandidateSRV );
     }
 
+    if( !directMaskedResolve || GetTemporalCandidateStatisticsReadbackEnabled( ) )
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAAComputeDispatchArgs, deviceContext );
         dx11Context->CSSetShader( computeDispatchArgsShader, nullptr, 0 );
@@ -1925,6 +1945,21 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         ID3D11UnorderedAccessView * destinationUAV = destinationDX11->GetUAV( );
         dx11Context->CSSetUnorderedAccessViews( 6, 1, &destinationUAV, nullptr );
     }
+    if( directMaskedResolve )
+    {
+        // The mask cannot remain bound as u5 while it is sampled through t15.
+        ID3D11UnorderedAccessView * nullCandidateMaskUAV = nullptr;
+        dx11Context->CSSetUnorderedAccessViews( 5, 1, &nullCandidateMaskUAV, nullptr );
+        SRVs[8] = m_tscmaaCandidateMask->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        dx11Context->CSSetShaderResources( 15, 1, &SRVs[8] );
+        {
+            VA_SCOPE_CPUGPU_TIMER( TSCMAAResolveCandidateMask, deviceContext );
+            dx11Context->CSSetShader( resolveCandidateMaskShader, nullptr, 0 );
+            dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8,
+                (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
+        }
+    }
+    else
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAAResolveCandidates, deviceContext );
         dx11Context->CSSetShader( resolveCandidatesShader, nullptr, 0 );
