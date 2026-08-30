@@ -313,6 +313,15 @@ Original mode는 기존 edge target/shader path를 유지한다.
 - `Tools/SMAA/analyze_san_miguel_arm_dual_thin_roi.py`: San Miguel `yaw-fast-360` frame
   0~9의 화면 좌측·하단 의자/테이블 다리 ROI를 supersample spatial reference와 비교한다.
   화면 고정 ROI이며 object tracking이나 절대 temporal ground truth로 표현하지 않는다.
+- ARM dual-filter reconstruction threshold는 기본 `0.25`를 유지하되
+  `-smaaArmDualReconstructionThresholdOverride <0..1>`로만 연구 sweep을 수행한다.
+  threshold 변경은 edge threshold나 non-dominant removal 변경과 섞지 않는다.
+- `-smaaCandidateExpansionControlCapture`는 같은 San Miguel camera path에서 `O-1X`,
+  `O-T2X-R`, document `O-ET2X-R` None, 3x3, ARM을 함께 저장하는 5-way 품질 control이다.
+  `Tools/SMAA/run_san_miguel_expansion_controls.ps1`로 동일 frame 범위의 supersample spatial
+  reference를 별도 clean process에서 짝지어 실행하고,
+  `Tools/SMAA/analyze_san_miguel_expansion_controls.py`로 full frame과 thin-geometry ROI를
+  분석한다. supersample 자료는 temporal ground truth로 표현하지 않는다.
 - `-smaaArmDualFilterPerformanceSmoke`/`Benchmark`의 값 앞에 선택적으로
   `bistro|minecraft|sanmiguel`을 지정하면 해당 장면의 `yaw-fast-360` profile frame
   60부터 측정하고 warm-up 동안 첫 pose를 유지한다. 장면 토큰을 생략한 기존 명령은

@@ -100,6 +100,25 @@ void vaSMAAWrapper::UIPanelDraw( )
                     true, (CandidateExpansion)expansion );
         }
 
+        bool armThresholdOverrideEnabled =
+            m_armDualReconstructionThresholdOverrideEnabled;
+        if( ImGui::Checkbox( "Override ARM reconstruction threshold",
+            &armThresholdOverrideEnabled ) )
+        {
+            SetArmDualReconstructionThresholdOverride(
+                armThresholdOverrideEnabled,
+                m_armDualReconstructionThresholdOverride );
+        }
+        if( armThresholdOverrideEnabled )
+        {
+            float threshold = m_armDualReconstructionThresholdOverride;
+            if( ImGui::SliderFloat( "ARM reconstruction threshold",
+                &threshold, 0.0f, 1.0f, "%.3f" ) )
+            {
+                SetArmDualReconstructionThresholdOverride( true, threshold );
+            }
+        }
+
         bool samplerOverrideEnabled = m_historySamplerOverrideEnabled;
         if( ImGui::Checkbox( "Override history sampler", &samplerOverrideEnabled ) )
             SetHistorySamplerOverride( samplerOverrideEnabled, m_historySamplerOverride );

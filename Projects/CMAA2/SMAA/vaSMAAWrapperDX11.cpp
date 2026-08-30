@@ -1118,7 +1118,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             (float)(int)GetEffectiveCandidateEdgeSource( ),
             writeCandidateDiagnosticMasks? 1.0f : 0.0f,
             GetTemporalCandidateStatisticsReadbackEnabled( )? 1.0f : 0.0f,
-            0.0f );
+            GetEffectiveArmDualReconstructionThreshold( ) );
         vaVector2 currentProjectionJitter( 0.0f, 0.0f );
         if( optionalCamera != nullptr )
             currentProjectionJitter = const_cast<vaCameraBase *>( optionalCamera )->GetSubpixelOffset( );

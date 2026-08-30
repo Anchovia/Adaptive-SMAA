@@ -54,7 +54,8 @@ struct SMAAReprojectionConstants
     // x: candidate edge source enum
     // (0 legacy luma re-detection, 1 SMAA first-pass edge reuse),
     // y: write full-resolution base/candidate diagnostic masks,
-    // z: collect the optional base-edge statistics counter.
+    // z: collect the optional base-edge statistics counter,
+    // w: ARM dual-filter reconstruction threshold research parameter.
     float4 TSCMAACandidateSourceParams;
     // xy: current projection jitter in pixel units,
     // z: non-candidate base enum (0 current spatial, 1 de-jittered spatial),
@@ -967,7 +968,8 @@ void TSCMAAArmDualUpsampleAndCompactRawUnionCS(
     bool rawCandidate =
         tscmaaFilteredQuarterMaskInput.Load(int3(dispatchThreadID.xy, 0)) > 0.5;
     bool candidate = rawCandidate
-        || TSCMAAArmDualUpsample(uv, halfPixel) >= 0.25;
+        || TSCMAAArmDualUpsample(uv, halfPixel)
+            >= g_SMAAReprojection.TSCMAACandidateSourceParams.w;
     tscmaaCandidateMask[dispatchThreadID.xy] = candidate ? 1.0 : 0.0;
     if (!candidate)
         return;

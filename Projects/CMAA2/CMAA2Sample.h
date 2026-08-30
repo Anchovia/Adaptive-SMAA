@@ -338,6 +338,8 @@ namespace VertexAsylum
         void                                    SetSMAACandidateEdgeSourceOverride( bool enabled, vaSMAAWrapper::CandidateEdgeSource source ) { m_SMAA->SetCandidateEdgeSourceOverride( enabled, source ); }
         void                                    SetSMAACandidatePolicyOverride( bool enabled, vaSMAAWrapper::CandidatePolicy policy ) { m_SMAA->SetCandidatePolicyOverride( enabled, policy ); }
         void                                    SetSMAACandidateExpansionOverride( bool enabled, vaSMAAWrapper::CandidateExpansion expansion ) { m_SMAA->SetCandidateExpansionOverride( enabled, expansion ); }
+        void                                    SetSMAAArmDualReconstructionThresholdOverride( bool enabled, float value ) { m_SMAA->SetArmDualReconstructionThresholdOverride( enabled, value ); }
+        float                                   GetSMAAArmDualReconstructionThreshold( ) const { return m_SMAA->GetEffectiveArmDualReconstructionThreshold( ); }
         void                                    SetSMAANonDominantRemovalOverride( bool enabled, float value ) { m_SMAA->SetNonDominantRemovalOverride( enabled, value ); }
         const vaSMAAWrapper::TemporalCandidateStatistics &
                                                 GetSMAATemporalCandidateStatistics( ) const { return m_SMAA->GetTemporalCandidateStatistics( ); }

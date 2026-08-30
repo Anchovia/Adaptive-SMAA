@@ -303,6 +303,11 @@ namespace VertexAsylum
             float                        HistoryWeight               = 0.5f;
             float                        NonDominantRemovalAmount    = 0.5f;
             float                        EdgeThreshold               = 1.0f / 22.0f;
+            // Research adaptation parameter for the ARM dual-filter candidate
+            // reconstruction. It is intentionally independent from the edge
+            // threshold and non-dominant removal amount so it can be swept
+            // without changing the underlying SMAA/TSCMAA-inspired profile.
+            float                        ArmDualReconstructionThreshold = 0.25f;
 
             bool operator == ( const TemporalSettings & other ) const
             {
@@ -317,7 +322,8 @@ namespace VertexAsylum
                     && Expansion == other.Expansion
                     && HistoryWeight == other.HistoryWeight
                     && NonDominantRemovalAmount == other.NonDominantRemovalAmount
-                    && EdgeThreshold == other.EdgeThreshold;
+                    && EdgeThreshold == other.EdgeThreshold
+                    && ArmDualReconstructionThreshold == other.ArmDualReconstructionThreshold;
             }
 
             bool operator != ( const TemporalSettings & other ) const
@@ -356,6 +362,8 @@ namespace VertexAsylum
         CandidatePolicy             m_candidatePolicyOverride           = CandidatePolicy::IntelFamilyNonDominant;
         bool                        m_candidateExpansionOverrideEnabled = false;
         CandidateExpansion          m_candidateExpansionOverride        = CandidateExpansion::Dilate3x3;
+        bool                        m_armDualReconstructionThresholdOverrideEnabled = false;
+        float                       m_armDualReconstructionThresholdOverride = 0.25f;
         bool                        m_nonDominantRemovalOverrideEnabled  = false;
         float                       m_nonDominantRemovalOverride         = 0.5f;
         bool                        m_historySamplerOverrideEnabled     = false;
@@ -487,6 +495,27 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidateExpansionOverrideEnabled( ) const { return m_candidateExpansionOverrideEnabled; }
+        float                       GetEffectiveArmDualReconstructionThreshold( ) const
+        {
+            return m_armDualReconstructionThresholdOverrideEnabled?
+                m_armDualReconstructionThresholdOverride :
+                m_temporalSettings.ArmDualReconstructionThreshold;
+        }
+        void                        SetArmDualReconstructionThresholdOverride( bool enabled, float value )
+        {
+            value = vaMath::Clamp( value, 0.0f, 1.0f );
+            if( m_armDualReconstructionThresholdOverrideEnabled != enabled
+                || m_armDualReconstructionThresholdOverride != value )
+            {
+                m_armDualReconstructionThresholdOverrideEnabled = enabled;
+                m_armDualReconstructionThresholdOverride = value;
+                ResetTemporalHistory( );
+            }
+        }
+        bool                        GetArmDualReconstructionThresholdOverrideEnabled( ) const
+        {
+            return m_armDualReconstructionThresholdOverrideEnabled;
+        }
         float                       GetEffectiveNonDominantRemovalAmount( ) const
         {
             return m_nonDominantRemovalOverrideEnabled? m_nonDominantRemovalOverride : m_temporalSettings.NonDominantRemovalAmount;
