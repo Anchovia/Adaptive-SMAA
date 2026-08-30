@@ -1,3 +1,87 @@
+# Adaptive SMAA / TSCMAA-inspired SMAA research
+
+This repository extends Intel's CMAA2 sample with two related research tracks:
+
+1. **Adaptive SMAA**: contrast-guided spatial search-range adaptation.
+2. **TSCMAA-inspired SMAA T2X**: a document-based SMAA adaptation that reuses
+   SMAA first-pass edge candidates for selective temporal resolve.
+
+The complete Intel TSCMAA sample source is not publicly available. Therefore,
+the edge-selective implementation in this repository is described as a
+**TSCMAA-inspired/document-based SMAA adaptation**, not an official TSCMAA port.
+
+## Recommended branches
+
+- `baseline/original-smaa`: runnable Original SMAA comparison baseline.
+- `baseline/smaa-t2x`: Standard SMAA T2X and camera/depth reprojection baseline.
+- `main`: completed Adaptive SMAA spatial implementation.
+- `research/tscmaa-inspired-smaa-core`: integrated SMAA first-pass temporal
+  candidate source.
+- `research/et2x-pipeline-optimization`: current recommended research branch.
+
+See [BRANCHES.md](BRANCHES.md) for the full branch map and the distinction
+between baseline, research, experiment, validation, tooling, and archive refs.
+
+## Build and run the current research branch
+
+Requirements:
+
+- Windows 10 or 11
+- Visual Studio 2022 with **Desktop development with C++**
+- MSVC v143 toolset and a Windows 10/11 SDK
+- DirectX 11-capable GPU
+
+```powershell
+git clone https://github.com/Anchovia/Adaptive-SMAA.git
+cd Adaptive-SMAA
+git switch research/et2x-pipeline-optimization
+```
+
+Open `CMAA2.sln`, select `Release | x64`, and build the solution. The executable
+is written to `Projects/CMAA2/CMAA2.exe`. Run it with `Projects/CMAA2` as the
+working directory. Bistro and Minecraft resources required by the default demo
+are included in Git.
+
+The current research UI exposes the following semantic modes:
+
+```text
+O-T2X    O-T2X-R    O-ET2X    O-ET2X-R
+A-T2X    A-T2X-R    A-ET2X    A-ET2X-R
+```
+
+`O/A` selects Original or Adaptive spatial SMAA, `T2X/ET2X` selects Standard
+full-screen or edge-selective temporal resolve, and `-R` enables camera/depth
+reprojection. The current `-R` modes do not imply general object-motion-vector
+support.
+
+## External San Miguel scene
+
+The licensed San Miguel source asset and generated `.smaasm` cache are not
+stored in Git. Reproducible download, hash verification, conversion, and clean
+execution instructions are documented in
+[Docs/SMAA-SanMiguel-Textured-Scene-ko.md](Docs/SMAA-SanMiguel-Textured-Scene-ko.md).
+
+After creating the cache, the paired thin-geometry reference/control workflow
+can be run with:
+
+```powershell
+.\Tools\SMAA\run_san_miguel_expansion_controls.ps1 `
+  -CachePath "D:\SMAA-Research-Data\Scenes\SanMiguel\PreparedLowPoly\san-miguel-low-poly.smaasm" `
+  -CameraProfile yaw-fast-360 `
+  -FirstProfileFrame 60 `
+  -CaptureFrames 60 `
+  -WarmupFrames 60 `
+  -ArmThreshold 0.25
+```
+
+Each automated measurement must start from zero existing `CMAA2.exe` processes.
+The clean runners enforce process isolation and terminate only the process they
+start when a timeout occurs.
+
+---
+
+# Upstream Intel CMAA2 notice
+
 # DISCONTINUATION OF PROJECT #
 This project will no longer be maintained by Intel.
 Intel has ceased development and contributions including, but not limited to, maintenance, bug fixes, new releases, or updates, to this project.

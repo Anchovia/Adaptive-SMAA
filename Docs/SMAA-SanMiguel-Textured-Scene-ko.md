@@ -98,13 +98,20 @@ timeout 시 그 실행에서 시작한 PID만 강제 종료하고 부분 결과�
 
 준비와 변환 예시는 다음과 같다.
 
+사전 조건은 Python 3와 Pillow다. Windows Store의 `python.exe` alias 대신 설치된
+Python Launcher를 사용하는 예시는 다음과 같다.
+
 ```powershell
-python Tools/SMAA/prepare_san_miguel_scene.py `
+py -3 -m pip install Pillow
+```
+
+```powershell
+py -3 Tools/SMAA/prepare_san_miguel_scene.py `
   D:\SMAA-Research-Data\Scenes\SanMiguel `
   --output Docs\ExternalScenes\SanMiguel `
   --prepared-output D:\SMAA-Research-Data\Scenes\SanMiguel\PreparedLowPoly
 
-python Tools/SMAA/convert_san_miguel_scene.py `
+py -3 Tools/SMAA/convert_san_miguel_scene.py `
   D:\SMAA-Research-Data\Scenes\SanMiguel `
   --output D:\SMAA-Research-Data\Scenes\SanMiguel\PreparedLowPoly\san-miguel-low-poly.smaasm `
   --source-manifest Docs\ExternalScenes\SanMiguel\san_miguel_source_manifest.json
@@ -122,6 +129,39 @@ python Tools/SMAA/convert_san_miguel_scene.py `
 `-smaaSanMiguelCache`가 있어야 `sanmiguel` camera-motion scene을 사용할 수 있다.
 지원 profile은 기존 `yaw-slow-360`, `yaw-fast-360`, `yaw-extreme-360`,
 `strafe-fast`, `yaw-strafe-fast`와 동일하다.
+
+Supersample spatial reference와 `O-1X`, `O-T2X-R`, 무확장 `O-ET2X-R`, 3×3,
+ARM Dual Filter를 같은 camera frame 구간에서 비교하는 paired workflow는 다음 runner를
+사용한다. 두 capture는 AGENTS.md의 clean-process 규칙에 따라 서로 다른 CMAA2
+프로세스로 실행된다.
+
+```powershell
+.\Tools\SMAA\run_san_miguel_expansion_controls.ps1 `
+  -CachePath "D:\SMAA-Research-Data\Scenes\SanMiguel\PreparedLowPoly\san-miguel-low-poly.smaasm" `
+  -CameraProfile yaw-fast-360 `
+  -FirstProfileFrame 60 `
+  -CaptureFrames 60 `
+  -WarmupFrames 60 `
+  -ArmThreshold 0.25 `
+  -TimeoutSeconds 7200
+```
+
+`-ArmThreshold`는 ARM mask reconstruction의 연구용 runtime parameter이며 허용 범위는
+`0.0~1.0`이다. 기본 `0.25`는 ARM 원문이나 Intel TSCMAA 원본의 SMAA용 공개값이 아니라
+binary candidate mask adaptation에 사용한 초기 연구 가정이다. Reference를 이미 확보한
+threshold sweep에서는 `-SkipReference`를 사용해 중복 supersample capture를 피한다.
+
+두 실행에서 생성된 control root와 reference root는 다음과 같이 분석한다.
+
+```powershell
+py -3 Tools/SMAA/analyze_san_miguel_expansion_controls.py `
+  D:\SMAA-Research-Data\AutoBench\<CONTROL_ROOT> `
+  D:\SMAA-Research-Data\AutoBench\<REFERENCE_ROOT> `
+  --expected-frames 60
+```
+
+분석기는 full frame과 화면 좌측·하단의 thin-geometry ROI를 각각 비교한다. 동일 pose의
+supersample sequence는 spatial-reference proxy이며 temporal ground truth로 표현하지 않는다.
 
 ## 5. Engineering 검증 결과
 
@@ -160,7 +200,7 @@ camera matrix를 다시 적용하도록 수정했다. 최종 report의 scene ID�
 - `-R` mode는 기존과 동일하게 camera-motion reprojection이며 object motion vector는 없다.
 - 현재 preview는 scene integration 증거이며 dilation 품질 개선의 증거가 아니다.
 
-다음 작업은 San Miguel에서 저속·고속 360도 camera path와 thin-geometry ROI를 짧게
-screening한 뒤, controlled `thin-lines`, Power Plant `sec4`, San Miguel의 역할을 분리해
-current-frame edge mask 3×3/5×5/7×7 dilation과 filtered downsample-upsample
-ablation을 수행하는 것이다.
+다음 품질 gate는 San Miguel 동일 경로에서 `O-1X`, `O-T2X-R`, 무확장 `O-ET2X-R`,
+3×3, ARM을 supersample spatial reference와 함께 비교하는 것이다. 이후 ARM threshold를
+미세 sweep하고 후보 coverage를 맞춘 3×3/ARM 비교를 수행한다. Power Plant는 미완성
+renderer이므로 정식 근거에서 제외하고, synthetic thin-lines는 회귀 진단에만 사용한다.
