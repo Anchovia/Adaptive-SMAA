@@ -1228,7 +1228,7 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     계속 camera/depth reprojection만 의미하고 object motion은 별도 gate로 유지한다.
     상세 결과는 `Docs/SMAA-Final-Integrated-Eight-Case-Results-ko.md`를 기준으로 한다.
 39. **Matched-kernel 성능 원인 분리 및 copy 융합 ablation 완료:**
-    `codex/smaa-et2x-pipeline-optimization`에 document temporal kernel을 화면 전체에
+    `research/et2x-pipeline-optimization`에 document temporal kernel을 화면 전체에
     실행하는 `FullScreenDocument` 진단 control을 추가했다. 이 control은 integrated
     edge-selective와 SMAA 1X spatial input, jitter Off, Catmull-Rom 5-tap, YCoCg
     variance clipping, history weight 0.8, history lifecycle을 같게 유지하고 coverage와
@@ -1259,6 +1259,23 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     `D:/SMAA-Research-Data/AutoBench/20260828_180723`이다. 최종 Release x64 빌드,
     temporal lifecycle `failures 0`, feedback output/history mismatch `0 byte`, previous-history
     hash mismatch `0`도 PASS했다.
+41. **Motion→still temporal coverage 원인 분리 gate 완료:** 기존 matched-kernel
+    `FullScreenDocument-R`과 integrated `O-ET2X-R`을 `O-1X`, `O-T2X-R` control과 함께
+    Bistro/Minecraft `flythrough-wide-yaw-360` 480-frame timeline에서 캡처했다. Matched
+    pair는 SMAA 1X input, jitter Off, camera/depth reprojection, Catmull-Rom 5-tap,
+    YCoCg clipping, history weight 0.8과 lifecycle을 같게 유지하고 full-screen 대
+    first-pass edge-selective coverage/execution만 바꾼다. Release x64 build, lifecycle
+    failures 0, 4-way capture 3,840 PNG, residual process 0이 PASS했다. 재사용 control
+    2,880 PNG는 기존 formal capture와 byte mismatch 0이었다. IntelLabs/CGVQM official
+    commit `8302ff45b4ff5a691682baf23f7c007d6b591e98`, CUDA, FFV1 RGB round-trip mismatch
+    0의 16-result 집계도 PASS했다. Central motion에서 edge-selective는 matched
+    full-screen보다 Bistro +0.204826, Minecraft +0.033867점 높았다. Motion→still에서는
+    full-screen이 edge-selective보다 +0.185905/+0.097031점 높았지만 Standard보다 여전히
+    -0.379891/-0.810738점 낮았다. 따라서 restricted coverage는 transition 손실에 일부
+    관여하지만 전체 원인은 아니며, 중앙 motion 품질과 기존 matched-kernel 성능 이점을
+    고려해 persistence/confidence를 바로 추가하지 않는다. 다음 gate는 full-screen
+    Standard kernel에서 jitter만 On/Off로 분리하는 `ABL-Standard-NoJitter-R`이다.
+    자세한 결과는 `Docs/SMAA-Motion-To-Still-Coverage-Gate-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
