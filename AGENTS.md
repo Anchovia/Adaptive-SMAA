@@ -1318,6 +1318,26 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     순차 추가하는 2×4 component ladder이며, 그 전에는 motion-phase heuristic이나
     persistence를 추가하지 않는다. 자세한 결과는
     `Docs/SMAA-Document-Sample-Pattern-Interaction-Gate-ko.md`를 기준으로 한다.
+43. **FullScreenDocument Pattern On/Off × K0~K3 component ladder 완료:** 같은
+    FullScreenDocument compute 경로와 resolve-output feedback에서 K0 Bilinear/clip
+    Off/W0.5, K1 Catmull/Off/W0.5, K2 Catmull/YCoCg/W0.5, K3
+    Catmull/YCoCg/W0.8을 Pattern On/Off로 비교했다. Release x64, 33-phase lifecycle
+    failures 0, Bistro/Minecraft 10 mode×480 frames, 기존 control 8 sequence hash
+    mismatch 0, 공식 CGVQM-2 총 40 result validation과 FFV1 mismatch 0이 PASS했다.
+    Pattern Off−On은 K0부터 central motion Bistro +1.541496/Minecraft +1.128456,
+    transition +1.032890/+0.465149로 모두 양수였다. 후기 정지 K0 Pattern-On Δ1/Δ2도
+    1.524063/0.005024와 1.364133/0.004767로 2-phase variation이 이미 존재했다.
+    Catmull은 대체로 소폭 개선했고, clipping은 Pattern-On transition을
+    -1.754707/-1.699890 낮췄으며, weight 0.8은 그 transition을
+    +1.479050/+1.602196 회복하는 대신 central motion을 낮췄다. 따라서 문제는 K1~K3
+    추가 요소보다 앞선 K0에서 시작한다. 동시에 공식 `SMAAResolvePS` 재감사로 Standard는
+    point sampler, velocity-alpha adaptive weight `0..0.5`, previous spatial-frame
+    history를 사용하고 Document K0는 bilinear/fixed-0.5/resolved-output feedback을
+    사용함을 확인했다. 과거 Standard→CandidateOnly coverage-only attribution은 폐기한다.
+    다음 gate는 FullScreenDocument 안에서 sampler, weight policy, history feedback
+    topology를 직교 분리하고 공식 Standard compute mirror를 검증하는 것이다. 그 전에는
+    heuristic/persistence를 추가하지 않는다. 상세 결과는
+    `Docs/SMAA-Document-Kernel-Component-Ladder-Gate-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
