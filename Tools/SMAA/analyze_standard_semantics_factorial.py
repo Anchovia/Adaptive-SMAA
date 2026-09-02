@@ -232,9 +232,8 @@ def mean(rows: list[dict[str, Any]], key: str) -> float:
 
 def windows(first: int, expected: int) -> tuple[tuple[str, str, int, int], ...]:
     last = first + expected
-    result: list[tuple[str, str, int, int]] = [
-        ("capture", f"profile {first}~{last - 1}", 0, expected)
-    ]
+    overlaps: list[tuple[str, str, int, int]] = []
+    exact: tuple[str, str, int, int] | None = None
     for window in (
         ("central_motion", "중앙 이동", 150, 330),
         ("transition", "이동→정지", 410, 440),
@@ -244,10 +243,17 @@ def windows(first: int, expected: int) -> tuple[tuple[str, str, int, int], ...]:
         overlap_start = max(first, global_start)
         overlap_end = min(last, global_end)
         if overlap_start < overlap_end:
-            result.append(
-                (key, label, overlap_start - first, overlap_end - first)
-            )
-    return tuple(result)
+            entry = (key, label, overlap_start - first, overlap_end - first)
+            if entry[2] == 0 and entry[3] == expected and exact is None:
+                exact = entry
+            else:
+                overlaps.append(entry)
+    if exact is not None:
+        return (exact, *overlaps)
+    return (
+        ("capture", f"profile {first}~{last - 1}", 0, expected),
+        *overlaps,
+    )
 
 
 def factor_effects(mode_summaries: dict[str, Any], pattern: str) -> dict[str, float]:

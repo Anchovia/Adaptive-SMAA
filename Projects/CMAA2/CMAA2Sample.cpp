@@ -3950,12 +3950,23 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_standardSamplePatternMatrix;
     const bool          m_documentKernelLadderMatrix;
     const bool          m_standardSemanticsFactorialMatrix;
+    // Windowed factorial captures must reach their first saved frame through
+    // the same camera/history timeline as a full-profile capture. Other
+    // established capture commands retain their historical first-pose warmup.
+    const int           m_profilePreRollFrameCount;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
     bool                m_started = false;
     bool                m_isDone = false;
     wstring             m_outputDirs[c_maxCaptureModeCount];
+
+    int GetCurrentProfileFrame( ) const
+    {
+        if( m_profilePreRollFrameCount > 0 )
+            return vaMath::Max( 0, m_firstProfileFrame + m_currentFrame );
+        return m_firstProfileFrame + vaMath::Max( 0, m_currentFrame );
+    }
 
     vaSMAAWrapper::CandidateEdgeSource GetCandidateEdgeSource( int mode ) const
     {
@@ -4605,6 +4616,8 @@ public:
         m_standardSamplePatternMatrix( standardSamplePatternMatrix ),
         m_documentKernelLadderMatrix( documentKernelLadderMatrix ),
         m_standardSemanticsFactorialMatrix( standardSemanticsFactorialMatrix ),
+        m_profilePreRollFrameCount( standardSemanticsFactorialMatrix?
+            vaMath::Max( 0, firstProfileFrame ) : 0 ),
         m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 :
             (standardSemanticsFactorialMatrix? c_standardSemanticsFactorialModeCount :
             (documentKernelLadderMatrix? c_documentKernelLadderModeCount :
@@ -4721,13 +4734,21 @@ protected:
                 "Timeline:        fixed %d Hz; 60-frame pre/post still regions in the complete profile\r\n",
                 c_framePerSecond ) );
             abTool.ReportAddText( vaStringTools::Format(
-                "Warm-up:         %d frames at the first captured pose per mode\r\n",
+                m_profilePreRollFrameCount > 0?
+                    "Warm-up:         %d frames at profile frame 0 per mode\r\n" :
+                    "Warm-up:         %d frames at the first captured pose per mode\r\n",
                 m_warmupFrameCount ) );
+            if( m_profilePreRollFrameCount > 0 )
+                abTool.ReportAddText( vaStringTools::Format(
+                    "Pre-roll:        profile frames 0..%d rendered without PNG output so temporal history matches a full-profile capture\r\n",
+                    m_firstProfileFrame - 1 ) );
             abTool.ReportAddText( "API/preset:      DirectX 11, SMAA Ultra\r\n" );
             abTool.ReportAddText( "Motion scope:    camera motion only; object motion vectors are not connected\r\n" );
             abTool.ReportAddText( fullProfile?
                 "Classification:  complete camera profile quality capture; PNG output is not a performance measurement\r\n" :
-                "Classification:  engineering subset/smoke; not a formal quality or performance result\r\n" );
+                (m_profilePreRollFrameCount > 0?
+                    "Classification:  formal diagnostic window with full-profile temporal pre-roll; PNG output is not a performance measurement\r\n" :
+                    "Classification:  engineering subset/smoke; not a formal quality or performance result\r\n") );
             if( m_referenceOnly )
             {
                 abTool.ReportAddText( vaStringTools::Format(
@@ -4856,7 +4877,7 @@ protected:
             }
 
             m_currentMode = 0;
-            m_currentFrame = -m_warmupFrameCount - 1;
+            m_currentFrame = -m_warmupFrameCount - m_profilePreRollFrameCount - 1;
             m_parent.ResetSMAATemporalHistoryForDiagnostics( );
             // Render one uncounted readiness frame before the measured warm-up.
             // AutoBench Tick is paused while that frame reports shader/resource
@@ -4866,15 +4887,17 @@ protected:
             return;
         }
 
-        if( m_currentFrame == -m_warmupFrameCount - 1 )
+        if( m_currentFrame == -m_warmupFrameCount - m_profilePreRollFrameCount - 1 )
             m_parent.ResetSMAATemporalHistoryForDiagnostics( );
 
         // Hold the first pose while scene resources and shadow maps settle so
         // each mode starts from the same fully rendered lighting state.
-        if( m_currentFrame == -1 && m_parent.HasPendingShadowmapUpdates( ) )
+        if( m_currentFrame == -m_profilePreRollFrameCount - 1
+            && m_parent.HasPendingShadowmapUpdates( ) )
         {
             m_parent.SetSMAACameraMotionTestState(
-                m_scene, m_profile, m_firstProfileFrame );
+                m_scene, m_profile, m_profilePreRollFrameCount > 0?
+                    0 : m_firstProfileFrame );
             return;
         }
 
@@ -4902,7 +4925,7 @@ protected:
                 abTool.ReportFinish( );
                 return;
             }
-            m_currentFrame = -m_warmupFrameCount;
+            m_currentFrame = -m_warmupFrameCount - m_profilePreRollFrameCount;
             m_parent.ResetSMAATemporalHistoryForDiagnostics( );
         }
 
@@ -4924,8 +4947,7 @@ protected:
         }
         m_parent.Settings( ).CurrentAAOption = m_referenceOnly?
             CMAA2Sample::AAType::SuperSampleReference : GetModeAAType( m_currentMode );
-        const int profileFrame = m_firstProfileFrame
-            + vaMath::Max( 0, m_currentFrame );
+        const int profileFrame = GetCurrentProfileFrame( );
         m_parent.SetSMAACameraMotionTestState( m_scene, m_profile, profileFrame );
     }
 
@@ -4965,9 +4987,10 @@ protected:
     }
     virtual float GetProgress( ) const override
     {
-        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int framesPerMode = m_warmupFrameCount
+            + m_profilePreRollFrameCount + m_captureFrameCount;
         const int completedFrames = m_currentMode * framesPerMode
-            + m_currentFrame + m_warmupFrameCount;
+            + m_currentFrame + m_warmupFrameCount + m_profilePreRollFrameCount;
         return vaMath::Clamp( (float)completedFrames
             / (float)(framesPerMode * m_modeCount), 0.0f, 1.0f );
     }
