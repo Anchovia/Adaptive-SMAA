@@ -397,9 +397,24 @@ Original mode는 기존 edge target/shader path를 유지한다.
   0.047~0.058 RGB level 차이와 rare max error가 있어 exact reproduction이라고 표현하지 않는다.
   final 8-case semantics는 변경하지 않았으며 다음 feedback-only gate와 제한사항은
   `Docs/SMAA-Standard-Temporal-Semantics-Factorial-Gate-ko.md`를 기준으로 한다.
+- 실제 integrated `O-ET2X-R`에서 history feedback만 바꾸는 후속 gate는
+  `Docs/SMAA-ET2X-Feedback-Topology-Gate-ko.md`를 기준으로 한다.
+  `SMAA_O_ABLATION_ET2X_SPATIAL_FEEDBACK_R`은 visible resolve는 유지하면서 다음 history를
+  current spatial frame으로 바꾸는 진단 mode다. Bistro/Minecraft formal 결과에서
+  SpatialFrame은 중앙 이동 CGVQM-2를 각각 `+0.192383`/`+0.131592` 높였지만 이동→정지에서는
+  `-0.114967`/`-0.242111` 낮췄고, restore copy 약 `0.022 ms` 때문에 SMAA 시간이
+  `+5.734~7.200%` 증가했다. 따라서 motion-phase trade-off로 판정하고 final 8-case의
+  ET2X는 Intel 공개 문서에 부합하는 `ResolvedOutput` feedback을 유지한다.
+  `-smaaTemporalFeedbackTest`와 `-smaaTemporalSpatialFeedbackTest`는 각각 Resolved history와
+  Spatial history/visible pre-restore resolve를 byte/hash로 검증하며 mismatch 0으로 PASS했다.
+  feedback capture/performance/test는 candidate source/policy/expansion/removal,
+  sampler/clipping, execution/debug/object-motion/forced-count override를 통제하고 종료 시 이전
+  상태를 복원한다. 후속 개선은 global feedback 교체가 아니라 phase/confidence/persistence를
+  각각 독립 gate로 검증한다.
 - `Tools/SMAA/run_clean_cmaa2.ps1`은 Test/Capture/Smoke/Benchmark 명령에서 clean process 종료뿐
   아니라 새 AutoBench `_results.csv`의 실제 완성도 확인한 뒤에만 PASS를 출력한다. 결과 파일이
-  없거나 갱신되지 않은 실행은 exit code가 0이어도 실패로 처리한다.
+  없거나 갱신되지 않은 실행은 exit code가 0이어도 실패로 처리한다. `*Test` 명령은 새 CSV의
+  `Aggregate` 및 row-level FAIL도 검사하므로 내부 진단 실패를 정상 종료로 오인하지 않는다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
