@@ -1413,8 +1413,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 // Diagnostic capture only: expose the spatial T2X result before
                 // full-screen temporal resolve. The edge-selective path exposes
                 // its equivalent through DrawTSCMAADebugView. Keeping this after
-                // reproject preserves the normal history feedback/lifecycle while
-                // making final-vs-spatial output contribution directly measurable.
+                // reproject preserves the normal two-frame spatial-history
+                // lifecycle while making final-vs-spatial output contribution
+                // directly measurable. Standard SMAA does not feed dstRT back
+                // into currentHistory; document/ET2X resolve does.
                 if( GetTemporalDebugView( ) == TemporalDebugView::CurrentSpatial )
                 {
                     dx11Context->CopyResource(
