@@ -22,6 +22,22 @@ if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
     throw "Release executable not found: $executable"
 }
 
+$autoBenchRoot = Join-Path $repositoryRoot 'Projects\CMAA2\AutoBench'
+$expectsAutoBenchReport = @($CMAA2Arguments | Where-Object {
+    $_ -match '^-[^\s]*(Test|Capture|Smoke|Benchmark)$'
+}).Count -ne 0
+$reportsBefore = @{}
+if ($expectsAutoBenchReport -and (Test-Path -LiteralPath $autoBenchRoot -PathType Container)) {
+    foreach ($report in Get-ChildItem -LiteralPath $autoBenchRoot -Directory |
+        ForEach-Object {
+            Get-ChildItem -LiteralPath $_.FullName -File -Filter '*_results.csv' `
+                -ErrorAction SilentlyContinue
+        }) {
+        $reportsBefore[$report.FullName] = '{0}:{1}' -f @(
+            $report.Length, $report.LastWriteTimeUtc.Ticks)
+    }
+}
+
 $startParameters = @{
     FilePath = $executable
     ArgumentList = $CMAA2Arguments
@@ -51,4 +67,25 @@ if ($process.ExitCode -ne 0) {
     throw "CMAA2 exited with code $($process.ExitCode)"
 }
 
-Write-Output "PASS: clean CMAA2 process exited normally (PID $($process.Id))"
+$completedReports = @()
+if ($expectsAutoBenchReport -and (Test-Path -LiteralPath $autoBenchRoot -PathType Container)) {
+    $completedReports = @(Get-ChildItem -LiteralPath $autoBenchRoot -Directory |
+        ForEach-Object {
+            Get-ChildItem -LiteralPath $_.FullName -File -Filter '*_results.csv' `
+                -ErrorAction SilentlyContinue
+        } | Where-Object {
+            $fingerprint = '{0}:{1}' -f @($_.Length, $_.LastWriteTimeUtc.Ticks)
+            -not $reportsBefore.ContainsKey($_.FullName) -or
+                $reportsBefore[$_.FullName] -ne $fingerprint
+        })
+    if ($completedReports.Count -eq 0) {
+        throw 'CMAA2 exited without a new finalized AutoBench results CSV; treating the run as failed'
+    }
+}
+
+$reportSuffix = if ($completedReports.Count -gt 0) {
+    "; report=$($completedReports[-1].FullName)"
+} else {
+    ''
+}
+Write-Output "PASS: clean CMAA2 process exited normally (PID $($process.Id))$reportSuffix"
