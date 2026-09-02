@@ -147,6 +147,26 @@ namespace VertexAsylum
             SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_ON_R, // Diagnostic ladder K2: Catmull-Rom, YCoCg clip, weight 0.5, paired pattern On
             SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_OFF_R, // Diagnostic ladder K2: Catmull-Rom, YCoCg clip, weight 0.5, paired pattern Off
 
+            // Full 2x2x2 Standard-semantics factorial in the common
+            // FullScreenDocument compute path. The first eight use the paired
+            // official T2X sample pattern; the second eight disable that pair.
+            SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_POINT_ADAPTIVE_RESOLVED_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_POINT_FIXED_SPATIAL_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_POINT_FIXED_RESOLVED_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_SPATIAL_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_RESOLVED_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_BILINEAR_FIXED_SPATIAL_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_BILINEAR_FIXED_RESOLVED_PATTERN_ON_R,
+            SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_POINT_ADAPTIVE_RESOLVED_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_POINT_FIXED_SPATIAL_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_POINT_FIXED_RESOLVED_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_SPATIAL_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_RESOLVED_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_BILINEAR_FIXED_SPATIAL_PATTERN_OFF_R,
+            SMAA_O_ABLATION_FS_BILINEAR_FIXED_RESOLVED_PATTERN_OFF_R,
+
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
 

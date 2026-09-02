@@ -48,9 +48,15 @@ struct SMAAReprojectionConstants
     // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3),
     // z: forced candidate count, w: forced-count diagnostics enabled.
     float4 TSCMAACandidateParams;
-    // x: history sampler enum (0 bilinear, 1 Catmull-Rom 5-tap),
+    // x: history sampler enum (0 bilinear, 1 Catmull-Rom 5-tap, 2 point),
     // y: history clipping enum (0 off, 1 YCoCg variance).
     float4 TSCMAAResolveParams;
+    // x: history weight policy (0 fixed, 1 official SMAA velocity-alpha
+    // adaptive 0..0.5), y: history feedback topology (0 resolved output,
+    // 1 current spatial frame), z: history bounds policy (0 reject outside,
+    // 1 sampler clamp). Feedback is consumed by the C++ scheduler; it is
+    // included here to keep diagnostic captures self-describing.
+    float4 TSCMAASemanticParams;
     // x: candidate edge source enum
     // (0 legacy luma re-detection, 1 SMAA first-pass edge reuse),
     // y: write full-resolution base/candidate diagnostic masks,
@@ -72,6 +78,7 @@ struct SMAAReprojectionConstants
     VertexAsylum::vaVector4 TSCMAAParams;
     VertexAsylum::vaVector4 TSCMAACandidateParams;
     VertexAsylum::vaVector4 TSCMAAResolveParams;
+    VertexAsylum::vaVector4 TSCMAASemanticParams;
     VertexAsylum::vaVector4 TSCMAACandidateSourceParams;
     VertexAsylum::vaVector4 TSCMAAHybridParams;
 #endif
@@ -1190,14 +1197,17 @@ bool TSCMAAResolveTemporalPixel(int2 pixel, int2 dimensions, out float4 resolved
     if (g_SMAAReprojection.TSCMAAParams.z > 0.5)
         historyUV -= velocityTex.Load(int3(pixel, 0)).xy;
 
-    if (any(historyUV <= 0.0) || any(historyUV >= 1.0)) {
+    bool rejectOutsideHistory = g_SMAAReprojection.TSCMAASemanticParams.z < 0.5;
+    if (rejectOutsideHistory && (any(historyUV <= 0.0) || any(historyUV >= 1.0))) {
         resolvedColor = currentColor;
         return false;
     }
 
     float4 historyColor;
     [branch]
-    if (g_SMAAReprojection.TSCMAAResolveParams.x > 0.5)
+    if (g_SMAAReprojection.TSCMAAResolveParams.x > 1.5)
+        historyColor = tscmaaHistoryColor.SampleLevel(PointSampler, historyUV, 0.0);
+    else if (g_SMAAReprojection.TSCMAAResolveParams.x > 0.5)
         historyColor = TSCMAASampleHistoryCatmullRom5Tap(historyUV, float2(dimensions));
     else
         historyColor = tscmaaHistoryColor.SampleLevel(LinearSampler, historyUV, 0.0);
@@ -1219,7 +1229,20 @@ bool TSCMAAResolveTemporalPixel(int2 pixel, int2 dimensions, out float4 resolved
     }
 
     float historyWeight = g_SMAAReprojection.TSCMAAParams.x;
-    resolvedColor = float4(lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);
+    [branch]
+    if (g_SMAAReprojection.TSCMAASemanticParams.x > 0.5) {
+        // Exact scalar rule from the official SMAAResolvePS reprojection path.
+        // Neighborhood blending stores sqrt(5 * |velocity|) in alpha; comparing
+        // squared alpha reconstructs the velocity-magnitude delta used by SMAA.
+        float delta = abs(currentColor.a * currentColor.a
+            - historyColor.a * historyColor.a) / 5.0;
+        historyWeight = 0.5 * saturate(1.0 - sqrt(delta) * 30.0);
+        resolvedColor = lerp(currentColor, historyColor, historyWeight);
+    } else {
+        // Preserve the established document/ET2X behavior byte-for-byte.
+        resolvedColor = float4(
+            lerp(currentColor.rgb, historyColor.rgb, historyWeight), currentColor.a);
+    }
     if (g_SMAAReprojection.TSCMAAParams.w > 0.5)
         resolvedColor.rgb = TSCMAALinearToSRGB(resolvedColor.rgb);
 

@@ -1115,6 +1115,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.TSCMAAResolveParams = vaVector4( (float)(int)GetEffectiveHistorySampler( ),
             (float)(int)GetEffectiveHistoryClipping( ), GetClippingDebugViewsEnabled( )? 1.0f : 0.0f,
             GetClippingDebugViewsEnabled( )? (float)((int)GetTemporalDebugView( ) - (int)TemporalDebugView::CurrentSpatial) : 0.0f );
+        m_reprojectionConstants.TSCMAASemanticParams = vaVector4(
+            (float)(int)temporalSettings.WeightPolicy,
+            (float)(int)temporalSettings.Feedback,
+            (float)(int)temporalSettings.Bounds, 0.0f );
         const bool writeCandidateDiagnosticMasks =
             GetTemporalDebugView( ) == TemporalDebugView::BaseEdges
             || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates;
@@ -1355,8 +1359,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     deviceContext.SetOutputs( rtState );
                     return tscmaaResult;
                 }
-                ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
-                    dstRT, temporalHistoryValidBefore );
+                if( GetTemporalSettings( ).Feedback == HistoryFeedback::ResolvedOutput )
+                    ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
+                        dstRT, temporalHistoryValidBefore );
             }
             else if( GetDocumentFullScreenTemporalEnabled( ) )
             {
@@ -1384,8 +1389,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     deviceContext.SetOutputs( rtState );
                     return fullScreenResult;
                 }
-                ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
-                    dstRT, temporalHistoryValidBefore );
+                if( GetTemporalSettings( ).Feedback == HistoryFeedback::ResolvedOutput )
+                    ValidateTemporalFeedbackDiagnostics( dx11Context, previousHistory, currentHistory,
+                        dstRT, temporalHistoryValidBefore );
             }
             else
             {
@@ -1551,7 +1557,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
     vaTextureDX11 * previousHistoryDX11 = previousHistory->SafeCast<vaTextureDX11*>( );
     vaTextureDX11 * outputHistoryDX11 = outputHistory->SafeCast<vaTextureDX11*>( );
     vaTextureDX11 * destinationDX11 = destination->SafeCast<vaTextureDX11*>( );
-    const bool dualOutput = GetTemporalDualOutputOptimizationEnabled( )
+    const bool spatialFrameFeedback =
+        GetTemporalSettings( ).Feedback == HistoryFeedback::SpatialFrame;
+    const bool dualOutput = !spatialFrameFeedback && GetTemporalDualOutputOptimizationEnabled( )
         && !GetClippingDebugViewsEnabled( ) && destinationDX11->GetUAV( ) != nullptr;
 
     if( dualOutput )
@@ -1577,6 +1585,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
     ID3D11ComputeShader * resolveShader =
         (dualOutput? m_tscmaaResolveFullScreenDualOutputCS : m_tscmaaResolveFullScreenCS)
             ->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    // Always resolve through the wrapper-owned UAV. The main destination is
+    // not guaranteed to expose a UAV on every CMAA2 presentation path. For
+    // official SpatialFrame feedback we copy the resolved image to the visible
+    // destination and then restore this frame's spatial image in the ping-pong
+    // history resource.
     ID3D11UnorderedAccessView * outputUAV = outputHistoryDX11->GetUAV( );
     if( resolveShader == nullptr || outputUAV == nullptr )
         return vaDrawResultFlags::ShadersStillCompiling;
@@ -1602,7 +1615,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
     }
     dx11Context->CSSetShaderResources( 7, _countof( SRVs ), SRVs );
     dx11Context->CSSetConstantBuffers( 1, 1, &reprojectionConstants );
-    dx11Context->CSSetSamplers( 0, 1, &m_LinearSampler );
+    ID3D11SamplerState * samplers[2] = { m_LinearSampler, m_PointSampler };
+    dx11Context->CSSetSamplers( 0, 2, samplers );
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAAResolveFullScreen, deviceContext );
         dx11Context->CSSetShader( resolveShader, nullptr, 0 );
@@ -1612,19 +1626,24 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
 
     ID3D11UnorderedAccessView * nullUAV = nullptr;
     ID3D11Buffer * nullConstantBuffer = nullptr;
-    ID3D11SamplerState * nullSampler = nullptr;
+    ID3D11SamplerState * nullSamplers[2] = { nullptr, nullptr };
     dx11Context->CSSetShader( nullptr, nullptr, 0 );
     dx11Context->CSSetUnorderedAccessViews( 0, 1, &nullUAV, nullptr );
     if( dualOutput )
         dx11Context->CSSetUnorderedAccessViews( 6, 1, &nullUAV, nullptr );
     dx11Context->CSSetShaderResources( 7, _countof( nullSRVs ), nullSRVs );
     dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
-    dx11Context->CSSetSamplers( 0, 1, &nullSampler );
+    dx11Context->CSSetSamplers( 0, 2, nullSamplers );
 
     if( !dualOutput )
     {
         VA_SCOPE_CPUGPU_TIMER( TSCMAAOutputCopy, deviceContext );
         dx11Context->CopyResource( destinationDX11->GetResource( ), outputHistoryDX11->GetResource( ) );
+    }
+    if( spatialFrameFeedback )
+    {
+        VA_SCOPE_CPUGPU_TIMER( TSCMAARestoreSpatialHistory, deviceContext );
+        dx11Context->CopyResource( outputHistoryDX11->GetResource( ), currentSpatialDX11->GetResource( ) );
     }
     return vaDrawResultFlags::None;
 }

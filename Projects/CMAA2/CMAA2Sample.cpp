@@ -38,6 +38,18 @@ using namespace VertexAsylum;
 
 namespace
 {
+    bool IsSMAAStandardSemanticsFactorialMode( CMAA2Sample::AAType aaType )
+    {
+        return aaType >= CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_ON_R
+            && aaType <= CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_FIXED_RESOLVED_PATTERN_OFF_R;
+    }
+
+    int GetSMAAStandardSemanticsFactorialIndex( CMAA2Sample::AAType aaType )
+    {
+        assert( IsSMAAStandardSemanticsFactorialMode( aaType ) );
+        return (int)aaType - (int)CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_ON_R;
+    }
+
     bool IsSMAASingleSample( CMAA2Sample::AAType aaType )
     {
         return aaType == CMAA2Sample::AAType::SMAA
@@ -71,7 +83,8 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K1_PATTERN_ON_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K1_PATTERN_OFF_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_ON_R
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_OFF_R;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_OFF_R
+            || IsSMAAStandardSemanticsFactorialMode( aaType );
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -93,6 +106,31 @@ namespace
     {
         vaSMAAWrapper::TemporalSettings settings;
 
+        if( IsSMAAStandardSemanticsFactorialMode( aaType ) )
+        {
+            const int index = GetSMAAStandardSemanticsFactorialIndex( aaType );
+            const int cell = index & 7;
+            const bool patternOff = index >= 8;
+            const bool bilinear = (cell & 4) != 0;
+            const bool fixedWeight = (cell & 2) != 0;
+            const bool resolvedFeedback = (cell & 1) != 0;
+
+            settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreenDocument;
+            settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
+            settings.Jitter = patternOff? vaSMAAWrapper::JitterPolicy::None :
+                vaSMAAWrapper::JitterPolicy::SMAAT2X;
+            settings.Sampler = bilinear? vaSMAAWrapper::HistorySampler::Bilinear :
+                vaSMAAWrapper::HistorySampler::Point;
+            settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
+            settings.WeightPolicy = fixedWeight? vaSMAAWrapper::HistoryWeightPolicy::Fixed :
+                vaSMAAWrapper::HistoryWeightPolicy::SMAAVelocityAdaptive;
+            settings.Feedback = resolvedFeedback? vaSMAAWrapper::HistoryFeedback::ResolvedOutput :
+                vaSMAAWrapper::HistoryFeedback::SpatialFrame;
+            settings.Bounds = vaSMAAWrapper::HistoryBounds::Clamp;
+            settings.HistoryWeight = 0.5f;
+            return settings;
+        }
+
         switch( aaType )
         {
         case CMAA2Sample::AAType::SMAA_O_T2X:
@@ -100,8 +138,11 @@ namespace
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::Off;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
-            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
+            settings.Sampler = vaSMAAWrapper::HistorySampler::Point;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
+            settings.WeightPolicy = vaSMAAWrapper::HistoryWeightPolicy::Fixed;
+            settings.Feedback = vaSMAAWrapper::HistoryFeedback::SpatialFrame;
+            settings.Bounds = vaSMAAWrapper::HistoryBounds::Clamp;
             settings.HistoryWeight = 0.5f;
             break;
         case CMAA2Sample::AAType::SMAA_O_T2X_R:
@@ -109,8 +150,11 @@ namespace
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
-            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
+            settings.Sampler = vaSMAAWrapper::HistorySampler::Point;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
+            settings.WeightPolicy = vaSMAAWrapper::HistoryWeightPolicy::SMAAVelocityAdaptive;
+            settings.Feedback = vaSMAAWrapper::HistoryFeedback::SpatialFrame;
+            settings.Bounds = vaSMAAWrapper::HistoryBounds::Clamp;
             settings.HistoryWeight = 0.5f;
             break;
         case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R:
@@ -127,8 +171,11 @@ namespace
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
-            settings.Sampler = vaSMAAWrapper::HistorySampler::Bilinear;
+            settings.Sampler = vaSMAAWrapper::HistorySampler::Point;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::Off;
+            settings.WeightPolicy = vaSMAAWrapper::HistoryWeightPolicy::SMAAVelocityAdaptive;
+            settings.Feedback = vaSMAAWrapper::HistoryFeedback::SpatialFrame;
+            settings.Bounds = vaSMAAWrapper::HistoryBounds::Clamp;
             settings.HistoryWeight = 0.5f;
             break;
         case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
@@ -305,7 +352,31 @@ namespace
 
     const char * GetHistorySamplerName( vaSMAAWrapper::HistorySampler value )
     {
-        return (value == vaSMAAWrapper::HistorySampler::CatmullRom5Tap)? "CatmullRom5Tap" : "Bilinear";
+        switch( value )
+        {
+        case vaSMAAWrapper::HistorySampler::Bilinear:         return "Bilinear";
+        case vaSMAAWrapper::HistorySampler::CatmullRom5Tap:   return "CatmullRom5Tap";
+        case vaSMAAWrapper::HistorySampler::Point:            return "Point";
+        default:                                              return "Unknown";
+        }
+    }
+
+    const char * GetHistoryWeightPolicyName( vaSMAAWrapper::HistoryWeightPolicy value )
+    {
+        return value == vaSMAAWrapper::HistoryWeightPolicy::SMAAVelocityAdaptive?
+            "SMAAVelocityAdaptive" : "Fixed";
+    }
+
+    const char * GetHistoryFeedbackName( vaSMAAWrapper::HistoryFeedback value )
+    {
+        return value == vaSMAAWrapper::HistoryFeedback::SpatialFrame?
+            "SpatialFrame" : "ResolvedOutput";
+    }
+
+    const char * GetHistoryBoundsName( vaSMAAWrapper::HistoryBounds value )
+    {
+        return value == vaSMAAWrapper::HistoryBounds::Clamp?
+            "Clamp" : "RejectOutside";
     }
 
     const char * GetHistoryClippingName( vaSMAAWrapper::HistoryClipping value )
@@ -437,6 +508,12 @@ namespace
             { L"ABL-FS-K2-Catmull-Clip-W05-PatternOff-R",
                 CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_OFF_R,
                 "ABL-FS-K2-Catmull-Clip-W05-PatternOff-R" },
+            { L"ABL-FS-Point-Adaptive-Spatial-PatternOn-R",
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_ON_R,
+                "ABL-FS-Point-Adaptive-Spatial-PatternOn-R" },
+            { L"ABL-FS-Point-Adaptive-Spatial-PatternOff-R",
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_OFF_R,
+                "ABL-FS-Point-Adaptive-Spatial-PatternOff-R" },
             { L"A-1X",     CMAA2Sample::AAType::SMAA_A_1X,     "A-1X" },
             { L"A-T2X",    CMAA2Sample::AAType::SMAA_A_T2X,    "A-T2X" },
             { L"A-T2X-R",  CMAA2Sample::AAType::SMAA_A_T2X_R,  "A-T2X-R" },
@@ -646,6 +723,30 @@ CMAA2Sample::~CMAA2Sample()
 
 const char* CMAA2Sample::GetAAName(AAType aaType)
 {
+    if( IsSMAAStandardSemanticsFactorialMode( aaType ) )
+    {
+        static const char * c_names[16] =
+        {
+            "ABL-FS-Point-Adaptive-Spatial-PatternOn-R",
+            "ABL-FS-Point-Adaptive-Resolved-PatternOn-R",
+            "ABL-FS-Point-Fixed-Spatial-PatternOn-R",
+            "ABL-FS-Point-Fixed-Resolved-PatternOn-R",
+            "ABL-FS-Bilinear-Adaptive-Spatial-PatternOn-R",
+            "ABL-FS-Bilinear-Adaptive-Resolved-PatternOn-R",
+            "ABL-FS-Bilinear-Fixed-Spatial-PatternOn-R",
+            "ABL-FS-Bilinear-Fixed-Resolved-PatternOn-R",
+            "ABL-FS-Point-Adaptive-Spatial-PatternOff-R",
+            "ABL-FS-Point-Adaptive-Resolved-PatternOff-R",
+            "ABL-FS-Point-Fixed-Spatial-PatternOff-R",
+            "ABL-FS-Point-Fixed-Resolved-PatternOff-R",
+            "ABL-FS-Bilinear-Adaptive-Spatial-PatternOff-R",
+            "ABL-FS-Bilinear-Adaptive-Resolved-PatternOff-R",
+            "ABL-FS-Bilinear-Fixed-Spatial-PatternOff-R",
+            "ABL-FS-Bilinear-Fixed-Resolved-PatternOff-R"
+        };
+        return c_names[GetSMAAStandardSemanticsFactorialIndex( aaType )];
+    }
+
     switch (aaType)
     {
     case CMAA2Sample::AAType::None:                 return "None";
@@ -729,6 +830,13 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
 
 int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
 {
+    // The Standard-semantics factorial entries are diagnostic SMAA modes,
+    // contiguous in AAType but intentionally not duplicated in the switch
+    // below.  They always render a single spatial sample before temporal
+    // resolve, just like the other SMAA T2X modes.
+    if( IsSMAAStandardSemanticsFactorialMode( aaType ) )
+        return 1;
+
     switch (aaType)
     {
     case CMAA2Sample::AAType::None:
@@ -2027,7 +2135,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
         m_SMAA->GetEffectiveHistoryClipping( ) : temporalSMAASettings.Clipping;
     if( IsSMAASingleSample( m_settings.CurrentAAOption ) && m_lastLoggedSMAAOption != m_settings.CurrentAAOption )
     {
-        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, nonCandidateBase=%s, candidateSource=%s%s, candidates=%s%s, expansion=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
+        VA_LOG( "SMAA profile '%s': spatial=%s, coverage=%s, reprojection=%s, jitter=%s, sampler=%s%s, clipping=%s%s, weightPolicy=%s, feedback=%s, bounds=%s, nonCandidateBase=%s, candidateSource=%s%s, candidates=%s%s, expansion=%s%s, historyWeight=%.3f, nonDominantRemoval=%.3f, edgeThreshold=%.6f",
             GetAAName( m_settings.CurrentAAOption ),
             GetSpatialSearchName( spatialSMAASearch ),
             GetTemporalCoverageName( temporalSMAASettings.Coverage ),
@@ -2037,6 +2145,9 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
             edgeSelectiveProfile && m_SMAA->GetHistorySamplerOverrideEnabled( )? " [diagnostic override]" : "",
             GetHistoryClippingName( effectiveClipping ),
             edgeSelectiveProfile && m_SMAA->GetHistoryClippingOverrideEnabled( )? " [diagnostic override]" : "",
+            GetHistoryWeightPolicyName( temporalSMAASettings.WeightPolicy ),
+            GetHistoryFeedbackName( temporalSMAASettings.Feedback ),
+            GetHistoryBoundsName( temporalSMAASettings.Bounds ),
             GetNonCandidateBaseName( temporalSMAASettings.NonCandidate ),
             GetCandidateEdgeSourceName( m_SMAA->GetEffectiveCandidateEdgeSource( ) ),
             m_SMAA->GetCandidateEdgeSourceOverrideEnabled( )? " [diagnostic override]" : "",
@@ -3810,7 +3921,9 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     static const int    c_motionToStillCoverageModeCount = 4;
     static const int    c_standardSamplePatternModeCount = 6;
     static const int    c_documentKernelLadderModeCount = 10;
+    static const int    c_standardSemanticsFactorialModeCount = 18;
     static const int    c_fullModeCount = 10;
+    static const int    c_maxCaptureModeCount = c_standardSemanticsFactorialModeCount;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SceneSelectionType m_scene;
     const CMAA2Sample::SMAACameraMotionProfile m_profile;
@@ -3836,12 +3949,13 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_motionToStillCoverageMatrix;
     const bool          m_standardSamplePatternMatrix;
     const bool          m_documentKernelLadderMatrix;
+    const bool          m_standardSemanticsFactorialMatrix;
     const int           m_modeCount;
     int                 m_currentMode = 0;
     int                 m_currentFrame = 0;
     bool                m_started = false;
     bool                m_isDone = false;
-    wstring             m_outputDirs[c_fullModeCount];
+    wstring             m_outputDirs[c_maxCaptureModeCount];
 
     vaSMAAWrapper::CandidateEdgeSource GetCandidateEdgeSource( int mode ) const
     {
@@ -3951,6 +4065,32 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "O-ET2X-R"
             };
             return c_standardSamplePatternModeIDs[mode];
+        }
+        if( m_standardSemanticsFactorialMatrix )
+        {
+            static const char * c_standardSemanticsFactorialModeIDs[
+                c_standardSemanticsFactorialModeCount] =
+            {
+                "O-T2X-R",
+                "ABL-Standard-PatternOff-R",
+                "ABL-FS-Point-Adaptive-Spatial-PatternOn-R",
+                "ABL-FS-Point-Adaptive-Resolved-PatternOn-R",
+                "ABL-FS-Point-Fixed-Spatial-PatternOn-R",
+                "ABL-FS-Point-Fixed-Resolved-PatternOn-R",
+                "ABL-FS-Bilinear-Adaptive-Spatial-PatternOn-R",
+                "ABL-FS-Bilinear-Adaptive-Resolved-PatternOn-R",
+                "ABL-FS-Bilinear-Fixed-Spatial-PatternOn-R",
+                "ABL-FS-Bilinear-Fixed-Resolved-PatternOn-R",
+                "ABL-FS-Point-Adaptive-Spatial-PatternOff-R",
+                "ABL-FS-Point-Adaptive-Resolved-PatternOff-R",
+                "ABL-FS-Point-Fixed-Spatial-PatternOff-R",
+                "ABL-FS-Point-Fixed-Resolved-PatternOff-R",
+                "ABL-FS-Bilinear-Adaptive-Spatial-PatternOff-R",
+                "ABL-FS-Bilinear-Adaptive-Resolved-PatternOff-R",
+                "ABL-FS-Bilinear-Fixed-Spatial-PatternOff-R",
+                "ABL-FS-Bilinear-Fixed-Resolved-PatternOff-R"
+            };
+            return c_standardSemanticsFactorialModeIDs[mode];
         }
         if( m_documentKernelLadderMatrix )
         {
@@ -4109,6 +4249,32 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             };
             return c_standardSamplePatternModeDirectories[mode];
         }
+        if( m_standardSemanticsFactorialMatrix )
+        {
+            static const char * c_standardSemanticsFactorialModeDirectories[
+                c_standardSemanticsFactorialModeCount] =
+            {
+                "O_T2X_R",
+                "ABL_Standard_PatternOff_R",
+                "ABL_FS_Point_Adaptive_Spatial_PatternOn_R",
+                "ABL_FS_Point_Adaptive_Resolved_PatternOn_R",
+                "ABL_FS_Point_Fixed_Spatial_PatternOn_R",
+                "ABL_FS_Point_Fixed_Resolved_PatternOn_R",
+                "ABL_FS_Bilinear_Adaptive_Spatial_PatternOn_R",
+                "ABL_FS_Bilinear_Adaptive_Resolved_PatternOn_R",
+                "ABL_FS_Bilinear_Fixed_Spatial_PatternOn_R",
+                "ABL_FS_Bilinear_Fixed_Resolved_PatternOn_R",
+                "ABL_FS_Point_Adaptive_Spatial_PatternOff_R",
+                "ABL_FS_Point_Adaptive_Resolved_PatternOff_R",
+                "ABL_FS_Point_Fixed_Spatial_PatternOff_R",
+                "ABL_FS_Point_Fixed_Resolved_PatternOff_R",
+                "ABL_FS_Bilinear_Adaptive_Spatial_PatternOff_R",
+                "ABL_FS_Bilinear_Adaptive_Resolved_PatternOff_R",
+                "ABL_FS_Bilinear_Fixed_Spatial_PatternOff_R",
+                "ABL_FS_Bilinear_Fixed_Resolved_PatternOff_R"
+            };
+            return c_standardSemanticsFactorialModeDirectories[mode];
+        }
         if( m_documentKernelLadderMatrix )
         {
             static const char * c_documentKernelLadderModeDirectories[
@@ -4264,6 +4430,32 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
             };
             return c_standardSamplePatternModes[mode];
         }
+        if( m_standardSemanticsFactorialMatrix )
+        {
+            static const CMAA2Sample::AAType c_standardSemanticsFactorialModes[
+                c_standardSemanticsFactorialModeCount] =
+            {
+                CMAA2Sample::AAType::SMAA_O_T2X_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_RESOLVED_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_FIXED_SPATIAL_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_FIXED_RESOLVED_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_SPATIAL_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_RESOLVED_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_FIXED_SPATIAL_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_FIXED_RESOLVED_PATTERN_ON_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_ADAPTIVE_RESOLVED_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_FIXED_SPATIAL_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_POINT_FIXED_RESOLVED_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_SPATIAL_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_ADAPTIVE_RESOLVED_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_FIXED_SPATIAL_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_FS_BILINEAR_FIXED_RESOLVED_PATTERN_OFF_R
+            };
+            return c_standardSemanticsFactorialModes[mode];
+        }
         if( m_documentKernelLadderMatrix )
         {
             static const CMAA2Sample::AAType c_documentKernelLadderModes[
@@ -4385,7 +4577,8 @@ public:
         bool expansionControlMatrix = false,
         bool motionToStillCoverageMatrix = false,
         bool standardSamplePatternMatrix = false,
-        bool documentKernelLadderMatrix = false )
+        bool documentKernelLadderMatrix = false,
+        bool standardSemanticsFactorialMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_profile( profile ),
@@ -4411,7 +4604,9 @@ public:
         m_motionToStillCoverageMatrix( motionToStillCoverageMatrix ),
         m_standardSamplePatternMatrix( standardSamplePatternMatrix ),
         m_documentKernelLadderMatrix( documentKernelLadderMatrix ),
+        m_standardSemanticsFactorialMatrix( standardSemanticsFactorialMatrix ),
         m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 :
+            (standardSemanticsFactorialMatrix? c_standardSemanticsFactorialModeCount :
             (documentKernelLadderMatrix? c_documentKernelLadderModeCount :
             (standardSamplePatternMatrix? c_standardSamplePatternModeCount :
             (motionToStillCoverageMatrix? c_motionToStillCoverageModeCount :
@@ -4423,7 +4618,7 @@ public:
             c_focusedModeCount : (armDualFilterMatrix?
             c_armDualFilterModeCount : (filteredQuarterMatrix?
             c_filteredQuarterModeCount : (currentEdgeDilationMatrix?
-            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount))))))))))))) )
+            c_dilationModeCount : (includeAdaptive? c_fullModeCount : c_originalModeCount)))))))))))))) )
     {
         assert( (int)referenceOnly + (int)includeAdaptive
             + (int)temporalRetentionMatrix + (int)currentEdgeDilationMatrix
@@ -4435,6 +4630,7 @@ public:
             + (int)motionToStillCoverageMatrix
             + (int)standardSamplePatternMatrix
             + (int)documentKernelLadderMatrix
+            + (int)standardSemanticsFactorialMatrix
             + (int)singleModeOnly <= 1 );
         assert( !candidateEdgeSourceReverseOrder || candidateEdgeSourceMatrix );
     }
@@ -4492,6 +4688,8 @@ protected:
                 captureTitle = "SMAA motion-to-still temporal-coverage isolation capture\r\n\r\n";
             else if( m_standardSamplePatternMatrix )
                 captureTitle = "SMAA Standard temporal sample-pattern isolation capture\r\n\r\n";
+            else if( m_standardSemanticsFactorialMatrix )
+                captureTitle = "SMAA Standard-semantics compute-mirror 2x2x2 factorial capture\r\n\r\n";
             else if( m_documentKernelLadderMatrix )
                 captureTitle = "SMAA full-screen document-kernel component ladder capture\r\n\r\n";
             else if( m_candidateEdgeSourceMatrix )
@@ -4588,6 +4786,18 @@ protected:
                         "Control limit:    Standard-vs-K0 changes sampler, weight policy, feedback topology, and execution path; controlled causal comparisons are within the K0-K3 FullScreenDocument ladder\r\n"
                         "Purpose:         locate the first component that creates the Pattern-On motion-to-still reversal and post-still two-phase variation\r\n"
                         "Classification:  diagnostic quality gate; ladder modes do not alter the final eight cases\r\n\r\n" );
+                }
+                else if( m_standardSemanticsFactorialMatrix )
+                {
+                    abTool.ReportAddText(
+                        "Comparison:      official Standard Pattern On/Off controls plus FullScreenDocument compute 2x2x2 factorial under paired Pattern On/Off\r\n"
+                        "Sampler axis:     point versus bilinear history sampling\r\n"
+                        "Weight axis:      official velocity-alpha adaptive 0..0.5 versus fixed 0.5\r\n"
+                        "Feedback axis:    previous spatial-frame history versus resolved-output recursive feedback\r\n"
+                        "Mirror cells:     Point + Adaptive + Spatial reproduce the official Standard temporal semantics in the common compute path\r\n"
+                        "Held constant:    Original SMAA spatial path, clipping Off, clamp history bounds, camera/depth reprojection, lifecycle, scene, pose and capture range\r\n"
+                        "Pattern axis:     projection jitter and matching SMAA T2X subsample indices change only as a valid coupled pair\r\n"
+                        "Classification:  diagnostic quality gate; factorial modes do not alter the final eight cases\r\n\r\n" );
                 }
                 else
                 {
@@ -7528,6 +7738,8 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         DocumentK1PatternOffR,
         DocumentK2PatternOnR,
         DocumentK2PatternOffR,
+        StandardComputeMirrorPatternOnR,
+        StandardComputeMirrorPatternOffR,
         ExplicitCameraCutReset,
         SceneChange,
         SceneRestore,
@@ -7597,6 +7809,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
             return "ABL-FS-K2-Catmull-Clip-W05-PatternOn-R mode change";
         case Phase::DocumentK2PatternOffR:
             return "ABL-FS-K2-Catmull-Clip-W05-PatternOff-R mode change";
+        case Phase::StandardComputeMirrorPatternOnR:
+            return "ABL-FS-Point-Adaptive-Spatial-PatternOn-R mode change";
+        case Phase::StandardComputeMirrorPatternOffR:
+            return "ABL-FS-Point-Adaptive-Spatial-PatternOff-R mode change";
         case Phase::ExplicitCameraCutReset: return "explicit camera-cut reset";
         case Phase::SceneChange:            return "scene change";
         case Phase::SceneRestore:           return "scene restore";
@@ -7618,7 +7834,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
 
     int RequiredTargetFrames( ) const
     {
-        return (int)m_phase <= (int)Phase::DocumentK2PatternOffR? 3 : 2;
+        return (int)m_phase <= (int)Phase::StandardComputeMirrorPatternOffR? 3 : 2;
     }
 
     void EnterPhase( Phase phase )
@@ -7739,6 +7955,14 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::DocumentK2PatternOffR:
             m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::
                 SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K2_PATTERN_OFF_R;
+            break;
+        case Phase::StandardComputeMirrorPatternOnR:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::
+                SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_ON_R;
+            break;
+        case Phase::StandardComputeMirrorPatternOffR:
+            m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::
+                SMAA_O_ABLATION_FS_POINT_ADAPTIVE_SPATIAL_PATTERN_OFF_R;
             break;
         case Phase::ExplicitCameraCutReset:
             // LoadCamera and other known camera cuts use this same history-reset
@@ -9306,6 +9530,9 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         const bool documentKernelLadder =
             _wcsicmp( parameter.first.c_str( ),
                 L"smaaDocumentKernelComponentLadderCapture" ) == 0;
+        const bool standardSemanticsFactorial =
+            _wcsicmp( parameter.first.c_str( ),
+                L"smaaStandardSemanticsFactorialCapture" ) == 0;
         if( cameraMotionOriginalFive || cameraMotionEightCase || cameraMotionReference
             || realSceneTemporalRetention || currentEdgeDilationAblation
             || filteredQuarterAblation || armDualFilterAblation
@@ -9315,7 +9542,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || integratedCandidateRemovalQuality
             || integratedCandidateRemovalFullTimeline
             || motionToStillCoverage || standardSamplePattern
-            || documentKernelLadder )
+            || documentKernelLadder || standardSemanticsFactorial )
         {
             wstring sceneToken = L"bistro";
             wstring profileToken = L"yaw-fast-360";
@@ -9398,7 +9625,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 return;
             }
             if( (motionToStillCoverage || standardSamplePattern
-                    || documentKernelLadder)
+                    || documentKernelLadder || standardSemanticsFactorial)
                 && scene != SceneSelectionType::LumberyardBistro
                 && scene != SceneSelectionType::MinecraftLostEmpire )
             {
@@ -9407,7 +9634,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 return;
             }
             if( (motionToStillCoverage || standardSamplePattern
-                    || documentKernelLadder)
+                    || documentKernelLadder || standardSemanticsFactorial)
                 && profile != SMAACameraMotionProfile::FlythroughWideYaw360 )
             {
                 VA_LOG_ERROR(
@@ -9440,11 +9667,14 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 candidateExpansionControl,
                 motionToStillCoverage,
                 standardSamplePattern,
-                documentKernelLadder ) );
+                documentKernelLadder,
+                standardSemanticsFactorial ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
                 "Queued SMAA camera-motion %s: scene=%s, profile=%s, profile frames [%d,%d], warm-up=%d",
                 cameraMotionReference? "supersample reference capture" :
+                    (standardSemanticsFactorial?
+                        "Standard-semantics compute-mirror factorial capture" :
                     (documentKernelLadder?
                         "full-screen document-kernel component ladder capture" :
                     (standardSamplePattern?
@@ -9467,7 +9697,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     (currentEdgeDilationAblation? "current-edge 3x3 dilation ablation capture" :
                     (realSceneTemporalRetention? "real-scene temporal-retention five-way capture" :
                     (cameraMotionEightCase? "final eight-case plus O/A 1X controls capture" :
-                        "Original five-way capture"))))))))))))),
+                        "Original five-way capture")))))))))))))),
                 GetSMAACameraMotionSceneName( scene ),
                 GetSMAACameraMotionProfileName( profile ), firstProfileFrame,
                 firstProfileFrame + captureFrameCount - 1, warmupFrameCount );

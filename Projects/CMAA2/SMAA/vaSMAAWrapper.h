@@ -80,7 +80,37 @@ namespace VertexAsylum
         enum class HistorySampler : int32
         {
             Bilinear,
-            CatmullRom5Tap
+            CatmullRom5Tap,
+            Point
+        };
+
+        // The document/ET2X path historically used one fixed history weight.
+        // Keep that behavior as the default and expose the official SMAA
+        // reprojection rule as an orthogonal diagnostic axis.
+        enum class HistoryWeightPolicy : int32
+        {
+            Fixed,
+            SMAAVelocityAdaptive
+        };
+
+        // ResolvedOutput is the existing document/ET2X recursive-feedback
+        // topology. SpatialFrame mirrors official SMAA T2X: each ping-pong
+        // texture stores this frame's spatial result while the temporal
+        // resolve is written only to the visible destination.
+        enum class HistoryFeedback : int32
+        {
+            ResolvedOutput,
+            SpatialFrame
+        };
+
+        // Official SMAAResolvePS relies on the point sampler's clamp address
+        // mode.  The document/ET2X path instead rejects history outside the
+        // viewport.  Keep this distinction explicit so weight-policy
+        // ablations are not silently confounded by border handling.
+        enum class HistoryBounds : int32
+        {
+            RejectOutside,
+            Clamp
         };
 
         enum class HistoryClipping : int32
@@ -296,6 +326,9 @@ namespace VertexAsylum
             JitterPolicy                 Jitter                      = JitterPolicy::None;
             HistorySampler               Sampler                     = HistorySampler::Bilinear;
             HistoryClipping              Clipping                    = HistoryClipping::Off;
+            HistoryWeightPolicy          WeightPolicy                = HistoryWeightPolicy::Fixed;
+            HistoryFeedback              Feedback                    = HistoryFeedback::ResolvedOutput;
+            HistoryBounds                Bounds                      = HistoryBounds::RejectOutside;
             NonCandidateBase             NonCandidate                = NonCandidateBase::CurrentSpatial;
             CandidateEdgeSource          CandidateSource             = CandidateEdgeSource::LegacyLumaRedetect;
             CandidatePolicy              Candidates                  = CandidatePolicy::AllBaseEdges;
@@ -316,6 +349,9 @@ namespace VertexAsylum
                     && Jitter == other.Jitter
                     && Sampler == other.Sampler
                     && Clipping == other.Clipping
+                    && WeightPolicy == other.WeightPolicy
+                    && Feedback == other.Feedback
+                    && Bounds == other.Bounds
                     && NonCandidate == other.NonCandidate
                     && CandidateSource == other.CandidateSource
                     && Candidates == other.Candidates
