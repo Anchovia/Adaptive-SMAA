@@ -384,6 +384,22 @@ Original mode는 기존 edge target/shader path를 유지한다.
   neighborhood-blended spatial result가 저장되고 resolve 출력은 화면 destination에만 기록된다.
   반면 Document/ET2X 경로는 resolve 출력을 다음 history에 feedback한다. 따라서 Standard와
   Document K0의 차이는 sampler와 weight뿐 아니라 history feedback topology도 포함한다.
+- `-smaaStandardSemanticsFactorialCapture`는 공식 Standard Pattern On/Off control과
+  FullScreenDocument compute의 sampler(Point/Bilinear), weight(adaptive 0..0.5/fixed 0.5),
+  feedback(SpatialFrame/ResolvedOutput) 2x2x2 cell을 합친 18-mode 진단 gate다. Window capture는
+  mode마다 profile frame 0 warm-up과 요청 frame 직전까지 temporal pre-roll을 수행한다.
+  Bistro/Minecraft 중앙 이동 180 frame과 이동->정지 30 frame formal 분석에서 기존 전체
+  타임라인 공식 control 840 frame hash mismatch는 0이었다. 동일 compute 경로의 주효과에서
+  ResolvedOutput feedback는 중앙 이동 reference MAE를 +0.194655~+0.404449, Pattern On 전환을
+  +0.259119~+0.264076 높여 현재 motion-to-still 열세의 강한 원인 후보로 확인됐다. Bilinear는
+  모든 측정 window에서 Point보다 spatial-reference MAE가 낮았고, fixed weight는 interaction이
+  있어 일관된 기본 해법이 아니었다. 움직임 중 compute mirror는 공식 pixel path와 평균
+  0.047~0.058 RGB level 차이와 rare max error가 있어 exact reproduction이라고 표현하지 않는다.
+  final 8-case semantics는 변경하지 않았으며 다음 feedback-only gate와 제한사항은
+  `Docs/SMAA-Standard-Temporal-Semantics-Factorial-Gate-ko.md`를 기준으로 한다.
+- `Tools/SMAA/run_clean_cmaa2.ps1`은 Test/Capture/Smoke/Benchmark 명령에서 clean process 종료뿐
+  아니라 새 AutoBench `_results.csv`의 실제 완성도 확인한 뒤에만 PASS를 출력한다. 결과 파일이
+  없거나 갱신되지 않은 실행은 exit code가 0이어도 실패로 처리한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
