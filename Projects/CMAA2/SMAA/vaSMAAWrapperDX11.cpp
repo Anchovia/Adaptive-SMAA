@@ -1387,7 +1387,15 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 ID3D11RenderTargetView * currentHistoryRTV = currentHistoryDX11->GetRTV( );
                 {
                     VA_SCOPE_CPUGPU_TIMER( SMAAStandardSpatialT2X, deviceContext );
-                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+                    // SMAA T2X defines projection jitter and subsample indices
+                    // as a paired pattern.  Standard Pattern-Off diagnostics
+                    // disable both by selecting the 1X spatial mode; production
+                    // O/A-T2X paths retain MODE_SMAA_T2X unchanged.
+                    const SMAA::Mode standardSpatialMode = GetTemporalJitterEnabled( )?
+                        SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X;
+                    m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr,
+                        velocitySRV, currentHistoryRTV, depthDSV, inputMode,
+                        standardSpatialMode );
                 }
 
                 ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
