@@ -38,6 +38,11 @@ MODES = (
     ("o_1x", "O-1X", "O_1X"),
     ("standard", "O-T2X-R", "O_T2X_R"),
     ("pattern_off", "ABL-Standard-PatternOff-R", "ABL_Standard_PatternOff_R"),
+    (
+        "document_pattern_on",
+        "ABL-Document-FullScreen-PatternOn-R",
+        "ABL_Document_FullScreen_PatternOn_R",
+    ),
     ("document_full", "ABL-Document-FullScreen-R", "ABL_Document_FullScreen_R"),
     ("edge", "O-ET2X-R", "O_ET2X_R"),
 )
@@ -78,6 +83,7 @@ def validate_reports(capture: Path, reference: Path, scene: str, frames: int) ->
         f"Camera profile:  {PROFILE}",
         f"Profile frames:  480 total; capture [0, {frames - 1}]",
         "Primary axis:    O-T2X-R versus Pattern-Off-R changes only the valid paired SMAA T2X temporal subpixel pattern",
+        "Interaction:     the two full-screen On/Off pairs isolate whether the sample-pattern effect depends on the Standard or document temporal kernel",
         "projection jitter is not disabled independently from SMAA T2X subsample indices",
         "Classification:  complete camera profile quality capture",
     )
@@ -276,6 +282,14 @@ def analyze_case(
                 modes["pattern_off"]["mean_rgb_mae_to_reference"]
                 - modes["standard"]["mean_rgb_mae_to_reference"]
             ),
+            "document_pattern_off_minus_on_mae": (
+                modes["document_full"]["mean_rgb_mae_to_reference"]
+                - modes["document_pattern_on"]["mean_rgb_mae_to_reference"]
+            ),
+            "document_on_minus_standard_on_mae": (
+                modes["document_pattern_on"]["mean_rgb_mae_to_reference"]
+                - modes["standard"]["mean_rgb_mae_to_reference"]
+            ),
             "document_minus_pattern_off_mae": (
                 modes["document_full"]["mean_rgb_mae_to_reference"]
                 - modes["pattern_off"]["mean_rgb_mae_to_reference"]
@@ -300,10 +314,10 @@ def write_report(path: Path, summaries: dict[str, Any], bridges: list[dict[str, 
         "",
         "## 비교 정의",
         "",
-        "`O-T2X-R`과 `ABL-Standard-PatternOff-R`은 full-screen Standard resolve, bilinear history sampling,",
-        "history weight 0.5, camera/depth reprojection과 history lifecycle을 동일하게 유지한다.",
-        "바뀌는 축은 공식 SMAA T2X의 유효한 temporal subpixel pattern 전체다:",
-        "projection jitter와 대응 subsample index를 함께 On/Off 한다.",
+        "두 full-screen pair에서 공식 SMAA T2X temporal subpixel pattern 전체를 On/Off한다:",
+        "projection jitter와 대응 subsample index를 반드시 함께 전환한다.",
+        "Standard pair는 bilinear/weight 0.5/clipping Off를, document pair는 Catmull-Rom 5-tap/",
+        "weight 0.8/YCoCg clipping을 각각 고정한다. 두 pair 모두 camera/depth reprojection과 lifecycle이 같다.",
         "",
         "projection jitter만 끄고 T2X subsample index를 유지하는 조합은 공식 SMAA의 짝을 깨므로 만들지 않았다.",
         "이 진단군은 최종 8-case를 늘리지 않는다.",
@@ -345,8 +359,8 @@ def write_report(path: Path, summaries: dict[str, Any], bridges: list[dict[str, 
             "",
             "양수 MAE 차이는 뒤쪽 방식의 spatial-reference 오차가 더 큼을 뜻한다.",
             "",
-            "| Scene | Window | PatternOff − Standard | DocumentFull − PatternOff | Edge − DocumentFull |",
-            "|---|---|---:|---:|---:|",
+            "| Scene | Window | Std Off − On | Doc Off − On | DocOn − StdOn | DocOff − StdOff | EdgeOff − DocOff |",
+            "|---|---|---:|---:|---:|---:|---:|",
         ]
     )
     for scene, summary in summaries.items():
@@ -355,6 +369,8 @@ def write_report(path: Path, summaries: dict[str, Any], bridges: list[dict[str, 
             lines.append(
                 f"| {scene} | {window['label']} | "
                 f"{window['pattern_off_minus_standard_mae']:+.6f} | "
+                f"{window['document_pattern_off_minus_on_mae']:+.6f} | "
+                f"{window['document_on_minus_standard_on_mae']:+.6f} | "
                 f"{window['document_minus_pattern_off_mae']:+.6f} | "
                 f"{window['edge_minus_document_mae']:+.6f} |"
             )
@@ -366,6 +382,8 @@ def write_report(path: Path, summaries: dict[str, Any], bridges: list[dict[str, 
             "- supersample 입력은 동일 pose의 spatial-reference proxy이며 절대 temporal ground truth가 아니다.",
             "- 최종 판단은 공식 CGVQM-2 central-motion 및 motion→still transition 결과와 함께 내린다.",
             "- `Pattern-Off-R`은 원본 SMAA T2X가 아니라 샘플 패턴 원인을 분리하는 진단군이다.",
+            "- edge-selective Pattern-On은 비후보 픽셀에 안정적인 unjittered spatial base가 없으므로 이 matrix에서 제외한다.",
+            "- 기존 bilinear screen-space DeJitter는 경계 연화가 확인된 별도 탈락 ablation이며 공정한 interaction control로 재사용하지 않는다.",
         ]
     )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")

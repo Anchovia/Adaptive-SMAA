@@ -139,6 +139,7 @@ namespace VertexAsylum
             SMAA_O_ABLATION_DOCUMENT_FULLSCREEN, // Diagnostic: O-ET2X document kernel applied full-screen, reprojection Off
             SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R, // Diagnostic: O-ET2X-R document kernel applied full-screen, camera reprojection On
             SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R, // Diagnostic: Standard full-screen resolve/reprojection with the paired SMAA T2X jitter+subsample pattern disabled
+            SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R, // Diagnostic: document temporal kernel applied full-screen with paired SMAA T2X jitter+subsample pattern enabled
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,

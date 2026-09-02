@@ -64,7 +64,8 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R
-            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R;
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R;
     }
 
     vaSMAAWrapper::SpatialSearch GetSMAASpatialSearchForAAType( CMAA2Sample::AAType aaType )
@@ -122,12 +123,16 @@ namespace
             break;
         case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
         case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R:
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreenDocument;
             settings.Reprojection =
-                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R?
-                vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices :
-                vaSMAAWrapper::ReprojectionMode::Off;
-            settings.Jitter = vaSMAAWrapper::JitterPolicy::None;
+                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN?
+                vaSMAAWrapper::ReprojectionMode::Off :
+                vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
+            settings.Jitter =
+                aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R?
+                vaSMAAWrapper::JitterPolicy::SMAAT2X :
+                vaSMAAWrapper::JitterPolicy::None;
             settings.Sampler = vaSMAAWrapper::HistorySampler::CatmullRom5Tap;
             settings.Clipping = vaSMAAWrapper::HistoryClipping::YCoCgVariance;
             settings.HistoryWeight = 0.8f;
@@ -365,6 +370,9 @@ namespace
             { L"ABL-Standard-PatternOff-R",
                 CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R,
                 "ABL-Standard-PatternOff-R" },
+            { L"ABL-Document-FullScreen-PatternOn-R",
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R,
+                "ABL-Document-FullScreen-PatternOn-R" },
             { L"A-1X",     CMAA2Sample::AAType::SMAA_A_1X,     "A-1X" },
             { L"A-T2X",    CMAA2Sample::AAType::SMAA_A_T2X,    "A-T2X" },
             { L"A-T2X-R",  CMAA2Sample::AAType::SMAA_A_T2X_R,  "A-T2X-R" },
@@ -629,6 +637,8 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
         return "ABL-Document-FullScreen-R - O-ET2X-R document temporal kernel applied full-screen";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R:
         return "ABL-Standard-PatternOff-R - Standard full-screen T2X-R with paired jitter/subsample pattern disabled";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R:
+        return "ABL-Document-FullScreen-PatternOn-R - document temporal kernel applied full-screen with paired SMAA T2X pattern";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
@@ -684,6 +694,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R:
         return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::FXAA:                 return 1;
@@ -3715,7 +3726,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     static const int    c_armDualFilterModeCount = 8;
     static const int    c_expansionControlModeCount = 5;
     static const int    c_motionToStillCoverageModeCount = 4;
-    static const int    c_standardSamplePatternModeCount = 5;
+    static const int    c_standardSamplePatternModeCount = 6;
     static const int    c_fullModeCount = 10;
     const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
     const CMAA2Sample::SceneSelectionType m_scene;
@@ -3851,6 +3862,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "O-1X",
                 "O-T2X-R",
                 "ABL-Standard-PatternOff-R",
+                "ABL-Document-FullScreen-PatternOn-R",
                 "ABL-Document-FullScreen-R",
                 "O-ET2X-R"
             };
@@ -3989,6 +4001,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 "O_1X",
                 "O_T2X_R",
                 "ABL_Standard_PatternOff_R",
+                "ABL_Document_FullScreen_PatternOn_R",
                 "ABL_Document_FullScreen_R",
                 "O_ET2X_R"
             };
@@ -4125,6 +4138,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
                 CMAA2Sample::AAType::SMAA,
                 CMAA2Sample::AAType::SMAA_O_T2X_R,
                 CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R,
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R,
                 CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R,
                 CMAA2Sample::AAType::SMAA_O_ET2X_R
             };
@@ -4406,12 +4420,15 @@ protected:
                 else if( m_standardSamplePatternMatrix )
                 {
                     abTool.ReportAddText(
-                        "Comparison:      O-1X, Standard O-T2X-R, Standard Pattern-Off-R, full-screen document-kernel control, and edge-selective O-ET2X-R\r\n"
+                        "Comparison:      O-1X; Standard kernel Pattern On/Off; full-screen document kernel Pattern On/Off; edge-selective document Pattern Off\r\n"
                         "Primary axis:    O-T2X-R versus Pattern-Off-R changes only the valid paired SMAA T2X temporal subpixel pattern (projection jitter plus matching subsample indices)\r\n"
                         "Held constant:   full-screen Standard resolve, bilinear history sampling, history weight 0.5, camera/depth reprojection, and history lifecycle\r\n"
-                        "Secondary axis:  Pattern-Off-R versus FullScreenDocument-R isolates the remaining sampler, clipping, and history-weight changes with pattern and coverage held Off/full-screen\r\n"
+                        "Kernel axis:     document Pattern-On-R versus document Pattern-Off-R changes only that same paired pattern with Catmull-Rom, clipping, weight 0.8 and full-screen coverage fixed\r\n"
+                        "Interaction:     the two full-screen On/Off pairs isolate whether the sample-pattern effect depends on the Standard or document temporal kernel\r\n"
+                        "Coverage axis:   document Pattern-Off full-screen versus O-ET2X-R keeps the stable unjittered spatial base and changes only temporal coverage/execution\r\n"
                         "Validity note:   projection jitter is not disabled independently from SMAA T2X subsample indices because the official SMAA pattern defines them as a coupled pair\r\n"
-                        "Classification:  diagnostic quality gate; Pattern-Off-R and FullScreenDocument-R are not additional final research cases\r\n\r\n" );
+                        "Validity note:   edge-selective Pattern-On is excluded because noncandidate pixels would retain a globally jittered spatial base; the rejected bilinear DeJitter approximation is not reused\r\n"
+                        "Classification:  diagnostic quality gate; all ABL modes remain outside the final eight cases\r\n\r\n" );
                 }
                 else
                 {
@@ -7327,6 +7344,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         O_T2X,
         O_T2X_R,
         StandardPatternOffR,
+        DocumentFullScreenPatternOnR,
         O_ET2X,
         O_ET2X_R,
         A_T2X,
@@ -7373,6 +7391,8 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::O_T2X_R:                return "O-T2X-R mode change";
         case Phase::StandardPatternOffR:
             return "ABL-Standard-PatternOff-R mode change";
+        case Phase::DocumentFullScreenPatternOnR:
+            return "ABL-Document-FullScreen-PatternOn-R mode change";
         case Phase::O_ET2X:                 return "O-ET2X mode change";
         case Phase::O_ET2X_R:               return "O-ET2X-R mode change";
         case Phase::A_T2X:                  return "A-T2X mode change";
@@ -7448,6 +7468,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::StandardPatternOffR:
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R;
+            break;
+        case Phase::DocumentFullScreenPatternOnR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R;
             break;
         case Phase::O_ET2X:
             m_parent.Settings().CurrentAAOption = CMAA2Sample::AAType::SMAA_O_ET2X;

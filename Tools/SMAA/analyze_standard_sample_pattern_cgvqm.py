@@ -32,6 +32,12 @@ MODES = (
         "coverage",
         "ABL-Document-FullScreen-R",
     ),
+    (
+        "FullScreenDocument-PatternOn-R",
+        "ABL_Document_FullScreen_PatternOn_R",
+        "interaction",
+        "ABL-Document-FullScreen-PatternOn-R",
+    ),
     ("O-ET2X-R", "O_ET2X_R", "baseline", "O-ET2X-R"),
 )
 
@@ -41,6 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--baseline-root", type=Path, required=True)
     parser.add_argument("--pattern-root", type=Path, required=True)
     parser.add_argument("--coverage-root", type=Path, required=True)
+    parser.add_argument("--interaction-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args()
 
@@ -113,6 +120,7 @@ def main() -> int:
         "baseline": args.baseline_root.resolve(),
         "pattern": args.pattern_root.resolve(),
         "coverage": args.coverage_root.resolve(),
+        "interaction": args.interaction_root.resolve(),
     }
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -165,6 +173,7 @@ def main() -> int:
             standard = scores[(scene, window, "O-T2X-R")]
             pattern = scores[(scene, window, "Standard-PatternOff-R")]
             document = scores[(scene, window, "FullScreenDocument-R")]
+            document_pattern_on = scores[(scene, window, "FullScreenDocument-PatternOn-R")]
             edge = scores[(scene, window, "O-ET2X-R")]
             comparisons.append(
                 {
@@ -172,6 +181,8 @@ def main() -> int:
                     "window": window,
                     "window_label": window_label,
                     "pattern_off_minus_standard": pattern - standard,
+                    "document_pattern_off_minus_on": document - document_pattern_on,
+                    "document_on_minus_standard_on": document_pattern_on - standard,
                     "document_minus_pattern_off": document - pattern,
                     "edge_minus_document": edge - document,
                     "pattern_off_minus_one_x": pattern - one_x,
@@ -205,6 +216,10 @@ def main() -> int:
         encoding="utf-8",
     )
 
+    comparison_lookup = {
+        (row["scene"], row["window"]): row for row in comparisons
+    }
+
     lines = [
         "# SMAA Standard Temporal Sample-Pattern CGVQM-2 결과",
         "",
@@ -218,8 +233,8 @@ def main() -> int:
         "",
         "## 점수",
         "",
-        "| Scene | Window | O-1X | O-T2X-R | PatternOff-R | FullDocument-R | O-ET2X-R |",
-        "|---|---|---:|---:|---:|---:|---:|",
+        "| Scene | Window | O-1X | O-T2X-R | Std PatternOff | Doc PatternOn | Doc PatternOff | Edge PatternOff |",
+        "|---|---|---:|---:|---:|---:|---:|---:|",
     ]
     for scene in SCENES:
         for window, (_, _, _, label) in WINDOWS.items():
@@ -228,6 +243,7 @@ def main() -> int:
                 f"{scores[(scene, window, 'O-1X')]:.6f} | "
                 f"{scores[(scene, window, 'O-T2X-R')]:.6f} | "
                 f"{scores[(scene, window, 'Standard-PatternOff-R')]:.6f} | "
+                f"{scores[(scene, window, 'FullScreenDocument-PatternOn-R')]:.6f} | "
                 f"{scores[(scene, window, 'FullScreenDocument-R')]:.6f} | "
                 f"{scores[(scene, window, 'O-ET2X-R')]:.6f} |"
             )
@@ -238,14 +254,16 @@ def main() -> int:
             "",
             "양수는 뒤쪽 방식의 CGVQM-2 점수가 더 높음을 뜻한다.",
             "",
-            "| Scene | Window | PatternOff − Standard | Document − PatternOff | Edge − Document | PatternOff − 1X |",
-            "|---|---|---:|---:|---:|---:|",
+            "| Scene | Window | Std Off − On | Doc Off − On | DocOn − StdOn | DocOff − StdOff | EdgeOff − DocOff | StdOff − 1X |",
+            "|---|---|---:|---:|---:|---:|---:|---:|",
         ]
     )
     for row in comparisons:
         lines.append(
             f"| {row['scene']} | {row['window_label']} | "
             f"{row['pattern_off_minus_standard']:+.6f} | "
+            f"{row['document_pattern_off_minus_on']:+.6f} | "
+            f"{row['document_on_minus_standard_on']:+.6f} | "
             f"{row['document_minus_pattern_off']:+.6f} | "
             f"{row['edge_minus_document']:+.6f} | "
             f"{row['pattern_off_minus_one_x']:+.6f} |"
@@ -258,7 +276,13 @@ def main() -> int:
             "- central motion에서는 Pattern-Off가 Standard보다 높다. 이 경로에서 Standard T2X의 alternating subpixel pattern이 perceptual reference 오차의 주된 원인임을 지지한다.",
             "- motion→still transition에서는 Standard가 Pattern-Off보다 높다. Standard pattern은 정지 전환에서 2-frame subpixel accumulation 이점을 제공한다.",
             "- Pattern-Off가 대체로 O-1X에 가까운 것은 pattern을 제거하면 Standard resolve만으로는 temporal supersampling 이점이 제한됨을 보여준다.",
-            "- 따라서 ET2X의 다음 단계는 coverage를 무작정 늘리는 것이 아니라, motion phase에 따라 안정적인 temporal sample diversity를 유지하거나 복구하는 controlled 설계다.",
+            "- document kernel에서는 Pattern-Off가 Pattern-On보다 central motion과 motion→still 모두 높았다: "
+            f"Bistro {comparison_lookup[('Bistro', 'central_motion_00150_00329')]['document_pattern_off_minus_on']:+.6f}/"
+            f"{comparison_lookup[('Bistro', 'transition_00410_00439')]['document_pattern_off_minus_on']:+.6f}, "
+            f"Minecraft {comparison_lookup[('Minecraft', 'central_motion_00150_00329')]['document_pattern_off_minus_on']:+.6f}/"
+            f"{comparison_lookup[('Minecraft', 'transition_00410_00439')]['document_pattern_off_minus_on']:+.6f}.",
+            "- 따라서 paired sample pattern의 transition 이점은 kernel과 독립적이지 않으며, document profile에 pattern을 단순 재활성화하지 않는다.",
+            "- edge-selective Pattern-On은 안정적인 unjittered noncandidate base가 없어 제외했으며, 기존 bilinear DeJitter 근사는 블러가 확인된 별도 탈락 ablation이다.",
         ]
     )
     (output / "SMAA-Standard-Sample-Pattern-CGVQM-Results-ko.md").write_text(

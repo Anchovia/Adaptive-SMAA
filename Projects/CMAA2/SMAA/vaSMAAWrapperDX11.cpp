@@ -1365,8 +1365,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetRTV( );
                 {
                     VA_SCOPE_CPUGPU_TIMER( SMAASpatial1X, deviceContext );
+                    // The document kernel is independent of the valid SMAA T2X
+                    // subpixel pattern. Pattern-On diagnostics must keep the
+                    // projection jitter paired with MODE_SMAA_T2X subsample
+                    // indices; the document profile remains MODE_SMAA_1X.
+                    const SMAA::Mode documentSpatialMode = GetTemporalJitterEnabled( )?
+                        SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X;
                     m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr,
-                        velocitySRV, currentSpatialRTV, depthDSV, inputMode, SMAA::MODE_SMAA_1X );
+                        velocitySRV, currentSpatialRTV, depthDSV, inputMode, documentSpatialMode );
                 }
                 const vaDrawResultFlags fullScreenResult = ExecuteTSCMAADocumentFullScreenResolve(
                     deviceContext, m_temporalSpatialCurrent,
