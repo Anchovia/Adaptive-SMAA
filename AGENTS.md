@@ -367,6 +367,19 @@ Original mode는 기존 edge target/shader path를 유지한다.
   PASS했다. Skinned/deforming/transparent motion과 previous-depth disocclusion
   rejection은 별도 후속 범위다. 품질·성능 gate 전에는 기존 8-case `-R` 의미나
   formal 결과를 변경하지 않는다.
+- `SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R`은 Standard full-screen resolve, bilinear history
+  sampling, history weight 0.5, camera/depth reprojection과 history lifecycle을 유지하면서 공식
+  SMAA T2X의 paired projection-jitter/subsample-index pattern 전체만 끄는 진단 mode다. jitter만
+  끄고 T2X subsample index를 유지하는 비정상 조합은 사용하지 않는다.
+- `-smaaStandardSamplePatternCapture`는 Bistro/Minecraft `flythrough-wide-yaw-360`에서 `O-1X`,
+  `O-T2X-R`, `ABL-Standard-PatternOff-R`, `ABL-Document-FullScreen-R`, `O-ET2X-R`을 같은 실행에
+  저장한다. 최종 8-case를 늘리지 않는 quality gate다.
+- 2026-09-02 formal sample-pattern gate는 두 장면 각각 480 frame×5 mode, 기존 control 8 sequence
+  byte-hash mismatch 0, lifecycle failure 0으로 통과했다. 공식 CGVQM-2에서 Pattern-Off−Standard는
+  central motion에 Bistro +2.262238/Minecraft +1.477898, motion→still transition에
+  -0.677711/-1.028076이었다. 따라서 Standard paired pattern은 이동 중 오차와 정지 전환의 temporal
+  supersampling 이점 사이의 핵심 trade-off이며, coverage만으로 이전 transition 열세를 설명할 수 없다.
+  결과와 다음 interaction gate는 `Docs/SMAA-Standard-Sample-Pattern-Gate-ko.md`를 기준으로 한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
