@@ -282,11 +282,14 @@ namespace VertexAsylum
             uint32                      CompletedFrameCount         = 0;
             uint32                      OutputHistoryCheckCount     = 0;
             uint32                      PreviousHistoryCheckCount   = 0;
+            uint32                      VisibleOutputCheckCount     = 0;
             uint32                      ReadbackFailureCount        = 0;
             uint64                      OutputHistoryMismatchBytes  = 0;
+            uint64                      VisibleOutputMismatchBytes  = 0;
             uint32                      PreviousHistoryHashMismatchCount = 0;
             uint64                      LastResolvedHistoryHash     = 0;
             uint64                      LastPreviousHistoryHash     = 0;
+            bool                        VisibleOutputCheckRequired  = false;
         };
 
         struct CatmullRomDiagnostics

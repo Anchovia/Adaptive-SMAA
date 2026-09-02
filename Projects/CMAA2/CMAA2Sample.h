@@ -167,6 +167,9 @@ namespace VertexAsylum
             SMAA_O_ABLATION_FS_BILINEAR_FIXED_SPATIAL_PATTERN_OFF_R,
             SMAA_O_ABLATION_FS_BILINEAR_FIXED_RESOLVED_PATTERN_OFF_R,
 
+            // Keep new diagnostics after all previously serialized AA values.
+            SMAA_O_ABLATION_ET2X_SPATIAL_FEEDBACK_R, // Diagnostic: O-ET2X-R with previous spatial-frame history instead of recursive resolved-output feedback
+
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
 
@@ -364,11 +367,31 @@ namespace VertexAsylum
         const vaSMAAWrapper::VarianceClippingDiagnostics &
                                                 GetSMAAVarianceClippingDiagnostics( ) const { return m_SMAA->GetVarianceClippingDiagnostics( ); }
         void                                    SetSMAACandidateEdgeSourceOverride( bool enabled, vaSMAAWrapper::CandidateEdgeSource source ) { m_SMAA->SetCandidateEdgeSourceOverride( enabled, source ); }
+        bool                                    GetSMAACandidateEdgeSourceOverrideEnabled( ) const { return m_SMAA->GetCandidateEdgeSourceOverrideEnabled( ); }
+        vaSMAAWrapper::CandidateEdgeSource      GetSMAAEffectiveCandidateEdgeSource( ) const { return m_SMAA->GetEffectiveCandidateEdgeSource( ); }
         void                                    SetSMAACandidatePolicyOverride( bool enabled, vaSMAAWrapper::CandidatePolicy policy ) { m_SMAA->SetCandidatePolicyOverride( enabled, policy ); }
+        bool                                    GetSMAACandidatePolicyOverrideEnabled( ) const { return m_SMAA->GetCandidatePolicyOverrideEnabled( ); }
+        vaSMAAWrapper::CandidatePolicy          GetSMAAEffectiveCandidatePolicy( ) const { return m_SMAA->GetEffectiveCandidatePolicy( ); }
         void                                    SetSMAACandidateExpansionOverride( bool enabled, vaSMAAWrapper::CandidateExpansion expansion ) { m_SMAA->SetCandidateExpansionOverride( enabled, expansion ); }
+        bool                                    GetSMAACandidateExpansionOverrideEnabled( ) const { return m_SMAA->GetCandidateExpansionOverrideEnabled( ); }
+        vaSMAAWrapper::CandidateExpansion       GetSMAAEffectiveCandidateExpansion( ) const { return m_SMAA->GetEffectiveCandidateExpansion( ); }
         void                                    SetSMAAArmDualReconstructionThresholdOverride( bool enabled, float value ) { m_SMAA->SetArmDualReconstructionThresholdOverride( enabled, value ); }
         float                                   GetSMAAArmDualReconstructionThreshold( ) const { return m_SMAA->GetEffectiveArmDualReconstructionThreshold( ); }
         void                                    SetSMAANonDominantRemovalOverride( bool enabled, float value ) { m_SMAA->SetNonDominantRemovalOverride( enabled, value ); }
+        bool                                    GetSMAANonDominantRemovalOverrideEnabled( ) const { return m_SMAA->GetNonDominantRemovalOverrideEnabled( ); }
+        float                                   GetSMAAEffectiveNonDominantRemovalAmount( ) const { return m_SMAA->GetEffectiveNonDominantRemovalAmount( ); }
+        void                                    SetSMAAHistorySamplerOverride( bool enabled, vaSMAAWrapper::HistorySampler value ) { m_SMAA->SetHistorySamplerOverride( enabled, value ); }
+        bool                                    GetSMAAHistorySamplerOverrideEnabled( ) const { return m_SMAA->GetHistorySamplerOverrideEnabled( ); }
+        vaSMAAWrapper::HistorySampler           GetSMAAEffectiveHistorySampler( ) const { return m_SMAA->GetEffectiveHistorySampler( ); }
+        void                                    SetSMAAHistoryClippingOverride( bool enabled, vaSMAAWrapper::HistoryClipping value ) { m_SMAA->SetHistoryClippingOverride( enabled, value ); }
+        bool                                    GetSMAAHistoryClippingOverrideEnabled( ) const { return m_SMAA->GetHistoryClippingOverrideEnabled( ); }
+        vaSMAAWrapper::HistoryClipping          GetSMAAEffectiveHistoryClipping( ) const { return m_SMAA->GetEffectiveHistoryClipping( ); }
+        void                                    SetSMAATemporalDebugView( vaSMAAWrapper::TemporalDebugView value ) { m_SMAA->SetTemporalDebugView( value ); }
+        vaSMAAWrapper::TemporalDebugView        GetSMAATemporalDebugView( ) const { return m_SMAA->GetTemporalDebugView( ); }
+        vaSMAAWrapper::ObjectMotionReprojection GetSMAAObjectMotionReprojection( ) const { return m_SMAA->GetObjectMotionReprojection( ); }
+        void                                    SetSMAAForcedCandidateCountForDiagnostics( bool enabled, uint32 count ) { m_SMAA->SetForcedCandidateCountForDiagnostics( enabled, count ); }
+        bool                                    GetSMAAForcedCandidateCountEnabled( ) const { return m_SMAA->GetForcedCandidateCountEnabled( ); }
+        uint32                                  GetSMAAForcedCandidateCount( ) const { return m_SMAA->GetForcedCandidateCount( ); }
         const vaSMAAWrapper::TemporalCandidateStatistics &
                                                 GetSMAATemporalCandidateStatistics( ) const { return m_SMAA->GetTemporalCandidateStatistics( ); }
         void                                    SetSMAATemporalCandidateStatisticsReadbackEnabled( bool enabled ) { m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled( enabled ); }
