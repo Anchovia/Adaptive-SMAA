@@ -81,7 +81,8 @@ frame을 history에 복원한다. 이 추가 복사는 `TSCMAARestoreSpatialHist
   강제로 고정하고 기존 runtime override 상태를 종료 시 복원한다.
 - mode/scene/camera-cut/resize로 history generation이 reset되면 이전 generation의 진단
   counter와 hash를 이어 붙이지 않고 새로 시작한다.
-- clean runner는 새 CSV의 존재뿐 아니라 validation CSV 안의 `Aggregate`/row FAIL도 검사한다.
+- clean runner는 새 CSV의 존재뿐 아니라 모든 새 보고서의 `Aggregate`, row-level 및
+  `Performance benchmark validation` FAIL도 검사한다.
 
 최종 자동 검증 결과:
 

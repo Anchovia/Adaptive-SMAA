@@ -83,16 +83,12 @@ if ($expectsAutoBenchReport -and (Test-Path -LiteralPath $autoBenchRoot -PathTyp
     }
 }
 
-$isValidationTest = @($CMAA2Arguments | Where-Object {
-    $_ -match '^-[^\s]*Test$'
-}).Count -ne 0
-if ($isValidationTest) {
-    foreach ($report in $completedReports) {
-        $reportText = Get-Content -LiteralPath $report.FullName -Raw
-        if ($reportText -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or
-            $reportText -match '(?im),\s*FAIL\s*,?\s*$') {
-            throw "CMAA2 validation report contains a failed check: $($report.FullName)"
-        }
+foreach ($report in $completedReports) {
+    $reportText = Get-Content -LiteralPath $report.FullName -Raw
+    if ($reportText -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or
+        $reportText -match '(?im)^\s*Performance benchmark validation:\s*FAIL\s*$' -or
+        $reportText -match '(?im),\s*FAIL\s*(?:,|$)') {
+        throw "CMAA2 AutoBench report contains a failed check: $($report.FullName)"
     }
 }
 

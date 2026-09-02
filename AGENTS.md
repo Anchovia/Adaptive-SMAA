@@ -413,8 +413,9 @@ Original mode는 기존 edge target/shader path를 유지한다.
   각각 독립 gate로 검증한다.
 - `Tools/SMAA/run_clean_cmaa2.ps1`은 Test/Capture/Smoke/Benchmark 명령에서 clean process 종료뿐
   아니라 새 AutoBench `_results.csv`의 실제 완성도 확인한 뒤에만 PASS를 출력한다. 결과 파일이
-  없거나 갱신되지 않은 실행은 exit code가 0이어도 실패로 처리한다. `*Test` 명령은 새 CSV의
-  `Aggregate` 및 row-level FAIL도 검사하므로 내부 진단 실패를 정상 종료로 오인하지 않는다.
+  없거나 갱신되지 않은 실행은 exit code가 0이어도 실패로 처리한다. 새로 완성된 모든 보고서의
+  `Aggregate`, row-level 및 `Performance benchmark validation` FAIL도 검사하므로 내부 진단이나
+  성능 검증 실패를 정상 종료로 오인하지 않는다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
