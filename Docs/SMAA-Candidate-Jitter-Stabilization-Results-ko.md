@@ -42,12 +42,14 @@ Flow-aligned residual은 장면 motion을 줄인 보조 지표다. 작은 값이
 | Mode | Temporal 범위 | Candidate | Jitter | Reprojection | Sampler | Clipping | Weight |
 |---|---|---|---|---|---|---|---:|
 | `O-1X` | 없음 | N/A | Off | Off | N/A | Off | 0.0 |
-| `O-T2X-R` | Full-screen | 전체 화면 | SMAA T2X | Camera | Bilinear | Off | 0.5 |
+| `O-T2X-R` | Full-screen | 전체 화면 | SMAA T2X | Camera | Point | Off | velocity-alpha adaptive 0~0.5 |
 | `ABL-Candidate-Intel-R` | Edge-selective | Intel-family | SMAA T2X | Camera | Bilinear | Off | 0.5 |
 | `ABL-Candidate-AllBase-R` | Edge-selective | 모든 base edge | SMAA T2X | Camera | Bilinear | Off | 0.5 |
 
 두 candidate mode의 유일한 차이는
 `IntelFamilyNonDominant`와 `AllBaseEdges` 후보 정책이다.
+`O-T2X-R`은 공식 point/velocity-adaptive resolve를 사용하므로 candidate mode와의 차이를
+candidate coverage 하나의 효과로 해석하지 않는다.
 
 캡처:
 
@@ -80,11 +82,13 @@ AllBase는 검출된 base edge 전체이지 full-screen이 아니다. 따라서 
 | Mode | Temporal 범위 | Candidate | Jitter | Reprojection | Sampler | Clipping | Weight |
 |---|---|---|---|---|---|---|---:|
 | `O-1X` | 없음 | N/A | Off | Off | N/A | Off | 0.0 |
-| `O-T2X-R` | Full-screen | 전체 화면 | SMAA T2X | Camera | Bilinear | Off | 0.5 |
+| `O-T2X-R` | Full-screen | 전체 화면 | SMAA T2X | Camera | Point | Off | velocity-alpha adaptive 0~0.5 |
 | `ABL-Candidate-Jitter-R` | Edge-selective | Intel-family | SMAA T2X | Camera | Bilinear | Off | 0.5 |
 | `ABL-Candidate-NoJitter-R` | Edge-selective | Intel-family | Off | Camera | Bilinear | Off | 0.5 |
 
 두 candidate mode의 유일한 차이는 deliberate projection jitter On/Off다.
+`O-T2X-R`은 공식 point/velocity-adaptive resolve를 사용하므로 candidate mode와의 차이를
+candidate coverage 하나의 효과로 해석하지 않는다.
 
 캡처:
 

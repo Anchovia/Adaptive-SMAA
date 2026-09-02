@@ -20,11 +20,11 @@ kernel을 full-screen과 edge-selective로만 나누는 진단 control을 사용
 
 ## 2. 통제 비교
 
-| Mode | Spatial input | Jitter | Reprojection | Sampler | Clipping | Weight | Coverage |
-|---|---|---|---|---|---|---:|---|
-| `O-T2X-R` | SMAA T2X spatial | On | camera/depth | Bilinear | Off | 0.5 | Full-screen |
-| `ABL-Document-FullScreen-R` | SMAA 1X | Off | camera/depth | Catmull-Rom 5-tap | YCoCg | 0.8 | Full-screen |
-| `O-ET2X-R` | SMAA 1X | Off | camera/depth | Catmull-Rom 5-tap | YCoCg | 0.8 | Integrated first-pass edge candidate |
+| Mode | Spatial input | Jitter | Reprojection | Sampler | Clipping | Weight | Coverage | History source |
+|---|---|---|---|---|---|---:|---|---|
+| `O-T2X-R` | SMAA T2X spatial | On | camera/depth | Point | Off | velocity-alpha adaptive 0~0.5 | Full-screen | 직전 spatial frame |
+| `ABL-Document-FullScreen-R` | SMAA 1X | Off | camera/depth | Catmull-Rom 5-tap | YCoCg | 0.8 | Full-screen | resolve output feedback |
+| `O-ET2X-R` | SMAA 1X | Off | camera/depth | Catmull-Rom 5-tap | YCoCg | 0.8 | Integrated first-pass edge candidate | resolve output feedback |
 
 핵심 pair는 `ABL-Document-FullScreen-R`과 `O-ET2X-R`이다. 두 mode는 temporal
 coverage와 실행 구조를 제외한 위 설정 및 history lifecycle을 동일하게 유지한다.

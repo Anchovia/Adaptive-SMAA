@@ -1701,9 +1701,10 @@ Object-motion trailing-halo 휴리스틱도 같은 경향을 보였다.
   no-jitter, Catmull-Rom, variance clipping, history weight 0.8을 분리해야 한다는
   ablation 근거다.
 
-다음 단계에서는 우선 Original SMAA와 camera reprojection 경로에서 Standard T2X의
-jitter, bilinear sampler, clipping Off, history weight 0.5를 그대로 유지하고
-coverage만 Edge-selective로 변경한 candidate-only profile을 만든다. 이후
+당시 다음 단계에서는 Original SMAA와 camera reprojection 경로에서 Standard T2X와
+같은 설정을 유지하고 coverage만 Edge-selective로 변경한 candidate-only profile을
+만들 계획이었다. 그러나 후속 코드 재감사에서 Standard의 point/velocity-adaptive resolve와
+candidate compute의 bilinear/fixed-0.5 차이가 확인되어 이 pair는 coverage-only가 아니었다. 이후
 Catmull-Rom, clipping, weight와 jitter를 하나씩 추가해 object history 제거와
 temporal 안정성 변화의 원인을 분리한다.
 
@@ -1722,9 +1723,10 @@ O-T2X-R
 → O-ET2X-R-Document
 ```
 
-첫 인접 비교는 Standard와 reprojection, T2X jitter/subsample, bilinear sampler,
-clipping Off, history weight 0.5를 모두 동일하게 유지하고 temporal coverage만
-full-screen에서 Intel-family edge candidate로 바꾼다. 이후에는 Catmull-Rom,
+후속 코드 재감사 결과 첫 인접 비교는 reprojection과 T2X jitter/subsample만 같고,
+공식 Standard의 point/velocity-adaptive resolve와 CandidateOnly의 bilinear/fixed-0.5
+compute resolve가 달랐다. 따라서 이 historical pair의 coverage-only attribution은
+폐기하며, 같은 FullScreenDocument 경로의 후속 직교 ladder만 원인 분리에 사용한다. 이후에는 Catmull-Rom,
 YCoCg clipping, weight 0.8, no-jitter를 하나씩 누적한다.
 
 세 stress scenario의 mode별 60 warm-up + 240 PNG 정식 capture와 visible-window

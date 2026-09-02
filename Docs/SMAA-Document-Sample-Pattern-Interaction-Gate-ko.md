@@ -34,13 +34,13 @@ Pattern-Off 상태에서만 기존 full-screen↔edge coverage pair를 연결했
 사용한다. projection jitter와 SMAA subsample index는 공식 SMAA T2X의 paired pattern으로
 항상 함께 On/Off한다.
 
-| Mode | Coverage | Pattern | Sampler | Clipping | History weight |
-|---|---|---|---|---|---:|
-| `O-T2X-R` | Full-screen | On | Bilinear | Off | 0.5 |
-| `ABL-Standard-PatternOff-R` | Full-screen | Off | Bilinear | Off | 0.5 |
-| `ABL-Document-FullScreen-PatternOn-R` | Full-screen | On | Catmull-Rom 5-tap | YCoCg variance | 0.8 |
-| `ABL-Document-FullScreen-R` | Full-screen | Off | Catmull-Rom 5-tap | YCoCg variance | 0.8 |
-| `O-ET2X-R` | Integrated first-pass edge | Off | Catmull-Rom 5-tap | YCoCg variance | 0.8 |
+| Mode | Coverage | Pattern | Sampler | Clipping | History weight | History source |
+|---|---|---|---|---|---:|---|
+| `O-T2X-R` | Full-screen | On | Point | Off | velocity-alpha adaptive 0~0.5 | 직전 spatial frame |
+| `ABL-Standard-PatternOff-R` | Full-screen | Off | Point | Off | velocity-alpha adaptive 0~0.5 | 직전 spatial frame |
+| `ABL-Document-FullScreen-PatternOn-R` | Full-screen | On | Catmull-Rom 5-tap | YCoCg variance | 0.8 | 직전 resolve output feedback |
+| `ABL-Document-FullScreen-R` | Full-screen | Off | Catmull-Rom 5-tap | YCoCg variance | 0.8 | 직전 resolve output feedback |
+| `O-ET2X-R` | Integrated first-pass edge | Off | Catmull-Rom 5-tap | YCoCg variance | 0.8 | 직전 resolve output feedback |
 
 `O-1X`는 spatial-only control이다. 새 Pattern-On document mode는 진단군이며 Intel 공식
 TSCMAA mode 또는 최종 연구 case가 아니다.

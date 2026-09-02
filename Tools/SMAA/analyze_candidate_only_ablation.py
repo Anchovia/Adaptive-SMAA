@@ -420,8 +420,8 @@ def main() -> None:
             "capture_frames_per_mode": args.expected_frames,
             "smaa_preset": "Ultra",
             "candidate_only_control": {
-                "same_as": "O-T2X-R",
-                "only_change": "FullScreen coverage -> IntelFamilyNonDominant edge candidates",
+                "shared_with": "O-T2X-R: spatial path, camera reprojection, paired SMAA T2X pattern",
+                "known_confound": "O-T2X-R official point/velocity-adaptive resolve versus CandidateOnly bilinear/fixed-0.5 compute resolve",
                 "reprojection": "camera depth/matrices; object motion vectors unavailable",
                 "jitter": "SMAA T2X",
                 "history_sampler": "Bilinear",
@@ -461,8 +461,9 @@ def main() -> None:
         f"- 해상도: {resolution[0]}×{resolution[1]}",
         f"- mode별 warm-up {args.warmup_frames}프레임, 저장 {args.expected_frames}프레임",
         "- DirectX 11, Release x64, SMAA Ultra, fixed 60 Hz",
-        "- `ABL-CandidateOnly-R`은 `O-T2X-R`과 camera reprojection, T2X jitter/subsample, bilinear sampling, clipping Off, history weight 0.5가 같다.",
-        "- 유일한 temporal 변경은 full-screen resolve를 IntelFamilyNonDominant edge candidate resolve로 제한한 것이다.",
+        "- `ABL-CandidateOnly-R`은 `O-T2X-R`과 camera reprojection 및 T2X jitter/subsample pair만 같다.",
+        "- 코드 재감사 결과 공식 `O-T2X-R`은 point history sampling과 velocity-alpha 기반 가변 history weight(0~0.5)를 사용하지만 CandidateOnly compute는 bilinear와 고정 0.5를 사용한다. 따라서 이 historical pair를 coverage-only 통제 비교로 해석하면 안 된다.",
+        "- 당시 의도한 축은 full-screen에서 IntelFamilyNonDominant edge candidate coverage로의 변경이었지만, 위 resolve confound 때문에 단일요소 attribution에는 사용하지 않는다.",
         "- `O-ET2X-R-Document`는 no-jitter, Catmull-Rom, YCoCg clipping, history 0.8이 함께 적용된 복합 endpoint다.",
     ]
     if args.full_components:

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Analyze the valid paired SMAA T2X sample-pattern isolation gate.
 
-O-T2X-R and ABL-Standard-PatternOff-R share the Standard full-screen resolve,
-bilinear history sampler, 0.5 history weight, camera/depth reprojection and
+O-T2X-R and ABL-Standard-PatternOff-R share the official Standard full-screen
+resolve, point history sampler, velocity-alpha adaptive history weight,
+camera/depth reprojection and
 history lifecycle.  The changed factor is the complete valid SMAA T2X
 subpixel pattern: projection jitter plus its matching subsample indices.
 """
@@ -316,7 +317,7 @@ def write_report(path: Path, summaries: dict[str, Any], bridges: list[dict[str, 
         "",
         "두 full-screen pair에서 공식 SMAA T2X temporal subpixel pattern 전체를 On/Off한다:",
         "projection jitter와 대응 subsample index를 반드시 함께 전환한다.",
-        "Standard pair는 bilinear/weight 0.5/clipping Off를, document pair는 Catmull-Rom 5-tap/",
+        "Standard pair는 point history sampling/velocity-alpha adaptive weight 0~0.5/clipping Off를, document pair는 Catmull-Rom 5-tap/",
         "weight 0.8/YCoCg clipping을 각각 고정한다. 두 pair 모두 camera/depth reprojection과 lifecycle이 같다.",
         "",
         "projection jitter만 끄고 T2X subsample index를 유지하는 조합은 공식 SMAA의 짝을 깨므로 만들지 않았다.",

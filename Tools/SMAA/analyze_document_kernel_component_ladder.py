@@ -245,7 +245,7 @@ def write_report(path: Path, summaries: dict[str, Any], bridges: list[dict[str, 
         "반면 K0는 bilinear sampling, 고정 history weight 0.5, resolve-output feedback history를 사용하므로 Standard-K0 차이는 실행 경로만의 차이가 아니며 참고 control로만 해석한다.", "",
         "## 입력 무결성", "", f"- 기존 control hash bridge: {len(bridges)} sequences, mismatch 0", "",
         "## Window별 핵심 MAE", "",
-        "| Scene | Window | K0 Off-On | K1 Off-On | K2 Off-On | K3 Off-On | On: K1-K0 | On: K2-K1 | On: K3-K2 | Off: K1-K0 | Off: K2-K1 | Off: K3-K2 |", 
+        "| Scene | Window | K0 Off-On | K1 Off-On | K2 Off-On | K3 Off-On | On: K1-K0 | On: K2-K1 | On: K3-K2 | Off: K1-K0 | Off: K2-K1 | Off: K3-K2 |",
         "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for scene, summary in summaries.items():

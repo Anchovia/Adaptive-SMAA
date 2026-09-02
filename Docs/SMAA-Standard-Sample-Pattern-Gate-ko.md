@@ -31,8 +31,9 @@ control이 아니다. 이번 실험에서는 두 요소를 함께 On/Off하는 �
 |---|---|---|
 | Temporal coverage | Full-screen | Full-screen |
 | Temporal resolve | Standard | Standard |
-| History sampler | Bilinear | Bilinear |
-| History weight | 0.5 | 0.5 |
+| History sampler | Point | Point |
+| History weight | velocity-alpha adaptive 0~0.5 | velocity-alpha adaptive 0~0.5 |
+| History source | 직전 spatial T2X frame | 직전 spatial 1X frame |
 | Clipping | Off | Off |
 | Reprojection | Camera/depth | Camera/depth |
 | History lifecycle | 동일 | 동일 |

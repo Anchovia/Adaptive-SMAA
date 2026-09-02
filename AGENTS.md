@@ -367,8 +367,8 @@ Original mode는 기존 edge target/shader path를 유지한다.
   PASS했다. Skinned/deforming/transparent motion과 previous-depth disocclusion
   rejection은 별도 후속 범위다. 품질·성능 gate 전에는 기존 8-case `-R` 의미나
   formal 결과를 변경하지 않는다.
-- `SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R`은 Standard full-screen resolve, bilinear history
-  sampling, history weight 0.5, camera/depth reprojection과 history lifecycle을 유지하면서 공식
+- `SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R`은 Standard full-screen resolve, point history
+  sampling, velocity-alpha 기반 가변 history weight `0..0.5`, camera/depth reprojection과 history lifecycle을 유지하면서 공식
   SMAA T2X의 paired projection-jitter/subsample-index pattern 전체만 끄는 진단 mode다. jitter만
   끄고 T2X subsample index를 유지하는 비정상 조합은 사용하지 않는다.
 - `-smaaStandardSamplePatternCapture`는 Bistro/Minecraft `flythrough-wide-yaw-360`에서 `O-1X`,
@@ -380,6 +380,10 @@ Original mode는 기존 edge target/shader path를 유지한다.
   -0.677711/-1.028076이었다. 따라서 Standard paired pattern은 이동 중 오차와 정지 전환의 temporal
   supersampling 이점 사이의 핵심 trade-off이며, coverage만으로 이전 transition 열세를 설명할 수 없다.
   결과와 다음 interaction gate는 `Docs/SMAA-Standard-Sample-Pattern-Gate-ko.md`를 기준으로 한다.
+- Standard `O-T2X-R`/`ABL-Standard-PatternOff-R`의 ping-pong texture에는 각 프레임의
+  neighborhood-blended spatial result가 저장되고 resolve 출력은 화면 destination에만 기록된다.
+  반면 Document/ET2X 경로는 resolve 출력을 다음 history에 feedback한다. 따라서 Standard와
+  Document K0의 차이는 sampler와 weight뿐 아니라 history feedback topology도 포함한다.
 
 `IntelFamilyNonDominant`는 removal sweep와 기존 mask/buffer 검증을 통과해 document
 profile의 기본 adaptation 정책으로 조립했다. 다만 유실된 Intel TSCMAA 원본 식과
@@ -615,9 +619,11 @@ Original camera-reprojection 경로에서 다음 누적 구성요소 ablation도
 | 5 | `O-ET2X-R-Document` | deliberate projection jitter 비활성화 |
 
 Candidate-only 단계는 `O-T2X-R`과 Original spatial, camera reprojection, T2X
-jitter/subsample, bilinear sampler, clipping Off, history weight 0.5를 동일하게
-유지하고 full-screen resolve를 candidate compact/indirect resolve로 바꾼 통제
-비교다. Edge-selective T2X mode에서 jitter가 켜진 경우에도 `MODE_SMAA_T2X`와 올바른
+jitter/subsample을 유지했지만, 후속 코드 재감사에서 공식 `O-T2X-R`은 point sampler와
+velocity-alpha 기반 가변 history weight `0..0.5`를 사용하고 CandidateOnly compute는
+bilinear sampler와 고정 weight `0.5`를 사용하는 차이가 확인됐다. 따라서 이 historical
+pair는 coverage-only 통제 비교가 아니며 그 attribution은 폐기한다. Edge-selective T2X
+mode에서 jitter가 켜진 경우에도 `MODE_SMAA_T2X`와 올바른
 subsample index를 사용하도록 수정했고, resize reset 전에 이전 viewport jitter가
 선택되지 않도록 lifecycle 순서도 교정했다. 확장된 lifecycle 자동 검증은 reset 34회,
 completed frame 104개, seed 17개, resolve 87개, reprojection 39개, failure 0으로
@@ -925,9 +931,11 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     분석 및 Original deterministic regression 검증을 완료했다.
 12. **완료:** 독립 object motion, 얇은 선과 disocclusion 전용 장면의 전체 8-case
     정식 capture와 전용 ROI 분석, SMAA 1X control을 완료했다.
-13. **완료:** Original camera-reprojection 경로에서 candidate coverage,
-    Catmull-Rom, variance clipping, history weight 0.8과 no-jitter를 인접 한 요소씩
-    추가하는 품질·성능 ablation을 완료했다.
+13. **정정:** Original camera-reprojection 경로에서 수행한 초기 candidate/component
+    ablation은 구현·측정 자체는 완료했으나 Standard가 point/velocity-adaptive resolve,
+    CandidateOnly가 bilinear/fixed-0.5 resolve를 사용한 confound가 사후 확인됐다. 따라서
+    Standard→CandidateOnly를 coverage 단일요소 결과로 재사용하지 않는다. K0~K3처럼 같은
+    FullScreenDocument 실행 경로 안에서 수행한 후속 직교 ladder만 component attribution에 쓴다.
 14. **완료:** Farneback optical-flow 정렬 보조 지표를 component ablation과 최종
     8-case에 적용하고 합성 이동 self-test, 유효 비율, threshold 민감도를 검증했다.
 15. **완료:** Intel-family와 AllBase 후보 정책, projection jitter On/Off를 각각
