@@ -1902,3 +1902,27 @@ total은 4.734~5.171% 더 컸다. 두-pass reconstruction 비용이 후보 감�
 expansion으로 선택한다. FilteredQuarter와 ARM은 ablation으로 보존하되 최적화 전 formal
 확대는 하지 않고 5×5/7×7도 보류한다. 다음 독립 과제는 object motion vector와 depth
 disocclusion 설계 감사이며, 구현 시 3×3은 별도 toggle로 유지한다.
+
+### 17.34 Document kernel × paired SMAA T2X sample-pattern interaction gate
+
+기존 screen-space DeJitter는 jittered spatial image를 bilinear inverse sample하는
+근사이며 경계 연화가 확인되어 공정한 edge-selective Pattern-On control로 재사용하지
+않았다. 대신 full-screen에서 Standard/Document kernel 각각의 paired SMAA T2X pattern
+On/Off 2×2를 만들고, Pattern-Off full-screen↔edge coverage pair를 연결했다.
+
+새 `ABL-Document-FullScreen-PatternOn-R`은 Catmull-Rom 5-tap, YCoCg clipping,
+history weight 0.8, camera/depth reprojection을 기존 full-screen document control과 같게
+유지하고 projection jitter와 대응 T2X subsample index만 함께 켠 diagnostic이다. Release
+x64, 27-phase lifecycle failures 0, 양 장면 6×480-frame capture와 기존 control hash
+bridge가 PASS했다.
+
+공식 CGVQM-2에서 Standard Pattern Off−On은 central motion에서 Bistro +2.262238,
+Minecraft +1.477898이지만 motion→still에서는 -0.677711/-1.028076이었다. 반면 Document
+Off−On은 central +1.248512/+0.928726, transition +0.981529/+0.307709로 두 구간 모두
+Pattern Off가 높았다. 후기 정지 temporal-delta residual도 Document Pattern-On이
+0.649936/0.583506으로 Pattern-Off 0.002778/0.004408보다 크게 남았다.
+
+따라서 sample pattern 효과는 kernel과 독립적이지 않으며 document profile에 pattern을
+단순 재활성화하지 않는다. 다음 gate는 full-screen Pattern On/Off 각각에 Catmull-Rom,
+YCoCg clipping, history weight 0.8을 순서대로 추가하는 2×4 component ladder다. 상세
+결과는 `Docs/SMAA-Document-Sample-Pattern-Interaction-Gate-ko.md`를 기준으로 한다.

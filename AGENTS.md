@@ -1287,8 +1287,29 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
     -0.379891/-0.810738점 낮았다. 따라서 restricted coverage는 transition 손실에 일부
     관여하지만 전체 원인은 아니며, 중앙 motion 품질과 기존 matched-kernel 성능 이점을
     고려해 persistence/confidence를 바로 추가하지 않는다. 다음 gate는 full-screen
-    Standard kernel에서 jitter만 On/Off로 분리하는 `ABL-Standard-NoJitter-R`이다.
+    Standard kernel에서 projection jitter와 대응 subsample index를 한 쌍으로 On/Off하는
+    `ABL-Standard-PatternOff-R`이다.
     자세한 결과는 `Docs/SMAA-Motion-To-Still-Coverage-Gate-ko.md`를 기준으로 한다.
+42. **Document kernel × paired sample-pattern interaction gate 완료:** 기존
+    `ABL-Candidate-DeJitter-R`은 jittered spatial image의 bilinear inverse-jitter
+    screen-space 근사이며 경계 연화가 확인된 탈락 ablation이므로 공정한 edge-selective
+    Pattern-On base로 재사용하지 않았다. 대신 full-screen Standard/Document kernel의
+    paired SMAA T2X pattern On/Off 2×2를 구성했다. 새
+    `ABL-Document-FullScreen-PatternOn-R`은 Catmull-Rom 5-tap, YCoCg clipping,
+    history weight 0.8, camera/depth reprojection과 lifecycle을 Document Pattern-Off와
+    같게 유지하고 projection jitter와 대응 T2X subsample index만 함께 켠다. Release x64,
+    27-phase lifecycle failures 0, Bistro/Minecraft 6 mode×480 frames, 기존 control
+    10 sequence hash bridge mismatch 0, 공식 CGVQM-2 24 result validation이 PASS했다.
+    Standard Pattern Off−On은 central motion에서 +2.262238/+1.477898이지만
+    motion→still에서 -0.677711/-1.028076이었다. Document Off−On은 central
+    +1.248512/+0.928726, transition +0.981529/+0.307709로 두 구간 모두 Pattern Off가
+    높았다. 후기 정지 temporal-delta residual도 Document Pattern-On
+    0.649936/0.583506 대 Pattern-Off 0.002778/0.004408로 큰 2-phase 변화가 남았다.
+    따라서 document profile에 sample pattern을 단순 재활성화하지 않는다. 다음 gate는
+    full-screen Pattern On/Off 각각에 Catmull-Rom, YCoCg clipping, history weight 0.8을
+    순차 추가하는 2×4 component ladder이며, 그 전에는 motion-phase heuristic이나
+    persistence를 추가하지 않는다. 자세한 결과는
+    `Docs/SMAA-Document-Sample-Pattern-Interaction-Gate-ko.md`를 기준으로 한다.
 
 ## 7. 측정 규칙
 
