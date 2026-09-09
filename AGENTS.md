@@ -1451,6 +1451,18 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
   `Docs/SMAA-Luma-Reuse-Paired-Performance-Results-ko.md`다. 실행 후 wrapper는
   After blob `71d151dd56e787665b667e467d94f1a452e24009`로 복원했다.
 
+## 8.4 Contrast-tier 후보 정책 설계 (2026-09-09)
+
+- 설계 문서는 `Docs/SMAA-Contrast-Tier-Candidate-Design-ko.md`다. 아직 구현/측정하지 않았다.
+- first-pass finalDelta를 직접 사용하며 metadata 재읽기나 추가 full-screen pass를 만들지 않는다.
+  finalDelta는 주변 여섯 luma 차이의 최댓값이지 temporal 필요도나 현재 edge 한 방향의
+  대비가 아니다. 기존 Adaptive는 탐색 길이 조절이고 새 정책은 별도 후보 선택 가설이다.
+- 기존 Intel-family/AllBase control과 High/MediumHigh/Low 진단 정책을 비교하는 안이다.
+  먼저 Original + camera/depth R + expansion None에서 다른 temporal 설정을 고정한다.
+  Adaptive 통합/확장/threshold sweep은 첫 gate에 섞지 않는다. 공식 TSCMAA 식으로 부르지 않는다.
+- 새 정책은 integrated source 전용으로 검증하며 미지원 source 조합을 조용히 all-false로
+  처리하지 않는다. 경계·mask·compact·lifecycle 검증 전 품질/성능 확대를 금지한다.
+
 ## 9. 작업 중 확인 체크
 
 매 작업 시작 시 아래를 확인한다.
