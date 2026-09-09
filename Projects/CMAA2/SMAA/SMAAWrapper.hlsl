@@ -212,7 +212,8 @@ float TSCMAAIntegratedLoadLuma(int2 pixel, int2 dimensions) {
 // pass and reuses the luma values needed by that pass. It must not be described
 // as Intel's original candidate shader.
 bool TSCMAAIntegratedSelectCandidate(
-    uint2 pixel) {
+    uint2 pixel, float L, float Lleft, float Ltop,
+    float Lright, float Lbottom) {
     uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
     if (policy == 0)
         return true;
@@ -226,11 +227,9 @@ bool TSCMAAIntegratedSelectCandidate(
     int2 centerPixel = int2(pixel);
 
     #define TSCMAA_INTEGRATED_LOAD_LUMA(P) TSCMAAIntegratedLoadLuma(P, dimensions)
-    float L = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel);
-    float Lleft = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(-1, 0));
-    float Ltop = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(0, -1));
-    float Lright = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(1, 0));
-    float Lbottom = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(0, 1));
+    // The full-resolution edge draw already sampled these five axial lumas
+    // with the point/clamp sampler on the same source SRV. Reuse them here;
+    // only the three diagonal samples are additional candidate inputs.
     float LtopLeft = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(-1, -1));
     float LbottomLeft = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(-1, 1));
     float LtopRight = TSCMAA_INTEGRATED_LOAD_LUMA(centerPixel + int2(1, -1));
@@ -291,7 +290,8 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
 
     uint2 pixel = uint2(position.xy);
     bool baseEdge = any(edges > 0.0);
-    bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(pixel);
+    bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(
+        pixel, L, Lleft, Ltop, Lright, Lbottom);
     // Candidate-mask mode encoding (set by the DX11 wrapper):
     //   0 = no mask output, 1 = diagnostic masks,
     //   2 = direct-mask execution, 3 = direct-mask + diagnostics.

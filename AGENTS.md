@@ -1413,6 +1413,17 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
 - 본 측정 전에 최소 smoke test와 Release x64 빌드를 통과해야 한다.
 - 현재 브랜치와 작업 트리 상태를 확인하지 않고 이전 세션 상태를 가정하지 않는다.
 
+## 8.1 Integrated luma 재사용 gate (2026-09-09)
+
+- Integrated temporal candidate 함수는 first-pass의 중심/좌/상/우/하 luma를 인자로
+  재사용하고 대각선 3개만 추가 Load한다. 후보 수식과 8-case semantics는 유지한다.
+- FXC 8 variant 검증, 변경된 ET2X final/mask 각 72 frame byte 일치 및 lifecycle
+  failures 0을 확인했다. Bistro O-T2X control 12 frame 차이는 별도 결정성 검증
+  대상으로 남기며 모든 mode의 출력 동일성을 주장하지 않는다.
+- 단축 전후 측정의 SMAA 약 0.5% 감소는 미변경 control의 변동과 비슷하므로 확정
+  성능 개선으로 보고하지 않는다. 자세한 조건은
+  `Docs/SMAA-Integrated-Luma-Reuse-Results-ko.md`를 따른다.
+
 ## 9. 작업 중 확인 체크
 
 매 작업 시작 시 아래를 확인한다.
