@@ -71,8 +71,11 @@ void vaSMAAWrapper::UIPanelDraw( )
         {
             int policy = (int)m_candidatePolicyOverride;
             if( ImGuiEx_Combo( "Candidate policy", policy,
-                { string("All base edges"), string("Intel-family non-dominant"), string("Experimental 3x3 mean/max") } ) )
+                { string("All base edges"), string("Intel-family non-dominant"), string("Experimental 3x3 mean/max"),
+                  string("Experimental contrast high"), string("Experimental contrast medium+high"), string("Experimental contrast low") } ) )
                 SetCandidatePolicyOverride( true, (CandidatePolicy)policy );
+            if( IsContrastTierCandidatePolicy(GetEffectiveCandidatePolicy()) )
+                ImGui::TextUnformatted("Contrast tiers require integrated source; Intel threshold/removal inactive");
         }
 
         bool removalOverrideEnabled = m_nonDominantRemovalOverrideEnabled;

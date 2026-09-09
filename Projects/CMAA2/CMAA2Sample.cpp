@@ -404,6 +404,9 @@ namespace
         case vaSMAAWrapper::CandidatePolicy::AllBaseEdges:                       return "AllBaseEdges";
         case vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant:             return "IntelFamilyNonDominant";
         case vaSMAAWrapper::CandidatePolicy::ExperimentalLocalMeanMax3x3:        return "ExperimentalLocalMeanMax3x3";
+        case vaSMAAWrapper::CandidatePolicy::ExperimentalContrastHigh:          return "ExperimentalContrastHigh";
+        case vaSMAAWrapper::CandidatePolicy::ExperimentalContrastMediumHigh:    return "ExperimentalContrastMediumHigh";
+        case vaSMAAWrapper::CandidatePolicy::ExperimentalContrastLow:           return "ExperimentalContrastLow";
         default:                                                                 return "Unknown";
         }
     }
@@ -3314,7 +3317,11 @@ protected:
                 abTool.ReportAddText("O-ET2X and O-ET2X-R use the Intel-document-family edge-selective SMAA adaptation without deliberate projection jitter.\r\n");
                 abTool.ReportAddText("O-ET2X is the no-reprojection ablation; O-ET2X-R uses camera-motion reprojection only.\r\n");
             }
-            abTool.ReportAddText("Both use IntelFamilyNonDominant candidates, Catmull-Rom 5-tap history sampling, YCoCg variance clipping, and history weight 0.8.\r\n\r\n");
+            abTool.ReportAddText(vaStringTools::Format("Effective candidate policy: %s; source: %s\r\n",
+                GetCandidatePolicyName(m_parent.GetSMAAEffectiveCandidatePolicy()),
+                GetCandidateEdgeSourceName(m_parent.GetSMAAEffectiveCandidateEdgeSource())));
+            if( vaSMAAWrapper::IsContrastTierCandidatePolicy(m_parent.GetSMAAEffectiveCandidatePolicy()) )
+                abTool.ReportAddText("Experimental contrast tiers: Intel candidate threshold/removal inactive; surviving SMAA base edges retained as gate.\r\n");
             abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
             abTool.ReportAddText("SMAA preset:   Ultra\r\n");
             abTool.ReportAddText(vaStringTools::Format("Start time:    %.3f s\r\n", m_captureStartTime));
@@ -9261,15 +9268,17 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         {
             int policy = -1;
             std::wistringstream values(parameter.second);
-            if (!(values >> policy) || policy < -1 || policy > 2)
+            if (!(values >> policy) || policy < -1 || policy > 5)
             {
-                VA_LOG_ERROR("Invalid -smaaCandidatePolicyOverride value; expected -1 (disabled), 0 (all base), 1 (Intel-family), or 2 (experimental)");
+                VA_LOG_ERROR("Invalid -smaaCandidatePolicyOverride value; expected -1 (disabled), 0 (all base), 1 (Intel-family), 2 (local mean/max), 3 (contrast high), 4 (contrast medium+high), 5 (contrast low); contrast tiers require integrated source 2");
                 return;
             }
             m_SMAA->SetCandidatePolicyOverride(policy >= 0,
                 policy >= 0? (vaSMAAWrapper::CandidatePolicy)policy : vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant);
             VA_LOG("SMAA candidate policy diagnostic override: %s",
                 policy >= 0? GetCandidatePolicyName((vaSMAAWrapper::CandidatePolicy)policy) : "disabled");
+            if (policy >= 3)
+                VA_LOG("Contrast-tier experiment: first-pass finalDelta; Intel candidate threshold/removal inactive; SMAA base threshold/pruning retained");
         }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionOverride") == 0)
         {
@@ -9420,6 +9429,16 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        // All overrides have been parsed above, so validation is independent
+        // of command-line argument order. Draw also guards programmatic changes.
+        if( vaSMAAWrapper::IsContrastTierCandidatePolicy(m_SMAA->GetEffectiveCandidatePolicy())
+            && (m_SMAA->GetEffectiveCandidateEdgeSource() != vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
+                || m_SMAA->GetForcedCandidateCountEnabled()) )
+        {
+            VA_LOG_ERROR("Contrast-tier candidate policy requires integrated source 2 and forced-count Off; no benchmark queued");
+            m_quitAfterCommandLineCapture = true;
+            return;
+        }
         if(_wcsicmp(parameter.first.c_str(), L"smaaPowerPlantPreviewCapture") == 0)
         {
             int warmupFrameCount = 60;

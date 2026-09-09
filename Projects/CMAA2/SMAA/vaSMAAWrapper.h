@@ -129,8 +129,18 @@ namespace VertexAsylum
         {
             AllBaseEdges,
             IntelFamilyNonDominant,
-            ExperimentalLocalMeanMax3x3
+            ExperimentalLocalMeanMax3x3,
+            ExperimentalContrastHigh,
+            ExperimentalContrastMediumHigh,
+            ExperimentalContrastLow
         };
+
+        static bool IsContrastTierCandidatePolicy( CandidatePolicy policy )
+        {
+            return policy == CandidatePolicy::ExperimentalContrastHigh
+                || policy == CandidatePolicy::ExperimentalContrastMediumHigh
+                || policy == CandidatePolicy::ExperimentalContrastLow;
+        }
 
         // Selects where the edge-selective temporal candidate stage obtains
         // its directional edge input. The legacy path re-evaluates luma after

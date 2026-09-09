@@ -1453,7 +1453,8 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
 
 ## 8.4 Contrast-tier 후보 정책 설계 (2026-09-09)
 
-- 설계 문서는 `Docs/SMAA-Contrast-Tier-Candidate-Design-ko.md`다. 아직 구현/측정하지 않았다.
+- 설계 문서는 `Docs/SMAA-Contrast-Tier-Candidate-Design-ko.md`다. 최소 구현/초기 검증은
+  아래 8.5에서 진행했으며 전체 정확성 gate 및 품질/성능 측정은 아직 미완료다.
 - first-pass finalDelta를 직접 사용하며 metadata 재읽기나 추가 full-screen pass를 만들지 않는다.
   finalDelta는 주변 여섯 luma 차이의 최댓값이지 temporal 필요도나 현재 edge 한 방향의
   대비가 아니다. 기존 Adaptive는 탐색 길이 조절이고 새 정책은 별도 후보 선택 가설이다.
@@ -1462,6 +1463,22 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
   Adaptive 통합/확장/threshold sweep은 첫 gate에 섞지 않는다. 공식 TSCMAA 식으로 부르지 않는다.
 - 새 정책은 integrated source 전용으로 검증하며 미지원 source 조합을 조용히 all-false로
   처리하지 않는다. 경계·mask·compact·lifecycle 검증 전 품질/성능 확대를 금지한다.
+
+## 8.5 Contrast-tier 초기 구현/검증 (2026-09-09)
+
+- CandidatePolicy ID 3/4/5는 ExperimentalContrastHigh/MediumHigh/Low다. 기존 finalDelta를
+  직접 재사용하고 살아남은 baseEdge로 gate한다. 추가 대각선 Load 전에 반환하며
+  Intel 후보 threshold/removal은 비활성이다. 기존 정책/8-case 기본값은 바꾸지 않는다.
+- Integrated source 전용이며 Legacy/Post-pass 및 forced-count 조합은 명시적으로 거부한다.
+- FXC Original/Adaptive × RGB/raw compile, 기존 spatial shader 4개 bytecode 동일,
+  hardware D3D11 production-selector 경계/base-gate 48개 검사 PASS다.
+- Bistro 짧은 GPU mask에서 High⊆MediumHigh, Low∩MediumHigh=공집합,
+  Low∪MediumHigh=AllBase=base, 반복 phase/hash mismatch 0. 새 정책 final 36장의
+  비후보=current-spatial mismatch 0, 기본 8-case 96 PNG 변경 전후 동일이다.
+- 기존 lifecycle/feedback도 PASS지만 새 정책 전환 전체 검사나 실제 tier compact 목록의
+  동일-frame readback 검증은 아직 아니다. 이 두 항목을 완료한 뒤 품질 gate로 간다.
+- 결과/실행 ID/한계/다음 단계는 `Docs/SMAA-Contrast-Tier-Initial-Implementation-ko.md`다.
+  후보 감소만으로 temporal 품질 또는 성능 개선을 주장하지 않는다.
 
 ## 9. 작업 중 확인 체크
 

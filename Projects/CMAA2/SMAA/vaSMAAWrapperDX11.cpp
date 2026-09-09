@@ -1010,6 +1010,17 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera,
     const vaRenderMeshDrawList * optionalObjectVelocityDrawList )
 {
+    // Reject unsupported policy/source combinations before touching output
+    // bindings or resources. Never fall back to a re-detection shader which
+    // has no first-pass finalDelta and would silently discard all candidates.
+    if( GetEdgeSelectiveTemporalEnabled( )
+        && IsContrastTierCandidatePolicy( GetEffectiveCandidatePolicy( ) )
+        && (GetEffectiveCandidateEdgeSource( ) != CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
+            || GetForcedCandidateCountEnabled( )) )
+    {
+        VA_LOG_ERROR( "Contrast-tier candidate policies require integrated first-pass source and forced-count Off" );
+        return vaDrawResultFlags::UnspecifiedError;
+    }
     vaRenderDeviceContext::RenderOutputsState rtState = deviceContext.GetOutputs( );
 
     assert( rtState.RenderTargetCount == 1 );
@@ -2941,6 +2952,9 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
                 case CandidatePolicy::AllBaseEdges:                    policyName = "AllBaseEdges"; break;
                 case CandidatePolicy::IntelFamilyNonDominant:          policyName = "IntelFamilyNonDominant"; break;
                 case CandidatePolicy::ExperimentalLocalMeanMax3x3:     policyName = "ExperimentalLocalMeanMax3x3"; break;
+                case CandidatePolicy::ExperimentalContrastHigh:        policyName = "ExperimentalContrastHigh [Intel threshold/removal inactive]"; break;
+                case CandidatePolicy::ExperimentalContrastMediumHigh:  policyName = "ExperimentalContrastMediumHigh [Intel threshold/removal inactive]"; break;
+                case CandidatePolicy::ExperimentalContrastLow:         policyName = "ExperimentalContrastLow [Intel threshold/removal inactive]"; break;
                 }
                 const char * expansionName = "None";
                 if( m_temporalCandidateStatistics.Expansion == CandidateExpansion::Dilate3x3 )

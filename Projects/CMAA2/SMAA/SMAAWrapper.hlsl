@@ -45,7 +45,8 @@ struct SMAAReprojectionConstants
     // z: camera reprojection enabled, w: output requires linear-to-sRGB conversion.
     float4 TSCMAAParams;
     // x: base luma-edge threshold, y: candidate policy enum
-    // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3),
+    // (0 all base, 1 Intel-family non-dominant, 2 legacy experimental 3x3,
+    // 3/4/5 experimental contrast High/MediumHigh/Low; integrated-only),
     // z: forced candidate count, w: forced-count diagnostics enabled.
     float4 TSCMAACandidateParams;
     // x: history sampler enum (0 bilinear, 1 Catmull-Rom 5-tap, 2 point),
@@ -213,8 +214,18 @@ float TSCMAAIntegratedLoadLuma(int2 pixel, int2 dimensions) {
 // as Intel's original candidate shader.
 bool TSCMAAIntegratedSelectCandidate(
     uint2 pixel, float L, float Lleft, float Ltop,
-    float Lright, float Lbottom) {
+    float Lright, float Lbottom, float finalDelta) {
     uint policy = (uint)(g_SMAAReprojection.TSCMAACandidateParams.y + 0.5);
+    // Experimental SMAA contrast-tier selection, NOT Intel's candidate rule.
+    // finalDelta is the existing maximum of six luma differences. The caller
+    // gates this result with the surviving SMAA base edge. These policies do
+    // not use Intel-family threshold/removal or any additional texture reads.
+    if (policy == 3)
+        return finalDelta >= (1.0 / 3.0);
+    if (policy == 4)
+        return finalDelta >= 0.1;
+    if (policy == 5)
+        return finalDelta < 0.1;
     if (policy == 0)
         return true;
     if (policy != 1)
@@ -291,7 +302,7 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     uint2 pixel = uint2(position.xy);
     bool baseEdge = any(edges > 0.0);
     bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(
-        pixel, L, Lleft, Ltop, Lright, Lbottom);
+        pixel, L, Lleft, Ltop, Lright, Lbottom, finalDelta);
     // Candidate-mask mode encoding (set by the DX11 wrapper):
     //   0 = no mask output, 1 = diagnostic masks,
     //   2 = direct-mask execution, 3 = direct-mask + diagnostics.
