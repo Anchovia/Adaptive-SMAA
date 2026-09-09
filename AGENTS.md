@@ -1437,6 +1437,20 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
   반복 hash를 함께 검증한다. legacy 자료는 phase/hash bridge 없이 픽셀 회귀 기준으로
   쓰지 않는다. 자세한 범위는 `Docs/SMAA-Temporal-Capture-Readiness-Determinism-ko.md`다.
 
+## 8.3 Luma 재사용 전후 교차 성능 gate (2026-09-09)
+
+- 동일 실행파일, RTX 3060 Ti, 1920×1017, visible, readback Off에서 Bistro/Minecraft
+  각 전후 3 pair를 독립 프로세스로 측정했다. 각 실행은 warm-up 300, 4,800 frame×8 mode,
+  repeat 1이며 전체 12회 validation PASS다. pair 순서는 전→후 / 후→전 / 전→후다.
+- ET2X SMAA 평균 변화는 Bistro -0.24~-0.68%, Minecraft -1.33~-2.11%다.
+  Minecraft는 세 pair 모두 감소했지만 raw paired 95% 구간은 Adaptive 두 case만 0을
+  제외한다. 작은 표본/다중 비교 한계와 미변경 Standard 변동을 함께 기록한다.
+- WholeFrame은 장면별 방향이 달라 일관된 개선으로 주장하지 않는다. 재사용 코드는
+  유지하되 주요 병목 해소나 Standard 대비 성능 목표 달성으로 표현하지 않는다.
+- 분석 도구는 `Tools/SMAA/analyze_luma_reuse_paired_performance.py`, 상세 결과는
+  `Docs/SMAA-Luma-Reuse-Paired-Performance-Results-ko.md`다. 실행 후 wrapper는
+  After blob `71d151dd56e787665b667e467d94f1a452e24009`로 복원했다.
+
 ## 9. 작업 중 확인 체크
 
 매 작업 시작 시 아래를 확인한다.

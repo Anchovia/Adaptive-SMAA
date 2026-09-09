@@ -108,3 +108,8 @@ validate_integrated_luma_reuse.py --before <baseline-wrapper> --after <current-w
 2. 성능 향상을 보고하려면 긴 전후 교차 paired 측정으로 약 0.001 ms 차이가 재현되는지 확인한다.
 3. Contrast-tier 기반 후보 정책은 기존 정책을 보존한 독립 ablation으로 설계한다.
    후보 감소만으로 temporal 품질 또는 성능 개선이라고 판단하지 않는다.
+
+후속 성능 gate도 완료했다. 두 장면 각 전후 3 pair에서 SMAA 변화는 Bistro
+-0.24~-0.68%, Minecraft -1.33~-2.11%였다. 장면별 작은 개선 신호이며 전체 frame
+일관 개선이나 주요 병목 해소는 아니다. 자세한 조건/불확실성은
+`SMAA-Luma-Reuse-Paired-Performance-Results-ko.md`를 따른다.
