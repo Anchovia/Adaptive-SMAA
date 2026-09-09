@@ -100,6 +100,10 @@ validate_integrated_luma_reuse.py --before <baseline-wrapper> --after <current-w
 
 ## 7. 다음 순서
 
+후속 정정(2026-09-09): 아래 1번은 완료됐다. 같은 실행파일에서 준비 단계 분리 여부만
+바꿔 O-T2X 시작 phase 차이를 확인했고, 교정된 96 PNG는 변경 전 baseline과 전부 일치했다.
+자세한 검증 범위는 `SMAA-Temporal-Capture-Readiness-Determinism-ko.md`를 참고한다.
+
 1. O-T2X control의 실행 간 차이를 재현·분리한다.
 2. 성능 향상을 보고하려면 긴 전후 교차 paired 측정으로 약 0.001 ms 차이가 재현되는지 확인한다.
 3. Contrast-tier 기반 후보 정책은 기존 정책을 보존한 독립 ablation으로 설계한다.

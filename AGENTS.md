@@ -1424,6 +1424,19 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
   성능 개선으로 보고하지 않는다. 자세한 조건은
   `Docs/SMAA-Integrated-Luma-Reuse-Results-ko.md`를 따른다.
 
+## 8.2 Temporal-matrix 캡처 준비/위상 교정 (2026-09-09)
+
+- `BenchItemRecordSMAATemporalMatrix`는 mode별 렌더 준비가 끝난 뒤 history를 reset하고
+  정해진 warm-up을 시작한다. 네 번째 optional readinessFrames는 기본 1이며 0은
+  legacy 진단 전용이다. 성능 benchmark와 다른 camera-motion capture class는 불변이다.
+- 같은 실행파일의 legacy 대조에서 O-T2X capture 시작 phase 1과 12 PNG 차이를 확인했다.
+  새 경로의 준비 1/2/7 tick 독립 실행은 phase 0 시작, 8 mode×12 PNG 반복 mismatch 0이며
+  luma 변경 전 `20260909_141949`의 96 PNG 전체와도 동일하다. 이전 8.1의 O-T2X
+  차이는 이 후속 gate에서 시작 위상 문제로 분리했다.
+- `Tools/SMAA/validate_temporal_capture_repeatability.py`로 phase, history, PNG index와
+  반복 hash를 함께 검증한다. legacy 자료는 phase/hash bridge 없이 픽셀 회귀 기준으로
+  쓰지 않는다. 자세한 범위는 `Docs/SMAA-Temporal-Capture-Readiness-Determinism-ko.md`다.
+
 ## 9. 작업 중 확인 체크
 
 매 작업 시작 시 아래를 확인한다.

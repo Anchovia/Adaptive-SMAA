@@ -3159,6 +3159,9 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
     const int           m_warmupFrameCount;
     const bool          m_candidateEdgeSourceAblation;
     const int           m_modeCount;
+    const int           m_readinessFrames;
+    int                 m_readinessRemaining;
+    bool                m_savedLifecycleDiagnostics = false;
     float               m_captureStartTime;
     int                 m_currentMode;
     int                 m_currentFrame;
@@ -3252,12 +3255,14 @@ class BenchItemRecordSMAATemporalMatrix : public AutoBenchToolWorkItem
 
 public:
     BenchItemRecordSMAATemporalMatrix(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount, bool includeAdaptive,
-        bool candidateEdgeSourceAblation = false)
+        bool candidateEdgeSourceAblation = false, int readinessFrames = 1)
         : AutoBenchToolWorkItem(parent),
         m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
         m_warmupFrameCount(vaMath::Max(1, warmupFrameCount)),
         m_candidateEdgeSourceAblation(candidateEdgeSourceAblation),
         m_modeCount(candidateEdgeSourceAblation? c_originalModeCount : (includeAdaptive? c_modeCapacity : c_originalModeCount)),
+        m_readinessFrames(readinessFrames),
+        m_readinessRemaining(readinessFrames),
         m_captureStartTime(startTime),
         m_currentMode(0),
         m_currentFrame(0),
@@ -3316,12 +3321,43 @@ protected:
             abTool.ReportAddText(vaStringTools::Format("Warm-up:       %d frames\r\n", m_warmupFrameCount));
             abTool.ReportAddText("Shadowmaps:    wait for stable lighting before frame zero\r\n");
             abTool.ReportAddText(vaStringTools::Format("Capture:       %d frames per mode\r\n\r\n", m_captureFrameCount));
+            abTool.ReportAddText(vaStringTools::Format("Readiness prelude: %d stable ticks (0 = legacy diagnostic only)\r\n", m_readinessFrames));
+            m_savedLifecycleDiagnostics = m_parent.GetSMAATemporalLifecycleDiagnostics().Enabled;
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled(true);
             abTool.ReportAddRowValues({ "Mode", "AA implementation", "Output directory" });
             for( int mode = 0; mode < m_modeCount; mode++ )
                 abTool.ReportAddRowValues({ GetModeID( mode ), GetModeDescription( mode ), GetModeDirectory( mode ) });
 
             m_currentMode = 0;
             m_currentFrame = -m_warmupFrameCount - 1;
+            if (m_readinessFrames > 0)
+            {
+                m_parent.Settings().CurrentAAOption = GetModeAAType(m_currentMode);
+                m_parent.GetFlythroughCameraController()->SetPlayTime(
+                    vaMath::Max(0.0f, m_captureStartTime - m_warmupFrameCount * c_frameDeltaTime));
+                return; // Render the selected mode before testing readiness.
+            }
+        }
+
+        if (m_readinessFrames > 0 && m_currentFrame == -m_warmupFrameCount - 1)
+        {
+            if (m_candidateEdgeSourceAblation)
+                m_parent.SetSMAACandidateEdgeSourceOverride(true,
+                    (m_currentMode & 1) != 0? vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassEdges :
+                        vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect);
+            m_parent.Settings().CurrentAAOption = GetModeAAType(m_currentMode);
+            m_parent.GetFlythroughCameraController()->SetPlayTime(
+                vaMath::Max(0.0f, m_captureStartTime - m_warmupFrameCount * c_frameDeltaTime));
+            // AutoBench Tick already waits for previous draw resource/shader flags.
+            // Do not count asynchronous preparation renders as temporal warm-up.
+            if (m_parent.HasPendingShadowmapUpdates())
+                return;
+            if (m_readinessRemaining > 0)
+            {
+                m_readinessRemaining--;
+                return;
+            }
+            m_parent.ResetSMAATemporalHistoryForDiagnostics();
         }
 
         // Keep the last warm-up frame fixed until static light shadowmaps have
@@ -3339,10 +3375,16 @@ protected:
                     m_parent.SetSMAACandidateEdgeSourceOverride(
                         false, vaSMAAWrapper::CandidateEdgeSource::LegacyLumaRedetect );
                 m_isDone = true;
+                m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled(m_savedLifecycleDiagnostics);
                 abTool.ReportFinish();
                 return;
             }
             m_currentFrame = -m_warmupFrameCount;
+            if (m_readinessFrames > 0)
+            {
+                m_currentFrame--;
+                m_readinessRemaining = m_readinessFrames;
+            }
         }
 
         if( m_candidateEdgeSourceAblation )
@@ -3369,6 +3411,13 @@ protected:
                 vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
             if (!colorInOut->SaveToPNGFile(renderContext, fileName))
                 VA_LOG_ERROR(L"Failed to save SMAA temporal frame '%s'", fileName.c_str());
+            const auto & diagnostics = m_parent.GetSMAATemporalLifecycleDiagnostics();
+            abTool.ReportAddRowValues({ "CapturePhase", GetModeID(m_currentMode),
+                vaStringTools::Format("%d", m_currentFrame),
+                vaStringTools::Format("%d", diagnostics.LastFrameIndexBefore),
+                vaStringTools::Format("%.3f", diagnostics.LastJitter.x),
+                vaStringTools::Format("%.3f", diagnostics.LastJitter.y),
+                diagnostics.LastHistoryValidBefore? "resolve" : "seed" });
         }
     }
 
@@ -10365,12 +10414,19 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         float startTime = m_temporalComparisonStartTime;
         int frameCount = m_temporalComparisonFrameCount;
         int warmupFrameCount = m_temporalComparisonWarmupFrames;
+        int readinessFrames = 1;
         if (!parameter.second.empty())
         {
             std::wistringstream values(parameter.second);
             if (!(values >> startTime >> frameCount >> warmupFrameCount))
             {
                 VA_LOG_ERROR("Invalid SMAA temporal capture values; expected: <startTimeSeconds> <captureFrames> <warmupFrames>");
+                return;
+            }
+            values >> std::ws;
+            if (!values.eof() && (!(values >> readinessFrames) || readinessFrames < 0 || readinessFrames > 120))
+            {
+                VA_LOG_ERROR("Invalid optional readinessFrames; expected 0 (legacy diagnostic) or 1..120 stable prelude ticks");
                 return;
             }
         }
@@ -10380,7 +10436,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
         startTime = vaMath::Max(0.0f, startTime);
         m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalMatrix>(
             *this, startTime, frameCount, warmupFrameCount, eightCaseCapture,
-            candidateEdgeSourceCapture));
+            candidateEdgeSourceCapture, readinessFrames));
         m_quitAfterCommandLineCapture = true;
         VA_LOG("Queued SMAA %s temporal capture: start %.3f s, %d capture frames, %d warm-up frames",
             candidateEdgeSourceCapture? "candidate edge-source ablation" :
