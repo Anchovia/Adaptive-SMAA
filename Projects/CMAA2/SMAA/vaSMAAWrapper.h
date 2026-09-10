@@ -198,6 +198,16 @@ namespace VertexAsylum
             }
         };
 
+        // Diagnostic-only synchronous snapshot; never enabled in timing runs.
+        struct CandidateSnapshot
+        {
+            bool Valid = false, Passed = false;
+            uint32 CandidateCount = 0, ProcessCount = 0, BaseCount = 0, Groups = 0;
+            uint32 Duplicates = 0, OutOfRange = 0, Overflow = 0, MaskMismatch = 0, ArgsMismatch = 0;
+            vector<uint8> BaseMask, SelectedMask;
+        };
+        virtual CandidateSnapshot ReadCandidateSnapshot( vaRenderDeviceContext & ) { return CandidateSnapshot(); }
+
         struct TemporalCandidateValidation
         {
             bool                        Valid                       = false;
@@ -523,6 +533,7 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidateEdgeSourceOverrideEnabled( ) const { return m_candidateEdgeSourceOverrideEnabled; }
+        CandidateEdgeSource         GetCandidateEdgeSourceOverrideValue( ) const { return m_candidateEdgeSourceOverride; }
         CandidatePolicy             GetEffectiveCandidatePolicy( ) const { return m_candidatePolicyOverrideEnabled? m_candidatePolicyOverride : m_temporalSettings.Candidates; }
         void                        SetCandidatePolicyOverride( bool enabled, CandidatePolicy policy )
         {
@@ -534,6 +545,7 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidatePolicyOverrideEnabled( ) const { return m_candidatePolicyOverrideEnabled; }
+        CandidatePolicy             GetCandidatePolicyOverrideValue( ) const { return m_candidatePolicyOverride; }
         CandidateExpansion          GetEffectiveCandidateExpansion( ) const
         {
             return m_candidateExpansionOverrideEnabled?
@@ -550,6 +562,7 @@ namespace VertexAsylum
             }
         }
         bool                        GetCandidateExpansionOverrideEnabled( ) const { return m_candidateExpansionOverrideEnabled; }
+        CandidateExpansion          GetCandidateExpansionOverrideValue( ) const { return m_candidateExpansionOverride; }
         float                       GetEffectiveArmDualReconstructionThreshold( ) const
         {
             return m_armDualReconstructionThresholdOverrideEnabled?

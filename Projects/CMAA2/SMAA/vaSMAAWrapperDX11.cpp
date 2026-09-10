@@ -469,6 +469,7 @@ namespace VertexAsylum
         ~vaSMAAWrapperDX11( );
 
     private:
+        virtual CandidateSnapshot ReadCandidateSnapshot( vaRenderDeviceContext & context ) override;
         virtual vaDrawResultFlags       Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr,
                                                 const vaRenderMeshDrawList * optionalObjectVelocityDrawList = nullptr ) override;
@@ -2910,6 +2911,89 @@ void vaSMAAWrapperDX11::RunVarianceClippingDiagnostics( ID3D11DeviceContext * co
         m_varianceClippingDiagnostics.OutlierRejectedCount, width * height,
         m_varianceClippingDiagnostics.OutlierBoxViolationCount,
         m_varianceClippingDiagnostics.Passed? "PASS" : "FAIL" );
+}
+
+vaSMAAWrapper::CandidateSnapshot vaSMAAWrapperDX11::ReadCandidateSnapshot( vaRenderDeviceContext & renderContext )
+{
+    CandidateSnapshot result;
+    if( !GetEdgeSelectiveTemporalEnabled() || !m_temporalHistoryValid
+        || GetEffectiveCandidateEdgeSource() != CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
+        || GetEffectiveCandidateExpansion() != CandidateExpansion::None
+        || GetForcedCandidateCountEnabled() || GetDirectMaskedCandidateResolveActive()
+        || !GetTemporalCandidateStatisticsReadbackEnabled()
+        || (GetTemporalDebugView()!=TemporalDebugView::SelectedCandidates && GetTemporalDebugView()!=TemporalDebugView::BaseEdges)
+        || !m_tscmaaBaseEdgeMask || !m_tscmaaCandidateMask || !m_tscmaaControlBuffer || !m_tscmaaCandidatesBuffer || !m_tscmaaDispatchArgsBuffer )
+        return result;
+    auto context = renderContext.SafeCast<vaRenderDeviceContextDX11*>()->GetDXContext();
+    ComPtr<ID3D11Device> device;
+    context->GetDevice(&device);
+    ComPtr<ID3D11Buffer> controls, list, args;
+    auto copyBuffer = [&](ID3D11Buffer * source, ComPtr<ID3D11Buffer> & target) -> bool
+    {
+        D3D11_BUFFER_DESC desc; source->GetDesc(&desc);
+        desc.Usage=D3D11_USAGE_STAGING; desc.BindFlags=0; desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+        desc.MiscFlags=0; desc.StructureByteStride=0;
+        if(FAILED(device->CreateBuffer(&desc,nullptr,&target))) return false;
+        context->CopyResource(target.Get(),source);
+        return true;
+    };
+    ComPtr<ID3D11Texture2D> masks[2];
+    ID3D11Texture2D * sources[2] = {
+        m_tscmaaBaseEdgeMask->SafeCast<vaTextureDX11*>()->GetTexture2D(),
+        m_tscmaaCandidateMask->SafeCast<vaTextureDX11*>()->GetTexture2D() };
+    D3D11_TEXTURE2D_DESC maskDesc; sources[0]->GetDesc(&maskDesc);
+    if(maskDesc.Format!=DXGI_FORMAT_R8_UNORM) return result;
+    const uint32 width=maskDesc.Width, height=maskDesc.Height, pixels=width*height;
+    maskDesc.Usage=D3D11_USAGE_STAGING; maskDesc.BindFlags=0;
+    maskDesc.CPUAccessFlags=D3D11_CPU_ACCESS_READ; maskDesc.MiscFlags=0;
+    // All five copies belong to this completed draw, before any next frame.
+    // Do not consume the asynchronous statistics ring, which can be older.
+    if(!copyBuffer(m_tscmaaControlBuffer,controls) || !copyBuffer(m_tscmaaCandidatesBuffer,list)
+        || !copyBuffer(m_tscmaaDispatchArgsBuffer,args)) return result;
+    for(int i=0;i<2;i++) {
+        if(FAILED(device->CreateTexture2D(&maskDesc,nullptr,&masks[i]))) return result;
+        context->CopyResource(masks[i].Get(),sources[i]);
+    }
+    D3D11_MAPPED_SUBRESOURCE mapped={};
+    if(FAILED(context->Map(controls.Get(),0,D3D11_MAP_READ,0,&mapped))) return result;
+    const uint32 * counts=(const uint32*)mapped.pData;
+    result.CandidateCount=counts[0]; result.ProcessCount=counts[1]; result.BaseCount=counts[2]; result.Groups=counts[3];
+    context->Unmap(controls.Get(),0);
+    if(FAILED(context->Map(args.Get(),0,D3D11_MAP_READ,0,&mapped))) return result;
+    const uint32 * dispatch=(const uint32*)mapped.pData;
+    result.ArgsMismatch=(dispatch[0]!=result.Groups) + (dispatch[1]!=1) + (dispatch[2]!=1);
+    context->Unmap(args.Get(),0);
+    result.Overflow=result.CandidateCount>m_tscmaaCandidateCapacity ? result.CandidateCount-m_tscmaaCandidateCapacity : 0;
+    vector<uint8> seen(pixels,0);
+    if(FAILED(context->Map(list.Get(),0,D3D11_MAP_READ,0,&mapped))) return result;
+    const uint32 * coordinates=(const uint32*)mapped.pData;
+    for(uint32 i=0;i<vaMath::Min(result.CandidateCount,m_tscmaaCandidateCapacity);i++) {
+        const uint32 x=coordinates[i]>>16, y=coordinates[i]&0xffff;
+        if(x>=width || y>=height) { result.OutOfRange++; continue; }
+        if(seen[y*width+x]) result.Duplicates++;
+        seen[y*width+x]=1;
+    }
+    context->Unmap(list.Get(),0);
+    vector<uint8> * decoded[2]={&result.BaseMask,&result.SelectedMask};
+    uint32 maskCounts[2]={0,0};
+    for(int i=0;i<2;i++) {
+        if(FAILED(context->Map(masks[i].Get(),0,D3D11_MAP_READ,0,&mapped))) return result;
+        decoded[i]->resize(pixels);
+        for(uint32 y=0;y<height;y++) for(uint32 x=0;x<width;x++) {
+            uint8 value=((const uint8*)mapped.pData)[y*mapped.RowPitch+x];
+            if(value!=0 && value!=255) result.MaskMismatch++;
+            (*decoded[i])[y*width+x]=value!=0;
+            maskCounts[i]+=value!=0;
+        }
+        context->Unmap(masks[i].Get(),0);
+    }
+    for(uint32 i=0;i<pixels;i++)
+        if(seen[i]!=result.SelectedMask[i] || (result.SelectedMask[i] && !result.BaseMask[i])) result.MaskMismatch++;
+    result.Valid=true;
+    result.Passed=result.CandidateCount==result.ProcessCount && result.Groups==(result.CandidateCount+63)/64
+        && result.BaseCount==maskCounts[0] && result.CandidateCount==maskCounts[1]
+        && !result.Duplicates && !result.OutOfRange && !result.Overflow && !result.MaskMismatch && !result.ArgsMismatch;
+    return result;
 }
 
 void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceContext * context, uint32 width, uint32 height )

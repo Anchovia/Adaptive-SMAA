@@ -1480,6 +1480,22 @@ Minecraft 전체 10개 mode 실행에서 재발하지 않았다. 공식 CGVQM �
 - 결과/실행 ID/한계/다음 단계는 `Docs/SMAA-Contrast-Tier-Initial-Implementation-ko.md`다.
   후보 감소만으로 temporal 품질 또는 성능 개선을 주장하지 않는다.
 
+## 8.6 Contrast-tier same-draw snapshot gate (2026-09-10)
+
+- `-smaaContrastTierSnapshotTest`는 Original + camera/depth R, expansion None에서
+  Bistro/Minecraft 각각 Intel/AllBase/High/MediumHigh/Low/High/Intel을 검사한다.
+- 완료 draw의 control/list/실제 indirect args/base mask/selected mask를 함께 복사해
+  Map한다. 비동기 통계 ring의 이전-frame 값을 목록과 섞지 않는다. 전용 API는 진단에서만
+  호출하므로 일반 렌더링/성능에 staging 비용을 넣지 않는다.
+- 최종 두 독립 실행(20260910_113501/113549) 14-step 결과 행이 동일하고 candidate=process,
+  ceil(count/64), indirect args, mask/list 집합 일치가 PASS다. 중복/OOB/overflow/mismatch 0.
+  policy-return mask, seed/phase 0 및 enabled flag와 raw override 값 복원도 PASS다.
+- 기본 8-case 96 PNG 변경 전후 hash mismatch 0, 기존 feedback mismatch 0이다.
+- 다음은 같은 초기 warm-up/prefix pre-roll을 쓰는 Original R 5정책 소규모 품질 gate다.
+  아직 품질/성능 향상을 주장하지 않으며 Adaptive/확장/threshold sweep과 섞지 않는다.
+- 실행 조건과 최초 restoration 검사 실패/교정은
+  `Docs/SMAA-Contrast-Tier-Snapshot-Validation-ko.md`에 기록했다.
+
 ## 9. 작업 중 확인 체크
 
 매 작업 시작 시 아래를 확인한다.

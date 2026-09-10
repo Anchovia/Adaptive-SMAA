@@ -392,6 +392,10 @@ namespace VertexAsylum
         void                                    SetSMAAForcedCandidateCountForDiagnostics( bool enabled, uint32 count ) { m_SMAA->SetForcedCandidateCountForDiagnostics( enabled, count ); }
         bool                                    GetSMAAForcedCandidateCountEnabled( ) const { return m_SMAA->GetForcedCandidateCountEnabled( ); }
         uint32                                  GetSMAAForcedCandidateCount( ) const { return m_SMAA->GetForcedCandidateCount( ); }
+        vaSMAAWrapper::CandidateSnapshot ReadSMAACandidateSnapshot( vaRenderDeviceContext & context ) { return m_SMAA->ReadCandidateSnapshot(context); }
+        vaSMAAWrapper::CandidatePolicy GetSMAACandidatePolicyOverrideValue() const { return m_SMAA->GetCandidatePolicyOverrideValue(); }
+        vaSMAAWrapper::CandidateEdgeSource GetSMAACandidateEdgeSourceOverrideValue() const { return m_SMAA->GetCandidateEdgeSourceOverrideValue(); }
+        vaSMAAWrapper::CandidateExpansion GetSMAACandidateExpansionOverrideValue() const { return m_SMAA->GetCandidateExpansionOverrideValue(); }
         const vaSMAAWrapper::TemporalCandidateStatistics &
                                                 GetSMAATemporalCandidateStatistics( ) const { return m_SMAA->GetTemporalCandidateStatistics( ); }
         void                                    SetSMAATemporalCandidateStatisticsReadbackEnabled( bool enabled ) { m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled( enabled ); }

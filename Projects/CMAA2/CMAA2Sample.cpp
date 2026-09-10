@@ -8932,6 +8932,148 @@ protected:
     virtual float GetProgress( ) const override { return m_isDone? 1.0f : 0.5f; }
 };
 
+class BenchItemValidateSMAAContrastSnapshot : public AutoBenchToolWorkItem
+{
+    typedef vaSMAAWrapper W;
+    const bool m_policyEnabled, m_sourceEnabled, m_expansionEnabled, m_readback, m_direct, m_lifecycle;
+    const W::CandidatePolicy m_policy;
+    const W::CandidateEdgeSource m_source;
+    const W::CandidateExpansion m_expansion;
+    const W::TemporalDebugView m_debug;
+    int m_scene=0, m_step=0, m_frames=0;
+    bool m_started=false, m_waiting=true, m_armed=false, m_advance=false, m_done=false, m_passed=true, m_restored=false;
+    vector<W::CandidateSnapshot> m_snapshots;
+    static int Policy(int step) { const int ids[]={1,0,3,4,5,3,1}; return ids[step]; }
+    void Restore()
+    {
+        if(m_restored) return;
+        m_parent.SetSMAACandidatePolicyOverride(m_policyEnabled,m_policy);
+        m_parent.SetSMAACandidateEdgeSourceOverride(m_sourceEnabled,m_source);
+        m_parent.SetSMAACandidateExpansionOverride(m_expansionEnabled,m_expansion);
+        m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled(m_readback);
+        m_parent.SetSMAATemporalDirectMaskedResolveEnabled(m_direct);
+        m_parent.SetSMAATemporalDebugView(m_debug);
+        m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled(m_lifecycle);
+        m_restored=true;
+    }
+public:
+    explicit BenchItemValidateSMAAContrastSnapshot(CMAA2Sample & parent) : AutoBenchToolWorkItem(parent),
+        m_policyEnabled(parent.GetSMAACandidatePolicyOverrideEnabled()),
+        m_sourceEnabled(parent.GetSMAACandidateEdgeSourceOverrideEnabled()),
+        m_expansionEnabled(parent.GetSMAACandidateExpansionOverrideEnabled()),
+        m_readback(parent.GetSMAATemporalCandidateStatisticsReadbackEnabled()),
+        m_direct(parent.GetSMAATemporalDirectMaskedResolveEnabled()),
+        m_lifecycle(parent.GetSMAATemporalLifecycleDiagnostics().Enabled),
+        m_policy(parent.GetSMAACandidatePolicyOverrideValue()), m_source(parent.GetSMAACandidateEdgeSourceOverrideValue()),
+        m_expansion(parent.GetSMAACandidateExpansionOverrideValue()), m_debug(parent.GetSMAATemporalDebugView()) {}
+    ~BenchItemValidateSMAAContrastSnapshot() { if(m_started) Restore(); }
+protected:
+    void Tick(AutoBenchTool & tool, float) override
+    {
+        if(!m_started) {
+            m_started=true;
+            tool.ReportStart();
+            tool.ReportAddText("Contrast-tier same-draw compact snapshot engineering validation\r\nOriginal SMAA + camera/depth R; fixed pose; expansion None; diagnostic readback only; not performance/quality.\r\n");
+            tool.ReportAddRowValues({"Scene","Policy","Candidates","Process","Base","Groups","Duplicate","OOB","Overflow","MaskMismatch","ArgsMismatch","Result"});
+            m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            m_parent.Settings().SceneChoice=CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.SetRequireDeterminism(true); m_parent.SetFixedDeltaTime(1.0f/60.0f);
+            m_parent.SetFlythroughCameraEnabled(false);
+            m_parent.SetSMAAPreset(W::Preset::PRESET_ULTRA);
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed=std::numeric_limits<float>::infinity();
+            m_parent.SetSMAACandidatePolicyOverride(true,W::CandidatePolicy::IntelFamilyNonDominant);
+            m_parent.SetSMAACandidateEdgeSourceOverride(true,W::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates);
+            m_parent.SetSMAACandidateExpansionOverride(true,W::CandidateExpansion::None);
+            m_parent.SetSMAATemporalDirectMaskedResolveEnabled(false);
+            m_parent.SetSMAATemporalDebugView(W::TemporalDebugView::SelectedCandidates);
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled(true);
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled(true);
+            return;
+        }
+        if(m_advance) {
+            m_advance=false; m_armed=false; m_step++;
+            if(m_step==7) {
+                // Same-pose set identities and return-to-policy repeatability.
+                bool sets=m_snapshots.size()==7;
+                if(sets) {
+                    const auto & base=m_snapshots[1].BaseMask;
+                    for(size_t p=0;p<base.size();p++) {
+                        sets=sets && m_snapshots[1].SelectedMask[p]==base[p]
+                            && !(m_snapshots[2].SelectedMask[p] && !m_snapshots[3].SelectedMask[p])
+                            && !(m_snapshots[3].SelectedMask[p] && m_snapshots[4].SelectedMask[p])
+                            && ((m_snapshots[3].SelectedMask[p] || m_snapshots[4].SelectedMask[p])==(base[p]!=0));
+                        for(const auto & s:m_snapshots) sets=sets && s.BaseMask[p]==base[p];
+                    }
+                    sets=sets && m_snapshots[2].SelectedMask==m_snapshots[5].SelectedMask
+                        && m_snapshots[0].SelectedMask==m_snapshots[6].SelectedMask;
+                }
+                tool.ReportAddRowValues({"Set identities and policy-return mask equality",sets?"PASS":"FAIL"});
+                m_passed=m_passed && sets;
+                m_scene++; m_step=0; m_snapshots.clear();
+                if(m_scene==2) {
+                    m_passed=m_passed && m_parent.GetSMAATemporalLifecycleDiagnostics().Passed;
+                    Restore();
+                    const bool restored=m_parent.GetSMAACandidatePolicyOverrideEnabled()==m_policyEnabled
+                        && m_parent.GetSMAACandidateEdgeSourceOverrideEnabled()==m_sourceEnabled
+                        && m_parent.GetSMAACandidateExpansionOverrideEnabled()==m_expansionEnabled
+                        && m_parent.GetSMAACandidatePolicyOverrideValue()==m_policy
+                        && m_parent.GetSMAACandidateEdgeSourceOverrideValue()==m_source
+                        && m_parent.GetSMAACandidateExpansionOverrideValue()==m_expansion
+                        && m_parent.GetSMAATemporalDebugView()==m_debug
+                        && m_parent.GetSMAATemporalCandidateStatisticsReadbackEnabled()==m_readback
+                        && m_parent.GetSMAATemporalDirectMaskedResolveEnabled()==m_direct
+                        && m_parent.GetSMAATemporalLifecycleDiagnostics().Enabled==m_lifecycle;
+                    m_passed=m_passed && restored;
+                    tool.ReportAddRowValues({"Override restoration",restored?"PASS":"FAIL"});
+                    tool.ReportAddText(m_passed?"\r\nAggregate: PASS\r\n":"\r\nAggregate: FAIL\r\n");
+                    tool.ReportFinish(); m_done=true; return;
+                }
+                m_parent.Settings().SceneChoice=CMAA2Sample::SceneSelectionType::MinecraftLostEmpire;
+                m_waiting=true; return;
+            }
+        }
+        if(m_waiting) {
+            if(m_parent.HasPendingShadowmapUpdates()) return;
+            m_waiting=false;
+        }
+        if(!m_armed) {
+            const auto resets=m_parent.GetSMAATemporalLifecycleDiagnostics().ResetCount;
+            const auto oldPolicy=m_parent.GetSMAAEffectiveCandidatePolicy();
+            m_parent.SetSMAACandidatePolicyOverride(true,(W::CandidatePolicy)Policy(m_step));
+            if(oldPolicy!=(W::CandidatePolicy)Policy(m_step))
+                m_passed=m_passed && m_parent.GetSMAATemporalLifecycleDiagnostics().ResetCount>resets;
+            else m_parent.ResetSMAATemporalHistoryForDiagnostics(); // first step of scene
+            m_frames=0; m_armed=true;
+        }
+    }
+    void OnRender(AutoBenchTool &) override {}
+    void OnRenderComparePoint(AutoBenchTool & tool, vaImageCompareTool &, vaRenderDeviceContext & context,
+        const shared_ptr<vaTexture> &, shared_ptr<vaPostProcess> &) override
+    {
+        if(!m_armed || m_advance || m_done) return;
+        const auto & life=m_parent.GetSMAATemporalLifecycleDiagnostics();
+        if(m_frames==0) {
+            const bool seeded=!life.LastHistoryValidBefore && life.LastFrameIndexBefore==0;
+            m_passed=m_passed && seeded;
+            tool.ReportAddRowValues({"Policy transition seed",GetCandidatePolicyName((W::CandidatePolicy)Policy(m_step)),seeded?"PASS":"FAIL"});
+        }
+        if(++m_frames<8) return;
+        auto s=m_parent.ReadSMAACandidateSnapshot(context);
+        const bool pass=s.Valid && s.Passed && life.LastHistoryValidBefore;
+        m_passed=m_passed && pass;
+        tool.ReportAddRowValues({m_scene==0?"Bistro":"Minecraft",GetCandidatePolicyName((W::CandidatePolicy)Policy(m_step)),
+            vaStringTools::Format("%u",s.CandidateCount),vaStringTools::Format("%u",s.ProcessCount),
+            vaStringTools::Format("%u",s.BaseCount),vaStringTools::Format("%u",s.Groups),
+            vaStringTools::Format("%u",s.Duplicates),vaStringTools::Format("%u",s.OutOfRange),
+            vaStringTools::Format("%u",s.Overflow),vaStringTools::Format("%u",s.MaskMismatch),
+            vaStringTools::Format("%u",s.ArgsMismatch),pass?"PASS":"FAIL"});
+        if(s.Valid) m_snapshots.push_back(std::move(s));
+        m_advance=true;
+    }
+    bool IsDone(AutoBenchTool &) const override { return m_done; }
+    float GetProgress() const override { return m_done?1.0f:(m_scene*7+m_step)/14.0f; }
+};
+
 class BenchItemValidateSMAACandidatePolicy : public AutoBenchToolWorkItem
 {
     const CMAA2Sample::SceneSelectionType m_scenes[2] =
@@ -9761,6 +9903,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
+        if (_wcsicmp(parameter.first.c_str(), L"smaaContrastTierSnapshotTest") == 0)
+        {
+            if(m_SMAA->GetForcedCandidateCountEnabled()) { VA_LOG_ERROR("Snapshot test requires forced-count Off"); m_quitAfterCommandLineCapture=true; return; }
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAContrastSnapshot>(*this));
+            m_quitAfterCommandLineCapture = true;
+            return;
+        }
         if (_wcsicmp(parameter.first.c_str(), L"smaaCandidatePolicyValidationTest") == 0)
         {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAACandidatePolicy>(*this));
