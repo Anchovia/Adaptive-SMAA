@@ -6,9 +6,15 @@ This repository extends Intel's CMAA2 sample with two related research tracks:
 2. **TSCMAA-inspired SMAA T2X**: a document-based SMAA adaptation that reuses
    SMAA first-pass edge candidates for selective temporal resolve.
 
-The complete Intel TSCMAA sample source is not publicly available. Therefore,
-the edge-selective implementation in this repository is described as a
-**TSCMAA-inspired/document-based SMAA adaptation**, not an official TSCMAA port.
+TSCMAA sample sources have now been recovered for analysis. The renderer in this
+repository remains a **TSCMAA-inspired/document-based SMAA adaptation**; it has
+not yet been replaced with a source-based implementation. Recovered source,
+bundled shader bytecode, and application lifecycle are assessed separately.
+
+See the [recovered TSCMAA pipeline analysis](Docs/SMAA-Recovered-TSCMAA-Pipeline-Analysis-ko.md)
+for the source equations, resource flow, public-document correspondence, and
+remaining validation work. The current source-analysis branch is
+`research/tscmaa-source-audit`.
 
 ## Recommended branches
 

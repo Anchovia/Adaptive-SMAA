@@ -1,5 +1,11 @@
 # Intel 공개 자료 기반 TSCMAA-inspired SMAA 구현 계획
 
+> 2026-09-14 상태 보충: 아래 본문은 소스 확보 전의 document-based 구현 계획이다.
+> 현재는 TSCMAA 소스를 확보했으며, 실제 식과 lifecycle 분석은
+> [확보 소스 처리 구조 분석](SMAA-Recovered-TSCMAA-Pipeline-Analysis-ko.md)을 참조한다.
+> 본문의 미확보·미구현 상태 및 후속 실행 순서는 당시 시점의 기록으로 보존한다.
+> 확보 소스의 분석 결과가 기존 renderer/default를 자동으로 변경하는 것은 아니다.
+
 ## 1. 문서 목적
 
 이 문서는 Intel TSCMAA 공개 문서와 특허, 공식 SMAA 자료로 확인할 수 있는 범위 안에서
@@ -21,7 +27,7 @@ Intel TSCMAA는 본래 `CMAA + edge-selective TAA`이고 공개 sample source는
 
 ### 2.1 우선 출처
 
-1. Intel, *Temporal & Spatial Concurrent Morphological Anti-Aliasing*
+1. Intel, *Temporally Stable Conservative Morphological Anti-Aliasing*
    - <https://www.intel.com/content/dam/develop/external/us/en/documents/tscmaa-codesample-v1.pdf>
 2. Intel TSCMAA 특허
    - <https://patents.google.com/patent/US20190236758A1/en>
