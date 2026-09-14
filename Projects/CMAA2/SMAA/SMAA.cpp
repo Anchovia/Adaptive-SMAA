@@ -253,6 +253,10 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
         techniqueManagerInterface->CreateTechnique("LumaEdgeDetectionIntegratedTemporalCandidates", defines);
     integratedTemporalEdgeDetectionTechniques[SMAA::INPUT_LUMA_RAW] =
         techniqueManagerInterface->CreateTechnique("LumaRawEdgeDetectionIntegratedTemporalCandidates", defines);
+    integratedRecoveredEdgeDetectionTechniques[INPUT_LUMA] =
+        techniqueManagerInterface->CreateTechnique("LumaEdgeDetectionIntegratedRecoveredCandidates", defines);
+    integratedRecoveredEdgeDetectionTechniques[INPUT_LUMA_RAW] =
+        techniqueManagerInterface->CreateTechnique("LumaRawEdgeDetectionIntegratedRecoveredCandidates", defines);
     blendingWeightCalculationTechnique = techniqueManagerInterface->CreateTechnique("BlendingWeightCalculation", defines);
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
@@ -556,7 +560,9 @@ void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilV
     assert(!integratedTemporal || integratedTemporalCandidates->IsValid());
     assert(!integratedTemporal || input == INPUT_LUMA || input == INPUT_LUMA_RAW);
     SMAATechniqueInterface * technique = integratedTemporal?
-        integratedTemporalEdgeDetectionTechniques[int(input)] : edgeDetectionTechniques[int(input)];
+        (integratedTemporalCandidates->RecoveredSourceCandidates?
+            integratedRecoveredEdgeDetectionTechniques[int(input)] : integratedTemporalEdgeDetectionTechniques[int(input)])
+        : edgeDetectionTechniques[int(input)];
     technique->ApplyStates(context);
 
     // Do it!

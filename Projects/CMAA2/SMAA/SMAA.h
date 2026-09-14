@@ -111,6 +111,7 @@ class SMAA {
             ID3D11UnorderedAccessView *CandidateMask = nullptr;    // u5
             ID3D11UnorderedAccessView *RawCandidateMask = nullptr; // u7, expansion only
             bool WriteRawCandidateMask = false;
+            bool RecoveredSourceCandidates = false;
 
             bool IsValid() const {
                 return Candidates != nullptr && Control != nullptr
@@ -339,6 +340,7 @@ class SMAA {
 
         SMAATechniqueInterface *        edgeDetectionTechniques[3];
         SMAATechniqueInterface *        integratedTemporalEdgeDetectionTechniques[2];
+        SMAATechniqueInterface *        integratedRecoveredEdgeDetectionTechniques[2];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        resolveTechnique;

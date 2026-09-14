@@ -188,6 +188,29 @@ RWTexture2D<float>                   tscmaaIntegratedBaseEdgeMask      : registe
 RWTexture2D<float>                   tscmaaIntegratedCandidateMask     : register( u5 );
 RWTexture2D<float>                   tscmaaIntegratedRawCandidateMask  : register( u7 );
 
+
+#if defined(SMAA_RECOVERED_INTEGRATED_CANDIDATES)
+#include "RecoveredTSCMAACandidate.hlsl"
+void RecoveredEmitIntegratedCandidate(uint2 pixel) {
+    uint w,h; recoveredInput.GetDimensions(w,h);
+    if(pixel.x>=w || pixel.y>=h) return;
+    lpfloat4 ce = RecoveredFourEdges(int2(pixel),int2(w,h));
+    bool base = any(ce>0);
+    bool selected = any(ce>lpfloat(g_SMAAReprojection.TSCMAACandidateParams.x)*lpfloat(0.5));
+    if(g_SMAAReprojection.TSCMAACandidateParams.w>0.5)
+        base = selected = pixel.y*w+pixel.x < min(uint(g_SMAAReprojection.TSCMAACandidateParams.z+0.5),w*h);
+    // Match the separate CS writes/counters, including readback-Off execution.
+    tscmaaIntegratedBaseEdgeMask[pixel] = base?1:0;
+    tscmaaIntegratedCandidateMask[pixel] = selected?1:0;
+    uint index;
+    if(base) tscmaaIntegratedControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET,1,index);
+    if(!selected) return;
+    tscmaaIntegratedControl.InterlockedAdd(TSCMAA_CANDIDATE_COUNTER_OFFSET,1,index);
+    uint capacity,stride; tscmaaIntegratedCandidates.GetDimensions(capacity,stride);
+    if(index<capacity) tscmaaIntegratedCandidates[index]=(pixel.x<<16)|pixel.y;
+}
+#endif
+
 float TSCMAAIntegratedSampleLuma(float2 texcoord) {
     float4 sampleValue = SMAASamplePoint(colorTexGamma, texcoord);
     #if defined(SMAA_INTEGRATED_RAW_LUMA)
@@ -269,6 +292,11 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     float4 position : SV_POSITION,
     float2 texcoord : TEXCOORD0,
     float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {
+    #if defined(SMAA_RECOVERED_INTEGRATED_CANDIDATES)
+    // D3D11 UAV stores before discard survive it. Preserve spatial discard/stencil,
+    // but never gate the recovered RGB candidate with SMAA luma edges.
+    RecoveredEmitIntegratedCandidate(uint2(position.xy));
+    #endif
     #if SMAA_PREDICATION
     float2 threshold = SMAACalculatePredicatedThreshold(
         texcoord, offset, SMAATexturePass2D(depthTex));
@@ -299,6 +327,7 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
     edges.xy *= step(finalDelta,
         SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
+    #if !defined(SMAA_RECOVERED_INTEGRATED_CANDIDATES)
     uint2 pixel = uint2(position.xy);
     bool baseEdge = any(edges > 0.0);
     bool candidate = baseEdge && TSCMAAIntegratedSelectCandidate(
@@ -351,6 +380,7 @@ SMAA_EDGE_OUTPUT DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS(
         }
     }
 
+    #endif
     return SMAAEncodeEdgeOutput(edges, finalDelta);
 }
 #endif

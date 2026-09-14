@@ -4737,7 +4737,8 @@ public:
         m_singleModeOnly( singleModeOnly ),
         m_recoveredSourceCapture(singleModeOnly && (singleModeID==RecoveredProfileID(0)
             || singleModeID==RecoveredProfileID(1) || singleModeID==RecoveredProfileID(2)
-            || singleModeID==RecoveredProfileID(3))),
+            || singleModeID==RecoveredProfileID(3) || singleModeID=="O-ET2X-R-SourceCandidate-SourceKernel-Integrated"
+            || singleModeID=="O-ET2X-R-SourceCandidate-SourceKernel-Separate")),
         m_singleModeAAType( singleModeAAType ),
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
@@ -6213,7 +6214,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_armThresholdAblation;
     const bool m_candidateExecutionAblation;
     const bool m_feedbackTopologyAblation;
-    const bool m_recoveredMatrix;
+    const bool m_recoveredMatrix, m_integratedRecoveredMatrix, m_savedRecoveredIntegrated;
     const int m_savedRecoveredProfile;
     const bool m_dualOutputOptimizationEnabled;
     const bool m_directMaskedResolveEnabled;
@@ -6285,6 +6286,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if(m_integratedRecoveredMatrix) { const char * ids[]={"O-T2X-R","O-ET2X-R-SourceCandidate-SourceKernel-Separate","O-ET2X-R-SourceCandidate-SourceKernel-Integrated"}; return ids[mode]; }
         if(m_recoveredMatrix) return RecoveredProfileID(mode);
         if( m_feedbackTopologyAblation )
         {
@@ -6455,6 +6457,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if(m_integratedRecoveredMatrix) return mode==0?CMAA2Sample::AAType::SMAA_O_T2X_R:CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if(m_recoveredMatrix) return CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if( m_feedbackTopologyAblation )
             return mode == 0? CMAA2Sample::AAType::SMAA_O_ET2X_R :
@@ -6574,6 +6577,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsEdgeSelectiveMode( int mode ) const
     {
+        if(m_integratedRecoveredMatrix) return mode!=0;
         if(m_recoveredMatrix) return true;
         if( m_feedbackTopologyAblation )
             return true;
@@ -6605,6 +6609,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsIntegratedCandidateMode( int mode ) const
     {
+        if(m_integratedRecoveredMatrix) return mode==2;
         if(m_recoveredMatrix) return (mode&1)==0;
         if( m_feedbackTopologyAblation )
             return true;
@@ -6661,6 +6666,14 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsMetricExpected( int mode, Metric metric ) const
     {
+        if(m_integratedRecoveredMatrix) {
+            if(metric==ApplicationFrameWall || metric==WholeFrame || metric==SMAATotal || metric==GenerateCameraVelocity) return true;
+            if(mode==0) return metric==StandardSpatialT2X || metric==StandardTemporalResolve;
+            if(metric==SpatialSMAA1X || metric==CopySpatialToHistory || metric==ComputeDispatchArgs || metric==ResolveCandidates || metric==OutputCopy) return true;
+            if(metric==ClearIntegratedCandidateBuffers) return mode==2;
+            if(metric==PrepareCandidates || metric==ExtractCandidates) return mode==1;
+            return false;
+        }
         if(m_recoveredMatrix) {
             if(metric==ApplicationFrameWall || metric==WholeFrame || metric==SMAATotal
                 || metric==GenerateCameraVelocity || metric==SpatialSMAA1X || metric==CopySpatialToHistory
@@ -7080,7 +7093,7 @@ public:
         bool matchedKernelAblation = false,
         bool armThresholdAblation = false,
         bool candidateExecutionAblation = false,
-        bool feedbackTopologyAblation = false, bool recoveredMatrix = false )
+        bool feedbackTopologyAblation = false, bool recoveredMatrix = false, bool integratedRecoveredMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -7100,7 +7113,8 @@ public:
         m_armThresholdAblation( armThresholdAblation ),
         m_candidateExecutionAblation( candidateExecutionAblation ),
         m_feedbackTopologyAblation( feedbackTopologyAblation ),
-        m_recoveredMatrix(recoveredMatrix), m_savedRecoveredProfile(parent.GetSMAARecoveredSourceProfile()),
+        m_recoveredMatrix(recoveredMatrix), m_integratedRecoveredMatrix(integratedRecoveredMatrix),
+        m_savedRecoveredIntegrated(parent.GetSMAARecoveredSourceIntegratedCandidates()), m_savedRecoveredProfile(parent.GetSMAARecoveredSourceProfile()),
         m_dualOutputOptimizationEnabled( parent.GetSMAATemporalDualOutputOptimizationEnabled( ) ),
         m_directMaskedResolveEnabled( parent.GetSMAATemporalDirectMaskedResolveEnabled( ) ),
         m_temporalDebugView( parent.GetSMAATemporalDebugView( ) ),
@@ -7128,7 +7142,7 @@ public:
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( feedbackTopologyAblation? 2 : (candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( integratedRecoveredMatrix? 3 : feedbackTopologyAblation? 2 : (candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
             (includeAdaptive? c_modeCapacity : c_originalModeCount)))))))))))) )
     {
@@ -7138,7 +7152,7 @@ public:
             + (int)integratedSourceOverheadComparison
             + (int)objectMotionReprojectionAblation + (int)matchedKernelAblation
             + (int)armThresholdAblation + (int)candidateExecutionAblation
-            + (int)feedbackTopologyAblation + (int)recoveredMatrix <= 1 );
+            + (int)feedbackTopologyAblation + (int)recoveredMatrix + (int)integratedRecoveredMatrix <= 1 );
     }
 
 protected:
@@ -7158,7 +7172,7 @@ protected:
             m_parent.SetVsyncForBenchmark( false );
             m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity( );
             m_candidateReadbackEnabled = m_parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( );
-            if( m_feedbackTopologyAblation || m_recoveredMatrix )
+            if( m_feedbackTopologyAblation || m_recoveredMatrix || m_integratedRecoveredMatrix )
             {
                 m_parent.SetSMAACandidateEdgeSourceOverride( true,
                     vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
@@ -7167,9 +7181,9 @@ protected:
                 m_parent.SetSMAACandidateExpansionOverride( true,
                     vaSMAAWrapper::CandidateExpansion::None );
                 m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
-                m_parent.SetSMAAHistorySamplerOverride( !m_recoveredMatrix,
+                m_parent.SetSMAAHistorySamplerOverride( !(m_recoveredMatrix || m_integratedRecoveredMatrix),
                     vaSMAAWrapper::HistorySampler::CatmullRom5Tap );
-                m_parent.SetSMAAHistoryClippingOverride( !m_recoveredMatrix,
+                m_parent.SetSMAAHistoryClippingOverride( !(m_recoveredMatrix || m_integratedRecoveredMatrix),
                     vaSMAAWrapper::HistoryClipping::YCoCgVariance );
                 m_parent.SetSMAATemporalDebugView( vaSMAAWrapper::TemporalDebugView::None );
                 m_parent.SetSMAATemporalDirectMaskedResolveEnabled( false );
@@ -7183,7 +7197,10 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if(m_recoveredMatrix) {
+            if(m_integratedRecoveredMatrix) {
+                abTool.ReportAddText("Original Standard SMAA T2X camera-R baseline versus recovered-source SMAA adaptation: separate and first-edge-pass integrated candidates. Standard retains official paired jitter and spatial-frame history. Source modes share recovered no-jitter kernel and resolved-output history; only candidate execution differs.\r\n");
+            }
+            else if(m_recoveredMatrix) {
                 abTool.ReportAddText("Recovered-source SMAA 2x2 paired comparison; camera-only R, Original spatial, no jitter, expansion None.\r\nSource kernel: UNORM border, source 5-fetch/clip, weight 0.789473712; Doc kernel: existing sRGB path. Both use two-copy initialization/output. Source candidate extraction is a separate compute pass, not fused CMAA.\r\n");
             }
             else if( m_feedbackTopologyAblation )
@@ -7410,9 +7427,12 @@ protected:
                         m_parent.SetSMAACandidateEdgeSourceOverride(
                             false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
                     }
-                    if( m_feedbackTopologyAblation || m_recoveredMatrix )
+                    if( m_feedbackTopologyAblation || m_recoveredMatrix || m_integratedRecoveredMatrix )
                     {
-                        if(m_recoveredMatrix) m_parent.SetSMAARecoveredSourceProfile(m_savedRecoveredProfile);
+                        if(m_recoveredMatrix || m_integratedRecoveredMatrix) {
+                            m_parent.SetSMAARecoveredSourceProfile(m_savedRecoveredProfile);
+                            m_parent.SetSMAARecoveredSourceIntegratedCandidates(m_savedRecoveredIntegrated);
+                        }
                         m_parent.SetSMAAHistoryClippingOverride(
                             m_historyClippingOverrideEnabled, m_historyClipping );
                         m_parent.SetSMAAHistorySamplerOverride(
@@ -7504,7 +7524,10 @@ protected:
             m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
             m_parent.SetSMAATemporalDirectMaskedResolveEnabled( (m_currentMode & 1) != 0 );
         }
-        if(m_recoveredMatrix) m_parent.SetSMAARecoveredSourceProfile(m_currentMode);
+        if(m_recoveredMatrix || m_integratedRecoveredMatrix) {
+            m_parent.SetSMAARecoveredSourceProfile(m_integratedRecoveredMatrix?(m_currentMode==0?0:3):m_currentMode);
+            m_parent.SetSMAARecoveredSourceIntegratedCandidates(m_integratedRecoveredMatrix && m_currentMode==2);
+        }
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
         if( m_objectMotionReprojectionAblation )
         {
@@ -8972,7 +8995,7 @@ class BenchItemValidateSMAAContrastSnapshot : public AutoBenchToolWorkItem
     const bool m_policyEnabled, m_sourceEnabled, m_expansionEnabled, m_readback, m_direct, m_lifecycle;
     const W::CandidatePolicy m_policy;
     const W::CandidateEdgeSource m_source;
-    const bool m_recovered;
+    const bool m_recovered, m_integrated, m_savedIntegrated;
     const int m_savedProfile;
     const W::CandidateExpansion m_expansion;
     const W::TemporalDebugView m_debug;
@@ -8980,11 +9003,11 @@ class BenchItemValidateSMAAContrastSnapshot : public AutoBenchToolWorkItem
     bool m_started=false, m_waiting=true, m_armed=false, m_advance=false, m_done=false, m_passed=true, m_restored=false;
     vector<W::CandidateSnapshot> m_snapshots;
     int Policy(int step) const { const int ids[]={1,0,3,4,5,3,1}; return m_recovered?1:ids[step]; }
-    static int Profile(int step) { const int ids[]={0,1,2,3,1,3,0}; return ids[step]; }
+    int Profile(int step) const { if(m_integrated) return 3; const int ids[]={0,1,2,3,1,3,0}; return ids[step]; }
     void Restore()
     {
         if(m_restored) return;
-        if(m_recovered) m_parent.SetSMAARecoveredSourceProfile(m_savedProfile);
+        if(m_recovered) { m_parent.SetSMAARecoveredSourceProfile(m_savedProfile); m_parent.SetSMAARecoveredSourceIntegratedCandidates(m_savedIntegrated); }
         m_parent.SetSMAACandidatePolicyOverride(m_policyEnabled,m_policy);
         m_parent.SetSMAACandidateEdgeSourceOverride(m_sourceEnabled,m_source);
         m_parent.SetSMAACandidateExpansionOverride(m_expansionEnabled,m_expansion);
@@ -8995,8 +9018,8 @@ class BenchItemValidateSMAAContrastSnapshot : public AutoBenchToolWorkItem
         m_restored=true;
     }
 public:
-    explicit BenchItemValidateSMAAContrastSnapshot(CMAA2Sample & parent, bool recovered=false) : AutoBenchToolWorkItem(parent),
-        m_recovered(recovered), m_savedProfile(parent.GetSMAARecoveredSourceProfile()),
+    explicit BenchItemValidateSMAAContrastSnapshot(CMAA2Sample & parent, bool recovered=false, bool integrated=false) : AutoBenchToolWorkItem(parent),
+        m_recovered(recovered), m_integrated(integrated), m_savedIntegrated(parent.GetSMAARecoveredSourceIntegratedCandidates()), m_savedProfile(parent.GetSMAARecoveredSourceProfile()),
         m_policyEnabled(parent.GetSMAACandidatePolicyOverrideEnabled()),
         m_sourceEnabled(parent.GetSMAACandidateEdgeSourceOverrideEnabled()),
         m_expansionEnabled(parent.GetSMAACandidateExpansionOverrideEnabled()),
@@ -9012,7 +9035,8 @@ protected:
         if(!m_started) {
             m_started=true;
             tool.ReportStart();
-            if(m_recovered) tool.ReportAddText("Recovered-source profile 2x2 same-draw snapshot, profile transitions and mask-return gate.\r\n");
+            if(m_integrated) tool.ReportAddText("Recovered source Separate/Integrated alternating same-draw snapshot equality gate.\r\n");
+            else if(m_recovered) tool.ReportAddText("Recovered-source profile 2x2 same-draw snapshot, profile transitions and mask-return gate.\r\n");
             tool.ReportAddText("Contrast-tier same-draw compact snapshot engineering validation\r\nOriginal SMAA + camera/depth R; fixed pose; expansion None; diagnostic readback only; not performance/quality.\r\n");
             tool.ReportAddRowValues({"Scene","Policy","Candidates","Process","Base","Groups","Duplicate","OOB","Overflow","MaskMismatch","ArgsMismatch","Result"});
             m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_O_ET2X_R;
@@ -9035,7 +9059,10 @@ protected:
             if(m_step==7) {
                 // Same-pose set identities and return-to-policy repeatability.
                 bool sets=m_snapshots.size()==7;
-                if(sets && m_recovered) {
+                if(sets && m_integrated) {
+                    for(const auto & snap:m_snapshots) sets=sets && snap.BaseMask==m_snapshots[0].BaseMask && snap.SelectedMask==m_snapshots[0].SelectedMask;
+                }
+                else if(sets && m_recovered) {
                     sets=m_snapshots[0].SelectedMask==m_snapshots[2].SelectedMask && m_snapshots[0].SelectedMask==m_snapshots[6].SelectedMask
                         && m_snapshots[1].SelectedMask==m_snapshots[3].SelectedMask && m_snapshots[1].SelectedMask==m_snapshots[4].SelectedMask
                         && m_snapshots[3].SelectedMask==m_snapshots[5].SelectedMask;
@@ -9058,7 +9085,8 @@ protected:
                 if(m_scene==2) {
                     m_passed=m_passed && m_parent.GetSMAATemporalLifecycleDiagnostics().Passed;
                     Restore();
-                    const bool restored=m_parent.GetSMAACandidatePolicyOverrideEnabled()==m_policyEnabled
+                    const bool restored=(!m_recovered || (m_parent.GetSMAARecoveredSourceProfile()==m_savedProfile && m_parent.GetSMAARecoveredSourceIntegratedCandidates()==m_savedIntegrated))
+                        && m_parent.GetSMAACandidatePolicyOverrideEnabled()==m_policyEnabled
                         && m_parent.GetSMAACandidateEdgeSourceOverrideEnabled()==m_sourceEnabled
                         && m_parent.GetSMAACandidateExpansionOverrideEnabled()==m_expansionEnabled
                         && m_parent.GetSMAACandidatePolicyOverrideValue()==m_policy
@@ -9082,7 +9110,15 @@ protected:
             m_waiting=false;
         }
         if(!m_armed) {
-            if(m_recovered) m_parent.SetSMAARecoveredSourceProfile(Profile(m_step));
+            if(m_recovered) { m_parent.SetSMAARecoveredSourceProfile(Profile(m_step));
+                if(m_integrated) {
+                    const bool enabled=(m_step&1)!=0;
+                    const bool changed=m_parent.GetSMAARecoveredSourceIntegratedCandidates()!=enabled;
+                    const auto countBefore=m_parent.GetSMAATemporalLifecycleDiagnostics().ResetCount;
+                    m_parent.SetSMAARecoveredSourceIntegratedCandidates(enabled);
+                    m_passed=m_passed && (!changed || m_parent.GetSMAATemporalLifecycleDiagnostics().ResetCount>countBefore);
+                }
+            }
             const auto resets=m_parent.GetSMAATemporalLifecycleDiagnostics().ResetCount;
             const auto oldPolicy=m_parent.GetSMAAEffectiveCandidatePolicy();
             m_parent.SetSMAACandidatePolicyOverride(true,(W::CandidatePolicy)Policy(m_step));
@@ -9101,13 +9137,13 @@ protected:
         if(m_frames==0) {
             const bool seeded=!life.LastHistoryValidBefore && life.LastFrameIndexBefore==0;
             m_passed=m_passed && seeded;
-            tool.ReportAddRowValues({"Policy transition seed",(m_recovered?RecoveredProfileID(Profile(m_step)):GetCandidatePolicyName((W::CandidatePolicy)Policy(m_step))),seeded?"PASS":"FAIL"});
+            tool.ReportAddRowValues({"Policy transition seed",(m_integrated?((m_step&1)?"Source-Integrated":"Source-Separate"):(m_recovered?RecoveredProfileID(Profile(m_step)):GetCandidatePolicyName((W::CandidatePolicy)Policy(m_step)))),seeded?"PASS":"FAIL"});
         }
         if(++m_frames<8) return;
         auto s=m_parent.ReadSMAACandidateSnapshot(context);
         const bool pass=s.Valid && s.Passed && life.LastHistoryValidBefore;
         m_passed=m_passed && pass;
-        tool.ReportAddRowValues({m_scene==0?"Bistro":"Minecraft",(m_recovered?RecoveredProfileID(Profile(m_step)):GetCandidatePolicyName((W::CandidatePolicy)Policy(m_step))),
+        tool.ReportAddRowValues({m_scene==0?"Bistro":"Minecraft",(m_integrated?((m_step&1)?"Source-Integrated":"Source-Separate"):(m_recovered?RecoveredProfileID(Profile(m_step)):GetCandidatePolicyName((W::CandidatePolicy)Policy(m_step)))),
             vaStringTools::Format("%u",s.CandidateCount),vaStringTools::Format("%u",s.ProcessCount),
             vaStringTools::Format("%u",s.BaseCount),vaStringTools::Format("%u",s.Groups),
             vaStringTools::Format("%u",s.Duplicates),vaStringTools::Format("%u",s.OutOfRange),
@@ -9438,6 +9474,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
 
     for (const auto& parameter : m_application.GetCommandLineParameters())
     {
+        if (_wcsicmp(parameter.first.c_str(), L"smaaRecoveredSourceIntegratedCandidates") == 0) {
+            if(parameter.second != L"0" && parameter.second != L"1") { VA_LOG_ERROR("Expected integrated source 0 or 1"); continue; }
+            m_SMAA->SetRecoveredSourceIntegratedCandidates(parameter.second == L"1");
+            continue;
+        }
         if (_wcsicmp(parameter.first.c_str(), L"smaaRecoveredSourceProfile") == 0)
         {
             int profile = -1;
@@ -9712,6 +9753,23 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
+        if(_wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceSmoke")==0
+            || _wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceBenchmark")==0) {
+            const bool formal=_wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceBenchmark")==0;
+            wstring sceneToken=L"bistro"; float start=0; int warm=formal?300:60, frames=formal?4800:180, repeats=formal?3:1;
+            if(!parameter.second.empty()) {
+                std::wistringstream v(parameter.second);
+                if(!(v>>sceneToken>>start>>warm>>frames>>repeats) || warm<8 || frames<16 || repeats<1 || repeats>9) {
+                    VA_LOG_ERROR("Expected <bistro|minecraft> <startSeconds> <warmup> <frames> <repeats>"); return;
+                }
+            }
+            SceneSelectionType scene;
+            if(!TryParseSMAACameraMotionScene(sceneToken,scene) || (scene!=SceneSelectionType::LumberyardBistro && scene!=SceneSelectionType::MinecraftLostEmpire)) return;
+            m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(!formal);
+            m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(*this,scene,start,warm,frames,repeats,
+                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,false,true));
+            m_quitAfterCommandLineCapture=true; return;
+        }
         if(_wcsicmp(parameter.first.c_str(),L"smaaRecoveredSourcePerformanceSmoke")==0
             || _wcsicmp(parameter.first.c_str(),L"smaaRecoveredSourcePerformanceBenchmark")==0) {
             const bool formal=_wcsicmp(parameter.first.c_str(),L"smaaRecoveredSourcePerformanceBenchmark")==0;
@@ -9979,6 +10037,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
+        if (_wcsicmp(parameter.first.c_str(), L"smaaIntegratedSourceSnapshotTest") == 0) {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAContrastSnapshot>(*this,true,true));
+            m_quitAfterCommandLineCapture=true; return;
+        }
         if (_wcsicmp(parameter.first.c_str(), L"smaaRecoveredSourceSnapshotTest") == 0) {
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAAContrastSnapshot>(*this,true));
             m_quitAfterCommandLineCapture=true;return;
@@ -10202,6 +10264,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if(_wcsicmp(parameter.first.c_str(), L"smaaRecoveredSourceCapture")==0) {
                 if(mode!=AAType::SMAA_O_ET2X_R) { VA_LOG_ERROR("Recovered-source comparison requires O-ET2X-R"); return; }
                 semanticID=RecoveredProfileID(GetSMAARecoveredSourceProfile());
+                if(GetSMAARecoveredSourceProfile()==3 && GetSMAARecoveredSourceIntegratedCandidates())
+                    semanticID="O-ET2X-R-SourceCandidate-SourceKernel-Integrated";
                 m_SMAA->SetTemporalDualOutputOptimizationEnabled(false);
             }
             string modeDirectory = semanticID;

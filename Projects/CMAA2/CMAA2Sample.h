@@ -370,6 +370,8 @@ namespace VertexAsylum
         bool                                    GetSMAACandidateEdgeSourceOverrideEnabled( ) const { return m_SMAA->GetCandidateEdgeSourceOverrideEnabled( ); }
         vaSMAAWrapper::CandidateEdgeSource      GetSMAAEffectiveCandidateEdgeSource( ) const { return m_SMAA->GetEffectiveCandidateEdgeSource( ); }
         void SetSMAARecoveredSourceProfile(int profile) { m_SMAA->SetRecoveredSourceProfile((profile&1)!=0,(profile&2)!=0); }
+        void SetSMAARecoveredSourceIntegratedCandidates(bool value) { m_SMAA->SetRecoveredSourceIntegratedCandidates(value); }
+        bool GetSMAARecoveredSourceIntegratedCandidates() const { return m_SMAA->GetRecoveredSourceIntegratedCandidates(); }
         int GetSMAARecoveredSourceProfile() const { return int(m_SMAA->GetRecoveredSourceCandidates())+2*int(m_SMAA->GetRecoveredSourceKernel()); }
         void                                    SetSMAACandidatePolicyOverride( bool enabled, vaSMAAWrapper::CandidatePolicy policy ) { m_SMAA->SetCandidatePolicyOverride( enabled, policy ); }
         bool                                    GetSMAACandidatePolicyOverrideEnabled( ) const { return m_SMAA->GetCandidatePolicyOverrideEnabled( ); }

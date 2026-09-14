@@ -1339,11 +1339,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 assert( optionalInLuma != nullptr );
 
                 ID3D11RenderTargetView * currentSpatialRTV = m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetRTV( );
-                const bool integratedCandidatesPrepared = !GetRecoveredSourceCandidates( )
+                const bool integratedCandidatesPrepared = (GetRecoveredSourceCandidates( )?
+                    GetRecoveredSourceIntegratedCandidates( ) : !GetForcedCandidateCountEnabled( ))
                     &&
                     GetEffectiveCandidateEdgeSource( ) == CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
-                    && GetEffectiveCandidatePolicy( ) != CandidatePolicy::ExperimentalLocalMeanMax3x3
-                    && !GetForcedCandidateCountEnabled( );
+                    && GetEffectiveCandidatePolicy( ) != CandidatePolicy::ExperimentalLocalMeanMax3x3;
                 SMAA::IntegratedTemporalCandidateOutputs integratedCandidateOutputs;
                 ID3D11Buffer * reprojectionConstantsForPixelShader = nullptr;
                 if( integratedCandidatesPrepared )
@@ -1357,6 +1357,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     integratedCandidateOutputs.RawCandidateMask = expansionEnabled?
                         m_tscmaaRawCandidateMask->SafeCast<vaTextureDX11*>( )->GetUAV( ) : nullptr;
                     integratedCandidateOutputs.WriteRawCandidateMask = expansionEnabled;
+                    integratedCandidateOutputs.RecoveredSourceCandidates = GetRecoveredSourceCandidates();
                     if( !integratedCandidateOutputs.IsValid( ) || m_tscmaaDispatchArgsBufferUAV == nullptr )
                     {
                         UnsetGlobalStates( deviceContext );
@@ -1392,6 +1393,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
                     reprojectionConstantsForPixelShader = m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>( )->GetBuffer( );
                     dx11Context->PSSetConstantBuffers( 1, 1, &reprojectionConstantsForPixelShader );
+                    if(GetRecoveredSourceCandidates()) {
+                        ID3D11ShaderResourceView * recoveredSRV = m_viewColorIgnoreSRGB0->SafeCast<vaTextureDX11*>()->GetSRV();
+                        dx11Context->PSSetShaderResources(17,1,&recoveredSRV);
+                    }
                 }
                 // The document profile has no deliberate projection jitter and
                 // therefore keeps the SMAA 1X spatial path. Controlled
@@ -1409,6 +1414,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 {
                     ID3D11Buffer * nullConstantBuffer = nullptr;
                     dx11Context->PSSetConstantBuffers( 1, 1, &nullConstantBuffer );
+                    ID3D11ShaderResourceView * nullRecoveredSRV = nullptr;
+                    dx11Context->PSSetShaderResources(17,1,&nullRecoveredSRV);
                 }
 
                 const vaDrawResultFlags tscmaaResult = ExecuteTSCMAAInspiredResolve( deviceContext, m_temporalSpatialCurrent,
@@ -3385,10 +3392,14 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->StencilRef = 1;
     }
     else if( name == "LumaEdgeDetectionIntegratedTemporalCandidates"
-        || name == "LumaRawEdgeDetectionIntegratedTemporalCandidates" )
+        || name == "LumaRawEdgeDetectionIntegratedTemporalCandidates"
+        || name == "LumaEdgeDetectionIntegratedRecoveredCandidates"
+        || name == "LumaRawEdgeDetectionIntegratedRecoveredCandidates" )
     {
         shaderMacros.push_back( { "SMAA_INTEGRATED_TEMPORAL_CANDIDATES", "1" } );
-        if( name == "LumaRawEdgeDetectionIntegratedTemporalCandidates" )
+        if( name == "LumaEdgeDetectionIntegratedRecoveredCandidates" || name == "LumaRawEdgeDetectionIntegratedRecoveredCandidates" )
+            shaderMacros.push_back( { "SMAA_RECOVERED_INTEGRATED_CANDIDATES", "1" } );
+        if( name == "LumaRawEdgeDetectionIntegratedTemporalCandidates" || name == "LumaRawEdgeDetectionIntegratedRecoveredCandidates" )
             shaderMacros.push_back( { "SMAA_INTEGRATED_RAW_LUMA", "1" } );
         tech->VS->CreateShaderAndILFromFile( shaderFileName, "vs_5_0", "DX10_SMAAEdgeDetectionVS", inputElements, shaderMacros, true );
         tech->PS->CreateShaderFromFile( shaderFileName, "ps_5_0", "DX10_SMAALumaEdgeDetectionIntegratedTemporalCandidatesPS", shaderMacros, true );

@@ -417,6 +417,7 @@ namespace VertexAsylum
         bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
         bool                        m_recoveredSourceCandidates = false;
         bool                        m_recoveredSourceKernel = false;
+        bool                        m_recoveredSourceIntegratedCandidates = false;
         bool                        m_candidateEdgeSourceOverrideEnabled = false;
         CandidateEdgeSource         m_candidateEdgeSourceOverride       = CandidateEdgeSource::SMAAFirstPassEdges;
         bool                        m_candidatePolicyOverrideEnabled    = false;
@@ -522,6 +523,12 @@ namespace VertexAsylum
                 ResetTemporalHistory( );
             }
         }
+        void SetRecoveredSourceIntegratedCandidates(bool enabled) {
+            if(m_recoveredSourceIntegratedCandidates != enabled) {
+                m_recoveredSourceIntegratedCandidates = enabled; ResetTemporalHistory();
+            }
+        }
+        bool GetRecoveredSourceIntegratedCandidates() const { return m_recoveredSourceIntegratedCandidates; }
         bool GetRecoveredSourceCandidates( ) const { return m_recoveredSourceCandidates; }
         bool GetRecoveredSourceKernel( ) const { return m_recoveredSourceKernel; }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
