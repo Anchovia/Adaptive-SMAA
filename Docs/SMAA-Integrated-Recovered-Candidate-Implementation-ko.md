@@ -51,4 +51,7 @@ Standard의 공식 paired jitter/subsample, point sampling, spatial-frame histor
 유지한다. 두 source mode는 no jitter 및 같은 source temporal kernel/resolved feedback을 사용한다.
 따라서 Standard 대비는 완성 기법 비교, 별도 대비 통합은 후보 실행 구조 비교다.
 
-최종 성능·품질 결론은 반복 측정 및 전체 동적 sequence 검증 후 별도 결과 문서로 기록한다.
+전체 동적 sequence와 반복 측정을 완료했다. 최종 결과는
+`Docs/SMAA-Integrated-Recovered-Candidate-Results-ko.md`를 따른다.
+통합 전후 960 frame 출력은 동일했고 AA 시간은 약 6% 감소했으나,
+Standard T2X-R 대비 성능 및 CGVQM 우위는 확인되지 않았다.

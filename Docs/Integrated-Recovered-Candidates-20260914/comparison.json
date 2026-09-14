@@ -1,0 +1,769 @@
+{
+  "classification": "Standard T2X-R vs recovered-source SMAA adaptation; supersample spatial proxy, not temporal ground truth",
+  "quality": {
+    "bistro": {
+      "runs": {
+        "bistro-Quality-O-1X": {
+          "label": "bistro-Quality-O-1X",
+          "arguments": [
+            "-smaaCameraMotionSingleModeCapture",
+            "\"bistro flythrough-wide-yaw-360 O-1X 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191355",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-Quality-O-T2X-R": {
+          "label": "bistro-Quality-O-T2X-R",
+          "arguments": [
+            "-smaaCameraMotionSingleModeCapture",
+            "\"bistro flythrough-wide-yaw-360 O-T2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191454",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-Quality-source-0": {
+          "label": "bistro-Quality-source-0",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191552",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-Quality-source-1": {
+          "label": "bistro-Quality-source-1",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191651",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        }
+      },
+      "reference": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260827_014143",
+      "pixel_hash_mismatch": {
+        "spatial_control": 0,
+        "separate_integrated": 0,
+        "prior_source_integrated": 0
+      },
+      "windows": {
+        "all": {
+          "O-T2X-R": {
+            "rgb_mae": 2.0451342513163886,
+            "psnr": 33.955412145124484,
+            "ssim": 0.9704270159043434,
+            "edge_ratio": 0.9615444938126514,
+            "temporal_delta_residual": 2.5365175160612177
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.8249006882309913,
+            "psnr": 34.010854577039716,
+            "ssim": 0.9780381484170891,
+            "edge_ratio": 0.9761934854970945,
+            "temporal_delta_residual": 1.9889185048625113
+          }
+        },
+        "central_motion": {
+          "O-T2X-R": {
+            "rgb_mae": 2.2134236335754394,
+            "psnr": 33.38675396816749,
+            "ssim": 0.9623342501676803,
+            "edge_ratio": 0.9752555444111283,
+            "temporal_delta_residual": 3.5688518563906353
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.7252753906779819,
+            "psnr": 34.08170134559355,
+            "ssim": 0.9760470288282235,
+            "edge_ratio": 0.9727385807574488,
+            "temporal_delta_residual": 2.7088961720466616
+          }
+        },
+        "transition": {
+          "O-T2X-R": {
+            "rgb_mae": 1.5179978410402934,
+            "psnr": 35.92611139150522,
+            "ssim": 0.9839828861718395,
+            "edge_ratio": 0.9575285916554849,
+            "temporal_delta_residual": 0.47390273370222835
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.6531835873921712,
+            "psnr": 35.054311505749865,
+            "ssim": 0.9832388170467466,
+            "edge_ratio": 0.990906380227274,
+            "temporal_delta_residual": 0.2664978146986262
+          }
+        },
+        "post_still": {
+          "O-T2X-R": {
+            "rgb_mae": 1.4486900359392165,
+            "psnr": 36.13965608748992,
+            "ssim": 0.9844254931731701,
+            "edge_ratio": 0.9558754859528886,
+            "temporal_delta_residual": 1.2047791665281693e-05
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.6427511334419251,
+            "psnr": 35.06518624768246,
+            "ssim": 0.9828811883186154,
+            "edge_ratio": 0.9935098262800155,
+            "temporal_delta_residual": 1.2073398011125391e-05
+          }
+        }
+      },
+      "representative_frame": 60
+    },
+    "minecraft": {
+      "runs": {
+        "minecraft-Quality-O-1X": {
+          "label": "minecraft-Quality-O-1X",
+          "arguments": [
+            "-smaaCameraMotionSingleModeCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-1X 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191750",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-Quality-O-T2X-R": {
+          "label": "minecraft-Quality-O-T2X-R",
+          "arguments": [
+            "-smaaCameraMotionSingleModeCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-T2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191848",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-Quality-source-0": {
+          "label": "minecraft-Quality-source-0",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_191946",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-Quality-source-1": {
+          "label": "minecraft-Quality-source-1",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_192044",
+          "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+          "window": "hidden",
+          "status": "PASS"
+        }
+      },
+      "reference": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260827_014612",
+      "pixel_hash_mismatch": {
+        "spatial_control": 0,
+        "separate_integrated": 0,
+        "prior_source_integrated": 0
+      },
+      "windows": {
+        "all": {
+          "O-T2X-R": {
+            "rgb_mae": 1.577456651503841,
+            "psnr": 33.38141037307978,
+            "ssim": 0.9679211839816836,
+            "edge_ratio": 0.9440838622889951,
+            "temporal_delta_residual": 1.8341989705654052
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.3786118948211272,
+            "psnr": 33.44563749139718,
+            "ssim": 0.9758094025034744,
+            "edge_ratio": 0.9504231716521585,
+            "temporal_delta_residual": 1.349463550100368
+          }
+        },
+        "central_motion": {
+          "O-T2X-R": {
+            "rgb_mae": 1.2237200872765648,
+            "psnr": 34.25179956452825,
+            "ssim": 0.9719270786781798,
+            "edge_ratio": 0.9644619328614056,
+            "temporal_delta_residual": 2.028814422421985
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 0.9567964391575919,
+            "psnr": 34.597393391448975,
+            "ssim": 0.9827449392008746,
+            "edge_ratio": 0.9418341994510115,
+            "temporal_delta_residual": 1.4669519662857056
+          }
+        },
+        "transition": {
+          "O-T2X-R": {
+            "rgb_mae": 1.5317360838254293,
+            "psnr": 33.62875426507009,
+            "ssim": 0.9743310155659636,
+            "edge_ratio": 0.9317108754800832,
+            "temporal_delta_residual": 0.43231832099457584
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.5459171891212464,
+            "psnr": 33.07385028590417,
+            "ssim": 0.9737785550601158,
+            "edge_ratio": 0.9735152536302785,
+            "temporal_delta_residual": 0.23423985576312892
+          }
+        },
+        "post_still": {
+          "O-T2X-R": {
+            "rgb_mae": 1.4867881536483765,
+            "psnr": 33.78343949064019,
+            "ssim": 0.9745463156606672,
+            "edge_ratio": 0.9302202442162318,
+            "temporal_delta_residual": 0.0
+          },
+          "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+            "rgb_mae": 1.5734812021255493,
+            "psnr": 32.68277363070984,
+            "ssim": 0.9720995728132567,
+            "edge_ratio": 0.9825000221675835,
+            "temporal_delta_residual": 1.2803178606191068e-08
+          }
+        }
+      },
+      "representative_frame": 0
+    }
+  },
+  "performance": {
+    "bistro": {
+      "run": {
+        "label": "bistro-Benchmark",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 3\""
+        ],
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_193024",
+        "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+        "window": "visible",
+        "status": "PASS"
+      },
+      "metrics": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.912576,
+            "median_ms": 2.8868,
+            "stddev_ms": 0.256782,
+            "p95_ms": 3.3671,
+            "p99_ms": 3.5943,
+            "run_mean_stddev_ms": 0.016536
+          },
+          "WholeFrame": {
+            "mean_ms": 2.865182,
+            "median_ms": 2.866176,
+            "stddev_ms": 0.280652,
+            "p95_ms": 3.344384,
+            "p99_ms": 3.552256,
+            "run_mean_stddev_ms": 0.019503
+          },
+          "SMAA": {
+            "mean_ms": 0.278472,
+            "median_ms": 0.293888,
+            "stddev_ms": 0.034342,
+            "p95_ms": 0.31232,
+            "p99_ms": 0.315392,
+            "run_mean_stddev_ms": 0.003228
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.0232,
+            "median_ms": 0.023552,
+            "stddev_ms": 0.000558,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576,
+            "run_mean_stddev_ms": 0.000183
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.21808,
+            "median_ms": 0.232448,
+            "stddev_ms": 0.032727,
+            "p95_ms": 0.249856,
+            "p99_ms": 0.252928,
+            "run_mean_stddev_ms": 0.002854
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037053,
+            "median_ms": 0.036864,
+            "stddev_ms": 0.001557,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936,
+            "run_mean_stddev_ms": 0.000165
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.989255,
+            "median_ms": 2.98605,
+            "stddev_ms": 0.270346,
+            "p95_ms": 3.4403,
+            "p99_ms": 3.6738,
+            "run_mean_stddev_ms": 0.015885
+          },
+          "WholeFrame": {
+            "mean_ms": 2.949157,
+            "median_ms": 2.948608,
+            "stddev_ms": 0.267658,
+            "p95_ms": 3.388416,
+            "p99_ms": 3.633152,
+            "run_mean_stddev_ms": 0.016634
+          },
+          "SMAA": {
+            "mean_ms": 0.502902,
+            "median_ms": 0.52224,
+            "stddev_ms": 0.043119,
+            "p95_ms": 0.546816,
+            "p99_ms": 0.551936,
+            "run_mean_stddev_ms": 0.003637
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023392,
+            "median_ms": 0.023552,
+            "stddev_ms": 0.000536,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576,
+            "run_mean_stddev_ms": 0.000108
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.219446,
+            "median_ms": 0.234496,
+            "stddev_ms": 0.033036,
+            "p95_ms": 0.251904,
+            "p99_ms": 0.256,
+            "run_mean_stddev_ms": 0.00242
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023373,
+            "median_ms": 0.02336,
+            "stddev_ms": 0.000546,
+            "p95_ms": 0.024288,
+            "p99_ms": 0.02464,
+            "run_mean_stddev_ms": 0.000147
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.032447,
+            "median_ms": 0.032416,
+            "stddev_ms": 0.00057,
+            "p95_ms": 0.033408,
+            "p99_ms": 0.033984,
+            "run_mean_stddev_ms": 0.000172
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.14758,
+            "median_ms": 0.147456,
+            "stddev_ms": 0.002721,
+            "p95_ms": 0.151552,
+            "p99_ms": 0.152576,
+            "run_mean_stddev_ms": 0.000897
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.00404,
+            "median_ms": 0.004096,
+            "stddev_ms": 0.00029,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512,
+            "run_mean_stddev_ms": 3.3e-05
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023483,
+            "median_ms": 0.0256,
+            "stddev_ms": 0.007278,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792,
+            "run_mean_stddev_ms": 4.2e-05
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023381,
+            "median_ms": 0.02336,
+            "stddev_ms": 0.000576,
+            "p95_ms": 0.02432,
+            "p99_ms": 0.024864,
+            "run_mean_stddev_ms": 0.000148
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.967471,
+            "median_ms": 2.9488,
+            "stddev_ms": 0.271233,
+            "p95_ms": 3.4381,
+            "p99_ms": 3.6433,
+            "run_mean_stddev_ms": 0.005826
+          },
+          "WholeFrame": {
+            "mean_ms": 2.925346,
+            "median_ms": 2.917376,
+            "stddev_ms": 0.265303,
+            "p95_ms": 3.373056,
+            "p99_ms": 3.588096,
+            "run_mean_stddev_ms": 0.007011
+          },
+          "SMAA": {
+            "mean_ms": 0.470594,
+            "median_ms": 0.488448,
+            "stddev_ms": 0.039039,
+            "p95_ms": 0.512,
+            "p99_ms": 0.51712,
+            "run_mean_stddev_ms": 0.002034
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023429,
+            "median_ms": 0.023552,
+            "stddev_ms": 0.000549,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576,
+            "run_mean_stddev_ms": 0.000108
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.364188,
+            "median_ms": 0.37888,
+            "stddev_ms": 0.031227,
+            "p95_ms": 0.397312,
+            "p99_ms": 0.401408,
+            "run_mean_stddev_ms": 0.001582
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023367,
+            "median_ms": 0.02336,
+            "stddev_ms": 0.000571,
+            "p95_ms": 0.02432,
+            "p99_ms": 0.02464,
+            "run_mean_stddev_ms": 0.000144
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004186,
+            "median_ms": 0.004096,
+            "stddev_ms": 0.000297,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512,
+            "run_mean_stddev_ms": 2.1e-05
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004151,
+            "median_ms": 0.004096,
+            "stddev_ms": 0.000273,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512,
+            "run_mean_stddev_ms": 3.1e-05
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023184,
+            "median_ms": 0.0256,
+            "stddev_ms": 0.007198,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792,
+            "run_mean_stddev_ms": 6.6e-05
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.02418,
+            "median_ms": 0.024192,
+            "stddev_ms": 0.000785,
+            "p95_ms": 0.02544,
+            "p99_ms": 0.02576,
+            "run_mean_stddev_ms": 0.00011
+          }
+        }
+      },
+      "changes": {
+        "SMAA": {
+          "integrated_vs_standard_pct": 68.991496452067,
+          "integrated_vs_separate_pct": -6.424313285689842,
+          "integrated_minus_standard_ms": 0.19212200000000001
+        },
+        "WholeFrame": {
+          "integrated_vs_standard_pct": 2.0998317035357594,
+          "integrated_vs_separate_pct": -0.8073832624034716,
+          "integrated_minus_standard_ms": 0.060163999999999884
+        }
+      }
+    },
+    "minecraft": {
+      "run": {
+        "label": "minecraft-Benchmark",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 3\""
+        ],
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_193247",
+        "exe_sha256": "0366895E6412ADA1C2ACAA7D755D6AD702C3E24C717FB6746957099FB2AD8EC2",
+        "window": "visible",
+        "status": "PASS"
+      },
+      "metrics": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.286323,
+            "median_ms": 1.2345,
+            "stddev_ms": 0.123403,
+            "p95_ms": 1.5128,
+            "p99_ms": 1.61,
+            "run_mean_stddev_ms": 0.000541
+          },
+          "WholeFrame": {
+            "mean_ms": 1.250597,
+            "median_ms": 1.17248,
+            "stddev_ms": 0.173376,
+            "p95_ms": 1.634304,
+            "p99_ms": 1.69984,
+            "run_mean_stddev_ms": 0.004059
+          },
+          "SMAA": {
+            "mean_ms": 0.292648,
+            "median_ms": 0.294912,
+            "stddev_ms": 0.015957,
+            "p95_ms": 0.305152,
+            "p99_ms": 0.309248,
+            "run_mean_stddev_ms": 0.00079
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022779,
+            "median_ms": 0.022528,
+            "stddev_ms": 0.000459,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552,
+            "run_mean_stddev_ms": 4.1e-05
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.231915,
+            "median_ms": 0.234496,
+            "stddev_ms": 0.015203,
+            "p95_ms": 0.243712,
+            "p99_ms": 0.247808,
+            "run_mean_stddev_ms": 0.000753
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037884,
+            "median_ms": 0.037888,
+            "stddev_ms": 0.001207,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.039936,
+            "run_mean_stddev_ms": 4e-05
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.549571,
+            "median_ms": 1.50835,
+            "stddev_ms": 0.124201,
+            "p95_ms": 1.7789,
+            "p99_ms": 1.8887,
+            "run_mean_stddev_ms": 0.001532
+          },
+          "WholeFrame": {
+            "mean_ms": 1.510572,
+            "median_ms": 1.437696,
+            "stddev_ms": 0.164283,
+            "p95_ms": 1.862656,
+            "p99_ms": 1.934336,
+            "run_mean_stddev_ms": 0.003361
+          },
+          "SMAA": {
+            "mean_ms": 0.518731,
+            "median_ms": 0.521216,
+            "stddev_ms": 0.020218,
+            "p95_ms": 0.536576,
+            "p99_ms": 0.539648,
+            "run_mean_stddev_ms": 0.000762
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022698,
+            "median_ms": 0.022528,
+            "stddev_ms": 0.000418,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552,
+            "run_mean_stddev_ms": 2.7e-05
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.231089,
+            "median_ms": 0.234496,
+            "stddev_ms": 0.01502,
+            "p95_ms": 0.242688,
+            "p99_ms": 0.24576,
+            "run_mean_stddev_ms": 0.000463
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022749,
+            "median_ms": 0.022752,
+            "stddev_ms": 0.000348,
+            "p95_ms": 0.023328,
+            "p99_ms": 0.023488,
+            "run_mean_stddev_ms": 2.8e-05
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031603,
+            "median_ms": 0.031488,
+            "stddev_ms": 0.000644,
+            "p95_ms": 0.033184,
+            "p99_ms": 0.03376,
+            "run_mean_stddev_ms": 0.000253
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.145888,
+            "median_ms": 0.145408,
+            "stddev_ms": 0.001568,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.14848,
+            "run_mean_stddev_ms": 0.000185
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004005,
+            "median_ms": 0.004096,
+            "stddev_ms": 0.00032,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096,
+            "run_mean_stddev_ms": 1.2e-05
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032337,
+            "median_ms": 0.032768,
+            "stddev_ms": 0.005643,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096,
+            "run_mean_stddev_ms": 1.9e-05
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022795,
+            "median_ms": 0.022784,
+            "stddev_ms": 0.000414,
+            "p95_ms": 0.023456,
+            "p99_ms": 0.024064,
+            "run_mean_stddev_ms": 2e-05
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.507431,
+            "median_ms": 1.4702,
+            "stddev_ms": 0.131762,
+            "p95_ms": 1.7616,
+            "p99_ms": 1.8487,
+            "run_mean_stddev_ms": 0.00084
+          },
+          "WholeFrame": {
+            "mean_ms": 1.470602,
+            "median_ms": 1.391616,
+            "stddev_ms": 0.172049,
+            "p95_ms": 1.837056,
+            "p99_ms": 1.896448,
+            "run_mean_stddev_ms": 0.00131
+          },
+          "SMAA": {
+            "mean_ms": 0.488571,
+            "median_ms": 0.490496,
+            "stddev_ms": 0.018406,
+            "p95_ms": 0.50688,
+            "p99_ms": 0.510976,
+            "run_mean_stddev_ms": 0.000303
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022813,
+            "median_ms": 0.022528,
+            "stddev_ms": 0.000464,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552,
+            "run_mean_stddev_ms": 2.3e-05
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.375982,
+            "median_ms": 0.377856,
+            "stddev_ms": 0.01409,
+            "p95_ms": 0.388096,
+            "p99_ms": 0.391168,
+            "run_mean_stddev_ms": 0.000206
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022811,
+            "median_ms": 0.022816,
+            "stddev_ms": 0.000366,
+            "p95_ms": 0.023424,
+            "p99_ms": 0.023776,
+            "run_mean_stddev_ms": 1.3e-05
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003873,
+            "median_ms": 0.004096,
+            "stddev_ms": 0.000427,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096,
+            "run_mean_stddev_ms": 1.2e-05
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004088,
+            "median_ms": 0.004096,
+            "stddev_ms": 0.0002,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512,
+            "run_mean_stddev_ms": 2.2e-05
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031609,
+            "median_ms": 0.031744,
+            "stddev_ms": 0.005685,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936,
+            "run_mean_stddev_ms": 6.2e-05
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023813,
+            "median_ms": 0.023872,
+            "stddev_ms": 0.00054,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024864,
+            "run_mean_stddev_ms": 4.1e-05
+          }
+        }
+      },
+      "changes": {
+        "SMAA": {
+          "integrated_vs_standard_pct": 66.94834750280198,
+          "integrated_vs_separate_pct": -5.8141888570376725,
+          "integrated_minus_standard_ms": 0.19592299999999996
+        },
+        "WholeFrame": {
+          "integrated_vs_standard_pct": 17.59199806172571,
+          "integrated_vs_separate_pct": -2.6460175350794257,
+          "integrated_minus_standard_ms": 0.220005
+        }
+      }
+    }
+  },
+  "analysis_validation": {
+    "source_metrics_exactly_match_prior": 40,
+    "excluded_attempt": "tmp/integrated-source-first-analysis-failure.json",
+    "independent_decode_recheck": "tmp/integrated-source-decode-recheck.json",
+    "rerun_pixel_hash_mismatches": 0
+  }
+}
