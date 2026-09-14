@@ -83,6 +83,12 @@ def main():
             final_max_byte_error=float(np.max(abs(v[i,:,:,3,:3]-final)))*255)
         rows.append(row)
     passed=all(q['residual_max_error']<.001 and q['candidate_mismatch_away_from_boundary']==0 and q['filter_max_error']<.005 and q['clip_max_error']<.005 and q['final_max_byte_error']<=2.001 for q in rows)
-    out=dict(passed=passed,finite=True,repeat_exact=True,classification='production-function GPU vs independent float64 image reference; minprecision/filter interpolation tolerances; not original full renderer exactness',rows=rows)
+    examples={name:{'filtered':v[i,14,17,1,:3].tolist(),
+        'clipped':v[i,14,17,2,:3].tolist(),
+        'final_rgb_bytes':np.rint(v[i,14,17,3,:3]*255).astype(int).tolist()}
+        for i,name in [(1,'gray'),(2,'red'),(3,'blue')]}
+    out=dict(passed=passed,finite=True,repeat_exact=True,classification='production-function GPU vs independent float64 image reference; minprecision/filter interpolation tolerances; not original full renderer exactness',rows=rows,
+        flat_color_examples=examples,
+        flat_color_scope='Function-only center pixel; uniform image interiors are normally noncandidates in the renderer')
     Path(a.output).write_text(json.dumps(out,indent=2));print(json.dumps(out,indent=2));assert passed
 if __name__=='__main__':main()

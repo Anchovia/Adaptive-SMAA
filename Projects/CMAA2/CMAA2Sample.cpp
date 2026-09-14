@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2019, Intel Corporation
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
 // documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
@@ -4735,7 +4735,9 @@ public:
         m_candidateEdgeSourceMatrix( candidateEdgeSourceMatrix ),
         m_candidateEdgeSourceReverseOrder( candidateEdgeSourceReverseOrder ),
         m_singleModeOnly( singleModeOnly ),
-        m_recoveredSourceCapture(singleModeOnly && singleModeID.find("Candidate-")!=string::npos),
+        m_recoveredSourceCapture(singleModeOnly && (singleModeID==RecoveredProfileID(0)
+            || singleModeID==RecoveredProfileID(1) || singleModeID==RecoveredProfileID(2)
+            || singleModeID==RecoveredProfileID(3))),
         m_singleModeAAType( singleModeAAType ),
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
