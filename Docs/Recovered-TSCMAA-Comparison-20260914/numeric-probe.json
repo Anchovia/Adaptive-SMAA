@@ -1,0 +1,142 @@
+{
+  "passed": true,
+  "finite": true,
+  "repeat_exact": true,
+  "classification": "production-function GPU vs independent float64 image reference; minprecision/filter interpolation tolerances; not original full renderer exactness",
+  "rows": [
+    {
+      "fixture": 0,
+      "pixels": 1015,
+      "residual_max_error": 0.0,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.0,
+      "clip_max_error": 0.0,
+      "final_max_byte_error": 0.0
+    },
+    {
+      "fixture": 1,
+      "pixels": 1015,
+      "residual_max_error": 1.4204545454865602e-06,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.0007941017461918221,
+      "clip_max_error": 0.0007941017461918221,
+      "final_max_byte_error": 7.629394529473643e-06
+    },
+    {
+      "fixture": 2,
+      "pixels": 1015,
+      "residual_max_error": 0.00011665482954548168,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.0015882034923836441,
+      "clip_max_error": 0.0015882034923836441,
+      "final_max_byte_error": 1.8537044524369328e-05
+    },
+    {
+      "fixture": 3,
+      "pixels": 1015,
+      "residual_max_error": 5.80610795454517e-05,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.0015882034923836441,
+      "clip_max_error": 2.164051992581406e-05,
+      "final_max_byte_error": 1.88350677587934e-05
+    },
+    {
+      "fixture": 4,
+      "pixels": 1015,
+      "residual_max_error": 0.00022372159090910948,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.0022806026252494283,
+      "clip_max_error": 0.0022806026252494283,
+      "final_max_byte_error": 1.0000075697898847
+    },
+    {
+      "fixture": 5,
+      "pixels": 1015,
+      "residual_max_error": 0.0002219460227272929,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.003683564157382635,
+      "clip_max_error": 0.003683564157382635,
+      "final_max_byte_error": 1.88350677587934e-05
+    },
+    {
+      "fixture": 6,
+      "pixels": 1015,
+      "residual_max_error": 0.00046462031707850127,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.0026164965177334354,
+      "clip_max_error": 0.0026164965177301047,
+      "final_max_byte_error": 1.0000042617320988
+    },
+    {
+      "fixture": 7,
+      "pixels": 1015,
+      "residual_max_error": 9.797261519867151e-06,
+      "candidate_mismatch": 0,
+      "candidate_mismatch_away_from_boundary": 0,
+      "filter_max_error": 0.00019132655409657973,
+      "clip_max_error": 0.00019132655409657973,
+      "final_max_byte_error": 0.9999994076788424
+    }
+  ],
+  "flat_color_examples": {
+    "gray": {
+      "filtered": [
+        0.5000000596046448,
+        0.5000000596046448,
+        0.5000000596046448
+      ],
+      "clipped": [
+        0.5000000596046448,
+        0.5000000596046448,
+        0.5000000596046448
+      ],
+      "final_rgb_bytes": [
+        128,
+        128,
+        128
+      ]
+    },
+    "red": {
+      "filtered": [
+        1.0000001192092896,
+        0.0,
+        0.0
+      ],
+      "clipped": [
+        0.8937195539474487,
+        0.0,
+        -0.10636676847934723
+      ],
+      "final_rgb_bytes": [
+        234,
+        0,
+        24
+      ]
+    },
+    "blue": {
+      "filtered": [
+        0.0,
+        0.0,
+        1.0000001192092896
+      ],
+      "clipped": [
+        0.0,
+        0.0,
+        0.6809860467910767
+      ],
+      "final_rgb_bytes": [
+        0,
+        0,
+        194
+      ]
+    }
+  },
+  "flat_color_scope": "Function-only center pixel; uniform image interiors are normally noncandidates in the renderer"
+}

@@ -1,0 +1,435 @@
+{
+  "classification": "Recovered-source SMAA adaptation 2x2 comparison; supersample spatial proxy, not temporal ground truth",
+  "quality": {
+    "bistro": {
+      "spatial_control_pixel_hash_mismatch": 0,
+      "reference": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260827_014143",
+      "runs": {
+        "bistro-spatial-control": {
+          "label": "bistro-spatial-control",
+          "arguments": [
+            "-smaaCameraMotionSingleModeCapture",
+            "\"bistro flythrough-wide-yaw-360 O-1X 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_142433",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-profile-0": {
+          "label": "bistro-profile-0",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_142532",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-profile-1": {
+          "label": "bistro-profile-1",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "1",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_142634",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-profile-2": {
+          "label": "bistro-profile-2",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "2",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_142736",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "bistro-profile-3": {
+          "label": "bistro-profile-3",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_142836",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        }
+      },
+      "windows": {
+        "all": [
+          {
+            "rgb_mae": 1.6516987850268683,
+            "psnr": 35.36251447632257,
+            "temporal_delta_residual": 1.8357475662095146,
+            "ssim": 0.9795798946784516,
+            "edge_ratio": 0.9837753780172676,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.6573668864866098,
+            "psnr": 35.33378164884718,
+            "temporal_delta_residual": 1.8486331055627676,
+            "ssim": 0.9794681562186315,
+            "edge_ratio": 0.9800421767700995,
+            "difference_from_document": 0.37687842243661485
+          },
+          {
+            "rgb_mae": 1.7581453961630662,
+            "psnr": 34.71589988602682,
+            "temporal_delta_residual": 1.9603487091680067,
+            "ssim": 0.978179173867925,
+            "edge_ratio": 0.9772011427401017,
+            "difference_from_document": 0.28317143113041915
+          },
+          {
+            "rgb_mae": 1.8249006882309913,
+            "psnr": 34.010854577039716,
+            "temporal_delta_residual": 1.9889185048625113,
+            "ssim": 0.9780381484170891,
+            "edge_ratio": 0.9761934854970945,
+            "difference_from_document": 0.6518413319562872
+          }
+        ],
+        "central_motion": [
+          {
+            "rgb_mae": 1.5152061561743417,
+            "psnr": 36.131697709817885,
+            "temporal_delta_residual": 2.445459849304623,
+            "ssim": 0.9796721168277288,
+            "edge_ratio": 0.9801256617419571,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.5426638980706533,
+            "psnr": 35.78451691760607,
+            "temporal_delta_residual": 2.500813847117954,
+            "ssim": 0.9788065300818402,
+            "edge_ratio": 0.9760611950553085,
+            "difference_from_document": 0.4464998271730211
+          },
+          {
+            "rgb_mae": 1.6225519829326205,
+            "psnr": 35.33578759330921,
+            "temporal_delta_residual": 2.625384465853373,
+            "ssim": 0.977173011003517,
+            "edge_ratio": 0.9732686352877061,
+            "difference_from_document": 0.2635060732563337
+          },
+          {
+            "rgb_mae": 1.7252753906779819,
+            "psnr": 34.08170134559355,
+            "temporal_delta_residual": 2.7088961720466616,
+            "ssim": 0.9760470288282235,
+            "edge_ratio": 0.9727385807574488,
+            "difference_from_document": 0.7153708431455824
+          }
+        ],
+        "transition": [
+          {
+            "rgb_mae": 1.5174466570218403,
+            "psnr": 35.96980942981406,
+            "temporal_delta_residual": 0.2653580237246084,
+            "ssim": 0.983052964647488,
+            "edge_ratio": 0.997054843657899,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.5044007817904155,
+            "psnr": 36.203039278958016,
+            "temporal_delta_residual": 0.25848522286505615,
+            "ssim": 0.9833737381685262,
+            "edge_ratio": 0.9963140496189989,
+            "difference_from_document": 0.16812941953539848
+          },
+          {
+            "rgb_mae": 1.625493097305298,
+            "psnr": 35.246461427586205,
+            "temporal_delta_residual": 0.2753693460171538,
+            "ssim": 0.9829251338656362,
+            "edge_ratio": 0.9903531911359275,
+            "difference_from_document": 0.2441923866669337
+          },
+          {
+            "rgb_mae": 1.6531835873921712,
+            "psnr": 35.054311505749865,
+            "temporal_delta_residual": 0.2664978146986262,
+            "ssim": 0.9832388170467466,
+            "edge_ratio": 0.990906380227274,
+            "difference_from_document": 0.4208378612995148
+          }
+        ],
+        "post_still": [
+          {
+            "rgb_mae": 1.5154579371213912,
+            "psnr": 35.84549520277518,
+            "temporal_delta_residual": 1.2299587547204283e-05,
+            "ssim": 0.9828602112884687,
+            "edge_ratio": 1.000650562436013,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.5117939472198487,
+            "psnr": 35.91744605813316,
+            "temporal_delta_residual": 1.2256910258656717e-05,
+            "ssim": 0.9829671879935379,
+            "edge_ratio": 1.0005822036437195,
+            "difference_from_document": 0.0877003001049161
+          },
+          {
+            "rgb_mae": 1.6191695183515549,
+            "psnr": 35.21139917150584,
+            "temporal_delta_residual": 1.2081933482477325e-05,
+            "ssim": 0.9828027822459248,
+            "edge_ratio": 0.9930975595156486,
+            "difference_from_document": 0.23736646734178066
+          },
+          {
+            "rgb_mae": 1.6427511334419251,
+            "psnr": 35.06518624768246,
+            "temporal_delta_residual": 1.2073398011125391e-05,
+            "ssim": 0.9828811883186154,
+            "edge_ratio": 0.9935098262800155,
+            "difference_from_document": 0.3511577144265175
+          }
+        ]
+      },
+      "peak_difference_frame": 128,
+      "peak_crop": [
+        640,
+        336,
+        960,
+        560
+      ]
+    },
+    "minecraft": {
+      "spatial_control_pixel_hash_mismatch": 0,
+      "reference": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260827_014612",
+      "runs": {
+        "minecraft-spatial-control": {
+          "label": "minecraft-spatial-control",
+          "arguments": [
+            "-smaaCameraMotionSingleModeCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-1X 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_142938",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-profile-0": {
+          "label": "minecraft-profile-0",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_143035",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-profile-1": {
+          "label": "minecraft-profile-1",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "1",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_143132",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-profile-2": {
+          "label": "minecraft-profile-2",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "2",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_143231",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        },
+        "minecraft-profile-3": {
+          "label": "minecraft-profile-3",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260914_143331",
+          "exe_sha256": "7EC473246206310B782B644140C1D0A46AC1776A60256F1B253F62F62735EF55",
+          "window": "hidden",
+          "status": "PASS"
+        }
+      },
+      "windows": {
+        "all": [
+          {
+            "rgb_mae": 1.332598634622991,
+            "psnr": 33.880005134850734,
+            "temporal_delta_residual": 1.3729387889127003,
+            "ssim": 0.9748395476677068,
+            "edge_ratio": 0.9706136702458819,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.2886181016142169,
+            "psnr": 34.43190632384399,
+            "temporal_delta_residual": 1.3017879057614985,
+            "ssim": 0.9766121551053744,
+            "edge_ratio": 0.954740965449774,
+            "difference_from_document": 0.30379415026012185
+          },
+          {
+            "rgb_mae": 1.3611968101933598,
+            "psnr": 33.663083667273746,
+            "temporal_delta_residual": 1.406577726330829,
+            "ssim": 0.9740807642503039,
+            "edge_ratio": 0.9603716475858204,
+            "difference_from_document": 0.15288884981224934
+          },
+          {
+            "rgb_mae": 1.3786118948211272,
+            "psnr": 33.44563749139718,
+            "temporal_delta_residual": 1.349463550100368,
+            "ssim": 0.9758094025034744,
+            "edge_ratio": 0.9504231716521585,
+            "difference_from_document": 0.4581132795972129
+          }
+        ],
+        "central_motion": [
+          {
+            "rgb_mae": 0.8592171756757631,
+            "psnr": 35.696005444252734,
+            "temporal_delta_residual": 1.4429180920124054,
+            "ssim": 0.9829358350964997,
+            "edge_ratio": 0.9623473937123973,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 0.8339943158957693,
+            "psnr": 36.26573814992674,
+            "temporal_delta_residual": 1.394530909922388,
+            "ssim": 0.9841866808572202,
+            "edge_ratio": 0.9398127790601901,
+            "difference_from_document": 0.2643459556003412
+          },
+          {
+            "rgb_mae": 0.8909217554661962,
+            "psnr": 35.34711200736911,
+            "temporal_delta_residual": 1.4912577278084225,
+            "ssim": 0.9818634258942731,
+            "edge_ratio": 0.9523834604190481,
+            "difference_from_document": 0.11687411823206478
+          },
+          {
+            "rgb_mae": 0.9567964391575919,
+            "psnr": 34.597393391448975,
+            "temporal_delta_residual": 1.4669519662857056,
+            "ssim": 0.9827449392008746,
+            "edge_ratio": 0.9418341994510115,
+            "difference_from_document": 0.41227498658829265
+          }
+        ],
+        "transition": [
+          {
+            "rgb_mae": 1.553114382425944,
+            "psnr": 32.881407166224626,
+            "temporal_delta_residual": 0.259703490347268,
+            "ssim": 0.972480771507133,
+            "edge_ratio": 0.9899578790294662,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.5056560675303141,
+            "psnr": 33.28460359589422,
+            "temporal_delta_residual": 0.23653386273108482,
+            "ssim": 0.9742076655154136,
+            "edge_ratio": 0.9837782513984313,
+            "difference_from_document": 0.2077993946770827
+          },
+          {
+            "rgb_mae": 1.5716780742009482,
+            "psnr": 32.79648890393196,
+            "temporal_delta_residual": 0.25770090197486584,
+            "ssim": 0.9721407165251641,
+            "edge_ratio": 0.9798543618347132,
+            "difference_from_document": 0.14982802122831346
+          },
+          {
+            "rgb_mae": 1.5459171891212464,
+            "psnr": 33.07385028590417,
+            "temporal_delta_residual": 0.23423985576312892,
+            "ssim": 0.9737785550601158,
+            "edge_ratio": 0.9735152536302785,
+            "difference_from_document": 0.35145704944928485
+          }
+        ],
+        "post_still": [
+          {
+            "rgb_mae": 1.5743073731660844,
+            "psnr": 32.61176172013673,
+            "temporal_delta_residual": 1.6644133111753944e-07,
+            "ssim": 0.971665297707136,
+            "edge_ratio": 0.9994562425010003,
+            "difference_from_document": 0.0
+          },
+          {
+            "rgb_mae": 1.5556356877088546,
+            "psnr": 32.70416190866034,
+            "temporal_delta_residual": 3.6275673664931674e-07,
+            "ssim": 0.9722863657020913,
+            "edge_ratio": 0.9963025440956532,
+            "difference_from_document": 0.0984481206163764
+          },
+          {
+            "rgb_mae": 1.5832208395004272,
+            "psnr": 32.61342741146524,
+            "temporal_delta_residual": 4.267726438911268e-09,
+            "ssim": 0.97148218618883,
+            "edge_ratio": 0.986996876712191,
+            "difference_from_document": 0.14078819788992405
+          },
+          {
+            "rgb_mae": 1.5734812021255493,
+            "psnr": 32.68277363070984,
+            "temporal_delta_residual": 1.2803178606191068e-08,
+            "ssim": 0.9720995728132567,
+            "edge_ratio": 0.9825000221675835,
+            "difference_from_document": 0.26245287209749224
+          }
+        ]
+      },
+      "peak_difference_frame": 368,
+      "peak_crop": [
+        0,
+        224,
+        320,
+        448
+      ]
+    }
+  },
+  "performance": {},
+  "ssim_stride": 8
+}
