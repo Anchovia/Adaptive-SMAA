@@ -4014,6 +4014,7 @@ class BenchItemRecordSMAACameraMotion : public AutoBenchToolWorkItem
     const bool          m_candidateEdgeSourceMatrix;
     const bool          m_candidateEdgeSourceReverseOrder;
     const bool          m_singleModeOnly;
+    const bool          m_recoveredSourceCapture;
     const CMAA2Sample::AAType m_singleModeAAType;
     const string        m_singleModeID;
     const string        m_singleModeDirectory;
@@ -4734,6 +4735,7 @@ public:
         m_candidateEdgeSourceMatrix( candidateEdgeSourceMatrix ),
         m_candidateEdgeSourceReverseOrder( candidateEdgeSourceReverseOrder ),
         m_singleModeOnly( singleModeOnly ),
+        m_recoveredSourceCapture(singleModeOnly && singleModeID.find("Candidate-")!=string::npos),
         m_singleModeAAType( singleModeAAType ),
         m_singleModeID( singleModeID ),
         m_singleModeDirectory( singleModeDirectory ),
@@ -4771,7 +4773,7 @@ public:
             parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( ) ),
         m_savedForcedCandidateCountEnabled( parent.GetSMAAForcedCandidateCountEnabled( ) ),
         m_savedForcedCandidateCount( parent.GetSMAAForcedCandidateCount( ) ),
-        m_profilePreRollFrameCount( (standardSemanticsFactorialMatrix || feedbackTopologyMatrix)?
+        m_profilePreRollFrameCount( (standardSemanticsFactorialMatrix || feedbackTopologyMatrix || m_recoveredSourceCapture)?
             vaMath::Max( 0, firstProfileFrame ) : 0 ),
         m_modeCount( singleModeOnly? 1 : (referenceOnly? 1 :
             (feedbackTopologyMatrix? c_feedbackTopologyModeCount :
@@ -4867,7 +4869,9 @@ protected:
                 && m_captureFrameCount == profileFrameCount;
             const char * captureTitle =
                 "SMAA deterministic camera-motion Original five-way capture\r\n\r\n";
-            if( m_singleModeOnly )
+            if(m_recoveredSourceCapture)
+                captureTitle = "SMAA recovered-source controlled camera-motion capture\r\n\r\n";
+            else if( m_singleModeOnly )
                 captureTitle = "SMAA deterministic camera-motion single-mode visualization capture\r\n\r\n";
             else if( m_referenceOnly )
                 captureTitle = "SMAA deterministic camera-motion supersample spatial-reference capture\r\n\r\n";
@@ -5013,7 +5017,8 @@ protected:
                 }
                 else
                 {
-                    abTool.ReportAddText( m_singleModeOnly?
+                    abTool.ReportAddText( m_recoveredSourceCapture?
+                    "Purpose:         recovered-source 2x2 quality gate, Original spatial, camera-only R, no jitter, expansion None; independent candidate/kernel profile named below\r\n\r\n" : (m_singleModeOnly?
                     "Purpose:         rendered path inspection and constant-frame-rate playback generation; not a quality comparison\r\n\r\n" :
                     (m_candidateRemovalFullTimelineMatrix?
                     "Comparison:      shared O-1X control; O-T2X versus integrated O-ET2X removal 0.50/0.70/0.75; O-T2X-R versus integrated O-ET2X-R removal 0.50/0.70/0.75\r\n"
@@ -5050,7 +5055,7 @@ protected:
                     "Purpose:         measure temporal retention before current-edge dilation; no dilation is enabled\r\n\r\n" :
                 (m_includeAdaptive?
                     "Comparison:      O/A-1X controls plus final Original/Adaptive, Standard/Edge-selective, reprojection Off/On eight cases\r\n\r\n" :
-                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n"))))))))) );
+                    "Comparison:      O-1X plus Standard/Edge-selective T2X with reprojection Off/On\r\n\r\n"))))))))) ) );
                 }
                 if( m_armDualFilterMatrix )
                 {

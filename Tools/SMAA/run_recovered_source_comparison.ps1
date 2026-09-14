@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory=$true)][ValidateSet('Boundary','Quality','Benchmark')][string]$Mode,
+    [Parameter(Mandatory=$true)][ValidateSet('Boundary','Quality','Masks','Benchmark')][string]$Mode,
     [ValidateSet('bistro','minecraft')][string[]]$Scenes=@('bistro','minecraft'),
     [ValidateRange(1,480)][int]$QualityFrames=480,
     [string]$Manifest='tmp/source-comparison-runs.json'
@@ -34,6 +34,13 @@ elseif($Mode -eq 'Quality') {
         Invoke-ComparisonRun "$scene-spatial-control" @('-smaaCameraMotionSingleModeCapture',"`"$scene flythrough-wide-yaw-360 O-1X 0 $QualityFrames 60`"") $true
         foreach($profile in 0..3) {
             Invoke-ComparisonRun "$scene-profile-$profile" @('-smaaRecoveredSourceProfile',"$profile",'-smaaRecoveredSourceCapture',"`"$scene flythrough-wide-yaw-360 O-ET2X-R 0 $QualityFrames 60`"") $true
+        }
+    }
+}
+elseif($Mode -eq 'Masks') {
+    foreach($scene in $Scenes) {
+        foreach($profile in 0..1) {
+            Invoke-ComparisonRun "$scene-mask-$profile" @('-smaaRecoveredSourceProfile',"$profile",'-smaaTemporalDebugView','2','-smaaRecoveredSourceCapture',"`"$scene flythrough-wide-yaw-360 O-ET2X-R 0 $QualityFrames 60`"") $true
         }
     }
 }

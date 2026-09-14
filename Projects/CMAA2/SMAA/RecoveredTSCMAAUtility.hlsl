@@ -140,8 +140,8 @@ float3 BicubicTextureSample(Texture2D<float4> Texture, SamplerState Sampler, flo
     float2 P = floor(pixel) - float2(0.5f, 0.5f);
     P = P / float2(WIDTH, HEIGHT);
 
-    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 9-tap bilinear fetching) 
-    // 4-tap is possible but only for B-spline filter, whose quality is too low for TAA history resampling (more blur than single bilinear) 
+    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 9-tap bilinear fetching)
+    // 4-tap is possible but only for B-spline filter, whose quality is too low for TAA history resampling (more blur than single bilinear)
     float2 t = Frac;
     float2 t2 = t*t;
     float2 t3 = t2*t;
@@ -226,7 +226,7 @@ float3 ClipColor(float3 historyColor, float3 currentColor, Texture2D texIn, floa
     currentColor = YCoCg2RGB(currentColor);
 
     newHistoryColor = clamp(historyColor, minimum, maximum);
-    
+
 
     return newHistoryColor;
 }
