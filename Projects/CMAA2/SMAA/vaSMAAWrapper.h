@@ -415,6 +415,8 @@ namespace VertexAsylum
         int                         m_temporalFrameIndex                = 0;
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
+        bool                        m_recoveredSourceCandidates = false;
+        bool                        m_recoveredSourceKernel = false;
         bool                        m_candidateEdgeSourceOverrideEnabled = false;
         CandidateEdgeSource         m_candidateEdgeSourceOverride       = CandidateEdgeSource::SMAAFirstPassEdges;
         bool                        m_candidatePolicyOverrideEnabled    = false;
@@ -510,6 +512,18 @@ namespace VertexAsylum
             return GetTemporalReprojectionEnabled( )
                 && m_objectMotionReprojection == ObjectMotionReprojection::RigidTransforms;
         }
+        // Independent recovered-source ablations. Defaults preserve all eight research modes.
+        void SetRecoveredSourceProfile( bool candidates, bool kernel )
+        {
+            if( m_recoveredSourceCandidates != candidates || m_recoveredSourceKernel != kernel )
+            {
+                m_recoveredSourceCandidates = candidates;
+                m_recoveredSourceKernel = kernel;
+                ResetTemporalHistory( );
+            }
+        }
+        bool GetRecoveredSourceCandidates( ) const { return m_recoveredSourceCandidates; }
+        bool GetRecoveredSourceKernel( ) const { return m_recoveredSourceKernel; }
         bool                        GetEdgeSelectiveTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::EdgeSelective; }
         bool                        GetDocumentFullScreenTemporalEnabled( ) const { return m_temporalSettings.Coverage == TemporalCoverage::FullScreenDocument; }
         bool                        GetTemporalJitterEnabled( ) const    { return m_temporalSettings.Jitter == JitterPolicy::SMAAT2X; }

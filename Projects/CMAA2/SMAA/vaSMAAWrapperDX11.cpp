@@ -365,6 +365,7 @@ namespace VertexAsylum
         ID3D11BlendState *          m_Blend                         = nullptr;
         ID3D11BlendState *          m_NoBlending                    = nullptr;
 
+        ID3D11SamplerState *        m_RecoveredBorderSampler = nullptr;
         ID3D11SamplerState *        m_LinearSampler                 = nullptr;
         ID3D11SamplerState *        m_PointSampler                  = nullptr;
 
@@ -384,6 +385,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_viewColorIgnoreSRGB1          = nullptr;
 
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
+        shared_ptr<vaTexture>       m_recoveredHistoryUNORM[2];
         shared_ptr<vaTexture>       m_temporalSpatialCurrent        = nullptr;
         shared_ptr<vaTexture>       m_temporalSpatialCurrentIgnoreSRGB = nullptr;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
@@ -422,6 +424,8 @@ namespace VertexAsylum
         vaAutoRMI<vaComputeShader>  m_tscmaaComputeDispatchArgsCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaDeJitterSpatialCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaInitializeDualOutputCS;
+        vaAutoRMI<vaComputeShader>  m_recoveredExtractCS;
+        vaAutoRMI<vaComputeShader>  m_recoveredResolveCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidateMaskCS;
         vaAutoRMI<vaComputeShader>  m_tscmaaResolveCandidatesDualOutputCS;
@@ -598,6 +602,7 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaArmDualUpsampleAndCompactCS( params.RenderDevice ),
     m_tscmaaComputeDispatchArgsCS( params.RenderDevice ),
     m_tscmaaDeJitterSpatialCS( params.RenderDevice ), m_tscmaaInitializeDualOutputCS( params.RenderDevice ),
+    m_recoveredExtractCS( params.RenderDevice ), m_recoveredResolveCS( params.RenderDevice ),
     m_tscmaaResolveCandidatesCS( params.RenderDevice ), m_tscmaaResolveCandidateMaskCS( params.RenderDevice ),
     m_tscmaaResolveCandidatesDualOutputCS( params.RenderDevice ),
     m_tscmaaResolveFullScreenCS( params.RenderDevice ), m_tscmaaResolveFullScreenDualOutputCS( params.RenderDevice ),
@@ -630,6 +635,8 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     m_tscmaaComputeDispatchArgsCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAComputeDispatchArgsCS", tscmaaShaderMacros, true );
     m_tscmaaDeJitterSpatialCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAADeJitterSpatialCS", tscmaaShaderMacros, true );
     m_tscmaaInitializeDualOutputCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAInitializeDualOutputCS", tscmaaShaderMacros, true );
+    m_recoveredExtractCS->CreateShaderFromFile( L"SMAA/RecoveredTSCMAA.hlsl", "cs_5_0", "RecoveredExtractCS", tscmaaShaderMacros, true );
+    m_recoveredResolveCS->CreateShaderFromFile( L"SMAA/RecoveredTSCMAA.hlsl", "cs_5_0", "RecoveredResolveCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidateMaskCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidateMaskCS", tscmaaShaderMacros, true );
     m_tscmaaResolveCandidatesDualOutputCS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "cs_5_0", "TSCMAAResolveCandidatesDualOutputCS", tscmaaShaderMacros, true );
@@ -685,6 +692,9 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
         desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         desc.AddressU = desc.AddressV = desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
         device->CreateSamplerState( &desc, &m_LinearSampler );
+        desc.AddressU = desc.AddressV = desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+        for( int i = 0; i < 4; i++ ) desc.BorderColor[i] = 0.0f;
+        device->CreateSamplerState( &desc, &m_RecoveredBorderSampler );
      }
 }
 
@@ -699,6 +709,7 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
     SAFE_RELEASE( m_Blend                      );
     SAFE_RELEASE( m_NoBlending                 );
     SAFE_RELEASE( m_PointSampler    );
+    SAFE_RELEASE( m_RecoveredBorderSampler );
     SAFE_RELEASE( m_LinearSampler   );
 
 }
@@ -714,6 +725,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_viewColorIgnoreSRGB1 = nullptr;
     m_temporalHistory[0] = nullptr;
     m_temporalHistory[1] = nullptr;
+    m_recoveredHistoryUNORM[0] = m_recoveredHistoryUNORM[1] = nullptr;
     m_temporalSpatialCurrent = nullptr;
     m_temporalSpatialCurrentIgnoreSRGB = nullptr;
     m_temporalVelocity = nullptr;
@@ -792,6 +804,7 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     {
         m_temporalHistory[0] = nullptr;
         m_temporalHistory[1] = nullptr;
+        m_recoveredHistoryUNORM[0] = m_recoveredHistoryUNORM[1] = nullptr;
         m_temporalSpatialCurrent = nullptr;
         m_temporalSpatialCurrentIgnoreSRGB = nullptr;
     }
@@ -886,6 +899,10 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 m_temporalHistory[i] = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, historyUAVFormat,
                     vaTextureFlags::None, inputColor->GetContentsType() );
+                m_recoveredHistoryUNORM[i] = vaTexture::CreateView( m_temporalHistory[i],
+                    vaResourceBindSupportFlags::ShaderResource,
+                    vaResourceFormatHelpers::StripSRGB( inputColor->GetSRVFormat( ) ),
+                    vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaResourceFormat::Automatic );
             }
             if( smaaProjection || documentTemporal )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
@@ -1021,6 +1038,23 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     {
         VA_LOG_ERROR( "Contrast-tier candidate policies require integrated first-pass source and forced-count Off" );
         return vaDrawResultFlags::UnspecifiedError;
+    }
+    if( GetEdgeSelectiveTemporalEnabled( ) && (GetRecoveredSourceCandidates( ) || GetRecoveredSourceKernel( )) )
+    {
+        // First source comparison deliberately excludes interacting experimental features.
+        if( GetEffectiveCandidateExpansion( ) != CandidateExpansion::None || GetTemporalJitterEnabled( )
+            || GetTemporalSettings( ).Feedback != HistoryFeedback::ResolvedOutput
+            || GetEffectiveCandidatePolicy( ) != CandidatePolicy::IntelFamilyNonDominant
+            || GetTemporalDirectMaskedResolveEnabled( ) || GetDeJitteredNonCandidateBaseEnabled( )
+            || GetEffectiveHistorySampler( ) != HistorySampler::CatmullRom5Tap
+            || GetEffectiveHistoryClipping( ) != HistoryClipping::YCoCgVariance
+            || GetClippingDebugViewsEnabled( ) || GetObjectMotionReprojection( ) != ObjectMotionReprojection::Off )
+        {
+            VA_LOG_ERROR( "Recovered-source profile requires the unjittered document ET2X controls, expansion None, camera-only, and no kernel overrides" );
+            return vaDrawResultFlags::UnspecifiedError;
+        }
+        if( !m_recoveredExtractCS->IsCreated( ) || !m_recoveredResolveCS->IsCreated( ) )
+            return vaDrawResultFlags::ShadersStillCompiling;
     }
     vaRenderDeviceContext::RenderOutputsState rtState = deviceContext.GetOutputs( );
 
@@ -1305,7 +1339,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 assert( optionalInLuma != nullptr );
 
                 ID3D11RenderTargetView * currentSpatialRTV = m_temporalSpatialCurrent->SafeCast<vaTextureDX11*>( )->GetRTV( );
-                const bool integratedCandidatesPrepared =
+                const bool integratedCandidatesPrepared = !GetRecoveredSourceCandidates( )
+                    &&
                     GetEffectiveCandidateEdgeSource( ) == CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
                     && GetEffectiveCandidatePolicy( ) != CandidatePolicy::ExperimentalLocalMeanMax3x3
                     && !GetForcedCandidateCountEnabled( );
@@ -1704,7 +1739,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         GetTemporalSettings( ).Feedback == HistoryFeedback::SpatialFrame;
     const bool directMaskedResolve = integratedCandidatesPrepared
         && GetDirectMaskedCandidateResolveActive( );
-    const bool dualOutput = !spatialFrameFeedback && !directMaskedResolve
+    const bool dualOutput = !GetRecoveredSourceKernel( ) && !spatialFrameFeedback && !directMaskedResolve
         && GetTemporalDualOutputOptimizationEnabled( )
         && !GetDeJitteredNonCandidateBaseEnabled( )
         && !GetClippingDebugViewsEnabled( ) && destinationDX11->GetUAV( ) != nullptr;
@@ -1778,8 +1813,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     const bool armDualFilter = !GetForcedCandidateCountEnabled( )
         && GetEffectiveCandidateExpansion( ) == CandidateExpansion::ArmDualFilter;
     const bool expandedCandidates = dilate3x3 || filteredQuarter || armDualFilter;
-    ID3D11ComputeShader * extractCandidatesShader = integratedCandidatesPrepared? nullptr : (expandedCandidates?
-        m_tscmaaExtractRawCandidatesCS : m_tscmaaExtractCandidatesCS)->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
+    ID3D11ComputeShader * extractCandidatesShader = integratedCandidatesPrepared? nullptr : (GetRecoveredSourceCandidates( )?
+        m_recoveredExtractCS : (expandedCandidates? m_tscmaaExtractRawCandidatesCS : m_tscmaaExtractCandidatesCS))->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
     ID3D11ComputeShader * dilateCandidatesShader = dilate3x3?
         m_tscmaaDilateCandidates3x3CS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
     ID3D11ComputeShader * downsampleCandidatesShader = filteredQuarter?
@@ -1794,7 +1829,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         m_tscmaaArmDualUpsampleAndCompactCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
     ID3D11ComputeShader * computeDispatchArgsShader = m_tscmaaComputeDispatchArgsCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
     ID3D11ComputeShader * resolveCandidatesShader =
-        (dualOutput? m_tscmaaResolveCandidatesDualOutputCS : m_tscmaaResolveCandidatesCS)
+        (GetRecoveredSourceKernel( )? m_recoveredResolveCS :
+            (dualOutput? m_tscmaaResolveCandidatesDualOutputCS : m_tscmaaResolveCandidatesCS))
             ->SafeCast<vaComputeShaderDX11*>( )->GetShader( );
     ID3D11ComputeShader * resolveCandidateMaskShader = directMaskedResolve?
         m_tscmaaResolveCandidateMaskCS->SafeCast<vaComputeShaderDX11*>( )->GetShader( ) : nullptr;
@@ -1840,13 +1876,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         || m_tscmaaArmDualQuarterMask->SafeCast<vaTextureDX11*>( )->GetSRV( ) == nullptr) )
         return vaDrawResultFlags::UnspecifiedError;
 
+    ID3D11ShaderResourceView * recoveredInputSRV = m_viewColorIgnoreSRGB0->SafeCast<vaTextureDX11*>( )->GetSRV( );
+    ID3D11ShaderResourceView * recoveredCurrentSRV = m_temporalSpatialCurrentIgnoreSRGB->SafeCast<vaTextureDX11*>( )->GetSRV( );
+    ID3D11ShaderResourceView * recoveredHistorySRV = m_recoveredHistoryUNORM[1-GetTemporalFrameIndex( )]->SafeCast<vaTextureDX11*>( )->GetSRV( );
     ID3D11ShaderResourceView * SRVs[9] =
     {
         m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ),
         *m_smaa->getEdgesRenderTarget( ),
         nullptr,
-        currentSpatialDX11->GetSRV( ),
-        previousHistoryDX11->GetSRV( ),
+        GetRecoveredSourceKernel( )? recoveredCurrentSRV : currentSpatialDX11->GetSRV( ),
+        GetRecoveredSourceKernel( )? recoveredHistorySRV : previousHistoryDX11->GetSRV( ),
         luma->SafeCast<vaTextureDX11*>( )->GetSRV( ),
         nullptr,
         nullptr,
@@ -1873,7 +1912,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
         dx11Context->ClearUnorderedAccessViewFloat( UAVs[6], maskZeroes );
     }
 
-    ID3D11SamplerState * samplers[2] = { m_LinearSampler, m_PointSampler };
+    ID3D11SamplerState * samplers[2] = { GetRecoveredSourceKernel( )? m_RecoveredBorderSampler : m_LinearSampler, m_PointSampler };
     dx11Context->CSSetSamplers( 0, 2, samplers );
 
     ID3D11Buffer * reprojectionConstants = m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>( )->GetBuffer( );
@@ -1883,10 +1922,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
 
     if( !integratedCandidatesPrepared )
     {
+        dx11Context->CSSetShaderResources( 17, 1, &recoveredInputSRV );
         VA_SCOPE_CPUGPU_TIMER( TSCMAAExtractCandidates, deviceContext );
         dx11Context->CSSetShader( extractCandidatesShader, nullptr, 0 );
         dx11Context->Dispatch( (currentSpatial->GetSizeX( ) + 7) / 8, (currentSpatial->GetSizeY( ) + 7) / 8, 1 );
     }
+
+    ID3D11ShaderResourceView * nullRecoveredSRV = nullptr;
+    dx11Context->CSSetShaderResources( 17, 1, &nullRecoveredSRV );
 
     if( dilate3x3 )
     {
@@ -3053,7 +3096,7 @@ void vaSMAAWrapperDX11::QueueAndConsumeTSCMAAStatisticsReadback( ID3D11DeviceCon
                 else if( m_temporalCandidateStatistics.Source == CandidateEdgeSource::SMAAFirstPassIntegratedCandidates )
                     sourceName = "SMAAFirstPassIntegratedCandidates";
                 VA_LOG( "TSCMAA candidate counters [source=%s, policy=%s, expansion=%s%s]: base=%u (%.3f%% pixels), candidates=%u (%.3f%% pixels, %.3f%% of base), indirect=%u, groups=%u",
-                    sourceName, policyName, expansionName,
+                    GetRecoveredSourceCandidates()?"RecoveredPreAARGB":sourceName, GetRecoveredSourceCandidates()?"RecoveredMeanResidual":policyName, expansionName,
                     GetForcedCandidateCountEnabled( )? ", forced-count diagnostics" : "",
                     m_temporalCandidateStatistics.BaseEdgeCount,
                     pixelCount > 0? 100.0f * (float)m_temporalCandidateStatistics.BaseEdgeCount / (float)pixelCount : 0.0f,
