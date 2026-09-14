@@ -3,7 +3,7 @@
 Separate/integrated equality isolates execution cost. Standard/source comparison
 includes the deliberate jitter, kernel, weight and feedback topology differences.
 """
-import argparse,csv,json,re
+import argparse,csv,hashlib,json,re
 from pathlib import Path
 import numpy as np
 from PIL import Image,ImageDraw
@@ -52,14 +52,25 @@ def quality(runs,bench,out,scene):
     old,refID=HISTORIC[scene]
     reference=frames(bench/refID/'SS_Reference');control=frames(bench/old/'O_1X');prior=frames(bench/PRIOR_SOURCE[scene])
     rows=[[],[]];prev=[None,None];prevRef=None
-    mismatches={'spatial_control':0,'separate_integrated':0,'prior_source_integrated':0}
+    mismatches={'spatial_control':0,'separate_integrated':0,'prior_source_integrated':0};mismatch_frames=[]
     worst=(-1,0)
     for n in range(480):
         raw=[rgb(paths[n]) for paths in seq];ref=rgb(reference[n])
         assert all(x.shape==ref.shape==(1017,1920,3) for x in raw)
-        mismatches['spatial_control']+=digest(raw[0])!=digest(rgb(control[n]))
-        mismatches['separate_integrated']+=digest(raw[2])!=digest(raw[3])
-        mismatches['prior_source_integrated']+=digest(raw[3])!=digest(rgb(prior[n]))
+        old_control=rgb(control[n]);old_source=rgb(prior[n])
+        checks={'spatial_control':digest(raw[0])!=digest(old_control),
+                'separate_integrated':digest(raw[2])!=digest(raw[3]),
+                'prior_source_integrated':digest(raw[3])!=digest(old_source)}
+        for key,failed in checks.items():mismatches[key]+=int(failed)
+        if any(checks.values()):
+            paths=[seq[2][n],seq[3][n],prior[n]]
+            mismatch_frames.append({'frame':n,'checks':checks,'file_sha256':[hashlib.sha256(p.read_bytes()).hexdigest() for p in paths],
+                'decoded_sha256':[digest(v) for v in (raw[2],raw[3],old_source)],
+                'reread_decoded_sha256':[digest(rgb(p)) for p in paths],
+                'differing_values':int(np.count_nonzero(raw[2]!=raw[3]))})
+            (out/f'{scene}-decode-failure.json').write_text(json.dumps(mismatch_frames,indent=2))
+            np.save(out/f'{scene}-frame-{n}-separate.npy',raw[2]);np.save(out/f'{scene}-frame-{n}-integrated.npy',raw[3])
+            print(f'{scene}: HASH MISMATCH {mismatch_frames[-1]}',flush=True)
         r=ref.astype(np.float32)
         values=[raw[1].astype(np.float32),raw[3].astype(np.float32)]
         for i,v in enumerate(values):
