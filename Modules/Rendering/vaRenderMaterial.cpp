@@ -1001,10 +1001,11 @@ void vaRenderMaterialManager::RenderMaterialsTrackeeBeforeRemovedCallback( int r
     //    assert( m_renderMaterialsMap.size() == 0 ); // removal not implemented!
 }
 
-shared_ptr<vaRenderMaterial> vaRenderMaterialManager::CreateRenderMaterial( const vaGUID & uid )
+shared_ptr<vaRenderMaterial> vaRenderMaterialManager::CreateRenderMaterial( const vaGUID & uid, bool trackUID )
 {
     auto ret = VA_RENDERING_MODULE_CREATE_SHARED( vaRenderMaterial, vaRenderMaterialConstructorParams( GetRenderDevice(), *this, uid ) );
-    ret->UIDObject_Track(); // needed to work with rendering system - no harm in doing it here
+    if( trackUID )
+        ret->UIDObject_Track();
     return ret;
 }
 

@@ -20,6 +20,7 @@
 #include "CMAA2Sample.h"
 
 #include "Core/System/vaFileTools.h"
+#include "Core/System/vaMemoryStream.h"
 #include "Core/Misc/vaProfiler.h"
 #include "Rendering/vaShader.h"
 #include "Rendering/DirectX/vaRenderDeviceDX11.h"
@@ -9445,6 +9446,65 @@ protected:
     }
 };
 
+class BenchItemValidateMaterialPublication : public AutoBenchToolWorkItem
+{
+    bool m_done = false;
+public:
+    BenchItemValidateMaterialPublication(CMAA2Sample & parent) : AutoBenchToolWorkItem(parent) { }
+protected:
+    virtual void Tick(AutoBenchTool & tool, float) override
+    {
+        const vaGUID uid = vaCore::GUIDCreate();
+        auto & manager = m_parent.GetRenderDevice().GetMaterialManager();
+        vaMemoryStream payload;
+        auto source = manager.CreateRenderMaterial(uid, false);
+        source->InitializeDefaultMaterial();
+        bool passed = payload.WriteValue(uid) && source->SaveAPACK(payload);
+        source.reset();
+        struct ObservedStream : vaMemoryStream
+        {
+            vaGUID ID; int Reads = 0, PrematureVisibility = 0;
+            ObservedStream(vaMemoryStream & data, const vaGUID & id) : vaMemoryStream(data.GetBuffer(),data.GetLength()), ID(id) { }
+            virtual bool Read(void * data, int64 count, int64 * actual = nullptr) override
+            {
+                Reads++;
+                if(vaUIDObjectRegistrar::Find<vaRenderMaterial>(ID) != nullptr) PrematureVisibility++;
+                return vaMemoryStream::Read(data,count,actual);
+            }
+        } observed(payload,uid);
+        auto & packs = m_parent.GetRenderDevice().GetAssetPackManager();
+        auto pack = packs.CreatePack("material_publication_probe");
+        shared_ptr<vaAssetRenderMaterial> loaded(vaAssetRenderMaterial::CreateAndLoadAPACK(*pack,"probe",observed));
+        passed = passed && loaded != nullptr && observed.Reads > 1 && observed.PrematureVisibility == 0;
+        auto material = loaded == nullptr ? nullptr : loaded->GetRenderMaterial();
+        const bool hiddenAfterLoad = vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid) == nullptr;
+        passed = passed && hiddenAfterLoad;
+        loaded.reset();
+        shared_ptr<vaAssetRenderMaterial> published;
+        if(material != nullptr) published = pack->Add(material,"probe",true);
+        const bool visibleAfterPublish = material != nullptr && vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid) == material.get();
+        passed = passed && visibleAfterPublish;
+        published.reset(); material.reset(); packs.UnloadPack(pack);
+        const bool removed = vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid) == nullptr;
+        auto immediate = manager.CreateRenderMaterial();
+        const bool defaultTracked = immediate->UIDObject_IsTracked();
+        passed = passed && removed && defaultTracked;
+        tool.ReportStart();
+        tool.ReportAddText("Material publication validation: production APACK loader, registrar observation at every stream read, pack publication and ordinary factory control.\r\n");
+        tool.ReportAddRowValues({"Stream reads",std::to_string(observed.Reads)});
+        tool.ReportAddRowValues({"Premature UID visibility",std::to_string(observed.PrematureVisibility)});
+        tool.ReportAddRowValues({"Hidden after load",hiddenAfterLoad?"PASS":"FAIL"});
+        tool.ReportAddRowValues({"Visible after pack publication",visibleAfterPublish?"PASS":"FAIL"});
+        tool.ReportAddRowValues({"Removed after unload",removed?"PASS":"FAIL"});
+        tool.ReportAddRowValues({"Ordinary factory immediately tracked",defaultTracked?"PASS":"FAIL"});
+        tool.ReportAddText(passed?"\r\nAggregate: PASS\r\n":"\r\nAggregate: FAIL\r\n");
+        tool.ReportFinish(); m_done = true;
+    }
+    virtual bool IsDone(AutoBenchTool &) const override { return m_done; }
+    virtual void OnRender(AutoBenchTool &) override { }
+    virtual float GetProgress() const override { return m_done?1.0f:0.0f; }
+};
+
 void CMAA2Sample::ProcessCommandLineCaptureRequest()
 {
     if (m_commandLineCaptureProcessed)
@@ -9757,6 +9817,13 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalFeedback>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA temporal output/history feedback GPU validation");
+            return;
+        }
+
+        if (_wcsicmp(parameter.first.c_str(), L"smaaMaterialPublicationTest") == 0)
+        {
+            m_autoBench->AddTask(std::make_shared<BenchItemValidateMaterialPublication>(*this));
+            m_quitAfterCommandLineCapture = true;
             return;
         }
 
