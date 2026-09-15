@@ -6214,7 +6214,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_armThresholdAblation;
     const bool m_candidateExecutionAblation;
     const bool m_feedbackTopologyAblation;
-    const bool m_recoveredMatrix, m_integratedRecoveredMatrix, m_savedRecoveredIntegrated;
+    const bool m_recoveredMatrix, m_integratedRecoveredMatrix, m_candidateSelectionMatrix, m_savedRecoveredIntegrated;
     const int m_savedRecoveredProfile;
     const bool m_dualOutputOptimizationEnabled;
     const bool m_directMaskedResolveEnabled;
@@ -6286,6 +6286,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if(m_candidateSelectionMatrix) { const char * ids[]={"O-T2X-R","O-ET2X-R-DocCandidate-DocKernel","O-ET2X-R-SourceCandidate-DocKernel-Integrated"}; return ids[mode]; }
         if(m_integratedRecoveredMatrix) { const char * ids[]={"O-T2X-R","O-ET2X-R-SourceCandidate-SourceKernel-Separate","O-ET2X-R-SourceCandidate-SourceKernel-Integrated"}; return ids[mode]; }
         if(m_recoveredMatrix) return RecoveredProfileID(mode);
         if( m_feedbackTopologyAblation )
@@ -6609,6 +6610,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsIntegratedCandidateMode( int mode ) const
     {
+        if(m_candidateSelectionMatrix) return mode!=0;
         if(m_integratedRecoveredMatrix) return mode==2;
         if(m_recoveredMatrix) return (mode&1)==0;
         if( m_feedbackTopologyAblation )
@@ -6670,8 +6672,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             if(metric==ApplicationFrameWall || metric==WholeFrame || metric==SMAATotal || metric==GenerateCameraVelocity) return true;
             if(mode==0) return metric==StandardSpatialT2X || metric==StandardTemporalResolve;
             if(metric==SpatialSMAA1X || metric==CopySpatialToHistory || metric==ComputeDispatchArgs || metric==ResolveCandidates || metric==OutputCopy) return true;
-            if(metric==ClearIntegratedCandidateBuffers) return mode==2;
-            if(metric==PrepareCandidates || metric==ExtractCandidates) return mode==1;
+            if(metric==ClearIntegratedCandidateBuffers) return m_candidateSelectionMatrix || mode==2;
+            if(metric==PrepareCandidates || metric==ExtractCandidates) return !m_candidateSelectionMatrix && mode==1;
             return false;
         }
         if(m_recoveredMatrix) {
@@ -7093,7 +7095,8 @@ public:
         bool matchedKernelAblation = false,
         bool armThresholdAblation = false,
         bool candidateExecutionAblation = false,
-        bool feedbackTopologyAblation = false, bool recoveredMatrix = false, bool integratedRecoveredMatrix = false )
+        bool feedbackTopologyAblation = false, bool recoveredMatrix = false, bool integratedRecoveredMatrix = false,
+        bool candidateSelectionMatrix = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -7114,6 +7117,7 @@ public:
         m_candidateExecutionAblation( candidateExecutionAblation ),
         m_feedbackTopologyAblation( feedbackTopologyAblation ),
         m_recoveredMatrix(recoveredMatrix), m_integratedRecoveredMatrix(integratedRecoveredMatrix),
+        m_candidateSelectionMatrix(candidateSelectionMatrix),
         m_savedRecoveredIntegrated(parent.GetSMAARecoveredSourceIntegratedCandidates()), m_savedRecoveredProfile(parent.GetSMAARecoveredSourceProfile()),
         m_dualOutputOptimizationEnabled( parent.GetSMAATemporalDualOutputOptimizationEnabled( ) ),
         m_directMaskedResolveEnabled( parent.GetSMAATemporalDirectMaskedResolveEnabled( ) ),
@@ -7197,7 +7201,10 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if(m_integratedRecoveredMatrix) {
+            if(m_candidateSelectionMatrix) {
+                abTool.ReportAddText("Candidate-selection paired gate: O-T2X-R control versus DocCandidate/DocKernel and SourceCandidate/DocKernel. Both selective modes use first-edge-pass integrated candidates, CompactIndirect, expansion None, removal 0.5, no jitter, camera/depth reprojection, document sampler/clipping, weight 0.8, resolved-output feedback and two copies. Only candidate selection changes between selective modes. Standard retains paired sample pattern and spatial-frame history.\r\n");
+            }
+            else if(m_integratedRecoveredMatrix) {
                 abTool.ReportAddText("Original Standard SMAA T2X camera-R baseline versus recovered-source SMAA adaptation: separate and first-edge-pass integrated candidates. Standard retains official paired jitter and spatial-frame history. Source modes share recovered no-jitter kernel and resolved-output history; only candidate execution differs.\r\n");
             }
             else if(m_recoveredMatrix) {
@@ -7525,7 +7532,7 @@ protected:
             m_parent.SetSMAATemporalDirectMaskedResolveEnabled( (m_currentMode & 1) != 0 );
         }
         if(m_recoveredMatrix || m_integratedRecoveredMatrix) {
-            m_parent.SetSMAARecoveredSourceProfile(m_integratedRecoveredMatrix?(m_currentMode==0?0:3):m_currentMode);
+            m_parent.SetSMAARecoveredSourceProfile(m_candidateSelectionMatrix?(m_currentMode==2?1:0):(m_integratedRecoveredMatrix?(m_currentMode==0?0:3):m_currentMode));
             m_parent.SetSMAARecoveredSourceIntegratedCandidates(m_integratedRecoveredMatrix && m_currentMode==2);
         }
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
@@ -9753,9 +9760,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
-        if(_wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceSmoke")==0
+        const bool candidateSelectionSmoke = _wcsicmp(parameter.first.c_str(),L"smaaCandidateSelectionPerformanceSmoke")==0;
+        const bool candidateSelectionBenchmark = _wcsicmp(parameter.first.c_str(),L"smaaCandidateSelectionPerformanceBenchmark")==0;
+        if(candidateSelectionSmoke || candidateSelectionBenchmark || _wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceSmoke")==0
             || _wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceBenchmark")==0) {
-            const bool formal=_wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceBenchmark")==0;
+            const bool formal=candidateSelectionBenchmark || _wcsicmp(parameter.first.c_str(),L"smaaIntegratedSourcePerformanceBenchmark")==0;
             wstring sceneToken=L"bistro"; float start=0; int warm=formal?300:60, frames=formal?4800:180, repeats=formal?3:1;
             if(!parameter.second.empty()) {
                 std::wistringstream v(parameter.second);
@@ -9767,7 +9776,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if(!TryParseSMAACameraMotionScene(sceneToken,scene) || (scene!=SceneSelectionType::LumberyardBistro && scene!=SceneSelectionType::MinecraftLostEmpire)) return;
             m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(!formal);
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(*this,scene,start,warm,frames,repeats,
-                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,false,true));
+                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,false,true,
+                candidateSelectionSmoke || candidateSelectionBenchmark));
             m_quitAfterCommandLineCapture=true; return;
         }
         if(_wcsicmp(parameter.first.c_str(),L"smaaRecoveredSourcePerformanceSmoke")==0
