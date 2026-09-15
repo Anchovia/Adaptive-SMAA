@@ -1201,6 +1201,101 @@ const char* CMAA2Sample::GetSMAATemporalStressScenarioName(SMAATemporalStressSce
     }
 }
 
+bool CMAA2Sample::SetSMAATemporalStressTexturedFixtureEnabled( bool enabled )
+{
+    if( m_temporalStressMeshes.size( ) < 2 || m_temporalStressMaterials.size( ) < 2 )
+    {
+        VA_LOG_ERROR( "SMAA temporal textured fixture requires the procedural rotor mesh and its flat material" );
+        return false;
+    }
+
+    auto bindMaterial = []( const shared_ptr<vaRenderMesh> & mesh,
+        const shared_ptr<vaRenderMaterial> & material )
+    {
+        vaRenderMesh::SubPart part = mesh->GetPart( );
+        part.CachedMaterialRef = material;
+        part.MaterialID = material->UIDObject_GetUID( );
+        mesh->SetPart( part );
+    };
+
+    if( !enabled )
+    {
+        bindMaterial( m_temporalStressMeshes[1], m_temporalStressMaterials[1] );
+        m_temporalStressTexturedFixtureEnabled = false;
+        return true;
+    }
+
+    if( m_temporalStressTexturedRotorMaterial == nullptr )
+    {
+        const int textureSize = 32;
+        vector<uint32> texturePixels( textureSize * textureSize );
+        for( int y = 0; y < textureSize; y++ )
+        {
+            for( int x = 0; x < textureSize; x++ )
+            {
+                const bool checker = (((x / 4) ^ (y / 4)) & 1) != 0;
+                const uint32 red = checker? 232u : 38u;
+                const uint32 green = checker? 176u : 92u;
+                const uint32 blue = checker? 52u : 218u;
+                texturePixels[y * textureSize + x] =
+                    red | (green << 8) | (blue << 16) | 0xFF000000u;
+            }
+        }
+        m_temporalStressTexturedRotorTexture = vaTexture::Create2D(
+            GetRenderDevice( ), vaResourceFormat::R8G8B8A8_UNORM_SRGB,
+            textureSize, textureSize, 1, 1, 1,
+            vaResourceBindSupportFlags::ShaderResource,
+            vaResourceAccessFlags::Default,
+            vaResourceFormat::Automatic, vaResourceFormat::Automatic,
+            vaResourceFormat::Automatic, vaResourceFormat::Automatic,
+            vaTextureFlags::None, vaTextureContentsType::GenericColor,
+            texturePixels.data( ), textureSize * sizeof( uint32 ) );
+        if( m_temporalStressTexturedRotorTexture == nullptr )
+        {
+            VA_LOG_ERROR( "SMAA temporal textured fixture could not create the deterministic rotor texture" );
+            return false;
+        }
+        // Material texture inputs resolve their GUID through the global UID
+        // registrar. Procedurally-created textures are not registered by an
+        // asset pack, so register this one before storing its GUID.
+        if( !m_temporalStressTexturedRotorTexture->UIDObject_IsTracked( )
+            && !m_temporalStressTexturedRotorTexture->UIDObject_Track( ) )
+        {
+            VA_LOG_ERROR( "SMAA temporal textured fixture could not register the deterministic rotor texture" );
+            m_temporalStressTexturedRotorTexture = nullptr;
+            return false;
+        }
+
+        shared_ptr<vaRenderMaterial> fixtureMaterial =
+            GetRenderDevice( ).GetMaterialManager( ).CreateRenderMaterial( vaCore::GUIDCreate( ) );
+        fixtureMaterial->InitializeDefaultMaterial( );
+        const int destinationAlbedoIndex = fixtureMaterial->FindInputByName( "Albedo" );
+        const vaRenderMaterial::MaterialInput sourceAlbedoInput(
+            "Albedo", vaRenderMaterial::MaterialInput::InputType::Color4,
+            m_temporalStressTexturedRotorTexture->UIDObject_GetUID( ), 0,
+            vaRenderMaterial::MaterialInput::TextureSamplerType::LinearWrap,
+            vaVector4( 1.0f, 0.32f, 0.06f, 1.0f ) );
+        if( destinationAlbedoIndex < 0
+            || !fixtureMaterial->SetInput( destinationAlbedoIndex, sourceAlbedoInput ) )
+        {
+            VA_LOG_ERROR( "SMAA temporal textured fixture could not bind the deterministic rotor texture" );
+            return false;
+        }
+        vaRenderMaterial::MaterialSettings settings = fixtureMaterial->GetMaterialSettings( );
+        settings.CastShadows = false;
+        settings.ReceiveShadows = false;
+        fixtureMaterial->SetMaterialSettings( settings );
+        m_temporalStressTexturedRotorMaterial = fixtureMaterial;
+    }
+
+    // Only the rotor changes. The dark moving occluder remains unchanged so
+    // its known trail/disocclusion ROI keeps the same interpretation as the
+    // existing flat stress fixture.
+    bindMaterial( m_temporalStressMeshes[1], m_temporalStressTexturedRotorMaterial );
+    m_temporalStressTexturedFixtureEnabled = true;
+    return true;
+}
+
 void CMAA2Sample::SetSMAATemporalStressTestState(
     SMAATemporalStressScenario scenario, float timeSeconds)
 {
@@ -3844,6 +3939,352 @@ protected:
     }
 };
 
+class BenchItemRecordSMAAObjectMotionDisocclusionQuality : public AutoBenchToolWorkItem
+{
+    static const int    c_framePerSecond = 60;
+    static const int    c_modeCount = 9;
+    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
+    const CMAA2Sample::SMAATemporalStressScenario m_scenario;
+    const int           m_captureFrameCount;
+    const int           m_warmupFrameCount;
+    const float         m_absoluteThreshold;
+    const float         m_relativeThreshold;
+    const float         m_savedAbsoluteThreshold;
+    const float         m_savedRelativeThreshold;
+    const vaSMAAWrapper::DisocclusionRejection m_savedDisocclusionRejection;
+    const bool          m_savedTexturedFixtureEnabled;
+    const vaSMAAWrapper::ObjectMotionReprojection m_savedObjectMotionReprojection;
+    const bool          m_savedCandidateReadbackEnabled;
+    const bool          m_savedCandidateEdgeSourceOverrideEnabled;
+    const vaSMAAWrapper::CandidateEdgeSource m_savedCandidateEdgeSource;
+    const bool          m_savedCandidatePolicyOverrideEnabled;
+    const vaSMAAWrapper::CandidatePolicy m_savedCandidatePolicy;
+    const bool          m_savedCandidateExpansionOverrideEnabled;
+    const vaSMAAWrapper::CandidateExpansion m_savedCandidateExpansion;
+    const bool          m_savedNonDominantRemovalOverrideEnabled;
+    const float         m_savedNonDominantRemoval;
+    const bool          m_savedHistorySamplerOverrideEnabled;
+    const vaSMAAWrapper::HistorySampler m_savedHistorySampler;
+    const bool          m_savedHistoryClippingOverrideEnabled;
+    const vaSMAAWrapper::HistoryClipping m_savedHistoryClipping;
+    const bool          m_savedDirectMaskedResolveEnabled;
+    const bool          m_savedDualOutputOptimizationEnabled;
+    const vaSMAAWrapper::TemporalDebugView m_savedTemporalDebugView;
+    const bool          m_savedForcedCandidateCountEnabled;
+    const uint32        m_savedForcedCandidateCount;
+    const bool          m_savedRecoveredIntegratedCandidates;
+    const int           m_savedRecoveredSourceProfile;
+    int                 m_currentMode = 0;
+    int                 m_currentFrame = 0;
+    bool                m_started = false;
+    bool                m_isDone = false;
+    wstring             m_outputDirs[c_modeCount];
+
+    static const char * GetModeID( int mode )
+    {
+        static const char * c_modeIDs[c_modeCount] =
+        {
+            "O-1X",
+            "O-T2X-R / camera-only / depth Off",
+            "O-T2X-R / camera-only / depth On",
+            "O-T2X-R / camera+rigid / depth Off",
+            "O-T2X-R / camera+rigid / depth On",
+            "O-ET2X-R / camera-only / depth Off",
+            "O-ET2X-R / camera-only / depth On",
+            "O-ET2X-R / camera+rigid / depth Off",
+            "O-ET2X-R / camera+rigid / depth On"
+        };
+        return c_modeIDs[mode];
+    }
+
+    static const char * GetModeDirectory( int mode )
+    {
+        static const char * c_modeDirectories[c_modeCount] =
+        {
+            "O_1X",
+            "O_T2X_R_CameraOnly_DepthOff",
+            "O_T2X_R_CameraOnly_DepthOn",
+            "O_T2X_R_Rigid_DepthOff",
+            "O_T2X_R_Rigid_DepthOn",
+            "O_ET2X_R_CameraOnly_DepthOff",
+            "O_ET2X_R_CameraOnly_DepthOn",
+            "O_ET2X_R_Rigid_DepthOff",
+            "O_ET2X_R_Rigid_DepthOn"
+        };
+        return c_modeDirectories[mode];
+    }
+
+    static CMAA2Sample::AAType GetModeAAType( int mode )
+    {
+        if( mode == 0 )
+            return CMAA2Sample::AAType::SMAA;
+        return mode <= 4? CMAA2Sample::AAType::SMAA_O_T2X_R :
+            CMAA2Sample::AAType::SMAA_O_ET2X_R;
+    }
+
+    static bool GetRigidObjectMotionEnabled( int mode )
+    {
+        return mode == 3 || mode == 4 || mode == 7 || mode == 8;
+    }
+
+    static bool GetPreviousDepthEnabled( int mode )
+    {
+        return mode == 2 || mode == 4 || mode == 6 || mode == 8;
+    }
+
+    void RestoreSettings( )
+    {
+        m_parent.SetSMAATemporalStressTexturedFixtureEnabled(
+            m_savedTexturedFixtureEnabled );
+        m_parent.SetSMAAObjectMotionReprojection(
+            m_savedObjectMotionReprojection );
+        m_parent.SetSMAADisocclusionRejection( m_savedDisocclusionRejection );
+        m_parent.SetSMAADisocclusionThresholds(
+            m_savedAbsoluteThreshold, m_savedRelativeThreshold );
+        m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled(
+            m_savedCandidateReadbackEnabled );
+        m_parent.SetSMAACandidateEdgeSourceOverride(
+            m_savedCandidateEdgeSourceOverrideEnabled,
+            m_savedCandidateEdgeSource );
+        m_parent.SetSMAACandidatePolicyOverride(
+            m_savedCandidatePolicyOverrideEnabled, m_savedCandidatePolicy );
+        m_parent.SetSMAACandidateExpansionOverride(
+            m_savedCandidateExpansionOverrideEnabled,
+            m_savedCandidateExpansion );
+        m_parent.SetSMAANonDominantRemovalOverride(
+            m_savedNonDominantRemovalOverrideEnabled,
+            m_savedNonDominantRemoval );
+        m_parent.SetSMAAHistorySamplerOverride(
+            m_savedHistorySamplerOverrideEnabled, m_savedHistorySampler );
+        m_parent.SetSMAAHistoryClippingOverride(
+            m_savedHistoryClippingOverrideEnabled, m_savedHistoryClipping );
+        m_parent.SetSMAATemporalDirectMaskedResolveEnabled(
+            m_savedDirectMaskedResolveEnabled );
+        m_parent.SetSMAATemporalDualOutputOptimizationEnabled(
+            m_savedDualOutputOptimizationEnabled );
+        m_parent.SetSMAATemporalDebugView( m_savedTemporalDebugView );
+        m_parent.SetSMAAForcedCandidateCountForDiagnostics(
+            m_savedForcedCandidateCountEnabled, m_savedForcedCandidateCount );
+        m_parent.SetSMAARecoveredSourceProfile( m_savedRecoveredSourceProfile );
+        m_parent.SetSMAARecoveredSourceIntegratedCandidates(
+            m_savedRecoveredIntegratedCandidates );
+    }
+
+public:
+    BenchItemRecordSMAAObjectMotionDisocclusionQuality(
+        CMAA2Sample & parent,
+        CMAA2Sample::SMAATemporalStressScenario scenario,
+        int captureFrameCount,
+        int warmupFrameCount,
+        float absoluteThreshold,
+        float relativeThreshold )
+        : AutoBenchToolWorkItem( parent ),
+        m_scenario( scenario ),
+        m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
+        m_warmupFrameCount( vaMath::Max( 1, warmupFrameCount ) ),
+        m_absoluteThreshold( vaMath::Max( 0.0f, absoluteThreshold ) ),
+        m_relativeThreshold( vaMath::Max( 0.0f, relativeThreshold ) ),
+        m_savedAbsoluteThreshold( parent.GetSMAADisocclusionAbsoluteThreshold( ) ),
+        m_savedRelativeThreshold( parent.GetSMAADisocclusionRelativeThreshold( ) ),
+        m_savedDisocclusionRejection( parent.GetSMAADisocclusionRejection( ) ),
+        m_savedTexturedFixtureEnabled(
+            parent.GetSMAATemporalStressTexturedFixtureEnabled( ) ),
+        m_savedObjectMotionReprojection(
+            parent.GetSMAAObjectMotionReprojection( ) ),
+        m_savedCandidateReadbackEnabled(
+            parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( ) ),
+        m_savedCandidateEdgeSourceOverrideEnabled(
+            parent.GetSMAACandidateEdgeSourceOverrideEnabled( ) ),
+        m_savedCandidateEdgeSource(
+            parent.GetSMAACandidateEdgeSourceOverrideValue( ) ),
+        m_savedCandidatePolicyOverrideEnabled(
+            parent.GetSMAACandidatePolicyOverrideEnabled( ) ),
+        m_savedCandidatePolicy( parent.GetSMAACandidatePolicyOverrideValue( ) ),
+        m_savedCandidateExpansionOverrideEnabled(
+            parent.GetSMAACandidateExpansionOverrideEnabled( ) ),
+        m_savedCandidateExpansion(
+            parent.GetSMAACandidateExpansionOverrideValue( ) ),
+        m_savedNonDominantRemovalOverrideEnabled(
+            parent.GetSMAANonDominantRemovalOverrideEnabled( ) ),
+        m_savedNonDominantRemoval(
+            parent.GetSMAANonDominantRemovalOverrideValue( ) ),
+        m_savedHistorySamplerOverrideEnabled(
+            parent.GetSMAAHistorySamplerOverrideEnabled( ) ),
+        m_savedHistorySampler( parent.GetSMAAHistorySamplerOverrideValue( ) ),
+        m_savedHistoryClippingOverrideEnabled(
+            parent.GetSMAAHistoryClippingOverrideEnabled( ) ),
+        m_savedHistoryClipping( parent.GetSMAAHistoryClippingOverrideValue( ) ),
+        m_savedDirectMaskedResolveEnabled(
+            parent.GetSMAATemporalDirectMaskedResolveEnabled( ) ),
+        m_savedDualOutputOptimizationEnabled(
+            parent.GetSMAATemporalDualOutputOptimizationEnabled( ) ),
+        m_savedTemporalDebugView( parent.GetSMAATemporalDebugView( ) ),
+        m_savedForcedCandidateCountEnabled(
+            parent.GetSMAAForcedCandidateCountEnabled( ) ),
+        m_savedForcedCandidateCount( parent.GetSMAAForcedCandidateCount( ) ),
+        m_savedRecoveredIntegratedCandidates(
+            parent.GetSMAARecoveredSourceIntegratedCandidates( ) ),
+        m_savedRecoveredSourceProfile( parent.GetSMAARecoveredSourceProfile( ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            if( !m_parent.SetSMAATemporalStressTexturedFixtureEnabled( true ) )
+            {
+                abTool.ReportStart( );
+                abTool.ReportAddText(
+                    "SMAA previous-depth disocclusion quality gate\r\n\r\n"
+                    "Fixture initialization: FAIL (deterministic rotor texture unavailable)\r\n" );
+                RestoreSettings( );
+                abTool.ReportFinish( );
+                m_isDone = true;
+                return;
+            }
+
+            m_started = true;
+            m_parent.Settings( ).SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( c_frameDeltaTime );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( false );
+            m_parent.SetSMAACandidateEdgeSourceOverride( true,
+                vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride( true,
+                vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride( true,
+                vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+            m_parent.SetSMAAHistorySamplerOverride(
+                false, vaSMAAWrapper::HistorySampler::Bilinear );
+            m_parent.SetSMAAHistoryClippingOverride(
+                false, vaSMAAWrapper::HistoryClipping::Off );
+            m_parent.SetSMAATemporalDirectMaskedResolveEnabled( false );
+            m_parent.SetSMAATemporalDualOutputOptimizationEnabled( false );
+            m_parent.SetSMAATemporalDebugView(
+                vaSMAAWrapper::TemporalDebugView::None );
+            m_parent.SetSMAAForcedCandidateCountForDiagnostics( false, 0 );
+            m_parent.SetSMAARecoveredSourceProfile( 0 );
+            m_parent.SetSMAARecoveredSourceIntegratedCandidates( false );
+            m_parent.SetSMAADisocclusionThresholds(
+                m_absoluteThreshold, m_relativeThreshold );
+            m_parent.PostProcessTonemap( )->Settings( ).AutoExposureAdaptationSpeed =
+                std::numeric_limits<float>::infinity( );
+
+            abTool.ReportStart( );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+            {
+                m_outputDirs[mode] = abTool.ReportGetDir( )
+                    + vaStringTools::SimpleWiden( GetModeDirectory( mode ) ) + L"\\";
+                vaFileTools::EnsureDirectoryExists( m_outputDirs[mode] );
+            }
+
+            abTool.ReportAddText(
+                "SMAA previous-depth disocclusion engineering quality gate\r\n\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Scenario:        %s\r\n",
+                CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ) ) );
+            abTool.ReportAddText(
+                "Fixture:         deterministic procedural rigid geometry; generated 32x32 checker texture on the rotor only\r\n"
+                "Occluder:        original dark material retained for the known disocclusion/trail ROI\r\n"
+                "API/preset:      DirectX 11, Original SMAA Ultra\r\n"
+                "ET2X core:       integrated first-pass candidates, removal 0.50, expansion None\r\n"
+                "Depth sampling:  previous raw depth at exact history UV, point sampled\r\n" );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Depth tolerance: %.6f scene units + %.6f * expected view depth\r\n",
+                m_absoluteThreshold, m_relativeThreshold ) );
+            abTool.ReportAddText( vaStringTools::Format(
+                "Warm-up/capture: %d / %d frames per mode at fixed 60 Hz\r\n",
+                m_warmupFrameCount, m_captureFrameCount ) );
+            abTool.ReportAddText(
+                "Classification:  engineering correctness/quality gate; not a real-scene paper result\r\n\r\n" );
+            abTool.ReportAddRowValues(
+                { "Mode", "Object velocity", "Previous-depth rejection", "Output directory" } );
+            for( int mode = 0; mode < c_modeCount; mode++ )
+                abTool.ReportAddRowValues( {
+                    GetModeID( mode ),
+                    GetRigidObjectMotionEnabled( mode )?
+                        "camera + rigid transforms" : "camera/depth only",
+                    GetPreviousDepthEnabled( mode )? "On" : "Off",
+                    GetModeDirectory( mode ) } );
+
+            m_currentMode = 0;
+            m_currentFrame = -m_warmupFrameCount - 1;
+        }
+
+        m_currentFrame++;
+        if( m_currentFrame >= m_captureFrameCount )
+        {
+            m_currentMode++;
+            if( m_currentMode >= c_modeCount )
+            {
+                RestoreSettings( );
+                abTool.ReportFinish( );
+                m_isDone = true;
+                return;
+            }
+            m_currentFrame = -m_warmupFrameCount;
+        }
+
+        m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
+        m_parent.SetSMAAObjectMotionReprojection(
+            GetRigidObjectMotionEnabled( m_currentMode )?
+                vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
+                vaSMAAWrapper::ObjectMotionReprojection::Off );
+        m_parent.SetSMAADisocclusionRejection(
+            GetPreviousDepthEnabled( m_currentMode )?
+                vaSMAAWrapper::DisocclusionRejection::PreviousDepth :
+                vaSMAAWrapper::DisocclusionRejection::Off );
+        m_parent.SetSMAATemporalStressTestState(
+            m_scenario, (float)m_currentFrame * c_frameDeltaTime );
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+
+    virtual void OnRenderComparePoint( AutoBenchTool & abTool,
+        vaImageCompareTool & imageCompareTool,
+        vaRenderDeviceContext & renderContext,
+        const shared_ptr<vaTexture> & colorInOut,
+        shared_ptr<vaPostProcess> & postProcess ) override
+    {
+        abTool; imageCompareTool; postProcess;
+        if( m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount )
+        {
+            const char * modeName = GetModeDirectory( m_currentMode );
+            const wstring fileName = m_outputDirs[m_currentMode]
+                + vaStringTools::SimpleWiden( vaStringTools::Format(
+                    "%s_%s_frame_%05d.png",
+                    CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ),
+                    modeName, m_currentFrame ) );
+            if( !colorInOut->SaveToPNGFile( renderContext, fileName ) )
+                VA_LOG_ERROR( L"Failed to save SMAA disocclusion quality frame '%s'",
+                    fileName.c_str( ) );
+        }
+    }
+
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override
+    {
+        return m_currentMode < c_modeCount && m_currentFrame >= 0
+            && m_currentFrame < m_captureFrameCount;
+    }
+    virtual float GetProgress( ) const override
+    {
+        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
+        const int completedFrames = m_currentMode * framesPerMode
+            + m_currentFrame + m_warmupFrameCount;
+        return vaMath::Clamp( (float)completedFrames
+            / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f );
+    }
+};
+
 class BenchItemRecordSMAASupersampleStressReference : public AutoBenchToolWorkItem
 {
     static const int    c_framePerSecond = 60;
@@ -3851,6 +4292,8 @@ class BenchItemRecordSMAASupersampleStressReference : public AutoBenchToolWorkIt
     const CMAA2Sample::SMAATemporalStressScenario m_scenario;
     const int           m_captureFrameCount;
     const int           m_warmupFrameCount;
+    const bool          m_texturedFixture;
+    const bool          m_savedTexturedFixtureEnabled;
     int                 m_currentFrame = 0;
     bool                m_started = false;
     bool                m_isDone = false;
@@ -3861,11 +4304,15 @@ public:
         CMAA2Sample & parent,
         CMAA2Sample::SMAATemporalStressScenario scenario,
         int captureFrameCount,
-        int warmupFrameCount )
+        int warmupFrameCount,
+        bool texturedFixture = false )
         : AutoBenchToolWorkItem( parent ),
         m_scenario( scenario ),
         m_captureFrameCount( vaMath::Max( 1, captureFrameCount ) ),
-        m_warmupFrameCount( vaMath::Max( 0, warmupFrameCount ) )
+        m_warmupFrameCount( vaMath::Max( 0, warmupFrameCount ) ),
+        m_texturedFixture( texturedFixture ),
+        m_savedTexturedFixtureEnabled(
+            parent.GetSMAATemporalStressTexturedFixtureEnabled( ) )
     {
     }
 
@@ -3876,6 +4323,21 @@ protected:
 
         if( !m_started )
         {
+            if( m_texturedFixture )
+            {
+                if( !m_parent.SetSMAATemporalStressTexturedFixtureEnabled( true ) )
+                {
+                    abTool.ReportStart( );
+                    abTool.ReportAddText(
+                        "SMAA temporal stress supersample reference\r\n\r\n"
+                        "Fixture initialization: FAIL (deterministic rotor texture unavailable)\r\n" );
+                    m_parent.SetSMAATemporalStressTexturedFixtureEnabled(
+                        m_savedTexturedFixtureEnabled );
+                    abTool.ReportFinish( );
+                    m_isDone = true;
+                    return;
+                }
+            }
             m_started = true;
             m_parent.Settings( ).SceneChoice =
                 CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
@@ -3897,7 +4359,9 @@ protected:
                 "Scenario:       %s\r\n",
                 CMAA2Sample::GetSMAATemporalStressScenarioName( m_scenario ) ) );
             abTool.ReportAddText(
-                "Scene:          procedural thin lines, moving occluder, rotating blades\r\n" );
+                m_texturedFixture?
+                    "Scene:          deterministic procedural geometry; generated 32x32 checker texture on the rotor only, dark occluder retained\r\n" :
+                    "Scene:          procedural thin lines, moving occluder, rotating blades\r\n" );
             abTool.ReportAddText(
                 "API:            DirectX 11\r\n" );
             abTool.ReportAddText(
@@ -3931,6 +4395,9 @@ protected:
         m_currentFrame++;
         if( m_currentFrame >= m_captureFrameCount )
         {
+            if( m_texturedFixture )
+                m_parent.SetSMAATemporalStressTexturedFixtureEnabled(
+                    m_savedTexturedFixtureEnabled );
             m_isDone = true;
             abTool.ReportFinish( );
             return;
@@ -4757,22 +5224,22 @@ public:
         m_savedObjectMotionReprojection( parent.GetSMAAObjectMotionReprojection( ) ),
         m_savedCandidateEdgeSourceOverrideEnabled(
             parent.GetSMAACandidateEdgeSourceOverrideEnabled( ) ),
-        m_savedCandidateEdgeSource( parent.GetSMAAEffectiveCandidateEdgeSource( ) ),
+        m_savedCandidateEdgeSource( parent.GetSMAACandidateEdgeSourceOverrideValue( ) ),
         m_savedCandidatePolicyOverrideEnabled(
             parent.GetSMAACandidatePolicyOverrideEnabled( ) ),
-        m_savedCandidatePolicy( parent.GetSMAAEffectiveCandidatePolicy( ) ),
+        m_savedCandidatePolicy( parent.GetSMAACandidatePolicyOverrideValue( ) ),
         m_savedCandidateExpansionOverrideEnabled(
             parent.GetSMAACandidateExpansionOverrideEnabled( ) ),
-        m_savedCandidateExpansion( parent.GetSMAAEffectiveCandidateExpansion( ) ),
+        m_savedCandidateExpansion( parent.GetSMAACandidateExpansionOverrideValue( ) ),
         m_savedNonDominantRemovalOverrideEnabled(
             parent.GetSMAANonDominantRemovalOverrideEnabled( ) ),
-        m_savedNonDominantRemoval( parent.GetSMAAEffectiveNonDominantRemovalAmount( ) ),
+        m_savedNonDominantRemoval( parent.GetSMAANonDominantRemovalOverrideValue( ) ),
         m_savedHistorySamplerOverrideEnabled(
             parent.GetSMAAHistorySamplerOverrideEnabled( ) ),
-        m_savedHistorySampler( parent.GetSMAAEffectiveHistorySampler( ) ),
+        m_savedHistorySampler( parent.GetSMAAHistorySamplerOverrideValue( ) ),
         m_savedHistoryClippingOverrideEnabled(
             parent.GetSMAAHistoryClippingOverrideEnabled( ) ),
-        m_savedHistoryClipping( parent.GetSMAAEffectiveHistoryClipping( ) ),
+        m_savedHistoryClipping( parent.GetSMAAHistoryClippingOverrideValue( ) ),
         m_savedCandidateReadback(
             parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( ) ),
         m_savedForcedCandidateCountEnabled( parent.GetSMAAForcedCandidateCountEnabled( ) ),
@@ -6162,6 +6629,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         SMAATotal,
         GenerateCameraVelocity,
         GenerateRigidObjectVelocity,
+        CopyDepthHistory,
         StandardSpatialT2X,
         StandardTemporalResolve,
         SpatialSMAA1X,
@@ -6211,6 +6679,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_integratedRemovalAblation;
     const bool m_integratedSourceOverheadComparison;
     const bool m_objectMotionReprojectionAblation;
+    const bool m_objectMotionDisocclusionAblation;
+    const bool m_texturedFixtureEnabled;
     const bool m_matchedKernelAblation;
     const bool m_armThresholdAblation;
     const bool m_candidateExecutionAblation;
@@ -6221,6 +6691,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_directMaskedResolveEnabled;
     const vaSMAAWrapper::TemporalDebugView m_temporalDebugView;
     const vaSMAAWrapper::ObjectMotionReprojection m_objectMotionReprojection;
+    const vaSMAAWrapper::DisocclusionRejection m_disocclusionRejection;
+    const float m_disocclusionAbsoluteThreshold;
+    const float m_disocclusionRelativeThreshold;
     const bool m_candidateEdgeSourceOverrideEnabled;
     const vaSMAAWrapper::CandidateEdgeSource m_candidateEdgeSource;
     const bool m_candidatePolicyOverrideEnabled;
@@ -6332,6 +6805,21 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                 "O-ET2X-R / integrated edge-selective"
             };
             return c_matchedKernelModeIDs[mode];
+        }
+        if( m_objectMotionDisocclusionAblation )
+        {
+            static const char * c_disocclusionModeIDs[c_modeCapacity] =
+            {
+                "O-T2X-R / camera-only / depth Off",
+                "O-T2X-R / camera-only / depth On",
+                "O-T2X-R / camera+rigid / depth Off",
+                "O-T2X-R / camera+rigid / depth On",
+                "O-ET2X-R / camera-only / depth Off",
+                "O-ET2X-R / camera-only / depth On",
+                "O-ET2X-R / camera+rigid / depth Off",
+                "O-ET2X-R / camera+rigid / depth On"
+            };
+            return c_disocclusionModeIDs[mode];
         }
         if( m_objectMotionReprojectionAblation )
         {
@@ -6482,6 +6970,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             };
             return c_matchedKernelModes[mode];
         }
+        if( m_objectMotionDisocclusionAblation )
+            return mode < 4? CMAA2Sample::AAType::SMAA_O_T2X_R :
+                CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if( m_objectMotionReprojectionAblation )
             return mode < 2? CMAA2Sample::AAType::SMAA_O_T2X_R :
                 CMAA2Sample::AAType::SMAA_O_ET2X_R;
@@ -6589,6 +7080,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             return true;
         if( m_matchedKernelAblation )
             return mode == 1 || mode == 3;
+        if( m_objectMotionDisocclusionAblation )
+            return mode >= 4;
         if( m_objectMotionReprojectionAblation )
             return mode >= 2;
         if( m_integratedSourceOverheadComparison )
@@ -6620,6 +7113,8 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
             return true;
         if( m_matchedKernelAblation )
             return IsEdgeSelectiveMode( mode );
+        if( m_objectMotionDisocclusionAblation )
+            return mode >= 4;
         if( m_objectMotionReprojectionAblation )
             return mode >= 2;
         if( m_integratedSourceOverheadComparison )
@@ -6642,6 +7137,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
         case SMAATotal:                 return "SMAA";
         case GenerateCameraVelocity:    return "SMAAGenerateCameraVelocity";
         case GenerateRigidObjectVelocity:return "SMAAGenerateRigidObjectVelocity";
+        case CopyDepthHistory:          return "SMAACopyDepthHistory";
         case StandardSpatialT2X:        return "SMAAStandardSpatialT2X";
         case StandardTemporalResolve:   return "SMAAStandardTemporalResolve";
         case SpatialSMAA1X:             return "SMAASpatial1X";
@@ -6736,6 +7232,28 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                 return !edgeSelective;
             if( metric == ClearIntegratedCandidateBuffers
                 || metric == ComputeDispatchArgs || metric == ResolveCandidates )
+                return edgeSelective;
+            return false;
+        }
+
+        if( m_objectMotionDisocclusionAblation )
+        {
+            const bool edgeSelective = IsEdgeSelectiveMode( mode );
+            const bool rigidObjectMotion = mode == 2 || mode == 3
+                || mode == 6 || mode == 7;
+            const bool previousDepth = (mode & 1) != 0;
+            if( metric == GenerateCameraVelocity )
+                return true;
+            if( metric == GenerateRigidObjectVelocity )
+                return rigidObjectMotion;
+            if( metric == CopyDepthHistory )
+                return previousDepth;
+            if( metric == StandardSpatialT2X || metric == StandardTemporalResolve )
+                return !edgeSelective;
+            if( metric == SpatialSMAA1X || metric == CopySpatialToHistory
+                || metric == ClearIntegratedCandidateBuffers
+                || metric == ComputeDispatchArgs || metric == ResolveCandidates
+                || metric == OutputCopy )
                 return edgeSelective;
             return false;
         }
@@ -6969,6 +7487,11 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                         || statistics.Policy != vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant
                         || statistics.Expansion != vaSMAAWrapper::CandidateExpansion::None) )
                     m_passed = false;
+                if( m_objectMotionDisocclusionAblation
+                    && (statistics.Source != vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates
+                        || statistics.Policy != vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant
+                        || statistics.Expansion != vaSMAAWrapper::CandidateExpansion::None) )
+                    m_passed = false;
                 m_baseEdgeCounts[m_currentMode].push_back( (double)statistics.BaseEdgeCount );
                 m_candidateCounts[m_currentMode].push_back( (double)statistics.CandidateCount );
                 m_processCounts[m_currentMode].push_back( (double)statistics.ProcessCount );
@@ -7067,6 +7590,31 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
                     vaStringTools::Format( "%.6f", ratio )
                 } );
             }
+            if( m_objectMotionDisocclusionAblation )
+            {
+                abTool.ReportAddText( "\r\nCandidate invariance across the previous-depth toggle:\r\n" );
+                abTool.ReportAddRowValues(
+                    { "Temporal profile", "Object velocity", "Base edge", "Candidate", "Process", "Result" } );
+                const int pairStarts[2] = { 4, 6 };
+                for( int pairIndex = 0; pairIndex < 2; pairIndex++ )
+                {
+                    const int offMode = pairStarts[pairIndex];
+                    const int onMode = offMode + 1;
+                    const bool baseEqual = m_baseEdgeCounts[offMode] == m_baseEdgeCounts[onMode];
+                    const bool candidatesEqual = m_candidateCounts[offMode] == m_candidateCounts[onMode];
+                    const bool processEqual = m_processCounts[offMode] == m_processCounts[onMode];
+                    const bool pairPassed = baseEqual && candidatesEqual && processEqual;
+                    if( !pairPassed )
+                        m_passed = false;
+                    abTool.ReportAddRowValues( {
+                        "O-ET2X-R",
+                        pairIndex == 0? "camera-only" : "camera + rigid transforms",
+                        baseEqual? "identical" : "mismatch",
+                        candidatesEqual? "identical" : "mismatch",
+                        processEqual? "identical" : "mismatch",
+                        pairPassed? "PASS" : "FAIL" } );
+                }
+            }
         }
         else
             abTool.ReportAddText( "\r\nCandidate counter readback was disabled for uncontaminated timing.\r\n" );
@@ -7093,6 +7641,7 @@ public:
         bool integratedRemovalAblation = false,
         bool integratedSourceOverheadComparison = false,
         bool objectMotionReprojectionAblation = false,
+        bool objectMotionDisocclusionAblation = false,
         bool matchedKernelAblation = false,
         bool armThresholdAblation = false,
         bool candidateExecutionAblation = false,
@@ -7113,6 +7662,9 @@ public:
         m_integratedRemovalAblation( integratedRemovalAblation ),
         m_integratedSourceOverheadComparison( integratedSourceOverheadComparison ),
         m_objectMotionReprojectionAblation( objectMotionReprojectionAblation ),
+        m_objectMotionDisocclusionAblation( objectMotionDisocclusionAblation ),
+        m_texturedFixtureEnabled(
+            parent.GetSMAATemporalStressTexturedFixtureEnabled( ) ),
         m_matchedKernelAblation( matchedKernelAblation ),
         m_armThresholdAblation( armThresholdAblation ),
         m_candidateExecutionAblation( candidateExecutionAblation ),
@@ -7124,38 +7676,42 @@ public:
         m_directMaskedResolveEnabled( parent.GetSMAATemporalDirectMaskedResolveEnabled( ) ),
         m_temporalDebugView( parent.GetSMAATemporalDebugView( ) ),
         m_objectMotionReprojection( parent.GetSMAAObjectMotionReprojection( ) ),
+        m_disocclusionRejection( parent.GetSMAADisocclusionRejection( ) ),
+        m_disocclusionAbsoluteThreshold( parent.GetSMAADisocclusionAbsoluteThreshold( ) ),
+        m_disocclusionRelativeThreshold( parent.GetSMAADisocclusionRelativeThreshold( ) ),
         m_candidateEdgeSourceOverrideEnabled(
             parent.GetSMAACandidateEdgeSourceOverrideEnabled( ) ),
-        m_candidateEdgeSource( parent.GetSMAAEffectiveCandidateEdgeSource( ) ),
+        m_candidateEdgeSource( parent.GetSMAACandidateEdgeSourceOverrideValue( ) ),
         m_candidatePolicyOverrideEnabled(
             parent.GetSMAACandidatePolicyOverrideEnabled( ) ),
-        m_candidatePolicy( parent.GetSMAAEffectiveCandidatePolicy( ) ),
+        m_candidatePolicy( parent.GetSMAACandidatePolicyOverrideValue( ) ),
         m_candidateExpansionOverrideEnabled(
             parent.GetSMAACandidateExpansionOverrideEnabled( ) ),
-        m_candidateExpansion( parent.GetSMAAEffectiveCandidateExpansion( ) ),
+        m_candidateExpansion( parent.GetSMAACandidateExpansionOverrideValue( ) ),
         m_nonDominantRemovalOverrideEnabled(
             parent.GetSMAANonDominantRemovalOverrideEnabled( ) ),
-        m_nonDominantRemoval( parent.GetSMAAEffectiveNonDominantRemovalAmount( ) ),
+        m_nonDominantRemoval( parent.GetSMAANonDominantRemovalOverrideValue( ) ),
         m_historySamplerOverrideEnabled(
             parent.GetSMAAHistorySamplerOverrideEnabled( ) ),
-        m_historySampler( parent.GetSMAAEffectiveHistorySampler( ) ),
+        m_historySampler( parent.GetSMAAHistorySamplerOverrideValue( ) ),
         m_historyClippingOverrideEnabled(
             parent.GetSMAAHistoryClippingOverrideEnabled( ) ),
-        m_historyClipping( parent.GetSMAAEffectiveHistoryClipping( ) ),
+        m_historyClipping( parent.GetSMAAHistoryClippingOverrideValue( ) ),
         m_forcedCandidateCountEnabled( parent.GetSMAAForcedCandidateCountEnabled( ) ),
         m_forcedCandidateCount( parent.GetSMAAForcedCandidateCount( ) ),
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( integratedRecoveredMatrix? 3 : feedbackTopologyAblation? 2 : (candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( integratedRecoveredMatrix? 3 : feedbackTopologyAblation? 2 : (candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionDisocclusionAblation? c_modeCapacity : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
-            (includeAdaptive? c_modeCapacity : c_originalModeCount)))))))))))) )
+            (includeAdaptive? c_modeCapacity : c_originalModeCount))))))))))))) )
     {
         assert( (int)candidateAblation + (int)currentEdgeDilationAblation
             + (int)filteredQuarterAblation + (int)armDualFilterAblation
             + (int)candidateEdgeSourceAblation + (int)integratedRemovalAblation
             + (int)integratedSourceOverheadComparison
-            + (int)objectMotionReprojectionAblation + (int)matchedKernelAblation
+            + (int)objectMotionReprojectionAblation + (int)objectMotionDisocclusionAblation
+            + (int)matchedKernelAblation
             + (int)armThresholdAblation + (int)candidateExecutionAblation
             + (int)feedbackTopologyAblation + (int)recoveredMatrix + (int)integratedRecoveredMatrix <= 1 );
     }
@@ -7167,9 +7723,25 @@ protected:
 
         if( !m_started )
         {
+            if( m_objectMotionDisocclusionAblation )
+            {
+                if( !m_parent.SetSMAATemporalStressTexturedFixtureEnabled( true ) )
+                {
+                    abTool.ReportStart( );
+                    abTool.ReportAddText(
+                        "SMAA previous-depth disocclusion performance gate\r\n\r\n"
+                        "Fixture initialization: FAIL (deterministic rotor texture unavailable)\r\n" );
+                    m_parent.SetSMAATemporalStressTexturedFixtureEnabled(
+                        m_texturedFixtureEnabled );
+                    abTool.ReportFinish( );
+                    m_isDone = true;
+                    return;
+                }
+            }
             m_started = true;
             m_parent.Settings( ).SceneChoice = m_scene;
-            if( m_useCameraMotionProfile || m_objectMotionReprojectionAblation )
+            if( m_useCameraMotionProfile || m_objectMotionReprojectionAblation
+                || m_objectMotionDisocclusionAblation )
                 m_parent.SetFlythroughCameraEnabled( false );
             m_parent.SetRequireDeterminism( true );
             m_parent.SetFixedDeltaTime( m_frameDeltaTime );
@@ -7195,6 +7767,20 @@ protected:
                 m_parent.SetSMAATemporalDualOutputOptimizationEnabled( false );
                 m_parent.SetSMAAObjectMotionReprojection(
                     vaSMAAWrapper::ObjectMotionReprojection::Off );
+                m_parent.SetSMAAForcedCandidateCountForDiagnostics( false, 0 );
+            }
+            if( m_objectMotionDisocclusionAblation )
+            {
+                m_parent.SetSMAARecoveredSourceProfile( 0 );
+                m_parent.SetSMAARecoveredSourceIntegratedCandidates( false );
+                m_parent.SetSMAAHistorySamplerOverride(
+                    false, vaSMAAWrapper::HistorySampler::Bilinear );
+                m_parent.SetSMAAHistoryClippingOverride(
+                    false, vaSMAAWrapper::HistoryClipping::Off );
+                m_parent.SetSMAATemporalDebugView(
+                    vaSMAAWrapper::TemporalDebugView::None );
+                m_parent.SetSMAATemporalDirectMaskedResolveEnabled( false );
+                m_parent.SetSMAATemporalDualOutputOptimizationEnabled( false );
                 m_parent.SetSMAAForcedCandidateCountForDiagnostics( false, 0 );
             }
             vaUIManager::GetInstance( ).SetVisible( false );
@@ -7242,6 +7828,21 @@ protected:
                     "All four modes keep SMAA 1X spatial input, deliberate jitter Off, Catmull-Rom 5-tap sampling, YCoCg variance clipping, history weight 0.8, and the same camera path.\r\n"
                     "Both paths deliberately retain CopySpatialToHistory and OutputCopy so this control changes only candidate selection and resolve dispatch coverage.\r\n"
                     "The full-screen modes are diagnostic controls and do not expand the formal eight-case matrix.\r\n" );
+            }
+            else if( m_objectMotionDisocclusionAblation )
+            {
+                abTool.ReportAddText( m_repeatCount > 1?
+                    "SMAA previous-depth disocclusion repeated performance benchmark\r\n\r\n" :
+                    "SMAA previous-depth disocclusion GPU performance smoke\r\n\r\n" );
+                abTool.ReportAddText(
+                    "This measures Standard O-T2X-R and integrated O-ET2X-R across camera-only/rigid-object velocity and previous-depth rejection Off/On.\r\n"
+                    "The rotor alone uses a generated 32x32 checker Albedo texture; the dark moving occluder remains unchanged for the disocclusion ROI.\r\n"
+                    "Depth On generates expected previous depth in the velocity MRT, point-samples the aligned previous raw-depth history, and records SMAACopyDepthHistory separately.\r\n"
+                    "ET2X keeps integrated first-pass candidates, IntelFamilyNonDominant, removal 0.50, and expansion None.\r\n"
+                    "This is a deterministic engineering fixture and does not redefine the formal eight-case -R semantics.\r\n" );
+                abTool.ReportAddText( vaStringTools::Format(
+                    "Depth tolerance: %.6f scene units + %.6f * expected view depth.\r\n",
+                    0.01f, 0.005f ) );
             }
             else if( m_objectMotionReprojectionAblation )
             {
@@ -7353,7 +7954,9 @@ protected:
             abTool.ReportAddText( "ApplicationFrameWall is the observed CPU wall interval between corresponding AutoBench ticks and includes Present/OS scheduling.\r\n" );
             abTool.ReportAddText( "1% low FPS is computed as 1000 / p99 frame time.\r\n" );
             abTool.ReportAddText( "Repeat traversal alternates forward and reverse mode order to reduce order bias.\r\n" );
-            if( m_objectMotionReprojectionAblation )
+            if( m_objectMotionDisocclusionAblation )
+                abTool.ReportAddText( "Scene: deterministic procedural object motion with generated checker rotor texture.\r\n" );
+            else if( m_objectMotionReprojectionAblation )
                 abTool.ReportAddText( "Scene: procedural object-motion.\r\n" );
             else
                 abTool.ReportAddText( vaStringTools::Format( "Scene: %s.\r\n",
@@ -7409,6 +8012,45 @@ protected:
                             false, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
                         m_parent.SetSMAACandidateEdgeSourceOverride(
                             false, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+                    }
+                    if( m_objectMotionDisocclusionAblation )
+                    {
+                        m_parent.SetSMAATemporalStressTexturedFixtureEnabled(
+                            m_texturedFixtureEnabled );
+                        m_parent.SetSMAAObjectMotionReprojection(
+                            m_objectMotionReprojection );
+                        m_parent.SetSMAADisocclusionRejection(
+                            m_disocclusionRejection );
+                        m_parent.SetSMAADisocclusionThresholds(
+                            m_disocclusionAbsoluteThreshold,
+                            m_disocclusionRelativeThreshold );
+                        m_parent.SetSMAANonDominantRemovalOverride(
+                            m_nonDominantRemovalOverrideEnabled,
+                            m_nonDominantRemoval );
+                        m_parent.SetSMAACandidateExpansionOverride(
+                            m_candidateExpansionOverrideEnabled,
+                            m_candidateExpansion );
+                        m_parent.SetSMAACandidatePolicyOverride(
+                            m_candidatePolicyOverrideEnabled,
+                            m_candidatePolicy );
+                        m_parent.SetSMAACandidateEdgeSourceOverride(
+                            m_candidateEdgeSourceOverrideEnabled,
+                            m_candidateEdgeSource );
+                        m_parent.SetSMAAHistorySamplerOverride(
+                            m_historySamplerOverrideEnabled, m_historySampler );
+                        m_parent.SetSMAAHistoryClippingOverride(
+                            m_historyClippingOverrideEnabled, m_historyClipping );
+                        m_parent.SetSMAATemporalDebugView( m_temporalDebugView );
+                        m_parent.SetSMAATemporalDirectMaskedResolveEnabled(
+                            m_directMaskedResolveEnabled );
+                        m_parent.SetSMAATemporalDualOutputOptimizationEnabled(
+                            m_dualOutputOptimizationEnabled );
+                        m_parent.SetSMAAForcedCandidateCountForDiagnostics(
+                            m_forcedCandidateCountEnabled, m_forcedCandidateCount );
+                        m_parent.SetSMAARecoveredSourceProfile(
+                            m_savedRecoveredProfile );
+                        m_parent.SetSMAARecoveredSourceIntegratedCandidates(
+                            m_savedRecoveredIntegrated );
                     }
                     if( m_objectMotionReprojectionAblation )
                     {
@@ -7501,6 +8143,27 @@ protected:
             m_parent.SetSMAANonDominantRemovalOverride(
                 true, GetIntegratedRemovalAmount( m_currentMode ) );
         }
+        if( m_objectMotionDisocclusionAblation )
+        {
+            m_parent.SetSMAACandidateEdgeSourceOverride(
+                true, vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride(
+                true, vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride(
+                true, vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+            const bool rigidObjectMotion = m_currentMode == 2 || m_currentMode == 3
+                || m_currentMode == 6 || m_currentMode == 7;
+            m_parent.SetSMAAObjectMotionReprojection(
+                rigidObjectMotion?
+                    vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms :
+                    vaSMAAWrapper::ObjectMotionReprojection::Off );
+            m_parent.SetSMAADisocclusionThresholds( 0.01f, 0.005f );
+            m_parent.SetSMAADisocclusionRejection(
+                (m_currentMode & 1) != 0?
+                    vaSMAAWrapper::DisocclusionRejection::PreviousDepth :
+                    vaSMAAWrapper::DisocclusionRejection::Off );
+        }
         if( m_objectMotionReprojectionAblation )
         {
             m_parent.SetSMAACandidateEdgeSourceOverride(
@@ -7537,7 +8200,8 @@ protected:
             m_parent.SetSMAARecoveredSourceIntegratedCandidates(m_integratedRecoveredMatrix && m_currentMode==2);
         }
         m_parent.Settings( ).CurrentAAOption = GetModeAAType( m_currentMode );
-        if( m_objectMotionReprojectionAblation )
+        if( m_objectMotionReprojectionAblation
+            || m_objectMotionDisocclusionAblation )
         {
             m_parent.SetSMAATemporalStressTestState(
                 CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion,
@@ -7973,22 +8637,22 @@ public:
         m_spatialFrameFeedback( spatialFrameFeedback ),
         m_savedCandidateEdgeSourceOverrideEnabled(
             parent.GetSMAACandidateEdgeSourceOverrideEnabled( ) ),
-        m_savedCandidateEdgeSource( parent.GetSMAAEffectiveCandidateEdgeSource( ) ),
+        m_savedCandidateEdgeSource( parent.GetSMAACandidateEdgeSourceOverrideValue( ) ),
         m_savedCandidatePolicyOverrideEnabled(
             parent.GetSMAACandidatePolicyOverrideEnabled( ) ),
-        m_savedCandidatePolicy( parent.GetSMAAEffectiveCandidatePolicy( ) ),
+        m_savedCandidatePolicy( parent.GetSMAACandidatePolicyOverrideValue( ) ),
         m_savedCandidateExpansionOverrideEnabled(
             parent.GetSMAACandidateExpansionOverrideEnabled( ) ),
-        m_savedCandidateExpansion( parent.GetSMAAEffectiveCandidateExpansion( ) ),
+        m_savedCandidateExpansion( parent.GetSMAACandidateExpansionOverrideValue( ) ),
         m_savedNonDominantRemovalOverrideEnabled(
             parent.GetSMAANonDominantRemovalOverrideEnabled( ) ),
-        m_savedNonDominantRemoval( parent.GetSMAAEffectiveNonDominantRemovalAmount( ) ),
+        m_savedNonDominantRemoval( parent.GetSMAANonDominantRemovalOverrideValue( ) ),
         m_savedHistorySamplerOverrideEnabled(
             parent.GetSMAAHistorySamplerOverrideEnabled( ) ),
-        m_savedHistorySampler( parent.GetSMAAEffectiveHistorySampler( ) ),
+        m_savedHistorySampler( parent.GetSMAAHistorySamplerOverrideValue( ) ),
         m_savedHistoryClippingOverrideEnabled(
             parent.GetSMAAHistoryClippingOverrideEnabled( ) ),
-        m_savedHistoryClipping( parent.GetSMAAEffectiveHistoryClipping( ) ),
+        m_savedHistoryClipping( parent.GetSMAAHistoryClippingOverrideValue( ) ),
         m_savedCandidateReadback(
             parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( ) ),
         m_savedDirectMaskedResolve( parent.GetSMAATemporalDirectMaskedResolveEnabled( ) ),
@@ -8244,6 +8908,318 @@ protected:
             + vaMath::Max( 0, m_phaseFrame + c_warmupFrames )
             + (int)m_sampleCount[vaMath::Min( m_currentMode, c_modeCount - 1 )];
         return vaMath::Clamp( (float)currentProgress / (float)(framesPerMode * c_modeCount), 0.0f, 1.0f );
+    }
+};
+
+class BenchItemValidateSMAAPreviousDepthDisocclusion : public AutoBenchToolWorkItem
+{
+    enum class Phase : int
+    {
+        StandardSeed,
+        StandardActive,
+        StandardResetSeed,
+        ET2XSeed,
+        ET2XActive,
+        Complete
+    };
+
+    Phase m_phase = Phase::StandardSeed;
+    bool m_started = false;
+    bool m_measurementArmed = false;
+    bool m_isDone = false;
+    bool m_passed = true;
+    bool m_cpuReferencePassed = true;
+    bool m_phasePassed[5] = { false, false, false, false, false };
+    uint32 m_lastCompletedFrameCount = 0;
+    int m_tickCount = 0;
+    const bool m_savedLifecycleDiagnosticsEnabled;
+    const bool m_savedCandidateReadbackEnabled;
+    const bool m_savedCandidateEdgeSourceOverrideEnabled;
+    const vaSMAAWrapper::CandidateEdgeSource m_savedCandidateEdgeSource;
+    const bool m_savedCandidatePolicyOverrideEnabled;
+    const vaSMAAWrapper::CandidatePolicy m_savedCandidatePolicy;
+    const bool m_savedCandidateExpansionOverrideEnabled;
+    const vaSMAAWrapper::CandidateExpansion m_savedCandidateExpansion;
+    const bool m_savedNonDominantRemovalOverrideEnabled;
+    const float m_savedNonDominantRemoval;
+    const vaSMAAWrapper::ObjectMotionReprojection m_savedObjectMotionReprojection;
+    const vaSMAAWrapper::DisocclusionRejection m_savedDisocclusionRejection;
+    const float m_savedAbsoluteThreshold;
+    const float m_savedRelativeThreshold;
+
+    static const char * GetPhaseName( int phase )
+    {
+        static const char * c_names[5] =
+        {
+            "O-T2X-R first frame",
+            "O-T2X-R second frame",
+            "O-T2X-R post-reset first frame",
+            "O-ET2X-R first frame",
+            "O-ET2X-R second frame"
+        };
+        return c_names[phase];
+    }
+
+    bool RunCPUReferenceChecks( )
+    {
+        vaCameraBase unjitteredCamera = *m_parent.Camera( );
+        unjitteredCamera.SetSubpixelOffset( vaVector2( 0.0f, 0.0f ) );
+        unjitteredCamera.Tick( 0.0f, false );
+        const vaMatrix4x4 projection = unjitteredCamera.GetProjMatrix( );
+        double unpackMul = -(double)projection.m[3][2];
+        double unpackAdd = (double)projection.m[2][2];
+        if( unpackMul * unpackAdd < 0.0 )
+            unpackAdd = -unpackAdd;
+        if( !std::isfinite( unpackMul ) || !std::isfinite( unpackAdd )
+            || std::abs( unpackMul ) <= 1.0e-12 )
+            return false;
+
+        const double depths[] = { 0.1, 1.0, 10.0, 100.0, 10000.0 };
+        for( double expectedViewDepth : depths )
+        {
+            const double deviceDepth = unpackAdd - unpackMul / expectedViewDepth;
+            const double denominator = unpackAdd - deviceDepth;
+            const double reconstructed = unpackMul / denominator;
+            if( !std::isfinite( deviceDepth ) || !std::isfinite( reconstructed )
+                || std::abs( reconstructed - expectedViewDepth )
+                    > vaMath::Max( 1.0e-6, expectedViewDepth * 1.0e-6 ) )
+                return false;
+        }
+
+        const double expected = 10.0;
+        const double tolerance = 0.01 + 0.005 * expected;
+        const bool insideAccepted = std::abs(
+            (expected + tolerance * 0.999) - expected ) <= tolerance;
+        const bool outsideRejected = std::abs(
+            (expected + tolerance * 1.001) - expected ) > tolerance;
+        return insideAccepted && outsideRejected;
+    }
+
+    bool CheckFrame( const vaSMAAWrapper::TemporalLifecycleDiagnostics & diagnostics,
+        bool expectSeed )
+    {
+        const bool historyStateCorrect = expectSeed?
+            (!diagnostics.LastHistoryValidBefore
+                && !diagnostics.LastDepthHistoryValidBefore
+                && !diagnostics.LastDepthRejectionActive) :
+            (diagnostics.LastHistoryValidBefore
+                && diagnostics.LastDepthHistoryValidBefore
+                && diagnostics.LastDepthRejectionActive);
+        return diagnostics.Passed
+            && diagnostics.LastDepthRejectionConfigured
+            && diagnostics.LastDepthHistoryCopied
+            && diagnostics.LastWasSeed == expectSeed
+            && historyStateCorrect
+            && diagnostics.DepthHistoryMismatchCount == 0;
+    }
+
+    void Finish( AutoBenchTool & abTool )
+    {
+        abTool.ReportAddRowValues(
+            { "Check", "Expected depth-history state", "Result" } );
+        for( int phase = 0; phase < 5; phase++ )
+            abTool.ReportAddRowValues( {
+                GetPhaseName( phase ),
+                (phase == 0 || phase == 2 || phase == 3)?
+                    "seed, rejection inactive, current depth copied" :
+                    "previous depth valid, rejection active, current depth copied",
+                m_phasePassed[phase]? "PASS" : "FAIL" } );
+        abTool.ReportAddRowValues( {
+            "CPU reversed-Z depth unpack and threshold boundary",
+            "round-trip across near/far range; inside accept/outside reject",
+            m_cpuReferencePassed? "PASS" : "FAIL" } );
+        const auto & diagnostics = m_parent.GetSMAATemporalLifecycleDiagnostics( );
+        abTool.ReportAddText( vaStringTools::Format(
+            "\r\nDepth seed/resolved frames: %u / %u\r\n"
+            "Depth history mismatches: %u\r\n",
+            diagnostics.DepthSeedFrameCount,
+            diagnostics.DepthResolvedFrameCount,
+            diagnostics.DepthHistoryMismatchCount ) );
+        m_passed &= m_cpuReferencePassed;
+        for( bool phasePassed : m_phasePassed )
+            m_passed &= phasePassed;
+        m_passed &= diagnostics.DepthSeedFrameCount == 3
+            && diagnostics.DepthResolvedFrameCount == 2
+            && diagnostics.DepthHistoryMismatchCount == 0;
+        abTool.ReportAddText( m_passed?
+            "Aggregate previous-depth lifecycle validation: PASS\r\n" :
+            "Aggregate previous-depth lifecycle validation: FAIL\r\n" );
+        abTool.ReportFinish( );
+        VA_LOG( "SMAA previous-depth disocclusion lifecycle validation: %s",
+            m_passed? "PASS" : "FAIL" );
+
+        m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( false );
+        m_parent.SetSMAADisocclusionRejection(
+            m_savedDisocclusionRejection );
+        m_parent.SetSMAADisocclusionThresholds(
+            m_savedAbsoluteThreshold, m_savedRelativeThreshold );
+        m_parent.SetSMAAObjectMotionReprojection(
+            m_savedObjectMotionReprojection );
+        m_parent.SetSMAACandidateEdgeSourceOverride(
+            m_savedCandidateEdgeSourceOverrideEnabled,
+            m_savedCandidateEdgeSource );
+        m_parent.SetSMAACandidatePolicyOverride(
+            m_savedCandidatePolicyOverrideEnabled, m_savedCandidatePolicy );
+        m_parent.SetSMAACandidateExpansionOverride(
+            m_savedCandidateExpansionOverrideEnabled,
+            m_savedCandidateExpansion );
+        m_parent.SetSMAANonDominantRemovalOverride(
+            m_savedNonDominantRemovalOverrideEnabled,
+            m_savedNonDominantRemoval );
+        m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled(
+            m_savedCandidateReadbackEnabled );
+        m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+        if( m_savedLifecycleDiagnosticsEnabled )
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
+        m_isDone = true;
+    }
+
+public:
+    explicit BenchItemValidateSMAAPreviousDepthDisocclusion( CMAA2Sample & parent )
+        : AutoBenchToolWorkItem( parent ),
+        m_savedLifecycleDiagnosticsEnabled(
+            parent.GetSMAATemporalLifecycleDiagnostics( ).Enabled ),
+        m_savedCandidateReadbackEnabled(
+            parent.GetSMAATemporalCandidateStatisticsReadbackEnabled( ) ),
+        m_savedCandidateEdgeSourceOverrideEnabled(
+            parent.GetSMAACandidateEdgeSourceOverrideEnabled( ) ),
+        m_savedCandidateEdgeSource(
+            parent.GetSMAACandidateEdgeSourceOverrideValue( ) ),
+        m_savedCandidatePolicyOverrideEnabled(
+            parent.GetSMAACandidatePolicyOverrideEnabled( ) ),
+        m_savedCandidatePolicy( parent.GetSMAACandidatePolicyOverrideValue( ) ),
+        m_savedCandidateExpansionOverrideEnabled(
+            parent.GetSMAACandidateExpansionOverrideEnabled( ) ),
+        m_savedCandidateExpansion(
+            parent.GetSMAACandidateExpansionOverrideValue( ) ),
+        m_savedNonDominantRemovalOverrideEnabled(
+            parent.GetSMAANonDominantRemovalOverrideEnabled( ) ),
+        m_savedNonDominantRemoval(
+            parent.GetSMAANonDominantRemovalOverrideValue( ) ),
+        m_savedObjectMotionReprojection(
+            parent.GetSMAAObjectMotionReprojection( ) ),
+        m_savedDisocclusionRejection(
+            parent.GetSMAADisocclusionRejection( ) ),
+        m_savedAbsoluteThreshold(
+            parent.GetSMAADisocclusionAbsoluteThreshold( ) ),
+        m_savedRelativeThreshold(
+            parent.GetSMAADisocclusionRelativeThreshold( ) )
+    {
+    }
+
+protected:
+    virtual void Tick( AutoBenchTool & abTool, float deltaTime ) override
+    {
+        deltaTime;
+        if( !m_started )
+        {
+            m_started = true;
+            m_parent.Settings( ).SceneChoice =
+                CMAA2Sample::SceneSelectionType::SMAATemporalStressTest;
+            m_parent.Settings( ).CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_T2X_R;
+            m_parent.SetFlythroughCameraEnabled( false );
+            m_parent.SetRequireDeterminism( true );
+            m_parent.SetFixedDeltaTime( 1.0f / 60.0f );
+            m_parent.SetSMAAPreset( vaSMAAWrapper::Preset::PRESET_ULTRA );
+            m_parent.SetSMAATemporalCandidateStatisticsReadbackEnabled( false );
+            m_parent.SetSMAACandidateEdgeSourceOverride( true,
+                vaSMAAWrapper::CandidateEdgeSource::SMAAFirstPassIntegratedCandidates );
+            m_parent.SetSMAACandidatePolicyOverride( true,
+                vaSMAAWrapper::CandidatePolicy::IntelFamilyNonDominant );
+            m_parent.SetSMAACandidateExpansionOverride( true,
+                vaSMAAWrapper::CandidateExpansion::None );
+            m_parent.SetSMAANonDominantRemovalOverride( true, 0.5f );
+            m_parent.SetSMAAObjectMotionReprojection(
+                vaSMAAWrapper::ObjectMotionReprojection::RigidTransforms );
+            m_parent.SetSMAADisocclusionThresholds( 0.01f, 0.005f );
+            m_parent.SetSMAADisocclusionRejection(
+                vaSMAAWrapper::DisocclusionRejection::PreviousDepth );
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            m_parent.SetSMAATemporalStressTestState(
+                CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion,
+                0.0f );
+            m_cpuReferencePassed = RunCPUReferenceChecks( );
+
+            abTool.ReportStart( );
+            abTool.ReportAddText(
+                "SMAA previous-depth disocclusion lifecycle validation\r\n\r\n"
+                "This verifies first-frame depth seeding, second-frame activation, explicit reset, Standard/ET2X parity, aligned depth copy, and CPU reversed-Z threshold math.\r\n"
+                "The quality effect itself is evaluated by the separate 2x2 rigid/depth capture gate.\r\n\r\n" );
+            m_lastCompletedFrameCount =
+                m_parent.GetSMAATemporalLifecycleDiagnostics( ).CompletedFrameCount;
+            return;
+        }
+
+        m_tickCount++;
+        m_parent.SetSMAATemporalStressTestState(
+            CMAA2Sample::SMAATemporalStressScenario::ObjectMotionDisocclusion,
+            (float)m_tickCount / 60.0f );
+        const vaSMAAWrapper::TemporalLifecycleDiagnostics & diagnostics =
+            m_parent.GetSMAATemporalLifecycleDiagnostics( );
+        if( diagnostics.CompletedFrameCount == m_lastCompletedFrameCount )
+        {
+            if( m_tickCount > 600 )
+            {
+                m_passed = false;
+                Finish( abTool );
+            }
+            return;
+        }
+        m_lastCompletedFrameCount = diagnostics.CompletedFrameCount;
+
+        // AutoBench can render once after the work item applies its settings
+        // and before the following Tick observes the diagnostics. Discard that
+        // setup frame, then start from a newly reset, observable seed frame.
+        if( !m_measurementArmed )
+        {
+            m_parent.SetSMAATemporalLifecycleDiagnosticsEnabled( true );
+            m_lastCompletedFrameCount =
+                m_parent.GetSMAATemporalLifecycleDiagnostics( ).CompletedFrameCount;
+            m_measurementArmed = true;
+            return;
+        }
+
+        switch( m_phase )
+        {
+        case Phase::StandardSeed:
+            m_phasePassed[0] = CheckFrame( diagnostics, true );
+            m_phase = Phase::StandardActive;
+            break;
+        case Phase::StandardActive:
+            m_phasePassed[1] = CheckFrame( diagnostics, false );
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            m_phase = Phase::StandardResetSeed;
+            break;
+        case Phase::StandardResetSeed:
+            m_phasePassed[2] = CheckFrame( diagnostics, true );
+            m_parent.Settings( ).CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ET2X_R;
+            m_parent.ResetSMAATemporalHistoryForDiagnostics( );
+            m_phase = Phase::ET2XSeed;
+            break;
+        case Phase::ET2XSeed:
+            m_phasePassed[3] = CheckFrame( diagnostics, true );
+            m_phase = Phase::ET2XActive;
+            break;
+        case Phase::ET2XActive:
+            m_phasePassed[4] = CheckFrame( diagnostics, false );
+            m_phase = Phase::Complete;
+            Finish( abTool );
+            break;
+        default:
+            break;
+        }
+    }
+
+    virtual void OnRender( AutoBenchTool & ) override {}
+    virtual bool IsDone( AutoBenchTool & ) const override { return m_isDone; }
+    virtual bool IsCapturingFrame( ) const override { return false; }
+    virtual float GetProgress( ) const override
+    {
+        return vaMath::Clamp( (float)(int)m_phase / (float)(int)Phase::Complete,
+            0.0f, 1.0f );
     }
 };
 
@@ -9603,6 +10579,38 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 vaSMAAWrapper::ObjectMotionReprojection::Off);
             VA_LOG("SMAA rigid-object motion reprojection diagnostic override: %s", enabled != 0? "enabled" : "disabled");
         }
+        else if (_wcsicmp(parameter.first.c_str(), L"smaaDisocclusionRejectionOverride") == 0)
+        {
+            int enabled = 0;
+            float absoluteThreshold = m_SMAA->GetDisocclusionAbsoluteThreshold( );
+            float relativeThreshold = m_SMAA->GetDisocclusionRelativeThreshold( );
+            std::wistringstream values(parameter.second);
+            if (!(values >> enabled) || enabled < 0 || enabled > 1)
+            {
+                VA_LOG_ERROR("Invalid -smaaDisocclusionRejectionOverride value; expected <0|1> [absoluteDepthTolerance relativeDepthTolerance]");
+                return;
+            }
+            if (values >> absoluteThreshold)
+            {
+                if (!(values >> relativeThreshold))
+                {
+                    VA_LOG_ERROR("-smaaDisocclusionRejectionOverride requires both depth tolerances when either is supplied");
+                    return;
+                }
+            }
+            if (!std::isfinite(absoluteThreshold) || absoluteThreshold < 0.0f
+                || !std::isfinite(relativeThreshold) || relativeThreshold < 0.0f)
+            {
+                VA_LOG_ERROR("SMAA disocclusion depth tolerances must be finite non-negative values");
+                return;
+            }
+            m_SMAA->SetDisocclusionThresholds(absoluteThreshold, relativeThreshold);
+            m_SMAA->SetDisocclusionRejection(enabled != 0?
+                vaSMAAWrapper::DisocclusionRejection::PreviousDepth :
+                vaSMAAWrapper::DisocclusionRejection::Off);
+            VA_LOG("SMAA previous-depth disocclusion rejection: %s, tolerance %.6f + %.6f relative",
+                enabled != 0? "enabled" : "disabled", absoluteThreshold, relativeThreshold);
+        }
         else if (_wcsicmp(parameter.first.c_str(), L"smaaTemporalDualOutputOptimization") == 0)
         {
             int enabled = 1;
@@ -9843,7 +10851,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if(!TryParseSMAACameraMotionScene(sceneToken,scene) || (scene!=SceneSelectionType::LumberyardBistro && scene!=SceneSelectionType::MinecraftLostEmpire)) return;
             m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(!formal);
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(*this,scene,start,warm,frames,repeats,
-                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,false,true,
+                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,false,false,true,
                 candidateSelectionSmoke || candidateSelectionBenchmark));
             m_quitAfterCommandLineCapture=true; return;
         }
@@ -9861,7 +10869,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             if(!TryParseSMAACameraMotionScene(sceneToken,scene) || (scene!=SceneSelectionType::LumberyardBistro && scene!=SceneSelectionType::MinecraftLostEmpire)) return;
             m_SMAA->SetTemporalCandidateStatisticsReadbackEnabled(!formal);
             m_autoBench->AddTask(std::make_shared<BenchItemSMAATemporalPerformanceBenchmark>(*this,scene,start,warm,frames,repeats,
-                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,true));
+                false,false,false,false,false,false,false,false,SMAACameraMotionProfile::YawFast360,60,false,false,false,false,false,false,false,false,true));
             m_quitAfterCommandLineCapture=true; return;
         }
         const bool originalPerformanceSmoke = _wcsicmp(parameter.first.c_str(), L"smaaOriginalFourPerformanceSmoke") == 0;
@@ -9908,6 +10916,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionPerformanceSmoke") == 0;
         const bool objectMotionReprojectionPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionReprojectionPerformanceBenchmark") == 0;
+        const bool objectMotionDisocclusionPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionDisocclusionPerformanceSmoke") == 0;
+        const bool objectMotionDisocclusionPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaObjectMotionDisocclusionPerformanceBenchmark") == 0;
         const bool matchedKernelPerformanceSmoke =
             _wcsicmp(parameter.first.c_str(), L"smaaMatchedKernelPerformanceSmoke") == 0;
         const bool matchedKernelPerformanceBenchmark =
@@ -9931,7 +10943,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || armDualFilterPerformanceSmoke || armThresholdPerformanceSmoke
             || candidateEdgeSourcePerformanceSmoke
             || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke
-            || objectMotionReprojectionPerformanceSmoke || matchedKernelPerformanceSmoke
+            || objectMotionReprojectionPerformanceSmoke || objectMotionDisocclusionPerformanceSmoke
+            || matchedKernelPerformanceSmoke
             || candidateExecutionPerformanceSmoke || feedbackTopologyPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
@@ -9939,7 +10952,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || armDualFilterPerformanceBenchmark || armThresholdPerformanceBenchmark
             || candidateEdgeSourcePerformanceBenchmark
             || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark
-            || objectMotionReprojectionPerformanceBenchmark || matchedKernelPerformanceBenchmark
+            || objectMotionReprojectionPerformanceBenchmark || objectMotionDisocclusionPerformanceBenchmark
+            || matchedKernelPerformanceBenchmark
             || candidateExecutionPerformanceBenchmark || feedbackTopologyPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
@@ -10005,7 +11019,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             const bool objectMotionReprojectionPerformance =
                 objectMotionReprojectionPerformanceSmoke
                 || objectMotionReprojectionPerformanceBenchmark;
-            if( objectMotionReprojectionPerformance )
+            const bool objectMotionDisocclusionPerformance =
+                objectMotionDisocclusionPerformanceSmoke
+                || objectMotionDisocclusionPerformanceBenchmark;
+            if( objectMotionReprojectionPerformance || objectMotionDisocclusionPerformance )
             {
                 performanceScene = SceneSelectionType::SMAATemporalStressTest;
                 usePerformanceCameraMotion = false;
@@ -10045,6 +11062,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 integratedRemovalPerformanceSmoke || integratedRemovalPerformanceBenchmark,
                 integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark,
                 objectMotionReprojectionPerformance,
+                objectMotionDisocclusionPerformance,
                 matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark,
                 armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark,
                 candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark,
@@ -10073,6 +11091,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 performanceKind = "integrated source-overhead comparison";
             if( objectMotionReprojectionPerformance )
                 performanceKind = "rigid-object reprojection ablation";
+            if( objectMotionDisocclusionPerformance )
+                performanceKind = "rigid-object/previous-depth disocclusion ablation";
             if( matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark )
                 performanceKind = "matched document-kernel coverage ablation";
             if( candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark )
@@ -10082,7 +11102,8 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             VA_LOG("Queued SMAA %s %s: scene=%s, start %.3f s, %d repeats, %d warm-up frames, %d measurement frames per run, candidate readback %s",
                 performanceKind,
                 repeatedPerformanceBenchmark? "repeated performance benchmark" : "performance smoke",
-                objectMotionReprojectionPerformance? "procedural-object-motion" :
+                (objectMotionReprojectionPerformance || objectMotionDisocclusionPerformance)?
+                    "procedural-object-motion" :
                     GetSMAACameraMotionSceneName( performanceScene ), startTime, repeatCount,
                 warmupFrameCount, measureFrameCount,
                 m_SMAA->GetTemporalCandidateStatisticsReadbackEnabled()? "On" : "Off");
@@ -10183,6 +11204,15 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             m_autoBench->AddTask(std::make_shared<BenchItemValidateSMAATemporalLifecycle>(*this));
             m_quitAfterCommandLineCapture = true;
             VA_LOG("Queued SMAA temporal lifecycle engineering validation");
+            return;
+        }
+
+        if (_wcsicmp(parameter.first.c_str(), L"smaaPreviousDepthDisocclusionTest") == 0)
+        {
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemValidateSMAAPreviousDepthDisocclusion>(*this));
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG("Queued SMAA previous-depth disocclusion lifecycle and reversed-Z validation");
             return;
         }
 
@@ -10600,8 +11630,12 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             return;
         }
 
+        const bool texturedObjectMotionReference = _wcsicmp(
+            parameter.first.c_str( ),
+            L"smaaObjectMotionDisocclusionReferenceCapture" ) == 0;
         if( _wcsicmp( parameter.first.c_str( ),
-            L"smaaSupersampleStressReferenceCapture" ) == 0 )
+                L"smaaSupersampleStressReferenceCapture" ) == 0
+            || texturedObjectMotionReference )
         {
             wstring scenarioToken = L"object-motion";
             int frameCount = 240;
@@ -10636,10 +11670,12 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             warmupFrameCount = vaMath::Clamp( warmupFrameCount, 0, 600 );
             m_autoBench->AddTask(
                 std::make_shared<BenchItemRecordSMAASupersampleStressReference>(
-                    *this, scenario, frameCount, warmupFrameCount ) );
+                    *this, scenario, frameCount, warmupFrameCount,
+                    texturedObjectMotionReference ) );
             m_quitAfterCommandLineCapture = true;
             VA_LOG(
-                "Queued SMAA supersample stress reference '%s': %d capture frames, %d warm-up frames",
+                "Queued SMAA %ssupersample stress reference '%s': %d capture frames, %d warm-up frames",
+                texturedObjectMotionReference? "textured object-motion " : "",
                 GetSMAATemporalStressScenarioName( scenario ),
                 frameCount, warmupFrameCount );
             return;
@@ -10748,6 +11784,67 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 "Queued SMAA rigid-object reprojection quality gate '%s': %d capture frames, %d warm-up frames",
                 GetSMAATemporalStressScenarioName( scenario ),
                 frameCount, warmupFrameCount );
+            return;
+        }
+
+        if( _wcsicmp( parameter.first.c_str( ),
+            L"smaaObjectMotionDisocclusionQualityCapture" ) == 0 )
+        {
+            wstring scenarioToken = L"object-motion";
+            int frameCount = 240;
+            int warmupFrameCount = 60;
+            float absoluteThreshold = 0.01f;
+            float relativeThreshold = 0.005f;
+            if( !parameter.second.empty( ) )
+            {
+                std::wistringstream values( parameter.second );
+                if( !(values >> scenarioToken >> frameCount >> warmupFrameCount) )
+                {
+                    VA_LOG_ERROR(
+                        "Invalid SMAA object-motion disocclusion capture values; expected: <object-motion|combined> <captureFrames> <warmupFrames> [absoluteDepthTolerance] [relativeDepthTolerance]" );
+                    return;
+                }
+                if( values >> absoluteThreshold )
+                {
+                    if( !(values >> relativeThreshold) )
+                    {
+                        VA_LOG_ERROR(
+                            "SMAA object-motion disocclusion capture requires both absolute and relative depth tolerances when either is supplied" );
+                        return;
+                    }
+                }
+            }
+
+            SMAATemporalStressScenario scenario = SMAATemporalStressScenario::MaxValue;
+            if( _wcsicmp( scenarioToken.c_str( ), L"object-motion" ) == 0 )
+                scenario = SMAATemporalStressScenario::ObjectMotionDisocclusion;
+            else if( _wcsicmp( scenarioToken.c_str( ), L"combined" ) == 0 )
+                scenario = SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+            else
+            {
+                VA_LOG_ERROR(
+                    "Invalid SMAA object-motion disocclusion scenario; expected object-motion or combined" );
+                return;
+            }
+            if( !std::isfinite( absoluteThreshold ) || absoluteThreshold < 0.0f
+                || !std::isfinite( relativeThreshold ) || relativeThreshold < 0.0f )
+            {
+                VA_LOG_ERROR(
+                    "SMAA object-motion disocclusion tolerances must be finite non-negative values" );
+                return;
+            }
+
+            frameCount = vaMath::Clamp( frameCount, 1, 1800 );
+            warmupFrameCount = vaMath::Clamp( warmupFrameCount, 1, 600 );
+            m_autoBench->AddTask(
+                std::make_shared<BenchItemRecordSMAAObjectMotionDisocclusionQuality>(
+                    *this, scenario, frameCount, warmupFrameCount,
+                    absoluteThreshold, relativeThreshold ) );
+            m_quitAfterCommandLineCapture = true;
+            VA_LOG(
+                "Queued SMAA rigid-object/previous-depth quality gate '%s': %d capture frames, %d warm-up frames, tolerance %.6f + %.6f relative",
+                GetSMAATemporalStressScenarioName( scenario ), frameCount,
+                warmupFrameCount, absoluteThreshold, relativeThreshold );
             return;
         }
 

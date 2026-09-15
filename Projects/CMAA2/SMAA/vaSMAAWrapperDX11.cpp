@@ -378,6 +378,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_texDepthStencil               = nullptr;
 
         shared_ptr<vaTexture>       m_externalInputColor            = nullptr;
+        shared_ptr<vaTexture>       m_externalDepthForHistory       = nullptr;
 
         shared_ptr<vaTexture>       m_viewColor0                    = nullptr;
         shared_ptr<vaTexture>       m_viewColor1                    = nullptr;
@@ -389,18 +390,24 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalSpatialCurrent        = nullptr;
         shared_ptr<vaTexture>       m_temporalSpatialCurrentIgnoreSRGB = nullptr;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_temporalExpectedPreviousDepth = nullptr;
+        shared_ptr<vaTexture>       m_temporalDepthHistory[2]       = { nullptr, nullptr };
         ID3D11Texture2D *           m_temporalVelocityReadback      = nullptr;
         ID3D11Texture2D *           m_temporalFeedbackReadback[3]   = { nullptr, nullptr, nullptr };
         bool                        m_temporalFeedbackExpectedHashValid = false;
         bool                        m_temporalFeedbackResolvedSnapshotValid = false;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
+        bool                        m_previousDepthUnpackValid       = false;
+        bool                        m_temporalDepthHistoryValid      = false;
         bool                        m_smaaReprojectionEnabled        = false;
         bool                        m_smaaEdgeSelectiveEnabled      = false;
         bool                        m_smaaDocumentFullScreenEnabled = false;
         bool                        m_smaaAdaptiveSearchEnabled     = false;
         bool                        m_velocityDiagnosticsResourcesEnabled = false;
+        bool                        m_disocclusionResourcesEnabled   = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
+        vaVector2                   m_previousDepthUnpack            = vaVector2( 0.0f, 0.0f );
 
         SMAAReprojectionConstants   m_reprojectionConstants;
         vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
@@ -481,7 +488,8 @@ namespace VertexAsylum
         virtual void                    ResetTemporalHistory( ) override;
 
     private:
-        bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
+        bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor,
+                                                const shared_ptr<vaTexture> & optionalDepth );
         vaDrawResultFlags               ExecuteTSCMAAInspiredResolve( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & currentSpatial,
                                                 const shared_ptr<vaTexture> & previousHistory, const shared_ptr<vaTexture> & outputHistory,
                                                 const shared_ptr<vaTexture> & luma, const shared_ptr<vaTexture> & destination,
@@ -718,6 +726,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
 {
     SAFE_DELETE( m_smaa );
     m_externalInputColor = nullptr;
+    m_externalDepthForHistory = nullptr;
     m_texDepthStencil = nullptr;
     m_viewColor0 = nullptr;
     m_viewColor1 = nullptr;
@@ -729,6 +738,9 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalSpatialCurrent = nullptr;
     m_temporalSpatialCurrentIgnoreSRGB = nullptr;
     m_temporalVelocity = nullptr;
+    m_temporalExpectedPreviousDepth = nullptr;
+    m_temporalDepthHistory[0] = nullptr;
+    m_temporalDepthHistory[1] = nullptr;
     SAFE_RELEASE( m_temporalVelocityReadback );
     SAFE_RELEASE( m_temporalFeedbackReadback[0] );
     SAFE_RELEASE( m_temporalFeedbackReadback[1] );
@@ -747,6 +759,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_smaaDocumentFullScreenEnabled = false;
     m_smaaAdaptiveSearchEnabled = false;
     m_velocityDiagnosticsResourcesEnabled = false;
+    m_disocclusionResourcesEnabled = false;
     m_clippingDebugResourcesEnabled = false;
     m_candidateExpansionResourcesEnabled = false;
     m_filteredQuarterResourcesEnabled = false;
@@ -784,6 +797,8 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     }
     m_temporalHistoryValid = false;
     m_previousViewProjValid = false;
+    m_previousDepthUnpackValid = false;
+    m_temporalDepthHistoryValid = false;
     m_temporalFeedbackExpectedHashValid = false;
     m_temporalFeedbackResolvedSnapshotValid = false;
     m_temporalCandidateStatistics = TemporalCandidateStatistics( );
@@ -810,7 +825,8 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     }
 }
 
-bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor )
+bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor,
+    const shared_ptr<vaTexture> & optionalDepth )
 {
     // this should go to UpdateResources
     bool smaaPredication = false;   // search for SMAA_PREDICATION - this is for additional edge detection (depth-based, or etc.)
@@ -818,6 +834,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     bool edgeSelective = GetEdgeSelectiveTemporalEnabled( );
     bool documentFullScreen = GetDocumentFullScreenTemporalEnabled( );
     bool documentTemporal = edgeSelective || documentFullScreen;
+    bool disocclusionRejection = GetPreviousDepthDisocclusionRejectionEnabled( );
     bool adaptiveSearch = GetAdaptiveSpatialSearchEnabled( );
     const CandidateExpansion effectiveExpansion = GetEffectiveCandidateExpansion( );
     bool candidateExpansion = edgeSelective
@@ -834,11 +851,15 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         || m_smaaDocumentFullScreenEnabled != documentFullScreen
         || m_smaaAdaptiveSearchEnabled != adaptiveSearch
         || m_velocityDiagnosticsResourcesEnabled != GetTemporalVelocityDiagnosticsEnabled( )
+        || m_disocclusionResourcesEnabled != disocclusionRejection
+        || (disocclusionRejection && m_externalDepthForHistory != optionalDepth)
         || m_clippingDebugResourcesEnabled != GetClippingDebugViewsEnabled( )
         || m_candidateExpansionResourcesEnabled != candidateExpansion
         || m_filteredQuarterResourcesEnabled != filteredQuarter
         || m_armDualFilterResourcesEnabled != armDualFilter
         || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || documentTemporal) && m_temporalVelocity == nullptr)
+            || (disocclusionRejection && (m_temporalExpectedPreviousDepth == nullptr
+                || m_temporalDepthHistory[0] == nullptr || m_temporalDepthHistory[1] == nullptr))
             || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
             || (documentTemporal && (m_temporalSpatialCurrent == nullptr || m_temporalSpatialCurrentIgnoreSRGB == nullptr))
             || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
@@ -859,6 +880,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         m_smaaDocumentFullScreenEnabled = documentFullScreen;
         m_smaaAdaptiveSearchEnabled = adaptiveSearch;
         m_velocityDiagnosticsResourcesEnabled = GetTemporalVelocityDiagnosticsEnabled( );
+        m_disocclusionResourcesEnabled = disocclusionRejection;
         m_clippingDebugResourcesEnabled = GetClippingDebugViewsEnabled( );
         m_candidateExpansionResourcesEnabled = candidateExpansion;
         m_filteredQuarterResourcesEnabled = filteredQuarter;
@@ -866,6 +888,7 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
         m_externalInputColor = inputColor;
+        m_externalDepthForHistory = disocclusionRejection? optionalDepth : nullptr;
 
         m_sampleCount = inputColor->GetArrayCount();
         if( m_sampleCount == 1 )
@@ -907,6 +930,34 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             if( smaaProjection || documentTemporal )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
+
+            if( disocclusionRejection )
+            {
+                if( optionalDepth == nullptr || optionalDepth->GetSampleCount( ) != 1
+                    || optionalDepth->GetSizeX( ) != inputColor->GetSizeX( )
+                    || optionalDepth->GetSizeY( ) != inputColor->GetSizeY( )
+                    || optionalDepth->GetSRVFormat( ) != vaResourceFormat::R32_FLOAT )
+                    return false;
+
+                const vaResourceBindSupportFlags expectedDepthBindFlags =
+                    vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource;
+                m_temporalExpectedPreviousDepth = vaTexture::Create2D(
+                    inputColor->GetRenderDevice(), vaResourceFormat::R32_FLOAT,
+                    inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    expectedDepthBindFlags, vaResourceAccessFlags::Default );
+
+                for( int i = 0; i < 2; i++ )
+                {
+                    m_temporalDepthHistory[i] = vaTexture::Create2D(
+                        optionalDepth->GetRenderDevice(), optionalDepth->GetResourceFormat(),
+                        optionalDepth->GetSizeX(), optionalDepth->GetSizeY(),
+                        optionalDepth->GetMipLevels(), optionalDepth->GetArrayCount(),
+                        optionalDepth->GetSampleCount(), vaResourceBindSupportFlags::ShaderResource,
+                        vaResourceAccessFlags::Default, optionalDepth->GetSRVFormat(),
+                        vaResourceFormat::Unknown, vaResourceFormat::Unknown, vaResourceFormat::Unknown,
+                        vaTextureFlags::None, optionalDepth->GetContentsType() );
+                }
+            }
 
             if( GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocity != nullptr )
             {
@@ -1006,6 +1057,8 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
             for( int i = 0; i < c_tscmaaReadbackBufferCount; i++ )
                 readbackBuffersReady = readbackBuffersReady && (m_tscmaaControlReadback[i] != nullptr);
             if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || ((smaaProjection || documentTemporal) && m_temporalVelocity == nullptr)
+                || (disocclusionRejection && (m_temporalExpectedPreviousDepth == nullptr
+                    || m_temporalDepthHistory[0] == nullptr || m_temporalDepthHistory[1] == nullptr))
                 || (GetTemporalVelocityDiagnosticsEnabled( ) && m_temporalVelocityReadback == nullptr)
                 || (documentTemporal && (m_temporalSpatialCurrent == nullptr || m_temporalSpatialCurrentIgnoreSRGB == nullptr))
                 || (edgeSelective && (m_temporalSpatialCurrent == nullptr || m_tscmaaBaseEdgeMask == nullptr || m_tscmaaCandidateMask == nullptr
@@ -1028,6 +1081,22 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera,
     const vaRenderMeshDrawList * optionalObjectVelocityDrawList )
 {
+    if( GetDisocclusionRejection( ) != DisocclusionRejection::Off
+        && !GetTemporalReprojectionEnabled( ) )
+    {
+        VA_LOG_ERROR( "Previous-depth disocclusion rejection requires motion reprojection" );
+        return vaDrawResultFlags::UnspecifiedError;
+    }
+    if( GetPreviousDepthDisocclusionRejectionEnabled( )
+        && (optionalDepth == nullptr || optionalDepth->GetSampleCount( ) != 1
+            || optionalDepth->GetMipLevels( ) != 1 || optionalDepth->GetArrayCount( ) != 1
+            || optionalDepth->GetSizeX( ) != inputColor->GetSizeX( )
+            || optionalDepth->GetSizeY( ) != inputColor->GetSizeY( )
+            || optionalDepth->GetSRVFormat( ) != vaResourceFormat::R32_FLOAT) )
+    {
+        VA_LOG_ERROR( "Previous-depth disocclusion rejection requires a matching single-sample R32_FLOAT depth SRV" );
+        return vaDrawResultFlags::UnspecifiedError;
+    }
     // Reject unsupported policy/source combinations before touching output
     // bindings or resources. Never fall back to a re-detection shader which
     // has no first-pass finalDelta and would silently discard all candidates.
@@ -1041,6 +1110,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     }
     if( GetEdgeSelectiveTemporalEnabled( ) && (GetRecoveredSourceCandidates( ) || GetRecoveredSourceKernel( )) )
     {
+        if( GetPreviousDepthDisocclusionRejectionEnabled( ) )
+        {
+            VA_LOG_ERROR( "Previous-depth disocclusion rejection is not implemented for the recovered-source kernel ablation" );
+            return vaDrawResultFlags::UnspecifiedError;
+        }
         // First source comparison deliberately excludes interacting experimental features.
         if( GetEffectiveCandidateExpansion( ) != CandidateExpansion::None || GetTemporalJitterEnabled( )
             || GetTemporalSettings( ).Feedback != HistoryFeedback::ResolvedOutput
@@ -1064,15 +1138,26 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     deviceContext.SetRenderTarget( nullptr, nullptr, false );
 
+    const auto restoreOutputsAndReturn =
+        [&deviceContext, &rtState]( vaDrawResultFlags result )
+        {
+            deviceContext.SetOutputs( rtState );
+            return result;
+        };
+
     ID3D11DeviceContext * dx11Context = vaSaferStaticCast< vaRenderDeviceContextDX11 * >( &deviceContext )->GetDXContext( );
 
-    if( !UpdateResources( deviceContext, inputColor ) )
-    { assert( false ); return vaDrawResultFlags::UnspecifiedError; }
+    if( !UpdateResources( deviceContext, inputColor, optionalDepth ) )
+    {
+        assert( false );
+        deviceContext.SetOutputs( rtState );
+        return vaDrawResultFlags::UnspecifiedError;
+    }
 
     for( const shared_ptr<TechniqueThingieDX11> technique : m_techniques )
     {
         if( !technique->PS->IsCreated( ) || !technique->VS->IsCreated( ) )
-            { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return vaDrawResultFlags::ShadersStillCompiling; }
+            { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling ); }
     }
     if( GetEdgeSelectiveTemporalEnabled( ) && (!m_tscmaaExtractCandidatesCS->IsCreated( )
         || (GetEffectiveCandidateExpansion( ) == CandidateExpansion::Dilate3x3
@@ -1096,28 +1181,29 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         || ((GetTemporalDebugView( ) == TemporalDebugView::BaseEdges || GetTemporalDebugView( ) == TemporalDebugView::SelectedCandidates)
             && !m_tscmaaDebugMaskPS->IsCreated( ))
         || (GetClippingDebugViewsEnabled( ) && !m_tscmaaDebugColorPS->IsCreated( ))) )
-        return vaDrawResultFlags::ShadersStillCompiling;
+        return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling );
     if( GetDocumentFullScreenTemporalEnabled( ) && (!m_tscmaaResolveFullScreenCS->IsCreated( )
         || (GetTemporalDualOutputOptimizationEnabled( )
             && (!m_tscmaaInitializeDualOutputCS->IsCreated( )
                 || !m_tscmaaResolveFullScreenDualOutputCS->IsCreated( ))) ) )
-        return vaDrawResultFlags::ShadersStillCompiling;
+        return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling );
 
     if( GetCatmullRomDiagnosticPending( ) )
     {
         if( !m_tscmaaCatmullRomDiagnosticCS->IsCreated( ) )
-            return vaDrawResultFlags::ShadersStillCompiling;
+            return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling );
         RunCatmullRomDiagnostics( dx11Context );
     }
     if( GetVarianceClippingDiagnosticPending( ) )
     {
         if( !m_tscmaaVarianceDiagnosticCS->IsCreated( ) )
-            return vaDrawResultFlags::ShadersStillCompiling;
+            return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling );
         RunVarianceClippingDiagnostics( dx11Context );
     }
 
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
     const bool rigidObjectMotionEnabled = GetRigidObjectMotionReprojectionEnabled( );
+    const bool previousDepthRejectionEnabled = GetPreviousDepthDisocclusionRejectionEnabled( );
     const bool edgeSelectiveTemporalEnabled = GetEdgeSelectiveTemporalEnabled( );
     const bool documentFullScreenTemporalEnabled = GetDocumentFullScreenTemporalEnabled( );
     const bool documentTemporalEnabled = edgeSelectiveTemporalEnabled || documentFullScreenTemporalEnabled;
@@ -1125,6 +1211,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     const int temporalFrameIndexBefore = GetTemporalFrameIndex( );
     const bool temporalHistoryValidBefore = m_temporalHistoryValid;
     const bool previousViewProjValidBefore = m_previousViewProjValid;
+    const bool temporalDepthHistoryValidBefore = m_temporalDepthHistoryValid;
+    const bool previousDepthUnpackValidBefore = m_previousDepthUnpackValid;
+    bool previousDepthRejectionActiveThisFrame = false;
     if( temporalLifecycleDiagnosticsEnabled )
     {
         const int expectedFrameIndex = (int)(m_temporalLifecycleFramesSinceReset % 2);
@@ -1138,6 +1227,18 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || m_temporalHistory[0] == m_temporalHistory[1] )
             m_temporalLifecycleDiagnostics.HistoryResourceMismatchCount++;
 
+        if( previousDepthRejectionEnabled )
+        {
+            const bool expectedDepthHistoryValid = m_temporalLifecycleFramesSinceReset > 0;
+            if( temporalDepthHistoryValidBefore != expectedDepthHistoryValid
+                || previousDepthUnpackValidBefore != expectedDepthHistoryValid
+                || m_temporalExpectedPreviousDepth == nullptr
+                || m_temporalDepthHistory[0] == nullptr
+                || m_temporalDepthHistory[1] == nullptr
+                || m_temporalDepthHistory[0] == m_temporalDepthHistory[1] )
+                m_temporalLifecycleDiagnostics.DepthHistoryMismatchCount++;
+        }
+
         const vaVector2 expectedJitter = GetTemporalJitterEnabled( )? GetTemporalJitterOffset( ) : vaVector2( 0.0f, 0.0f );
         vaVector2 actualJitter( 0.0f, 0.0f );
         if( optionalCamera != nullptr )
@@ -1149,6 +1250,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_temporalLifecycleDiagnostics.LastHistoryValidBefore = temporalHistoryValidBefore;
         m_temporalLifecycleDiagnostics.LastWasSeed = !temporalHistoryValidBefore;
         m_temporalLifecycleDiagnostics.LastUsedReprojection = temporalReprojectionEnabled;
+        m_temporalLifecycleDiagnostics.LastDepthRejectionConfigured = previousDepthRejectionEnabled;
+        m_temporalLifecycleDiagnostics.LastDepthHistoryValidBefore = temporalDepthHistoryValidBefore;
+        m_temporalLifecycleDiagnostics.LastDepthRejectionActive = false;
+        m_temporalLifecycleDiagnostics.LastDepthHistoryCopied = false;
         m_temporalLifecycleDiagnostics.LastJitter = actualJitter;
         m_temporalLifecycleDiagnostics.LastWidth = (uint32)inputColor->GetSizeX( );
         m_temporalLifecycleDiagnostics.LastHeight = (uint32)inputColor->GetSizeY( );
@@ -1157,6 +1262,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     vaMatrix4x4 currentJitteredViewProjForVelocity = vaMatrix4x4::Identity;
     vaMatrix4x4 currentUnjitteredViewProjForHistory = vaMatrix4x4::Identity;
+    vaVector2 currentDepthUnpackForHistory( 0.0f, 0.0f );
     if( temporalReprojectionEnabled || documentTemporalEnabled )
     {
         const TemporalSettings & temporalSettings = GetTemporalSettings( );
@@ -1198,11 +1304,19 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             currentProjectionJitter.x, currentProjectionJitter.y,
             (float)(int)temporalSettings.NonCandidate,
             (float)(int)GetEffectiveCandidateExpansion( ) );
+        previousDepthRejectionActiveThisFrame = previousDepthRejectionEnabled
+            && temporalHistoryValidBefore && m_temporalDepthHistoryValid
+            && m_previousDepthUnpackValid;
+        m_reprojectionConstants.TSCMAADepthRejectParams = vaVector4(
+            previousDepthRejectionActiveThisFrame? 1.0f : 0.0f,
+            GetDisocclusionAbsoluteThreshold( ), GetDisocclusionRelativeThreshold( ), 0.0f );
+        m_reprojectionConstants.TSCMAAPreviousDepthUnpack = vaVector4(
+            m_previousDepthUnpack.x, m_previousDepthUnpack.y, 0.0f, 0.0f );
 
         if( temporalReprojectionEnabled )
         {
             if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
-                return vaDrawResultFlags::ShadersStillCompiling;
+                return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling );
 
             const vaMatrix4x4 currentJitteredViewProj = optionalCamera->GetViewMatrix( ) * optionalCamera->GetProjMatrix( );
             vaCameraBase unjitteredCamera = *optionalCamera;
@@ -1210,6 +1324,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             unjitteredCamera.SetSubpixelOffset( zeroJitter );
             unjitteredCamera.Tick( 0.0f, false );
             const vaMatrix4x4 currentUnjitteredViewProj = unjitteredCamera.GetViewMatrix( ) * unjitteredCamera.GetProjMatrix( );
+            const vaMatrix4x4 currentUnjitteredProjection = unjitteredCamera.GetProjMatrix( );
+            currentDepthUnpackForHistory.x = -currentUnjitteredProjection.m[3][2];
+            currentDepthUnpackForHistory.y = currentUnjitteredProjection.m[2][2];
+            if( currentDepthUnpackForHistory.x * currentDepthUnpackForHistory.y < 0.0f )
+                currentDepthUnpackForHistory.y = -currentDepthUnpackForHistory.y;
 
             m_reprojectionConstants.CurrentViewProjInv = currentJitteredViewProj.Inverse( );
             m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
@@ -1238,24 +1357,33 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     if( temporalReprojectionEnabled )
     {
-        VA_SCOPE_CPUGPU_TIMER( SMAAGenerateCameraVelocity, deviceContext );
-        deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
-        vaGraphicsItem velocityRenderItem;
-        deviceContext.FillFullscreenPassRenderItem( velocityRenderItem );
-        velocityRenderItem.ConstantBuffers[1] = m_reprojectionConstantsBuffer;
-        velocityRenderItem.ShaderResourceViews[6] = optionalDepth;
-        velocityRenderItem.PixelShader = m_generateCameraVelocityPS;
-        const vaDrawResultFlags velocityResult = deviceContext.ExecuteSingleItem( velocityRenderItem );
-        deviceContext.SetRenderTarget( nullptr, nullptr, false );
-        if( velocityResult != vaDrawResultFlags::None )
-            return velocityResult;
+        {
+            VA_SCOPE_CPUGPU_TIMER( SMAAGenerateCameraVelocity, deviceContext );
+            if( previousDepthRejectionEnabled )
+            {
+                const shared_ptr<vaTexture> velocityDepthTargets[2] =
+                    { m_temporalVelocity, m_temporalExpectedPreviousDepth };
+                deviceContext.SetRenderTargets( 2, velocityDepthTargets, nullptr, true );
+            }
+            else
+                deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
+            vaGraphicsItem velocityRenderItem;
+            deviceContext.FillFullscreenPassRenderItem( velocityRenderItem );
+            velocityRenderItem.ConstantBuffers[1] = m_reprojectionConstantsBuffer;
+            velocityRenderItem.ShaderResourceViews[6] = optionalDepth;
+            velocityRenderItem.PixelShader = m_generateCameraVelocityPS;
+            const vaDrawResultFlags velocityResult = deviceContext.ExecuteSingleItem( velocityRenderItem );
+            deviceContext.SetRenderTarget( nullptr, nullptr, false );
+            if( velocityResult != vaDrawResultFlags::None )
+                return restoreOutputsAndReturn( velocityResult );
+        }
 
         if( rigidObjectMotionEnabled && optionalObjectVelocityDrawList != nullptr )
         {
             if( optionalDepth == nullptr || optionalCamera == nullptr
                 || !m_generateRigidObjectVelocityVS->IsCreated( )
                 || !m_generateRigidObjectVelocityPS->IsCreated( ) )
-                return vaDrawResultFlags::ShadersStillCompiling;
+                return restoreOutputsAndReturn( vaDrawResultFlags::ShadersStillCompiling );
 
             // Keep this scope unconditional for every rigid-object reprojection
             // frame.  The filtered list can legitimately be empty, but the
@@ -1274,7 +1402,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             if( movingRigidObjects.Count( ) > 0 )
             {
-                deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, false );
+                if( previousDepthRejectionEnabled )
+                {
+                    const shared_ptr<vaTexture> velocityDepthTargets[2] =
+                        { m_temporalVelocity, m_temporalExpectedPreviousDepth };
+                    deviceContext.SetRenderTargets( 2, velocityDepthTargets, nullptr, false );
+                }
+                else
+                    deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, false );
                 vaSceneDrawContext objectVelocityDrawContext( deviceContext,
                     *const_cast<vaCameraBase *>( optionalCamera ), vaDrawContextOutputType::Forward );
                 const vaDrawResultFlags objectVelocityResult = GetRenderDevice( ).GetMeshManager( ).Draw(
@@ -1301,15 +1436,13 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     } );
                 deviceContext.SetRenderTarget( nullptr, nullptr, false );
                 if( objectVelocityResult != vaDrawResultFlags::None )
-                    return objectVelocityResult;
+                    return restoreOutputsAndReturn( objectVelocityResult );
             }
         }
 
         if( GetTemporalVelocityDiagnosticsEnabled( ) )
             ReadbackTemporalVelocityDiagnostics( dx11Context, (uint32)inputColor->GetSizeX( ), (uint32)inputColor->GetSizeY( ) );
 
-        m_previousViewProj = currentUnjitteredViewProjForHistory;
-        m_previousViewProjValid = true;
     }
 
     SetGlobalStates( deviceContext );
@@ -1488,7 +1621,26 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
                 {
                     VA_SCOPE_CPUGPU_TIMER( SMAAStandardTemporalResolve, deviceContext );
+                    if( previousDepthRejectionEnabled )
+                    {
+                        ID3D11Buffer * reprojectionConstants = m_reprojectionConstantsBuffer.GetBuffer( )
+                            ->SafeCast<vaConstantBufferDX11*>( )->GetBuffer( );
+                        ID3D11ShaderResourceView * depthRejectSRVs[2] =
+                        {
+                            m_temporalExpectedPreviousDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ),
+                            m_temporalDepthHistory[1-temporalFrameIndexBefore]->SafeCast<vaTextureDX11*>( )->GetSRV( )
+                        };
+                        dx11Context->PSSetConstantBuffers( 1, 1, &reprojectionConstants );
+                        dx11Context->PSSetShaderResources( 18, 2, depthRejectSRVs );
+                    }
                     m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+                    if( previousDepthRejectionEnabled )
+                    {
+                        ID3D11ShaderResourceView * nullDepthRejectSRVs[2] = { nullptr, nullptr };
+                        ID3D11Buffer * nullConstantBuffer = nullptr;
+                        dx11Context->PSSetShaderResources( 18, 2, nullDepthRejectSRVs );
+                        dx11Context->PSSetConstantBuffers( 1, 1, &nullConstantBuffer );
+                    }
                 }
                 // Diagnostic capture only: expose the spatial T2X result before
                 // full-screen temporal resolve. The edge-selective path exposes
@@ -1505,6 +1657,44 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 }
             }
 
+            if( previousDepthRejectionEnabled )
+            {
+                // Current GBuffer depth becomes the depth history paired with
+                // the color history written at the same frame index. Explicit
+                // unbinding keeps CopyResource free of D3D11 SRV hazards.
+                ID3D11ShaderResourceView * nullSRV = nullptr;
+                dx11Context->VSSetShaderResources( 6, 1, &nullSRV );
+                dx11Context->GSSetShaderResources( 6, 1, &nullSRV );
+                dx11Context->PSSetShaderResources( 6, 1, &nullSRV );
+                dx11Context->CSSetShaderResources( 6, 1, &nullSRV );
+                ID3D11ShaderResourceView * nullDepthRejectSRVs[2] = { nullptr, nullptr };
+                dx11Context->PSSetShaderResources( 18, 2, nullDepthRejectSRVs );
+                dx11Context->CSSetShaderResources( 18, 2, nullDepthRejectSRVs );
+                {
+                    VA_SCOPE_CPUGPU_TIMER( SMAACopyDepthHistory, deviceContext );
+                    dx11Context->CopyResource(
+                        m_temporalDepthHistory[temporalFrameIndexBefore]->SafeCast<vaTextureDX11*>( )->GetResource( ),
+                        optionalDepth->SafeCast<vaTextureDX11*>( )->GetResource( ) );
+                }
+                m_temporalDepthHistoryValid = true;
+                m_previousDepthUnpack = currentDepthUnpackForHistory;
+                m_previousDepthUnpackValid = true;
+                if( temporalLifecycleDiagnosticsEnabled )
+                {
+                    m_temporalLifecycleDiagnostics.LastDepthHistoryCopied = true;
+                    if( temporalDepthHistoryValidBefore )
+                        m_temporalLifecycleDiagnostics.DepthResolvedFrameCount++;
+                    else
+                        m_temporalLifecycleDiagnostics.DepthSeedFrameCount++;
+                }
+            }
+            if( temporalReprojectionEnabled )
+            {
+                // Commit matrix state only after color/depth resolve succeeds,
+                // keeping every temporal history input on the same frame.
+                m_previousViewProj = currentUnjitteredViewProjForHistory;
+                m_previousViewProjValid = true;
+            }
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
             AdvanceTemporalFrame( );
@@ -1528,6 +1718,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 else
                     m_temporalLifecycleDiagnostics.SeedFrameCount++;
                 m_temporalLifecycleDiagnostics.LastFrameIndexAfter = GetTemporalFrameIndex( );
+                m_temporalLifecycleDiagnostics.LastDepthRejectionActive =
+                    previousDepthRejectionActiveThisFrame;
                 m_temporalLifecycleDiagnostics.LastSubsampleIndices = vaVector4(
                     m_temporalLastSubsampleIndices[0], m_temporalLastSubsampleIndices[1],
                     m_temporalLastSubsampleIndices[2], m_temporalLastSubsampleIndices[3] );
@@ -1688,6 +1880,15 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
         dx11Context->CSSetUnorderedAccessViews( 6, 1, &destinationUAV, nullptr );
     }
     dx11Context->CSSetShaderResources( 7, _countof( SRVs ), SRVs );
+    if( GetPreviousDepthDisocclusionRejectionEnabled( ) )
+    {
+        ID3D11ShaderResourceView * depthRejectSRVs[2] =
+        {
+            m_temporalExpectedPreviousDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ),
+            m_temporalDepthHistory[1-GetTemporalFrameIndex( )]->SafeCast<vaTextureDX11*>( )->GetSRV( )
+        };
+        dx11Context->CSSetShaderResources( 18, 2, depthRejectSRVs );
+    }
     dx11Context->CSSetConstantBuffers( 1, 1, &reprojectionConstants );
     ID3D11SamplerState * samplers[2] = { m_LinearSampler, m_PointSampler };
     dx11Context->CSSetSamplers( 0, 2, samplers );
@@ -1706,6 +1907,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAADocumentFullScreenResolve(
     if( dualOutput )
         dx11Context->CSSetUnorderedAccessViews( 6, 1, &nullUAV, nullptr );
     dx11Context->CSSetShaderResources( 7, _countof( nullSRVs ), nullSRVs );
+    if( GetPreviousDepthDisocclusionRejectionEnabled( ) )
+    {
+        ID3D11ShaderResourceView * nullDepthRejectSRVs[2] = { nullptr, nullptr };
+        dx11Context->CSSetShaderResources( 18, 2, nullDepthRejectSRVs );
+    }
     dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );
     dx11Context->CSSetSamplers( 0, 2, nullSamplers );
 
@@ -1926,6 +2132,15 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     dx11Context->CSSetConstantBuffers( 1, 1, &reprojectionConstants );
     dx11Context->CSSetUnorderedAccessViews( 0, _countof( UAVs ), UAVs, nullptr );
     dx11Context->CSSetShaderResources( 7, _countof( SRVs ), SRVs );
+    if( GetPreviousDepthDisocclusionRejectionEnabled( ) )
+    {
+        ID3D11ShaderResourceView * depthRejectSRVs[2] =
+        {
+            m_temporalExpectedPreviousDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ),
+            m_temporalDepthHistory[1-GetTemporalFrameIndex( )]->SafeCast<vaTextureDX11*>( )->GetSRV( )
+        };
+        dx11Context->CSSetShaderResources( 18, 2, depthRejectSRVs );
+    }
 
     if( !integratedCandidatesPrepared )
     {
@@ -2095,6 +2310,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::ExecuteTSCMAAInspiredResolve( vaRenderDevic
     dx11Context->CSSetShader( nullptr, nullptr, 0 );
     dx11Context->CSSetUnorderedAccessViews( 0, _countof( nullUAVs ), nullUAVs, nullptr );
     dx11Context->CSSetShaderResources( 7, _countof( nullSRVs ), nullSRVs );
+    if( GetPreviousDepthDisocclusionRejectionEnabled( ) )
+    {
+        ID3D11ShaderResourceView * nullDepthRejectSRVs[2] = { nullptr, nullptr };
+        dx11Context->CSSetShaderResources( 18, 2, nullDepthRejectSRVs );
+    }
 
     ID3D11Buffer * nullConstantBuffer = nullptr;
     dx11Context->CSSetConstantBuffers( 1, 1, &nullConstantBuffer );

@@ -273,6 +273,9 @@ namespace VertexAsylum
         vector<shared_ptr<vaSceneObject>>       m_temporalStressRotorBlades;
         vector<shared_ptr<vaRenderMesh>>        m_temporalStressMeshes;
         vector<shared_ptr<vaRenderMaterial>>    m_temporalStressMaterials;
+        shared_ptr<vaRenderMaterial>            m_temporalStressTexturedRotorMaterial;
+        shared_ptr<vaTexture>                   m_temporalStressTexturedRotorTexture;
+        bool                                    m_temporalStressTexturedFixtureEnabled = false;
         vector<shared_ptr<vaRenderMesh>>        m_powerPlantPreviewMeshes;
         vector<shared_ptr<vaRenderMaterial>>    m_powerPlantPreviewMaterials;
         vector<shared_ptr<vaRenderMesh>>        m_sanMiguelPreviewMeshes;
@@ -355,6 +358,8 @@ namespace VertexAsylum
         void                                    ResetSMAATemporalHistoryForDiagnostics( ) { m_SMAA->ResetTemporalHistory( ); }
         void                                    SetSMAATemporalVelocityDiagnosticMode( vaSMAAWrapper::TemporalVelocityDiagnosticMode mode ) { m_SMAA->SetTemporalVelocityDiagnosticMode( mode ); }
         void                                    SetSMAAObjectMotionReprojection( vaSMAAWrapper::ObjectMotionReprojection value ) { m_SMAA->SetObjectMotionReprojection( value ); }
+        void                                    SetSMAADisocclusionRejection( vaSMAAWrapper::DisocclusionRejection value ) { m_SMAA->SetDisocclusionRejection( value ); }
+        void                                    SetSMAADisocclusionThresholds( float absoluteMeters, float relativeFraction ) { m_SMAA->SetDisocclusionThresholds( absoluteMeters, relativeFraction ); }
         const vaSMAAWrapper::TemporalVelocityDiagnostics &
                                                 GetSMAATemporalVelocityDiagnostics( ) const { return m_SMAA->GetTemporalVelocityDiagnostics( ); }
         void                                    SetSMAATemporalFeedbackDiagnosticsEnabled( bool enabled ) { m_SMAA->SetTemporalFeedbackDiagnosticsEnabled( enabled ); }
@@ -384,15 +389,21 @@ namespace VertexAsylum
         void                                    SetSMAANonDominantRemovalOverride( bool enabled, float value ) { m_SMAA->SetNonDominantRemovalOverride( enabled, value ); }
         bool                                    GetSMAANonDominantRemovalOverrideEnabled( ) const { return m_SMAA->GetNonDominantRemovalOverrideEnabled( ); }
         float                                   GetSMAAEffectiveNonDominantRemovalAmount( ) const { return m_SMAA->GetEffectiveNonDominantRemovalAmount( ); }
+        float                                   GetSMAANonDominantRemovalOverrideValue( ) const { return m_SMAA->GetNonDominantRemovalOverrideValue( ); }
         void                                    SetSMAAHistorySamplerOverride( bool enabled, vaSMAAWrapper::HistorySampler value ) { m_SMAA->SetHistorySamplerOverride( enabled, value ); }
         bool                                    GetSMAAHistorySamplerOverrideEnabled( ) const { return m_SMAA->GetHistorySamplerOverrideEnabled( ); }
         vaSMAAWrapper::HistorySampler           GetSMAAEffectiveHistorySampler( ) const { return m_SMAA->GetEffectiveHistorySampler( ); }
+        vaSMAAWrapper::HistorySampler           GetSMAAHistorySamplerOverrideValue( ) const { return m_SMAA->GetHistorySamplerOverrideValue( ); }
         void                                    SetSMAAHistoryClippingOverride( bool enabled, vaSMAAWrapper::HistoryClipping value ) { m_SMAA->SetHistoryClippingOverride( enabled, value ); }
         bool                                    GetSMAAHistoryClippingOverrideEnabled( ) const { return m_SMAA->GetHistoryClippingOverrideEnabled( ); }
         vaSMAAWrapper::HistoryClipping          GetSMAAEffectiveHistoryClipping( ) const { return m_SMAA->GetEffectiveHistoryClipping( ); }
+        vaSMAAWrapper::HistoryClipping          GetSMAAHistoryClippingOverrideValue( ) const { return m_SMAA->GetHistoryClippingOverrideValue( ); }
         void                                    SetSMAATemporalDebugView( vaSMAAWrapper::TemporalDebugView value ) { m_SMAA->SetTemporalDebugView( value ); }
         vaSMAAWrapper::TemporalDebugView        GetSMAATemporalDebugView( ) const { return m_SMAA->GetTemporalDebugView( ); }
         vaSMAAWrapper::ObjectMotionReprojection GetSMAAObjectMotionReprojection( ) const { return m_SMAA->GetObjectMotionReprojection( ); }
+        vaSMAAWrapper::DisocclusionRejection    GetSMAADisocclusionRejection( ) const { return m_SMAA->GetDisocclusionRejection( ); }
+        float                                   GetSMAADisocclusionAbsoluteThreshold( ) const { return m_SMAA->GetDisocclusionAbsoluteThreshold( ); }
+        float                                   GetSMAADisocclusionRelativeThreshold( ) const { return m_SMAA->GetDisocclusionRelativeThreshold( ); }
         void                                    SetSMAAForcedCandidateCountForDiagnostics( bool enabled, uint32 count ) { m_SMAA->SetForcedCandidateCountForDiagnostics( enabled, count ); }
         bool                                    GetSMAAForcedCandidateCountEnabled( ) const { return m_SMAA->GetForcedCandidateCountEnabled( ); }
         uint32                                  GetSMAAForcedCandidateCount( ) const { return m_SMAA->GetForcedCandidateCount( ); }
@@ -413,6 +424,8 @@ namespace VertexAsylum
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }
         void                                    SetFixedDeltaTime( float deltaTime ) { m_fixedDeltaTime = deltaTime; }
         bool                                    HasPendingShadowmapUpdates( ) const   { return m_lighting != nullptr && m_lighting->GetNextHighestPriorityShadowmapForRendering() != nullptr; }
+        bool                                    SetSMAATemporalStressTexturedFixtureEnabled( bool enabled );
+        bool                                    GetSMAATemporalStressTexturedFixtureEnabled( ) const { return m_temporalStressTexturedFixtureEnabled; }
 
         const char *                            GetAAName( AAType aaType );
         int                                     GetSSResScale( ) const              { return m_SSResScale; }

@@ -70,6 +70,13 @@ struct SMAAReprojectionConstants
     // 2 filtered quarter-resolution downsample/upsample,
     // 3 ARM Dual Filtering research adaptation).
     float4 TSCMAAHybridParams;
+    // x: previous-depth rejection enabled for this frame,
+    // y: absolute view-depth tolerance in scene units,
+    // z: relative view-depth tolerance, w: reserved footprint mode (0 point).
+    float4 TSCMAADepthRejectParams;
+    // xy: previous projection depth-unpack coefficients. Both expected and
+    // sampled previous device depth use viewZ = x / (y - deviceDepth).
+    float4 TSCMAAPreviousDepthUnpack;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
@@ -82,6 +89,8 @@ struct SMAAReprojectionConstants
     VertexAsylum::vaVector4 TSCMAASemanticParams;
     VertexAsylum::vaVector4 TSCMAACandidateSourceParams;
     VertexAsylum::vaVector4 TSCMAAHybridParams;
+    VertexAsylum::vaVector4 TSCMAADepthRejectParams;
+    VertexAsylum::vaVector4 TSCMAAPreviousDepthUnpack;
 #endif
 };
 
@@ -164,6 +173,8 @@ SamplerState                        PointSampler                        : regist
  Texture2DMS<float4, 2>             colorTexMS                          : register( t5 );
  Texture2D                          depthTex                            : register( t6 );
  Texture2D                          velocityTex                         : register( t7 );
+ Texture2D<float>                   tscmaaExpectedPreviousDepth         : register( t18 );
+ Texture2D<float>                   tscmaaPreviousDepth                 : register( t19 );
                                                                         
  /**                                                                    
   * Temporal textures                                                   
@@ -498,17 +509,78 @@ float4 DX10_SMAANeighborhoodBlendingPS(float4 position : SV_POSITION,
     #endif
 }
 
+bool TSCMAADeviceDepthIsValid(float depth)
+{
+    return depth == depth && abs(depth) < 3.4e38 && depth >= 0.0 && depth <= 1.0;
+}
+
+bool TSCMAAViewDepthIsValid(float depth)
+{
+    return depth == depth && abs(depth) < 3.4e38 && depth > 0.0;
+}
+
+bool TSCMAAPreviousDepthMatches(float2 historyUV, int2 currentPixel)
+{
+    const float expectedDeviceDepth =
+        tscmaaExpectedPreviousDepth.Load(int3(currentPixel, 0));
+    const float actualDeviceDepth =
+        tscmaaPreviousDepth.SampleLevel(PointSampler, historyUV, 0.0);
+    if(!TSCMAADeviceDepthIsValid(expectedDeviceDepth)
+        || !TSCMAADeviceDepthIsValid(actualDeviceDepth))
+        return false;
+
+    const float unpackMul = g_SMAAReprojection.TSCMAAPreviousDepthUnpack.x;
+    const float unpackAdd = g_SMAAReprojection.TSCMAAPreviousDepthUnpack.y;
+    const float expectedDenominator = unpackAdd - expectedDeviceDepth;
+    const float actualDenominator = unpackAdd - actualDeviceDepth;
+    if(abs(expectedDenominator) <= 1.0e-8 || abs(actualDenominator) <= 1.0e-8)
+        return false;
+
+    const float expectedViewDepth = unpackMul / expectedDenominator;
+    const float actualViewDepth = unpackMul / actualDenominator;
+    if(!TSCMAAViewDepthIsValid(expectedViewDepth)
+        || !TSCMAAViewDepthIsValid(actualViewDepth))
+        return false;
+
+    const float tolerance = g_SMAAReprojection.TSCMAADepthRejectParams.y
+        + g_SMAAReprojection.TSCMAADepthRejectParams.z
+            * max(abs(expectedViewDepth), 1.0e-3);
+    return abs(actualViewDepth - expectedViewDepth) <= tolerance;
+}
+
 float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
                           float2 texcoord : TEXCOORD0) : SV_TARGET {
     #if SMAA_REPROJECTION
+    [branch]
+    if(g_SMAAReprojection.TSCMAADepthRejectParams.x > 0.5)
+    {
+        const float2 velocity =
+            SMAA_DECODE_VELOCITY(SMAASamplePoint(velocityTex, texcoord).rg);
+        float2 historyUV = texcoord - velocity;
+        const bool rejectOutsideHistory =
+            g_SMAAReprojection.TSCMAASemanticParams.z < 0.5;
+        if(rejectOutsideHistory
+            && (any(historyUV <= 0.0) || any(historyUV >= 1.0)))
+            return SMAASamplePoint(colorTex, texcoord);
+        if(!rejectOutsideHistory)
+            historyUV = saturate(historyUV);
+        if(!TSCMAAPreviousDepthMatches(historyUV, int2(position.xy)))
+            return SMAASamplePoint(colorTex, texcoord);
+    }
     return SMAAResolvePS(texcoord, colorTex, colorTexPrev, velocityTex);
     #else
     return SMAAResolvePS(texcoord, colorTex, colorTexPrev);
     #endif
 }
 
-float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
-                                         float2 texcoord : TEXCOORD0) : SV_TARGET {
+struct SMAAVelocityDepthOutput
+{
+    float2 Velocity : SV_TARGET0;
+    float ExpectedPreviousDepth : SV_TARGET1;
+};
+
+SMAAVelocityDepthOutput DX10_SMAAGenerateCameraVelocityPS(
+    float4 position : SV_POSITION, float2 texcoord : TEXCOORD0) {
     float depth = depthTex.Load(int3(int2(position.xy), 0)).r;
     float4 currentClip = float4(texcoord.x * 2.0 - 1.0,
                                1.0 - texcoord.y * 2.0,
@@ -526,9 +598,13 @@ float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
     float2 previousUV = float2(previousNDC.x * 0.5 + 0.5,
                                0.5 - previousNDC.y * 0.5);
 
+    SMAAVelocityDepthOutput output;
     // Official SMAA resolve negates this value before adding it to the current
     // UV, so store currentUV - previousUV (the motion-blur convention).
-    return currentUnjitteredUV - previousUV;
+    output.Velocity = currentUnjitteredUV - previousUV;
+    output.ExpectedPreviousDepth = previousClip.w > 1.0e-6?
+        previousClip.z / previousClip.w : -1.0;
+    return output;
 }
 
 struct SMAAObjectVelocityVertexInput
@@ -558,8 +634,8 @@ SMAAObjectVelocityVertexOutput DX10_SMAAGenerateRigidObjectVelocityVS(
     return output;
 }
 
-float2 DX10_SMAAGenerateRigidObjectVelocityPS(
-    const in SMAAObjectVelocityVertexOutput input) : SV_TARGET
+SMAAVelocityDepthOutput DX10_SMAAGenerateRigidObjectVelocityPS(
+    const in SMAAObjectVelocityVertexOutput input)
 {
     const int2 pixel = int2(input.Position.xy);
     const float sceneDepth = depthTex.Load(int3(pixel, 0)).r;
@@ -571,8 +647,13 @@ float2 DX10_SMAAGenerateRigidObjectVelocityPS(
 
     // A point behind either camera cannot provide a valid previous sample.
     // Emit an out-of-bounds displacement so the temporal resolve rejects it.
+    SMAAVelocityDepthOutput output;
     if(input.CurrentUnjitteredClip.w <= 1.0e-6 || input.PreviousClip.w <= 1.0e-6)
-        return float2(2.0, 2.0);
+    {
+        output.Velocity = float2(2.0, 2.0);
+        output.ExpectedPreviousDepth = -1.0;
+        return output;
+    }
 
     const float2 currentNDC = input.CurrentUnjitteredClip.xy / input.CurrentUnjitteredClip.w;
     const float2 previousNDC = input.PreviousClip.xy / input.PreviousClip.w;
@@ -581,7 +662,9 @@ float2 DX10_SMAAGenerateRigidObjectVelocityPS(
 
     // Match the camera velocity convention consumed by both SMAA resolves:
     // historyUV = currentUV - velocity.
-    return currentUV - previousUV;
+    output.Velocity = currentUV - previousUV;
+    output.ExpectedPreviousDepth = input.PreviousClip.z / input.PreviousClip.w;
+    return output;
 }
 
 #if !defined(SMAA_TSCMAA_COMPUTE)
@@ -1256,6 +1339,13 @@ bool TSCMAAResolveTemporalPixel(int2 pixel, int2 dimensions, out float4 resolved
 
     bool rejectOutsideHistory = g_SMAAReprojection.TSCMAASemanticParams.z < 0.5;
     if (rejectOutsideHistory && (any(historyUV <= 0.0) || any(historyUV >= 1.0))) {
+        resolvedColor = currentColor;
+        return false;
+    }
+
+    [branch]
+    if (g_SMAAReprojection.TSCMAADepthRejectParams.x > 0.5
+        && !TSCMAAPreviousDepthMatches(historyUV, pixel)) {
         resolvedColor = currentColor;
         return false;
     }

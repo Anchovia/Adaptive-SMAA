@@ -71,6 +71,15 @@ namespace VertexAsylum
             RigidTransforms
         };
 
+        // Optional history-validity test kept independent from motion-vector
+        // generation so its quality and cost can be measured as a separate
+        // ablation. PreviousDepth is meaningful only with reprojection On.
+        enum class DisocclusionRejection : int32
+        {
+            Off,
+            PreviousDepth
+        };
+
         enum class JitterPolicy : int32
         {
             None,
@@ -235,6 +244,9 @@ namespace VertexAsylum
             uint32                      JitterMismatchCount         = 0;
             uint32                      SubsampleMismatchCount      = 0;
             uint32                      MatrixMismatchCount         = 0;
+            uint32                      DepthHistoryMismatchCount   = 0;
+            uint32                      DepthSeedFrameCount         = 0;
+            uint32                      DepthResolvedFrameCount     = 0;
             int32                       LastFrameIndexBefore        = -1;
             int32                       LastFrameIndexAfter         = -1;
             uint32                      LastWidth                   = 0;
@@ -242,6 +254,10 @@ namespace VertexAsylum
             bool                        LastHistoryValidBefore      = false;
             bool                        LastWasSeed                 = false;
             bool                        LastUsedReprojection        = false;
+            bool                        LastDepthRejectionConfigured = false;
+            bool                        LastDepthHistoryValidBefore = false;
+            bool                        LastDepthRejectionActive    = false;
+            bool                        LastDepthHistoryCopied      = false;
             vaVector2                   LastJitter                  = vaVector2( 0.0f, 0.0f );
             vaVector4                   LastSubsampleIndices        = vaVector4( 0.0f, 0.0f, 0.0f, 0.0f );
 
@@ -249,7 +265,8 @@ namespace VertexAsylum
             {
                 return FrameIndexMismatchCount + HistoryStateMismatchCount
                     + HistoryResourceMismatchCount + JitterMismatchCount
-                    + SubsampleMismatchCount + MatrixMismatchCount;
+                    + SubsampleMismatchCount + MatrixMismatchCount
+                    + DepthHistoryMismatchCount;
             }
         };
 
@@ -412,6 +429,9 @@ namespace VertexAsylum
 
         TemporalSettings            m_temporalSettings;
         ObjectMotionReprojection    m_objectMotionReprojection          = ObjectMotionReprojection::Off;
+        DisocclusionRejection       m_disocclusionRejection             = DisocclusionRejection::Off;
+        float                       m_disocclusionAbsoluteThreshold     = 0.01f;
+        float                       m_disocclusionRelativeThreshold     = 0.005f;
         int                         m_temporalFrameIndex                = 0;
         TemporalCandidateStatistics m_temporalCandidateStatistics;
         bool                        m_temporalCandidateStatisticsReadbackEnabled = true;
@@ -513,6 +533,34 @@ namespace VertexAsylum
             return GetTemporalReprojectionEnabled( )
                 && m_objectMotionReprojection == ObjectMotionReprojection::RigidTransforms;
         }
+        void                        SetDisocclusionRejection( DisocclusionRejection value )
+        {
+            if( m_disocclusionRejection != value )
+            {
+                m_disocclusionRejection = value;
+                ResetTemporalHistory( );
+            }
+        }
+        DisocclusionRejection       GetDisocclusionRejection( ) const { return m_disocclusionRejection; }
+        bool                        GetPreviousDepthDisocclusionRejectionEnabled( ) const
+        {
+            return GetTemporalReprojectionEnabled( )
+                && m_disocclusionRejection == DisocclusionRejection::PreviousDepth;
+        }
+        void                        SetDisocclusionThresholds( float absoluteMeters, float relativeFraction )
+        {
+            const float clampedAbsolute = vaMath::Max( 0.0f, absoluteMeters );
+            const float clampedRelative = vaMath::Max( 0.0f, relativeFraction );
+            if( m_disocclusionAbsoluteThreshold != clampedAbsolute
+                || m_disocclusionRelativeThreshold != clampedRelative )
+            {
+                m_disocclusionAbsoluteThreshold = clampedAbsolute;
+                m_disocclusionRelativeThreshold = clampedRelative;
+                ResetTemporalHistory( );
+            }
+        }
+        float                       GetDisocclusionAbsoluteThreshold( ) const { return m_disocclusionAbsoluteThreshold; }
+        float                       GetDisocclusionRelativeThreshold( ) const { return m_disocclusionRelativeThreshold; }
         // Independent recovered-source ablations. Defaults preserve all eight research modes.
         void SetRecoveredSourceProfile( bool candidates, bool kernel )
         {
@@ -620,6 +668,7 @@ namespace VertexAsylum
             }
         }
         bool                        GetNonDominantRemovalOverrideEnabled( ) const { return m_nonDominantRemovalOverrideEnabled; }
+        float                       GetNonDominantRemovalOverrideValue( ) const { return m_nonDominantRemovalOverride; }
         HistorySampler              GetEffectiveHistorySampler( ) const { return m_historySamplerOverrideEnabled? m_historySamplerOverride : m_temporalSettings.Sampler; }
         HistoryClipping             GetEffectiveHistoryClipping( ) const { return m_historyClippingOverrideEnabled? m_historyClippingOverride : m_temporalSettings.Clipping; }
         void                        SetHistorySamplerOverride( bool enabled, HistorySampler value )
@@ -641,7 +690,9 @@ namespace VertexAsylum
             }
         }
         bool                        GetHistorySamplerOverrideEnabled( ) const { return m_historySamplerOverrideEnabled; }
+        HistorySampler              GetHistorySamplerOverrideValue( ) const { return m_historySamplerOverride; }
         bool                        GetHistoryClippingOverrideEnabled( ) const { return m_historyClippingOverrideEnabled; }
+        HistoryClipping             GetHistoryClippingOverrideValue( ) const { return m_historyClippingOverride; }
         const TemporalCandidateStatistics & GetTemporalCandidateStatistics( ) const { return m_temporalCandidateStatistics; }
         void                        SetTemporalCandidateStatisticsReadbackEnabled( bool enabled )
         {
