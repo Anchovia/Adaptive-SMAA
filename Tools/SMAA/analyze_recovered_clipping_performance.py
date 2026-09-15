@@ -12,8 +12,16 @@ def main():
     runs=[r for r in runs if r['mode']=='Benchmark'];assert len(runs)==12
     assert len({r['exe_sha256'] for r in runs})==1 and len({r['candidate_sha256'] for r in runs})==1
     assert len({r['utility_sha256'] for r in runs})==2
-    data={};details=[]
+    observations=json.loads((ROOT/'tmp/recovered-clipping/windows.json').read_text(encoding='utf-8-sig'))
+    quality=json.loads((ROOT/'tmp/recovered-clipping/analysis/quality.json').read_text())
+    data={};details=[];windows=[]
     for r in runs:
+        captured=quality['scenes'][r['scene']]['runs'][r['variant']]
+        for field in ('exe_sha256','candidate_sha256','utility_sha256'):
+            assert captured[field]==r[field],('Quality/performance code mismatch',field,r['label'])
+        samples=[s for s in observations if s['process_id']==r['process_id']]
+        assert samples and all(s['visible'] and not s['minimized'] for s in samples),r['label']
+        windows.append(dict(label=r['label'],process_id=r['process_id'],samples=len(samples),visible=True,minimized=False))
         v=0 if r['variant']=='SourceClip' else 1
         assert r['variant'] in ('SourceClip','SignedChroma-YCoCgClamp')
         assert r['signed_chroma']==r['ycocg_clamp']==v
@@ -46,7 +54,7 @@ def main():
                     before_runs_ms=before,after_runs_ms=after,pair_percent=[100*(a/b-1) for a,b in zip(after,before)],delta_ms_ci95=[d-margin,d+margin]))
         for v,name in enumerate(('SourceClip','SignedChroma-YCoCgClamp')):
             ratios.append(dict(scene=scene,variant=name,source_over_standard_smaa_percent=[100*(data[(scene,p,v)][IDS[2]]['SMAA']['mean_ms']/data[(scene,p,v)][IDS[0]]['SMAA']['mean_ms']-1) for p in (1,2,3)]))
-    result=dict(status='PASS',runs=details,metrics=rows,source_vs_standard=ratios,
+    result=dict(status='PASS',runs=details,metrics=rows,source_vs_standard=ratios,window_observations=windows,
         scope='Both source separate and integrated use the clipping switch; Standard is unchanged. Three independent process pairs, descriptive unadjusted t(2) intervals.')
     out=ROOT/'tmp/recovered-clipping/analysis/performance.json';out.write_text(json.dumps(result,indent=2))
     print(json.dumps([r for r in rows if r['metric'] in ('SMAA','WholeFrame')],indent=2))

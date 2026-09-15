@@ -44,7 +44,10 @@ try {
                     utility_sha256=(Get-FileHash $shader).Hash;utility_source=$changed;
                     candidate_sha256=(Get-FileHash (Join-Path $repo 'Projects/CMAA2/SMAA/RecoveredTSCMAACandidate.hlsl')).Hash}
                 Write-Output "Starting $label"
-                & (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $args -TimeoutSeconds 600 -Hidden:($Mode-ne 'Benchmark')
+                $execution=@(& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $args -TimeoutSeconds 600 -Hidden:($Mode-ne 'Benchmark'))
+                $execution | ForEach-Object {Write-Output $_}
+                if(($execution -join "`n") -notmatch '\(PID (\d+)\)'){throw 'Missing clean runner process identity'}
+                $record.process_id=[int]$Matches[1]
                 $new=@(Get-ChildItem $bench -Directory | Where-Object {$_.Name -notin $before})
                 if($new.Count-ne 1){throw 'Expected exactly one new result directory'}
                 $record.report=$new[0].FullName;$record.status='PASS'

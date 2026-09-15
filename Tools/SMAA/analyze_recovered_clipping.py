@@ -44,12 +44,25 @@ def verify(a):
         short=sequence(runs[NAMES[0]]['report'],12)
         assert all(digest(rgb(x))==digest(rgb(y)) for x,y in zip(short,prior))
         maskseq=[sequence(masks[n]['report'],12) for n in NAMES]
+        finalseq=[sequence(runs[n]['report'],12) for n in NAMES]
         old=sequence(BENCH/OLD_MASK[scene],12)
         for frame in range(12):
-            target=digest(rgb(old[frame]))
+            mask=rgb(old[frame]);target=digest(mask)
+            assert np.all((mask==0)|(mask==255)) and np.array_equal(mask[...,0],mask[...,1]) and np.array_equal(mask[...,0],mask[...,2])
             assert all(digest(rgb(seq[frame]))==target for seq in maskseq),(scene,frame)
+            selected=mask[...,0]>0;base=rgb(finalseq[0][frame])
+            for seq in finalseq[1:]:
+                changed=np.any(rgb(seq[frame])!=base,axis=-1)
+                assert not np.any(changed & ~selected),(scene,frame,'Changed a noncandidate pixel')
         for name in NAMES:sequence(runs[name]['report'],12)
-        results[scene]=dict(short_baseline_mismatch=0,candidate_mask_mismatch=0,frames_per_variant=12)
+        results[scene]=dict(short_baseline_mismatch=0,candidate_mask_mismatch=0,noncandidate_changed_pixels=0,frames_per_variant=12)
+        if a.compare_full_prefix:
+            full=manifest(a.manifest,'Quality',scene)
+            for name in NAMES:
+                short_paths=sequence(runs[name]['report'],12);full_paths=sequence(full[name]['report'],480)
+                assert all(digest(rgb(x))==digest(rgb(y)) for x,y in zip(short_paths,full_paths)),(scene,name,'Independent prefix repeat')
+            results[scene]['independent_full_prefix_mismatch']=0
+            results[scene]['independent_full_prefix_frames']=48
     return dict(status='PASS',scenes=results)
 
 def quality(a):
@@ -108,6 +121,7 @@ def quality(a):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--mode',choices=['verify','quality'],required=True)
     p.add_argument('--scene',choices=['bistro','minecraft'])
+    p.add_argument('--compare-full-prefix',action='store_true')
     p.add_argument('--manifest',type=Path,default=ROOT/'tmp/recovered-clipping/runs.json')
     p.add_argument('--output',type=Path,default=ROOT/'tmp/recovered-clipping/analysis');a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
     result=verify(a) if a.mode=='verify' else quality(a)

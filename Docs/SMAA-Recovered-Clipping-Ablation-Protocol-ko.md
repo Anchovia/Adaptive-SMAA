@@ -35,6 +35,8 @@ shader와 사용자 ApplicationSettings의 원본 bytes를 복원한다. 앱 CSV
    중앙 이동 150–329와 이동→정지 410–439의 공식 CGVQM-2를 함께 평가한다.
 6. 성능은 PNG 캡처와 분리한다. 품질 후보가 나오면 동일 조건의 반복 실행으로 비용을
    확인한다. 작은 차이나 서로 다른 실행의 환경 변화를 최적화 성과로 단정하지 않는다.
+   Benchmark 실행 중 `observe_recovered_clipping_windows.ps1`을 별도 셸에서 실행해
+   프로세스별 표시·최소화 상태를 기록한다. 분석기는 품질/성능 코드 hash의 일치도 확인한다.
 
 SignedChroma 단독은 RGB 끝점 역전 문제를 남긴다. YCoCgClamp 단독은 잘못된 색차 통계를
 남길 수 있다. 따라서 두 주효과와 상호작용을 함께 기록하고, 단색 fixture의 개선을
