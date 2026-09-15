@@ -14,7 +14,14 @@
 // responsibility to update it.
 //--------------------------------------------------------------------------------------
 // Adapted from recovered Util.hlsl SHA256 dd4e9f4655704b0b18a910173dd84bb415e72e1cbfad87322800ff525484b17b.
-// Only numerical change: non-negative variance guard before sqrt in ClipColor.
+// Default numerical change: non-negative variance guard before sqrt in ClipColor.
+// Independent research ablations below are OFF by default; not Intel source semantics.
+#ifndef SMAA_RECOVERED_SIGNED_CHROMA
+#define SMAA_RECOVERED_SIGNED_CHROMA 0
+#endif
+#ifndef SMAA_RECOVERED_YCOCG_CLAMP
+#define SMAA_RECOVERED_YCOCG_CLAMP 0
+#endif
 ///////////////////////////////////////
 //
 // Utility function for HLSL shader
@@ -207,7 +214,12 @@ float3 ClipColor(float3 historyColor, float3 currentColor, Texture2D texIn, floa
 
     float3 corners = (t0 + t2 + b1 + b3) * 0.25f;
     currentColor += (currentColor - corners) * sharpenAmount;
+#if SMAA_RECOVERED_SIGNED_CHROMA
+    // Chroma is signed. Keep the source luminance floor and sharpening unchanged.
+    currentColor.x = max(0, currentColor.x);
+#else
     currentColor = max(0, currentColor);
+#endif
 
     // do variance clipping
     m = t0 + t1 + t2 + t3 + b0 + b1 + b2 + b3 + currentColor;
@@ -221,11 +233,17 @@ float3 ClipColor(float3 historyColor, float3 currentColor, Texture2D texIn, floa
     float3 minimum = mu - gamma * sigma;
     float3 maximum = mu + gamma * sigma;
 
+#if SMAA_RECOVERED_YCOCG_CLAMP
+    // Clamp in the space where the variance box was constructed.
+    // Converting only two opposite corners does not give RGB axis-aligned bounds.
+    newHistoryColor = YCoCg2RGB(clamp(RGB2YCoCg(historyColor), minimum, maximum));
+#else
     minimum = YCoCg2RGB(minimum);
     maximum = YCoCg2RGB(maximum);
     currentColor = YCoCg2RGB(currentColor);
 
     newHistoryColor = clamp(historyColor, minimum, maximum);
+#endif
 
 
     return newHistoryColor;
