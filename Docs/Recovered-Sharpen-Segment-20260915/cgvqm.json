@@ -1,0 +1,2172 @@
+{
+  "status": "PASS",
+  "records": [
+    {
+      "scene": "bistro",
+      "window": "central",
+      "variant": "Sharpen-Component",
+      "reused_baseline": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\bistro\\SignedChroma-YCoCgClamp\\central\\CGVQM-Results.json",
+      "result_sha256": "e758850a0ddcca863ea5a1438818fc0be570c52aba1339ff2c72207276edd928",
+      "score": 88.65396118164062,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_153127\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "73bd632b34a5ca96e121022cc3319c4c0c65ff710fb97b844315160388f2bfdb"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\bistro\\SignedChroma-YCoCgClamp\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\bistro\\SignedChroma-YCoCgClamp\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "central",
+      "variant": "NoSharpen-Component",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Component\\central\\CGVQM-Results.json",
+      "result_sha256": "550052f78d94db97972e33fc07a19340858df67abd2d82647aeb75d15258048b",
+      "score": 88.62345886230469,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Component",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165347\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8109fe411c659942823d4a316531322f50707dd482a5f005ec5b4b014f461044"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Component\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Component\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "central",
+      "variant": "Sharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\Sharpen-Segment\\central\\CGVQM-Results.json",
+      "result_sha256": "07b928cb05dffc6c9fee0fbb4712f24fbfb617221a739a7d43ed128f511045ed",
+      "score": 89.11573791503906,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-Sharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165450\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "d63da5794c226318a1ecaab4f2e838e8b49a76189aa04127e39eec78e804b9ac"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\Sharpen-Segment\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\Sharpen-Segment\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "central",
+      "variant": "NoSharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Segment\\central\\CGVQM-Results.json",
+      "result_sha256": "c3ee4239204424f477c26875e5480efa57cd344cb7be6d7dce589f091d1778a6",
+      "score": 89.06675720214844,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165553\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "71e7674dcc4a8fd6f3f3c54e507b827deb861dd1305b0c27a895bee18f8ae704"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Segment\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Segment\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "variant": "Sharpen-Component",
+      "reused_baseline": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\bistro\\SignedChroma-YCoCgClamp\\transition\\CGVQM-Results.json",
+      "result_sha256": "d1ffb41935a59e53850eeeacc8d8434a2a45d0b1ee9f9b69bdbe5d1096f72ad7",
+      "score": 94.48452758789062,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_153127\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "f0161c513566e4314bba11e201aa832cdd2368d64f664a2de1b5f0eb7f9738f9"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\bistro\\SignedChroma-YCoCgClamp\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\bistro\\SignedChroma-YCoCgClamp\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "variant": "NoSharpen-Component",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Component\\transition\\CGVQM-Results.json",
+      "result_sha256": "f8560f45812d40277fe79c2e012213684adc5c1d51cfb3a4042ed84cfdd4898b",
+      "score": 94.46041107177734,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Component",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165347\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "611edd8921caa84c8a5fb1aa4f642ae9312f2c15685cc4fbfcfda3272b9674e1"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Component\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Component\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "variant": "Sharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\Sharpen-Segment\\transition\\CGVQM-Results.json",
+      "result_sha256": "e0f44134d1f878b4fec5f0bbe49c02c462a29829676ffe138cf7f81205f0c0d4",
+      "score": 94.03414916992188,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-Sharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165450\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "abb4ba29c51d6913e36216771f6b805ea4c9571f17d7ae44dc43bcd9c2c0d7a4"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\Sharpen-Segment\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\Sharpen-Segment\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "variant": "NoSharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Segment\\transition\\CGVQM-Results.json",
+      "result_sha256": "1cd382cf6f3e4d76250e709860b8b5e112b2ade39958b9a2c5487620b5252244",
+      "score": 94.01998901367188,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165553\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "9e8968a37dabdd18f2147478a97b6c0f68f87e6b7d401d26b3b033cf48230686"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Segment\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\bistro\\NoSharpen-Segment\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "variant": "Sharpen-Component",
+      "reused_baseline": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\minecraft\\SignedChroma-YCoCgClamp\\central\\CGVQM-Results.json",
+      "result_sha256": "eb3c475aa4b5e6cfd4fe8cf4240b37412e13ac3e123a220897fcc8547f826bef",
+      "score": 90.53633117675781,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_153529\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "58626713674e69baa887c79f1f526015e4bdf8395c8947bfcc0d53efd5fab336"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\minecraft\\SignedChroma-YCoCgClamp\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-clipping\\cgvqm\\minecraft\\SignedChroma-YCoCgClamp\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "variant": "NoSharpen-Component",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Component\\central\\CGVQM-Results.json",
+      "result_sha256": "c15a2d57e2230aa822e7a1d62745da7ba2a81f523dabd5783bf76a1fb25dd57f",
+      "score": 90.498779296875,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Component",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165755\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "c44a1b8f6b0b7dbd3bb740e1ec99f4d4b06990822f4cb41bfa73ce052bf88b94"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Component\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Component\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "variant": "Sharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Segment\\central\\CGVQM-Results.json",
+      "result_sha256": "c6e05c2173aa7a6b0e76a9c58ecff6358dc07f4d47648b731e96b0a21ff8adcf",
+      "score": 90.6619873046875,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-Sharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165854\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "264b97aef7fb68a96a08a8b2ddd10f4b2d7d899d37fe2b7ae781f71a406fc2f7"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Segment\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Segment\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "variant": "NoSharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Segment\\central\\CGVQM-Results.json",
+      "result_sha256": "f4b81d5d622dc044e9cf59fb0805d8948fd1f5fddd4388083ea41c1431d70cda",
+      "score": 90.64263153076172,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165953\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "5124de5d89ccd3a028777bc325758411bfae2de9eec3d9c5fd89048c9a14c3af"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Segment\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Segment\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "variant": "Sharpen-Component",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Component\\transition\\CGVQM-Results.json",
+      "result_sha256": "20923a279f40d31930293fda8eaf3a7990759f809938b8f1717eadbae479ada8",
+      "score": 93.60179901123047,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-Sharpen-Component",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165657\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a39884a0b4761b5ead6424fc332df564cf68a822f9afeaf085cd061c0f2c2eb4"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Component\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Component\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "variant": "NoSharpen-Component",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Component\\transition\\CGVQM-Results.json",
+      "result_sha256": "908ec666406c582b90bdd3373320657268302ad68c8b6970bced6d9d1a795842",
+      "score": 93.54721069335938,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Component",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165755\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "f409f0a5bf80567cb5a7554435f97863448a99478ee9cec0021783b0f8cfecfa"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Component\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Component\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "variant": "Sharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Segment\\transition\\CGVQM-Results.json",
+      "result_sha256": "2a4cc2f5d99f1d01e524c1ada4ad7c2f9d4542f8cb177a9ccd4df561265944f7",
+      "score": 93.5634765625,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-Sharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165854\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "942648f7cee48e6c71070fc7b3cad80fa2eff84e349bd0edecf8460f8a21bd43"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Segment\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\Sharpen-Segment\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "variant": "NoSharpen-Segment",
+      "reused_baseline": false,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Segment\\transition\\CGVQM-Results.json",
+      "result_sha256": "84bcd6a283cb3b01e97ac1d058cb3e05fd34c7c43791e03eb2845c0a5694f7b5",
+      "score": 93.56222534179688,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceIntegrated-NoSharpen-Segment",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260915_165953\\O_ET2X_R_SourceCandidate_SourceKernel_Integrated",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "594b05d3212463393b2725a282ba516a804920e0afcb5ef5868438598b94574d"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Segment\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\recovered-sharpen-segment\\cgvqm\\minecraft\\NoSharpen-Segment\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    }
+  ],
+  "historical_controls": [
+    {
+      "scene": "bistro",
+      "window": "central",
+      "mode": "O-T2X-R",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\bistro\\standard\\central\\CGVQM-Results.json",
+      "result_sha256": "94dd238d408187e342c6dc99d4cf9e9ce9911c5b72f2a2297a190335d06caf68",
+      "score": 94.13301849365234,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-T2X-R",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_191454\\O_T2X_R",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "015fa9054e664e51c01bff60e970a955d7a9c6aab362a04dd34675d58d37d949"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\bistro\\standard\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\bistro\\standard\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "central",
+      "mode": "O-ET2X-R-DocCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-0\\central\\CGVQM-Results.json",
+      "result_sha256": "6d1608964bb0f1ccd894942e760453654b0508f1444af8156f1f09de7e1e0b80",
+      "score": 96.6885757446289,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-DocCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_142532\\O_ET2X_R_DocCandidate_DocKernel",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "c47b13f56dc4e2ca1f8f8744f2f630391f1e163cdf3fd0632541d022edf761a4"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-0\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-0\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "central",
+      "mode": "O-ET2X-R-SourceCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-1\\central\\CGVQM-Results.json",
+      "result_sha256": "6606c0e5a5faa13699856167c7cbb9cca06cf4e80cd0a31c022156b546069908",
+      "score": 96.6152114868164,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_142634\\O_ET2X_R_SourceCandidate_DocKernel",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "4675c52a3eadaea9f2f583425f260c42e66bb1f78b0a690a41eba92870ca2030"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-1\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-1\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "mode": "O-T2X-R",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\bistro\\standard\\transition\\CGVQM-Results.json",
+      "result_sha256": "f7d7ec441446182d52e1aec5d0ac64115cf8f87fa360391657e556a01677e11f",
+      "score": 95.12677764892578,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-T2X-R",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_191454\\O_T2X_R",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "88398c20ea2d936fc387fcb3daef0e43952f9ab077941ea81fba6fba887da7c2"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\bistro\\standard\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\bistro\\standard\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "mode": "O-ET2X-R-DocCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-0\\transition\\CGVQM-Results.json",
+      "result_sha256": "41064d0e44af2b141c8ebf0dece39bf6eb21da06fbc2e5482db6fe28887085d2",
+      "score": 94.56098175048828,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-DocCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_142532\\O_ET2X_R_DocCandidate_DocKernel",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "6a6513ef37f98e07eb16fb919d4852c7ccb22486f0e2462039242242f64c3422"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-0\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-0\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "mode": "O-ET2X-R-SourceCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-1\\transition\\CGVQM-Results.json",
+      "result_sha256": "8fe31c6a6116a97973c25cdc577623a8a483675c15690b64fd2f47245237b6d9",
+      "score": 94.6279525756836,
+      "provenance": {
+        "scene": "bistro",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_142634\\O_ET2X_R_SourceCandidate_DocKernel",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "694f07132b27f87bc3f2fdfe47b866b36c028af0276b69e6fdb4899e1765649d"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-1\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\bistro\\profile-1\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "mode": "O-T2X-R",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\minecraft\\standard\\central\\CGVQM-Results.json",
+      "result_sha256": "8f230d260532f3e68bf720d9a7be66a8b92fb31635251c17e3d44e4774b17573",
+      "score": 95.98645782470703,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-T2X-R",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_191848\\O_T2X_R",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "a5e2b069b5e10e0f824612ebe54b3a7c06139cc11be67facc4c10f04906015b1"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\minecraft\\standard\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\minecraft\\standard\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "mode": "O-ET2X-R-DocCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-0\\central\\CGVQM-Results.json",
+      "result_sha256": "2b66cea617979bca12c745c7075c792164bf8dba9b3f3b44cadde5a0147b0754",
+      "score": 97.51576232910156,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-DocCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_143035\\O_ET2X_R_DocCandidate_DocKernel",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "11738f9678fe22ffd5a812fc08450c12610f26f678189c2da8a90e8bbb2014ef"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-0\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-0\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "mode": "O-ET2X-R-SourceCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-1\\central\\CGVQM-Results.json",
+      "result_sha256": "755c729b854092aa017f594420e8f68027066186949354c18626c04de1f04260",
+      "score": 97.72235870361328,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_143132\\O_ET2X_R_SourceCandidate_DocKernel",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "0513d5617adc957880c41f9666bec4d50982f3fd4c40a95ac8ee09fc0b1a43d0"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 180,
+        "first_index": 150,
+        "last_index": 329,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-1\\central\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-1\\central\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 180,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "mode": "O-T2X-R",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\minecraft\\standard\\transition\\CGVQM-Results.json",
+      "result_sha256": "9a05652b31bc07fbd8dc66e3f4e7e0b8d5ed12ee5f338af13cb27604ec762f1c",
+      "score": 94.64678955078125,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-T2X-R",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_191848\\O_T2X_R",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "2a95c578d2f72b00c66e2498b58358d4e76e4c7ef0e7d313e3998a8617de3165"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\minecraft\\standard\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\integrated-source-cgvqm\\minecraft\\standard\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "mode": "O-ET2X-R-DocCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-0\\transition\\CGVQM-Results.json",
+      "result_sha256": "fc03c5dda1078b6ae8f3a52a7b9fd9d78d36a011f28155c3e35b003c1d52e57f",
+      "score": 93.73902130126953,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-DocCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_143035\\O_ET2X_R_DocCandidate_DocKernel",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "32ba6bde9d2307de45d8bd909608bd6370e334b7c8515f8e0961e61ecb8843c9"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-0\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-0\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "mode": "O-ET2X-R-SourceCandidate-DocKernel",
+      "historical_control": true,
+      "result": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-1\\transition\\CGVQM-Results.json",
+      "result_sha256": "568dcdaeeb8bf5aa8ebbb089f30bdf62a074a746085c3466ee4bca577db3ef0a",
+      "score": 93.99366760253906,
+      "provenance": {
+        "scene": "minecraft",
+        "camera_profile": "flythrough-wide-yaw-360",
+        "test_mode": "O-ET2X-R-SourceCandidate-DocKernel",
+        "reference_id": "SS-Reference"
+      },
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+        "torch": "2.8.0+cu128",
+        "cuda_available": true,
+        "cuda_runtime": "12.8",
+        "device": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3060 Ti"
+      },
+      "official_cgvqm": {
+        "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+        "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+      },
+      "configuration": {
+        "fps": 60,
+        "patch_scale": 4,
+        "patch_pool": "mean",
+        "models": [
+          "2"
+        ],
+        "reference_index_offset": 0
+      },
+      "test_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260914_143132\\O_ET2X_R_SourceCandidate_DocKernel",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "be5f65f57a37e46d581a288e4568985fbecf3ccc9bfcffe6aac7e85acba448fe"
+      },
+      "reference_sequence": {
+        "directory": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612\\SS_Reference",
+        "frame_count": 30,
+        "first_index": 410,
+        "last_index": 439,
+        "width": 1920,
+        "height": 1017,
+        "pixel_sha256": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+      },
+      "test_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-1\\transition\\LosslessInputs\\test_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      },
+      "reference_round_trip": {
+        "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\source-comparison-cgvqm\\minecraft\\profile-1\\transition\\LosslessInputs\\reference_ffv1.mkv",
+        "codec": "ffv1",
+        "pixel_format": "bgr0",
+        "decoded_frames": 30,
+        "mismatched_values": 0,
+        "max_absolute_difference": 0,
+        "verification_attempts": 1,
+        "transient_mismatched_values": 0,
+        "transient_max_absolute_difference": 0
+      }
+    }
+  ],
+  "effects": [
+    {
+      "scene": "bistro",
+      "window": "central",
+      "disable_sharpen_main": -0.03974151611328125,
+      "segment_main": 0.45253753662109375,
+      "interaction": -0.0184783935546875,
+      "both_minus_corrected": 0.4127960205078125
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "disable_sharpen_main": -0.019138336181640625,
+      "segment_main": -0.4454002380371094,
+      "interaction": 0.00995635986328125,
+      "both_minus_corrected": -0.46453857421875
+    },
+    {
+      "scene": "minecraft",
+      "window": "central",
+      "disable_sharpen_main": -0.028453826904296875,
+      "segment_main": 0.13475418090820312,
+      "interaction": 0.01819610595703125,
+      "both_minus_corrected": 0.10630035400390625
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "disable_sharpen_main": -0.027919769287109375,
+      "segment_main": -0.011653900146484375,
+      "interaction": 0.05333709716796875,
+      "both_minus_corrected": -0.03957366943359375
+    }
+  ],
+  "fresh_gate_score_count": 13,
+  "pixel_exact_baseline_reuse_count": 3,
+  "scope": "Sharpening/segment factorial on the signed YCoCg control. Matching baseline windows may reuse verified scores; the Minecraft transition baseline is also recomputed independently. Standard/document controls are historical captures with matching reference hashes."
+}

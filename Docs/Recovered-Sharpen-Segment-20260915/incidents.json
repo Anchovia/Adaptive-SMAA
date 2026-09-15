@@ -1,0 +1,82 @@
+{
+  "build_failure": {
+    "reason": "LNK1104, build overlapped a running short capture; executable locked",
+    "retry": "Release x64 PASS after all processes exited",
+    "prebuild_captures": "8 short commands preserved separately; not used in final gate"
+  },
+  "startup_failures": [
+    {
+      "time_local": "2026-09-15 16:36:42",
+      "variant": "minecraft-Masks-Sharpen-Segment",
+      "exit_code": "0xc0000409",
+      "offset": "0x1ea819",
+      "phase": "before capture, last profile log Standard O-T2X-R",
+      "source_log": "failed-minecraft-mask-startup.log",
+      "excluded_from_results": true,
+      "retry": "PASS, 20260915_163731",
+      "root_cause": "unresolved; same code/offset as earlier startup failures"
+    },
+    {
+      "time_local": "2026-09-15 16:42:44",
+      "variant": "minecraft-Quality-Sharpen-Component",
+      "exit_code": "0xc0000409",
+      "offset": "0x1ea819",
+      "phase": "before capture",
+      "source_log": "failed-minecraft-quality-startup.log",
+      "excluded_from_results": true
+    }
+  ],
+  "lifetime_fix": {
+    "commit": "3e540f6",
+    "file": "Modules/Rendering/DirectX/vaShaderDX11.h",
+    "change": "wait for async compilation in concrete destructors before virtual CreateShader override is lost",
+    "evidence": "abort symbol; exception-stack candidate addresses match purecall and vaShader.cpp:94; independent source lifecycle defect",
+    "limits": "candidate addresses, not a fully unwound stack; does not establish the cause of a prior BSOD",
+    "build": "Release x64 PASS",
+    "pre_fix_completed_commands": 20,
+    "final_gate": "all short/mask/quality commands rerun on fixed executable",
+    "post_fix_completed_commands": 27,
+    "post_fix_abnormal_exit_count": 0
+  },
+  "analysis_baseline_check": {
+    "scene": "minecraft",
+    "frame": 436,
+    "initial_result": "Analyzer raised baseline bridge AssertionError; failing pixel arrays were not retained",
+    "followup": "Direct comparisons of frames 430..479 showed no differences; five independent reads of frame 436 matched both RGB/file hashes",
+    "root_cause": "unresolved; do not claim a reproduced rendering difference",
+    "action": "preserve failed arrays on any repeat; rerun whole analysis without weakening exact-equality criterion",
+    "whole_analysis_retry": "PASS: all 480 current baseline RGB hashes match prior baseline; exact criterion unchanged",
+    "snapshot_policy": "Any future failure stores both actual arrays before raising",
+    "independent_transition_cgvqm_recheck": "PASS: fresh score 93.60179901123047, difference 0 from previous validated score"
+  },
+  "cgvqm_preflight": {
+    "failure": "tasklist query denied in sandbox before new scoring",
+    "resolution": "same process guard rerun with authorized escalation; no scoring condition changed"
+  },
+  "ffv1_failure": {
+    "variant": "minecraft-NoSharpen-Segment-central",
+    "phase": "Before CGVQM scoring, test FFV1 round-trip",
+    "decoded_frames": 180,
+    "mismatched_channel_values": 1,
+    "frame": 308,
+    "x": 1276,
+    "y": 816,
+    "channel": "B",
+    "actual": 77,
+    "expected": 205,
+    "max_difference": 128,
+    "independent_bad_video_decode": "same single-channel difference reproduced",
+    "single_frame_reencodes": "two independent reencodes PASS with all RGB values matching",
+    "action": "preserve failing directory, reencode full window, keep exact-zero mismatch requirement",
+    "root_cause": "unresolved; do not attribute to GPU, RAM, or algorithm without evidence",
+    "excluded_from_scores": true,
+    "full_window_reencode": "PASS: 180-frame test/reference final decoded RGB mismatch 0; CGVQM score completed",
+    "rebuilt_video_independent_decode": "PASS: 180 frames, mismatch 0, max difference 0"
+  },
+  "failed_archive_hash_record": {
+    "initial_reported": "18be2c3d827863ce3b3a7607918a8e776f3671b6254ed3470005183a9d952571",
+    "current_verified": "c0a54eea02d589fe4270e5fa2c6049232aaa25807d7261fdcbeebb5226c7f203",
+    "verification": "3 streaming/full-file Python pairs plus independent PowerShell agree",
+    "cause": "unresolved; retain both records; archive excluded from scoring"
+  }
+}
