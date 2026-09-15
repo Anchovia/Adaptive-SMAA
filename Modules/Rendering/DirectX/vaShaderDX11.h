@@ -59,7 +59,9 @@ namespace VertexAsylum
         VA_RENDERING_MODULE_MAKE_FRIENDS( );
     public:
         vaPixelShaderDX11( const vaRenderingModuleParams & params ) : vaShader( params ) { }
-        virtual ~vaPixelShaderDX11( ) {}
+        // Wait while CreateShader still dispatches to the concrete class.
+        // Waiting only in vaShaderDX11 is too late: its override is pure virtual.
+        virtual ~vaPixelShaderDX11( ) { WaitFinishIfBackgroundCreateActive( ); }
 
     public:
         ID3D11PixelShader *         GetShader( );
@@ -83,7 +85,7 @@ namespace VertexAsylum
     {
     public:
         vaComputeShaderDX11( const vaRenderingModuleParams & params ) : vaShader( params ) { }
-        virtual ~vaComputeShaderDX11( ) {}
+        virtual ~vaComputeShaderDX11( ) { WaitFinishIfBackgroundCreateActive( ); }
 
     public:
         ID3D11ComputeShader *       GetShader( );
@@ -102,7 +104,7 @@ namespace VertexAsylum
     {
     public:
         vaHullShaderDX11( const vaRenderingModuleParams & params ) : vaShader( params ) { }
-        virtual ~vaHullShaderDX11( ) {}
+        virtual ~vaHullShaderDX11( ) { WaitFinishIfBackgroundCreateActive( ); }
 
     public:
         ID3D11HullShader *         GetShader( );
@@ -126,7 +128,7 @@ namespace VertexAsylum
     {
     public:
         vaDomainShaderDX11( const vaRenderingModuleParams & params ) : vaShader( params ) { }
-        virtual ~vaDomainShaderDX11( ) {}
+        virtual ~vaDomainShaderDX11( ) { WaitFinishIfBackgroundCreateActive( ); }
 
     public:
         ID3D11DomainShader *       GetShader( );
@@ -150,7 +152,7 @@ namespace VertexAsylum
     {
     public:
         vaGeometryShaderDX11( const vaRenderingModuleParams & params ) : vaShader( params ) { }
-        virtual ~vaGeometryShaderDX11( ) {}
+        virtual ~vaGeometryShaderDX11( ) { WaitFinishIfBackgroundCreateActive( ); }
 
     public:
         ID3D11GeometryShader *       GetShader( );
