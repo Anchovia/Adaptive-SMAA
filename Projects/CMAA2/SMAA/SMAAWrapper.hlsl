@@ -190,6 +190,9 @@ RWTexture2D<float>                   tscmaaIntegratedRawCandidateMask  : registe
 
 
 #if defined(SMAA_RECOVERED_INTEGRATED_CANDIDATES)
+#ifndef SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS
+#define SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS 0
+#endif
 #include "RecoveredTSCMAACandidate.hlsl"
 void RecoveredEmitIntegratedCandidate(uint2 pixel) {
     uint w,h; recoveredInput.GetDimensions(w,h);
@@ -199,11 +202,24 @@ void RecoveredEmitIntegratedCandidate(uint2 pixel) {
     bool selected = any(ce>lpfloat(g_SMAAReprojection.TSCMAACandidateParams.x)*lpfloat(0.5));
     if(g_SMAAReprojection.TSCMAACandidateParams.w>0.5)
         base = selected = pixel.y*w+pixel.x < min(uint(g_SMAAReprojection.TSCMAACandidateParams.z+0.5),w*h);
-    // Match the separate CS writes/counters, including readback-Off execution.
-    tscmaaIntegratedBaseEdgeMask[pixel] = base?1:0;
-    tscmaaIntegratedCandidateMask[pixel] = selected?1:0;
+    // Compact/indirect resolve consumes the list, not either diagnostic mask.
+    // Readback and forced-count validation still require the base counter;
+    // readback also keeps same-draw snapshot masks available.
+    #if SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS
+    bool collectStatistics = g_SMAAReprojection.TSCMAACandidateSourceParams.z>0.5
+        || g_SMAAReprojection.TSCMAACandidateParams.w>0.5;
+    bool writeMasks = collectStatistics
+        || g_SMAAReprojection.TSCMAACandidateSourceParams.y>0.5;
+    #else
+    bool collectStatistics = true;
+    bool writeMasks = true;
+    #endif
+    if(writeMasks) {
+        tscmaaIntegratedBaseEdgeMask[pixel] = base?1:0;
+        tscmaaIntegratedCandidateMask[pixel] = selected?1:0;
+    }
     uint index;
-    if(base) tscmaaIntegratedControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET,1,index);
+    if(base && collectStatistics) tscmaaIntegratedControl.InterlockedAdd(TSCMAA_EDGE_COUNTER_OFFSET,1,index);
     if(!selected) return;
     tscmaaIntegratedControl.InterlockedAdd(TSCMAA_CANDIDATE_COUNTER_OFFSET,1,index);
     uint capacity,stride; tscmaaIntegratedCandidates.GetDimensions(capacity,stride);
