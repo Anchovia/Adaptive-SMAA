@@ -44,18 +44,31 @@ if($Mode-eq 'Verify') {
     # changes between independent processes; preserve source bytes in finally.
     $original=[IO.File]::ReadAllBytes($shader)
     $source=[IO.File]::ReadAllText($shader)
+    $settingsPath=Join-Path $repo 'Projects/CMAA2/ApplicationSettings.xml'
+    $settingsOriginal=[IO.File]::ReadAllBytes($settingsPath)
+    $settingsText=[IO.File]::ReadAllText($settingsPath)
     if(-not $source.Contains('#define SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS 1')) {throw 'Expected optimized shader default'}
     try {
         foreach($scene in @('bistro','minecraft')) {
             foreach($pair in 1..3) {
                 $order=if($pair-eq 2){@(1,0)}else{@(0,1)}
                 foreach($variant in $order) {
+                    $label="$scene-pair-$pair-optional-$variant"
+                    if(@($script:runs | Where-Object {$_.label-eq $label -and $_.status-eq 'PASS'}).Count-eq 1) {continue}
                     if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count-ne 0) {throw 'Demo running before shader switch'}
                     $current=$source.Replace('#define SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS 1',"#define SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS $variant")
                     [IO.File]::WriteAllText($shader,$current,[Text.UTF8Encoding]::new($false))
-                    Invoke-Run "$scene-pair-$pair-optional-$variant" @('-smaaIntegratedSourcePerformanceBenchmark',"`"$scene 0 300 4800 1`"") $false
+                    # Avoid rendering the user's persisted San Miguel scene
+                    # before AutoBench selects its actual target scene.
+                    # The measured scene/path/warm-up are still set by AutoBench.
+                    $startup=$settingsText -replace '<SceneChoice>\d+</SceneChoice>','<SceneChoice>0</SceneChoice>'
+                    [IO.File]::WriteAllText($settingsPath,$startup,[Text.UTF8Encoding]::new($false))
+                    Invoke-Run $label @('-smaaIntegratedSourcePerformanceBenchmark',"`"$scene 0 300 4800 1`"") $false
                 }
             }
         }
-    } finally { [IO.File]::WriteAllBytes($shader,$original) }
+    } finally {
+        [IO.File]::WriteAllBytes($shader,$original)
+        [IO.File]::WriteAllBytes($settingsPath,$settingsOriginal)
+    }
 }

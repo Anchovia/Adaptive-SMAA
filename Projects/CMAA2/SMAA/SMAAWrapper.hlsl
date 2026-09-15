@@ -191,7 +191,7 @@ RWTexture2D<float>                   tscmaaIntegratedRawCandidateMask  : registe
 
 #if defined(SMAA_RECOVERED_INTEGRATED_CANDIDATES)
 #ifndef SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS
-#define SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS 0
+#define SMAA_RECOVERED_OPTIONAL_DIAGNOSTICS 1
 #endif
 #include "RecoveredTSCMAACandidate.hlsl"
 void RecoveredEmitIntegratedCandidate(uint2 pixel) {
