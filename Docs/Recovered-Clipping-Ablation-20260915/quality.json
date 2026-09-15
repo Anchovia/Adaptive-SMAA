@@ -1,0 +1,514 @@
+{
+  "status": "PASS",
+  "scope": "Spatial-reference proxy and temporal-delta diagnostics; not ghosting ground truth",
+  "scenes": {
+    "bistro": {
+      "baseline_480_frame_mismatch": 0,
+      "reference": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260827_014143\\SS_Reference",
+      "runs": {
+        "SourceClip": {
+          "label": "bistro-Quality-SourceClip-pair-0",
+          "scene": "bistro",
+          "mode": "Quality",
+          "variant": "SourceClip",
+          "signed_chroma": 0,
+          "ycocg_clamp": 0,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_152820",
+          "status": "PASS"
+        },
+        "SignedChroma": {
+          "label": "bistro-Quality-SignedChroma-pair-0",
+          "scene": "bistro",
+          "mode": "Quality",
+          "variant": "SignedChroma",
+          "signed_chroma": 1,
+          "ycocg_clamp": 0,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "5BCD19D4C2E683FEDFEF3BE7450915C4AA4A329F5D3C86DED166F3A47538B68D",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_152921",
+          "status": "PASS"
+        },
+        "YCoCgClamp": {
+          "label": "bistro-Quality-YCoCgClamp-pair-0",
+          "scene": "bistro",
+          "mode": "Quality",
+          "variant": "YCoCgClamp",
+          "signed_chroma": 0,
+          "ycocg_clamp": 1,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-YCoCgClamp",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "2C39E04083324F7A7E21293AF4732BE0BA9B253E296CAC1E5ECDAA368B6CA8B5",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_153024",
+          "status": "PASS"
+        },
+        "SignedChroma-YCoCgClamp": {
+          "label": "bistro-Quality-SignedChroma-YCoCgClamp-pair-0",
+          "scene": "bistro",
+          "mode": "Quality",
+          "variant": "SignedChroma-YCoCgClamp",
+          "signed_chroma": 1,
+          "ycocg_clamp": 1,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"bistro flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_153127",
+          "status": "PASS"
+        }
+      },
+      "windows": {
+        "central": {
+          "metrics": {
+            "SourceClip": {
+              "mae": 1.7252753906779819,
+              "psnr": 34.08170134559355,
+              "temporal_delta_residual": 2.7088961720466616,
+              "baseline_difference": 0.0
+            },
+            "SignedChroma": {
+              "mae": 1.7170972141954635,
+              "psnr": 34.123788945822916,
+              "temporal_delta_residual": 2.696078039540185,
+              "baseline_difference": 0.016834787662244506
+            },
+            "YCoCgClamp": {
+              "mae": 1.7112944079769983,
+              "psnr": 34.08463036576818,
+              "temporal_delta_residual": 2.6877062201499937,
+              "baseline_difference": 0.11027005407959223
+            },
+            "SignedChroma-YCoCgClamp": {
+              "mae": 1.7096595956219567,
+              "psnr": 34.10148036218568,
+              "temporal_delta_residual": 2.6848427189721003,
+              "baseline_difference": 0.10890516214486626
+            }
+          },
+          "effects": {
+            "mae": {
+              "signed_main": -0.004906494418779994,
+              "domain_main": -0.010709300637245178,
+              "interaction": 0.006543364127476803
+            },
+            "psnr": {
+              "signed_main": 0.029468798323435408,
+              "domain_main": -0.009689781731303526,
+              "interaction": -0.0252376038118598
+            },
+            "temporal_delta_residual": {
+              "signed_main": -0.007840816842185072,
+              "domain_main": -0.016212636232376232,
+              "interaction": 0.009954631328583208
+            }
+          }
+        },
+        "transition": {
+          "metrics": {
+            "SourceClip": {
+              "mae": 1.6531835873921712,
+              "psnr": 35.054311505749865,
+              "temporal_delta_residual": 0.2664978146986262,
+              "baseline_difference": 0.0
+            },
+            "SignedChroma": {
+              "mae": 1.6049429535865785,
+              "psnr": 35.42683588741238,
+              "temporal_delta_residual": 0.263438287169447,
+              "baseline_difference": 0.0735562173028787
+            },
+            "YCoCgClamp": {
+              "mae": 1.5163121779759725,
+              "psnr": 36.09002260754462,
+              "temporal_delta_residual": 0.25570558267054366,
+              "baseline_difference": 0.2321255202094714
+            },
+            "SignedChroma-YCoCgClamp": {
+              "mae": 1.5155229171117146,
+              "psnr": 36.09202538353615,
+              "temporal_delta_residual": 0.25558028070036015,
+              "baseline_difference": 0.23418875137964884
+            }
+          },
+          "effects": {
+            "mae": {
+              "signed_main": -0.02451494733492532,
+              "domain_main": -0.11314572294553127,
+              "interaction": 0.047451372941334835
+            },
+            "psnr": {
+              "signed_main": 0.18726357882702516,
+              "domain_main": 0.850450298959263,
+              "interaction": -0.37052160567098014
+            },
+            "temporal_delta_residual": {
+              "signed_main": -0.001592414749681359,
+              "domain_main": -0.009325119248584701,
+              "interaction": 0.0029342255589956956
+            }
+          }
+        },
+        "post_still": {
+          "metrics": {
+            "SourceClip": {
+              "mae": 1.6427511334419251,
+              "psnr": 35.06518624768246,
+              "temporal_delta_residual": 1.2073398011125391e-05,
+              "baseline_difference": 0.0
+            },
+            "SignedChroma": {
+              "mae": 1.5942823320627213,
+              "psnr": 35.43271059432135,
+              "temporal_delta_residual": 1.2073398011125391e-05,
+              "baseline_difference": 0.0746152251958847
+            },
+            "YCoCgClamp": {
+              "mae": 1.5082212150096894,
+              "psnr": 36.01902992897862,
+              "temporal_delta_residual": 1.2081933482477325e-05,
+              "baseline_difference": 0.24148692041635514
+            },
+            "SignedChroma-YCoCgClamp": {
+              "mae": 1.5075573295354843,
+              "psnr": 36.01751833095815,
+              "temporal_delta_residual": 1.2081933482477325e-05,
+              "baseline_difference": 0.24360832422971726
+            }
+          },
+          "effects": {
+            "mae": {
+              "signed_main": -0.024566343426704496,
+              "domain_main": -0.11062746047973637,
+              "interaction": 0.04780491590499869
+            },
+            "psnr": {
+              "signed_main": 0.1830063743092083,
+              "domain_main": 0.7693257089664769,
+              "interaction": -0.36903594465935896
+            },
+            "temporal_delta_residual": {
+              "signed_main": 0.0,
+              "domain_main": 8.535471351933327e-09,
+              "interaction": 0.0
+            }
+          }
+        }
+      },
+      "peak_frame": 150,
+      "crop": [
+        400,
+        336,
+        720,
+        560
+      ]
+    },
+    "minecraft": {
+      "baseline_480_frame_mismatch": 0,
+      "reference": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260827_014612\\SS_Reference",
+      "runs": {
+        "SourceClip": {
+          "label": "minecraft-Quality-SourceClip-pair-0",
+          "scene": "minecraft",
+          "mode": "Quality",
+          "variant": "SourceClip",
+          "signed_chroma": 0,
+          "ycocg_clamp": 0,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_153229",
+          "status": "PASS"
+        },
+        "SignedChroma": {
+          "label": "minecraft-Quality-SignedChroma-pair-0",
+          "scene": "minecraft",
+          "mode": "Quality",
+          "variant": "SignedChroma",
+          "signed_chroma": 1,
+          "ycocg_clamp": 0,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "5BCD19D4C2E683FEDFEF3BE7450915C4AA4A329F5D3C86DED166F3A47538B68D",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_153329",
+          "status": "PASS"
+        },
+        "YCoCgClamp": {
+          "label": "minecraft-Quality-YCoCgClamp-pair-0",
+          "scene": "minecraft",
+          "mode": "Quality",
+          "variant": "YCoCgClamp",
+          "signed_chroma": 0,
+          "ycocg_clamp": 1,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-YCoCgClamp",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "2C39E04083324F7A7E21293AF4732BE0BA9B253E296CAC1E5ECDAA368B6CA8B5",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_153429",
+          "status": "PASS"
+        },
+        "SignedChroma-YCoCgClamp": {
+          "label": "minecraft-Quality-SignedChroma-YCoCgClamp-pair-0",
+          "scene": "minecraft",
+          "mode": "Quality",
+          "variant": "SignedChroma-YCoCgClamp",
+          "signed_chroma": 1,
+          "ycocg_clamp": 1,
+          "pair": 0,
+          "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+          "arguments": [
+            "-smaaRecoveredSourceProfile",
+            "3",
+            "-smaaRecoveredSourceIntegratedCandidates",
+            "1",
+            "-smaaCandidateStatisticsReadback",
+            "0",
+            "-smaaRecoveredSourceCapture",
+            "\"minecraft flythrough-wide-yaw-360 O-ET2X-R 0 480 60\""
+          ],
+          "window": "hidden",
+          "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+          "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+          "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+          "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_153529",
+          "status": "PASS"
+        }
+      },
+      "windows": {
+        "central": {
+          "metrics": {
+            "SourceClip": {
+              "mae": 0.9567964391575919,
+              "psnr": 34.597393391448975,
+              "temporal_delta_residual": 1.4669519662857056,
+              "baseline_difference": 0.0
+            },
+            "SignedChroma": {
+              "mae": 0.956640883286794,
+              "psnr": 34.59985791856987,
+              "temporal_delta_residual": 1.4667768561177783,
+              "baseline_difference": 0.0005392537887221099
+            },
+            "YCoCgClamp": {
+              "mae": 0.94826350874371,
+              "psnr": 34.65235062426647,
+              "temporal_delta_residual": 1.452497825688786,
+              "baseline_difference": 0.03555986595650514
+            },
+            "SignedChroma-YCoCgClamp": {
+              "mae": 0.9482189039389293,
+              "psnr": 34.65327178078967,
+              "temporal_delta_residual": 1.4524139397674136,
+              "baseline_difference": 0.035558775507120624
+            }
+          },
+          "effects": {
+            "mae": {
+              "signed_main": -0.00010008033778935443,
+              "domain_main": -0.008477454880873314,
+              "interaction": 0.00011095106601721749
+            },
+            "psnr": {
+              "signed_main": 0.0016928418220487629,
+              "domain_main": 0.05418554751864946,
+              "interaction": -0.001543370597687499
+            },
+            "temporal_delta_residual": {
+              "signed_main": -0.00012949804464978953,
+              "domain_main": -0.014408528473642157,
+              "interaction": 9.122424655494399e-05
+            }
+          }
+        },
+        "transition": {
+          "metrics": {
+            "SourceClip": {
+              "mae": 1.5459171891212464,
+              "psnr": 33.07385028590417,
+              "temporal_delta_residual": 0.23423985576312892,
+              "baseline_difference": 0.0
+            },
+            "SignedChroma": {
+              "mae": 1.5443054914474488,
+              "psnr": 33.09867485585889,
+              "temporal_delta_residual": 0.23422775796243514,
+              "baseline_difference": 0.0026789600029587745
+            },
+            "YCoCgClamp": {
+              "mae": 1.5149753133455912,
+              "psnr": 33.259838939138575,
+              "temporal_delta_residual": 0.23118169818911458,
+              "baseline_difference": 0.10753090903162957
+            },
+            "SignedChroma-YCoCgClamp": {
+              "mae": 1.5153741121292115,
+              "psnr": 33.2554385601886,
+              "temporal_delta_residual": 0.23116204351329847,
+              "baseline_difference": 0.10780370806654295
+            }
+          },
+          "effects": {
+            "mae": {
+              "signed_main": -0.000606449445088697,
+              "domain_main": -0.02993662754694626,
+              "interaction": 0.0020104964574179096
+            },
+            "psnr": {
+              "signed_main": 0.010212095502371454,
+              "domain_main": 0.17137617878205802,
+              "interaction": -0.02922494890469096
+            },
+            "temporal_delta_residual": {
+              "signed_main": -1.5876238254941555e-05,
+              "domain_main": -0.0030619360115755057,
+              "interaction": -7.556875122327611e-06
+            }
+          }
+        },
+        "post_still": {
+          "metrics": {
+            "SourceClip": {
+              "mae": 1.5734812021255493,
+              "psnr": 32.68277363070984,
+              "temporal_delta_residual": 1.2803178606191068e-08,
+              "baseline_difference": 0.0
+            },
+            "SignedChroma": {
+              "mae": 1.571901798248291,
+              "psnr": 32.70509096030289,
+              "temporal_delta_residual": 1.2803178606191068e-08,
+              "baseline_difference": 0.002683546394109726
+            },
+            "YCoCgClamp": {
+              "mae": 1.5482091039419175,
+              "psnr": 32.79997685473529,
+              "temporal_delta_residual": 3.840953766598432e-07,
+              "baseline_difference": 0.11232007294893265
+            },
+            "SignedChroma-YCoCgClamp": {
+              "mae": 1.5487213492393495,
+              "psnr": 32.79510257925728,
+              "temporal_delta_residual": 3.840953766598432e-07,
+              "baseline_difference": 0.11262068897485733
+            }
+          },
+          "effects": {
+            "mae": {
+              "signed_main": -0.0005335792899131553,
+              "domain_main": -0.024226273596286707,
+              "interaction": 0.002091649174690291
+            },
+            "psnr": {
+              "signed_main": 0.008721527057520717,
+              "domain_main": 0.1036074214899223,
+              "interaction": -0.02719160507106011
+            },
+            "temporal_delta_residual": {
+              "signed_main": 0.0,
+              "domain_main": 3.712921980536521e-07,
+              "interaction": 0.0
+            }
+          }
+        }
+      },
+      "peak_frame": 329,
+      "crop": [
+        80,
+        784,
+        400,
+        1008
+      ]
+    }
+  }
+}

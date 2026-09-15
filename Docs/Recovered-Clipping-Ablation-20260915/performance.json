@@ -1,0 +1,3696 @@
+{
+  "status": "PASS",
+  "runs": [
+    {
+      "run": {
+        "label": "bistro-Benchmark-SourceClip-pair-1",
+        "scene": "bistro",
+        "mode": "Benchmark",
+        "variant": "SourceClip",
+        "signed_chroma": 0,
+        "ycocg_clamp": 0,
+        "pair": 1,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 2976,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160306",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.96819,
+            "p95_ms": 3.4153,
+            "p99_ms": 3.6354
+          },
+          "WholeFrame": {
+            "mean_ms": 2.90855,
+            "p95_ms": 3.487744,
+            "p99_ms": 3.699712
+          },
+          "SMAA": {
+            "mean_ms": 0.270201,
+            "p95_ms": 0.303104,
+            "p99_ms": 0.3072
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022928,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.210726,
+            "p95_ms": 0.242688,
+            "p99_ms": 0.24576
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.036528,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.038912
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.027911,
+            "p95_ms": 3.4947,
+            "p99_ms": 3.6936
+          },
+          "WholeFrame": {
+            "mean_ms": 2.988476,
+            "p95_ms": 3.500032,
+            "p99_ms": 3.78368
+          },
+          "SMAA": {
+            "mean_ms": 0.492871,
+            "p95_ms": 0.535552,
+            "p99_ms": 0.540672
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023076,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.21348,
+            "p95_ms": 0.246784,
+            "p99_ms": 0.25088
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023011,
+            "p95_ms": 0.023968,
+            "p99_ms": 0.024256
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031673,
+            "p95_ms": 0.032448,
+            "p99_ms": 0.032704
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.145055,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.14848
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004015,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023428,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023087,
+            "p95_ms": 0.024128,
+            "p99_ms": 0.024672
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.029969,
+            "p95_ms": 3.4764,
+            "p99_ms": 3.6728
+          },
+          "WholeFrame": {
+            "mean_ms": 3.001039,
+            "p95_ms": 3.56352,
+            "p99_ms": 3.757056
+          },
+          "SMAA": {
+            "mean_ms": 0.461974,
+            "p95_ms": 0.502784,
+            "p99_ms": 0.505856
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023168,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.356628,
+            "p95_ms": 0.388096,
+            "p99_ms": 0.391168
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023048,
+            "p95_ms": 0.023968,
+            "p99_ms": 0.024288
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004178,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.00409,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023285,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.032768
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023679,
+            "p95_ms": 0.025152,
+            "p99_ms": 0.025472
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "bistro-Benchmark-SignedChroma-YCoCgClamp-pair-1",
+        "scene": "bistro",
+        "mode": "Benchmark",
+        "variant": "SignedChroma-YCoCgClamp",
+        "signed_chroma": 1,
+        "ycocg_clamp": 1,
+        "pair": 1,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 12532,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160401",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.00369,
+            "p95_ms": 3.4627,
+            "p99_ms": 3.6435
+          },
+          "WholeFrame": {
+            "mean_ms": 2.945223,
+            "p95_ms": 3.497984,
+            "p99_ms": 3.623936
+          },
+          "SMAA": {
+            "mean_ms": 0.274167,
+            "p95_ms": 0.309248,
+            "p99_ms": 0.31232
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023021,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.214223,
+            "p95_ms": 0.247808,
+            "p99_ms": 0.25088
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.036906,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.038912
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.0545,
+            "p95_ms": 3.5075,
+            "p99_ms": 3.6989
+          },
+          "WholeFrame": {
+            "mean_ms": 3.015493,
+            "p95_ms": 3.556352,
+            "p99_ms": 3.789824
+          },
+          "SMAA": {
+            "mean_ms": 0.499756,
+            "p95_ms": 0.54272,
+            "p99_ms": 0.546816
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023295,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.217145,
+            "p95_ms": 0.249856,
+            "p99_ms": 0.253952
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023315,
+            "p95_ms": 0.02416,
+            "p99_ms": 0.024384
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.032378,
+            "p95_ms": 0.03328,
+            "p99_ms": 0.0336
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.146945,
+            "p95_ms": 0.150528,
+            "p99_ms": 0.151552
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004019,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023354,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023421,
+            "p95_ms": 0.024416,
+            "p99_ms": 0.024992
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.04558,
+            "p95_ms": 3.4954,
+            "p99_ms": 3.7134
+          },
+          "WholeFrame": {
+            "mean_ms": 3.004992,
+            "p95_ms": 3.540992,
+            "p99_ms": 3.812352
+          },
+          "SMAA": {
+            "mean_ms": 0.467226,
+            "p95_ms": 0.50688,
+            "p99_ms": 0.510976
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023335,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.36125,
+            "p95_ms": 0.392192,
+            "p99_ms": 0.396288
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023331,
+            "p95_ms": 0.024224,
+            "p99_ms": 0.024448
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004279,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004092,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023099,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023819,
+            "p95_ms": 0.025184,
+            "p99_ms": 0.025568
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "bistro-Benchmark-SignedChroma-YCoCgClamp-pair-2",
+        "scene": "bistro",
+        "mode": "Benchmark",
+        "variant": "SignedChroma-YCoCgClamp",
+        "signed_chroma": 1,
+        "ycocg_clamp": 1,
+        "pair": 2,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 13680,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160456",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.922979,
+            "p95_ms": 3.3768,
+            "p99_ms": 3.6003
+          },
+          "WholeFrame": {
+            "mean_ms": 2.872056,
+            "p95_ms": 3.39456,
+            "p99_ms": 3.57888
+          },
+          "SMAA": {
+            "mean_ms": 0.275151,
+            "p95_ms": 0.309248,
+            "p99_ms": 0.313344
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023225,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.214153,
+            "p95_ms": 0.246784,
+            "p99_ms": 0.25088
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037759,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.012768,
+            "p95_ms": 3.464,
+            "p99_ms": 3.6918
+          },
+          "WholeFrame": {
+            "mean_ms": 2.977257,
+            "p95_ms": 3.419136,
+            "p99_ms": 3.666944
+          },
+          "SMAA": {
+            "mean_ms": 0.500542,
+            "p95_ms": 0.544768,
+            "p99_ms": 0.549888
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023543,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.215804,
+            "p95_ms": 0.248832,
+            "p99_ms": 0.252928
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023419,
+            "p95_ms": 0.024288,
+            "p99_ms": 0.024576
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.032488,
+            "p95_ms": 0.033472,
+            "p99_ms": 0.03376
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.147838,
+            "p95_ms": 0.152576,
+            "p99_ms": 0.152576
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.00406,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023661,
+            "p95_ms": 0.032768,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.02354,
+            "p95_ms": 0.024544,
+            "p99_ms": 0.024832
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.979765,
+            "p95_ms": 3.4302,
+            "p99_ms": 3.6515
+          },
+          "WholeFrame": {
+            "mean_ms": 2.938849,
+            "p95_ms": 3.362816,
+            "p99_ms": 3.602432
+          },
+          "SMAA": {
+            "mean_ms": 0.469303,
+            "p95_ms": 0.510976,
+            "p99_ms": 0.514048
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023569,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.362214,
+            "p95_ms": 0.395264,
+            "p99_ms": 0.398336
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.02345,
+            "p95_ms": 0.024352,
+            "p99_ms": 0.024608
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004503,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004165,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023517,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023986,
+            "p95_ms": 0.025344,
+            "p99_ms": 0.025792
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "bistro-Benchmark-SourceClip-pair-2",
+        "scene": "bistro",
+        "mode": "Benchmark",
+        "variant": "SourceClip",
+        "signed_chroma": 0,
+        "ycocg_clamp": 0,
+        "pair": 2,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 19588,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160551",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.921083,
+            "p95_ms": 3.3719,
+            "p99_ms": 3.5835
+          },
+          "WholeFrame": {
+            "mean_ms": 2.875251,
+            "p95_ms": 3.3792,
+            "p99_ms": 3.556352
+          },
+          "SMAA": {
+            "mean_ms": 0.274301,
+            "p95_ms": 0.308224,
+            "p99_ms": 0.31232
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023247,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.214145,
+            "p95_ms": 0.246784,
+            "p99_ms": 0.25088
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.036887,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.038912
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.996435,
+            "p95_ms": 3.441,
+            "p99_ms": 3.6626
+          },
+          "WholeFrame": {
+            "mean_ms": 2.959567,
+            "p95_ms": 3.381248,
+            "p99_ms": 3.584
+          },
+          "SMAA": {
+            "mean_ms": 0.502157,
+            "p95_ms": 0.545792,
+            "p99_ms": 0.550912
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023525,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.217112,
+            "p95_ms": 0.25088,
+            "p99_ms": 0.253952
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023479,
+            "p95_ms": 0.024384,
+            "p99_ms": 0.02464
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.032632,
+            "p95_ms": 0.033696,
+            "p99_ms": 0.034016
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.148417,
+            "p95_ms": 0.152576,
+            "p99_ms": 0.152576
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004091,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023669,
+            "p95_ms": 0.032768,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023539,
+            "p95_ms": 0.02448,
+            "p99_ms": 0.0248
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.976553,
+            "p95_ms": 3.4273,
+            "p99_ms": 3.645
+          },
+          "WholeFrame": {
+            "mean_ms": 2.942008,
+            "p95_ms": 3.390464,
+            "p99_ms": 3.59424
+          },
+          "SMAA": {
+            "mean_ms": 0.469979,
+            "p95_ms": 0.510976,
+            "p99_ms": 0.515072
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023516,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.363485,
+            "p95_ms": 0.395264,
+            "p99_ms": 0.39936
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023501,
+            "p95_ms": 0.024384,
+            "p99_ms": 0.024736
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004012,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004157,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023476,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023992,
+            "p95_ms": 0.025376,
+            "p99_ms": 0.02576
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "bistro-Benchmark-SourceClip-pair-3",
+        "scene": "bistro",
+        "mode": "Benchmark",
+        "variant": "SourceClip",
+        "signed_chroma": 0,
+        "ycocg_clamp": 0,
+        "pair": 3,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 9800,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160645",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.987811,
+            "p95_ms": 3.44,
+            "p99_ms": 3.6061
+          },
+          "WholeFrame": {
+            "mean_ms": 2.942192,
+            "p95_ms": 3.544064,
+            "p99_ms": 3.743744
+          },
+          "SMAA": {
+            "mean_ms": 0.276834,
+            "p95_ms": 0.31232,
+            "p99_ms": 0.316416
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023199,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.216547,
+            "p95_ms": 0.249856,
+            "p99_ms": 0.254976
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037069,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.078789,
+            "p95_ms": 3.5602,
+            "p99_ms": 3.7521
+          },
+          "WholeFrame": {
+            "mean_ms": 3.038203,
+            "p95_ms": 3.57376,
+            "p99_ms": 3.807232
+          },
+          "SMAA": {
+            "mean_ms": 0.50212,
+            "p95_ms": 0.544768,
+            "p99_ms": 0.548864
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023418,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.218073,
+            "p95_ms": 0.25088,
+            "p99_ms": 0.256
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023429,
+            "p95_ms": 0.024384,
+            "p99_ms": 0.024608
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.032737,
+            "p95_ms": 0.0336,
+            "p99_ms": 0.034016
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.147743,
+            "p95_ms": 0.151552,
+            "p99_ms": 0.151552
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004052,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023611,
+            "p95_ms": 0.032768,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023544,
+            "p95_ms": 0.024544,
+            "p99_ms": 0.02512
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 3.057288,
+            "p95_ms": 3.5116,
+            "p99_ms": 3.7257
+          },
+          "WholeFrame": {
+            "mean_ms": 3.026689,
+            "p95_ms": 3.601408,
+            "p99_ms": 3.769344
+          },
+          "SMAA": {
+            "mean_ms": 0.47005,
+            "p95_ms": 0.509952,
+            "p99_ms": 0.514048
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023406,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.363856,
+            "p95_ms": 0.395264,
+            "p99_ms": 0.398336
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023404,
+            "p95_ms": 0.024288,
+            "p99_ms": 0.024512
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004265,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004133,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023503,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.024013,
+            "p95_ms": 0.025408,
+            "p99_ms": 0.025952
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "bistro-Benchmark-SignedChroma-YCoCgClamp-pair-3",
+        "scene": "bistro",
+        "mode": "Benchmark",
+        "variant": "SignedChroma-YCoCgClamp",
+        "signed_chroma": 1,
+        "ycocg_clamp": 1,
+        "pair": 3,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"bistro 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 8996,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160740",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.929596,
+            "p95_ms": 3.3865,
+            "p99_ms": 3.5819
+          },
+          "WholeFrame": {
+            "mean_ms": 2.88393,
+            "p95_ms": 3.406848,
+            "p99_ms": 3.610624
+          },
+          "SMAA": {
+            "mean_ms": 0.275411,
+            "p95_ms": 0.310272,
+            "p99_ms": 0.313344
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023284,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.024576
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.215247,
+            "p95_ms": 0.248832,
+            "p99_ms": 0.251904
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.036854,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.038912
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.999123,
+            "p95_ms": 3.4535,
+            "p99_ms": 3.6805
+          },
+          "WholeFrame": {
+            "mean_ms": 2.95847,
+            "p95_ms": 3.408896,
+            "p99_ms": 3.644416
+          },
+          "SMAA": {
+            "mean_ms": 0.501713,
+            "p95_ms": 0.544768,
+            "p99_ms": 0.549888
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023474,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.216821,
+            "p95_ms": 0.249856,
+            "p99_ms": 0.254976
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023582,
+            "p95_ms": 0.024448,
+            "p99_ms": 0.02464
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.032363,
+            "p95_ms": 0.033152,
+            "p99_ms": 0.03344
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.148445,
+            "p95_ms": 0.152576,
+            "p99_ms": 0.152576
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004072,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023687,
+            "p95_ms": 0.032768,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023591,
+            "p95_ms": 0.02448,
+            "p99_ms": 0.024768
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 2.987833,
+            "p95_ms": 3.4326,
+            "p99_ms": 3.6439
+          },
+          "WholeFrame": {
+            "mean_ms": 2.947027,
+            "p95_ms": 3.381248,
+            "p99_ms": 3.586048
+          },
+          "SMAA": {
+            "mean_ms": 0.469765,
+            "p95_ms": 0.510976,
+            "p99_ms": 0.516096
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.023483,
+            "p95_ms": 0.024576,
+            "p99_ms": 0.024576
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.363186,
+            "p95_ms": 0.395264,
+            "p99_ms": 0.39936
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023548,
+            "p95_ms": 0.024416,
+            "p99_ms": 0.024736
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.004278,
+            "p95_ms": 0.00512,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004112,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.023434,
+            "p95_ms": 0.031744,
+            "p99_ms": 0.033792
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.024179,
+            "p95_ms": 0.025568,
+            "p99_ms": 0.025856
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "minecraft-Benchmark-SourceClip-pair-1",
+        "scene": "minecraft",
+        "mode": "Benchmark",
+        "variant": "SourceClip",
+        "signed_chroma": 0,
+        "ycocg_clamp": 0,
+        "pair": 1,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 13048,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160835",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.283454,
+            "p95_ms": 1.5165,
+            "p99_ms": 1.6273
+          },
+          "WholeFrame": {
+            "mean_ms": 1.247142,
+            "p95_ms": 1.626112,
+            "p99_ms": 1.657856
+          },
+          "SMAA": {
+            "mean_ms": 0.292557,
+            "p95_ms": 0.305152,
+            "p99_ms": 0.308224
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022774,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.231668,
+            "p95_ms": 0.242688,
+            "p99_ms": 0.246784
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.038102,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.543053,
+            "p95_ms": 1.7882,
+            "p99_ms": 1.906
+          },
+          "WholeFrame": {
+            "mean_ms": 1.507017,
+            "p95_ms": 1.85856,
+            "p99_ms": 1.92
+          },
+          "SMAA": {
+            "mean_ms": 0.519338,
+            "p95_ms": 0.538624,
+            "p99_ms": 0.54272
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022749,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.231123,
+            "p95_ms": 0.243712,
+            "p99_ms": 0.247808
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022865,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.023712
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031497,
+            "p95_ms": 0.032128,
+            "p99_ms": 0.03232
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.14619,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.149504
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004009,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032412,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022868,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.502146,
+            "p95_ms": 1.7519,
+            "p99_ms": 1.8504
+          },
+          "WholeFrame": {
+            "mean_ms": 1.460023,
+            "p95_ms": 1.824768,
+            "p99_ms": 1.88928
+          },
+          "SMAA": {
+            "mean_ms": 0.487271,
+            "p95_ms": 0.505856,
+            "p99_ms": 0.508928
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022823,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.374368,
+            "p95_ms": 0.387072,
+            "p99_ms": 0.38912
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022909,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.02368
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003888,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004099,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031702,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023768,
+            "p95_ms": 0.024672,
+            "p99_ms": 0.0248
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "minecraft-Benchmark-SignedChroma-YCoCgClamp-pair-1",
+        "scene": "minecraft",
+        "mode": "Benchmark",
+        "variant": "SignedChroma-YCoCgClamp",
+        "signed_chroma": 1,
+        "ycocg_clamp": 1,
+        "pair": 1,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 17064,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160904",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.280187,
+            "p95_ms": 1.5181,
+            "p99_ms": 1.6172
+          },
+          "WholeFrame": {
+            "mean_ms": 1.231277,
+            "p95_ms": 1.610752,
+            "p99_ms": 1.672192
+          },
+          "SMAA": {
+            "mean_ms": 0.293346,
+            "p95_ms": 0.306176,
+            "p99_ms": 0.309248
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022771,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.232791,
+            "p95_ms": 0.244736,
+            "p99_ms": 0.247808
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037767,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.549243,
+            "p95_ms": 1.7929,
+            "p99_ms": 1.902
+          },
+          "WholeFrame": {
+            "mean_ms": 1.507038,
+            "p95_ms": 1.852416,
+            "p99_ms": 1.912832
+          },
+          "SMAA": {
+            "mean_ms": 0.520107,
+            "p95_ms": 0.539648,
+            "p99_ms": 0.543744
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022758,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.232438,
+            "p95_ms": 0.24576,
+            "p99_ms": 0.247808
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022773,
+            "p95_ms": 0.02336,
+            "p99_ms": 0.023584
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.03143,
+            "p95_ms": 0.032032,
+            "p99_ms": 0.032224
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.145903,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.14848
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.003994,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032383,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022862,
+            "p95_ms": 0.023648,
+            "p99_ms": 0.024096
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.503523,
+            "p95_ms": 1.7429,
+            "p99_ms": 1.8359
+          },
+          "WholeFrame": {
+            "mean_ms": 1.46111,
+            "p95_ms": 1.823744,
+            "p99_ms": 1.881088
+          },
+          "SMAA": {
+            "mean_ms": 0.488234,
+            "p95_ms": 0.50688,
+            "p99_ms": 0.509952
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022826,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.375459,
+            "p95_ms": 0.388096,
+            "p99_ms": 0.391168
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022904,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.02368
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003896,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.0041,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031715,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023729,
+            "p95_ms": 0.024544,
+            "p99_ms": 0.024896
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "minecraft-Benchmark-SignedChroma-YCoCgClamp-pair-2",
+        "scene": "minecraft",
+        "mode": "Benchmark",
+        "variant": "SignedChroma-YCoCgClamp",
+        "signed_chroma": 1,
+        "ycocg_clamp": 1,
+        "pair": 2,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 7228,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_160932",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.279573,
+            "p95_ms": 1.5138,
+            "p99_ms": 1.6268
+          },
+          "WholeFrame": {
+            "mean_ms": 1.244825,
+            "p95_ms": 1.618944,
+            "p99_ms": 1.65888
+          },
+          "SMAA": {
+            "mean_ms": 0.291489,
+            "p95_ms": 0.303104,
+            "p99_ms": 0.308224
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.02268,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.231,
+            "p95_ms": 0.241664,
+            "p99_ms": 0.24576
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037784,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.539555,
+            "p95_ms": 1.7724,
+            "p99_ms": 1.875
+          },
+          "WholeFrame": {
+            "mean_ms": 1.50312,
+            "p95_ms": 1.85856,
+            "p99_ms": 1.911808
+          },
+          "SMAA": {
+            "mean_ms": 0.517262,
+            "p95_ms": 0.535552,
+            "p99_ms": 0.539648
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.02269,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.230257,
+            "p95_ms": 0.241664,
+            "p99_ms": 0.246784
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022741,
+            "p95_ms": 0.023328,
+            "p99_ms": 0.023552
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031347,
+            "p95_ms": 0.031936,
+            "p99_ms": 0.032128
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.145581,
+            "p95_ms": 0.147456,
+            "p99_ms": 0.14848
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.003953,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032354,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022777,
+            "p95_ms": 0.023424,
+            "p99_ms": 0.024032
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.502995,
+            "p95_ms": 1.7627,
+            "p99_ms": 1.8514
+          },
+          "WholeFrame": {
+            "mean_ms": 1.465078,
+            "p95_ms": 1.826816,
+            "p99_ms": 1.881088
+          },
+          "SMAA": {
+            "mean_ms": 0.486713,
+            "p95_ms": 0.504832,
+            "p99_ms": 0.507904
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022801,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.374046,
+            "p95_ms": 0.386048,
+            "p99_ms": 0.388096
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022875,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.023616
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003892,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004066,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031592,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023726,
+            "p95_ms": 0.024608,
+            "p99_ms": 0.0248
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "minecraft-Benchmark-SourceClip-pair-2",
+        "scene": "minecraft",
+        "mode": "Benchmark",
+        "variant": "SourceClip",
+        "signed_chroma": 0,
+        "ycocg_clamp": 0,
+        "pair": 2,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 7104,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_161001",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.247866,
+            "p95_ms": 1.4873,
+            "p99_ms": 1.5683
+          },
+          "WholeFrame": {
+            "mean_ms": 1.209419,
+            "p95_ms": 1.446912,
+            "p99_ms": 1.524736
+          },
+          "SMAA": {
+            "mean_ms": 0.294523,
+            "p95_ms": 0.3072,
+            "p99_ms": 0.309248
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022812,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.233671,
+            "p95_ms": 0.24576,
+            "p99_ms": 0.247808
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.038019,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.508232,
+            "p95_ms": 1.7559,
+            "p99_ms": 1.8473
+          },
+          "WholeFrame": {
+            "mean_ms": 1.469085,
+            "p95_ms": 1.697792,
+            "p99_ms": 1.780736
+          },
+          "SMAA": {
+            "mean_ms": 0.5217,
+            "p95_ms": 0.540672,
+            "p99_ms": 0.543744
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022781,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.233115,
+            "p95_ms": 0.24576,
+            "p99_ms": 0.247808
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022873,
+            "p95_ms": 0.023456,
+            "p99_ms": 0.02368
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031522,
+            "p95_ms": 0.032096,
+            "p99_ms": 0.032224
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.14633,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.14848
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004032,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032398,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022902,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.02384
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.467307,
+            "p95_ms": 1.7297,
+            "p99_ms": 1.8083
+          },
+          "WholeFrame": {
+            "mean_ms": 1.423658,
+            "p95_ms": 1.650688,
+            "p99_ms": 1.722368
+          },
+          "SMAA": {
+            "mean_ms": 0.490586,
+            "p95_ms": 0.508928,
+            "p99_ms": 0.512
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022897,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.377348,
+            "p95_ms": 0.391168,
+            "p99_ms": 0.395264
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.023007,
+            "p95_ms": 0.023616,
+            "p99_ms": 0.023776
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003908,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004113,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031657,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023688,
+            "p95_ms": 0.024672,
+            "p99_ms": 0.024864
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "minecraft-Benchmark-SourceClip-pair-3",
+        "scene": "minecraft",
+        "mode": "Benchmark",
+        "variant": "SourceClip",
+        "signed_chroma": 0,
+        "ycocg_clamp": 0,
+        "pair": 3,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SourceClip",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "EEF7919C0B8DF129F3BACA3D10CDE26F5E648D4954F467428CB7DD1F298FA722",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 18984,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_161029",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.247907,
+            "p95_ms": 1.4848,
+            "p99_ms": 1.5801
+          },
+          "WholeFrame": {
+            "mean_ms": 1.207493,
+            "p95_ms": 1.440768,
+            "p99_ms": 1.52576
+          },
+          "SMAA": {
+            "mean_ms": 0.292237,
+            "p95_ms": 0.304128,
+            "p99_ms": 0.308224
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022765,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.231556,
+            "p95_ms": 0.242688,
+            "p99_ms": 0.246784
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037885,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.510241,
+            "p95_ms": 1.7598,
+            "p99_ms": 1.8537
+          },
+          "WholeFrame": {
+            "mean_ms": 1.476218,
+            "p95_ms": 1.707008,
+            "p99_ms": 1.815552
+          },
+          "SMAA": {
+            "mean_ms": 0.520573,
+            "p95_ms": 0.539648,
+            "p99_ms": 0.544768
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022774,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.231638,
+            "p95_ms": 0.244736,
+            "p99_ms": 0.247808
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.02291,
+            "p95_ms": 0.02352,
+            "p99_ms": 0.02368
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031551,
+            "p95_ms": 0.032128,
+            "p99_ms": 0.032256
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.146443,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.14848
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.003973,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032445,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022905,
+            "p95_ms": 0.023584,
+            "p99_ms": 0.023968
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.466273,
+            "p95_ms": 1.7377,
+            "p99_ms": 1.8187
+          },
+          "WholeFrame": {
+            "mean_ms": 1.427866,
+            "p95_ms": 1.66912,
+            "p99_ms": 1.722368
+          },
+          "SMAA": {
+            "mean_ms": 0.488777,
+            "p95_ms": 0.505856,
+            "p99_ms": 0.509952
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022872,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.375626,
+            "p95_ms": 0.387072,
+            "p99_ms": 0.392192
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022987,
+            "p95_ms": 0.023584,
+            "p99_ms": 0.023776
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003916,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004085,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031615,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023744,
+            "p95_ms": 0.024704,
+            "p99_ms": 0.024896
+          }
+        }
+      }
+    },
+    {
+      "run": {
+        "label": "minecraft-Benchmark-SignedChroma-YCoCgClamp-pair-3",
+        "scene": "minecraft",
+        "mode": "Benchmark",
+        "variant": "SignedChroma-YCoCgClamp",
+        "signed_chroma": 1,
+        "ycocg_clamp": 1,
+        "pair": 3,
+        "semantic_id": "O-ET2X-R-SourceIntegrated-SignedChroma-YCoCgClamp",
+        "arguments": [
+          "-smaaIntegratedSourcePerformanceBenchmark",
+          "\"minecraft 0 300 4800 1\""
+        ],
+        "window": "visible",
+        "exe_sha256": "20EF552FA674A805E57E604380D34C386C8932ED85B71BB2DC661D98E815FA9A",
+        "utility_sha256": "AD72D82B967468DC567FB0F71B7B7ED392C3493B50CE8F6212A5E223399654E4",
+        "candidate_sha256": "F60507721A62D05F75057EB154F345F4E528ED3F1DC954763617AC0F55CEAC9B",
+        "process_id": 17624,
+        "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260915_161058",
+        "status": "PASS"
+      },
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 1,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "modes": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.247555,
+            "p95_ms": 1.4925,
+            "p99_ms": 1.5728
+          },
+          "WholeFrame": {
+            "mean_ms": 1.211917,
+            "p95_ms": 1.452032,
+            "p99_ms": 1.4848
+          },
+          "SMAA": {
+            "mean_ms": 0.293774,
+            "p95_ms": 0.306176,
+            "p99_ms": 0.310272
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022752,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAAStandardSpatialT2X": {
+            "mean_ms": 0.233345,
+            "p95_ms": 0.244736,
+            "p99_ms": 0.248832
+          },
+          "SMAAStandardTemporalResolve": {
+            "mean_ms": 0.037655,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Separate": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.513072,
+            "p95_ms": 1.7646,
+            "p99_ms": 1.8408
+          },
+          "WholeFrame": {
+            "mean_ms": 1.472381,
+            "p95_ms": 1.703936,
+            "p99_ms": 1.80224
+          },
+          "SMAA": {
+            "mean_ms": 0.522505,
+            "p95_ms": 0.540672,
+            "p99_ms": 0.545792
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022773,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.234021,
+            "p95_ms": 0.24576,
+            "p99_ms": 0.249856
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022881,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.023616
+          },
+          "TSCMAAPrepareCandidates": {
+            "mean_ms": 0.031529,
+            "p95_ms": 0.032128,
+            "p99_ms": 0.032224
+          },
+          "TSCMAAExtractCandidates": {
+            "mean_ms": 0.146431,
+            "p95_ms": 0.14848,
+            "p99_ms": 0.14848
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.003984,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.032293,
+            "p95_ms": 0.039936,
+            "p99_ms": 0.04096
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.022908,
+            "p95_ms": 0.023488,
+            "p99_ms": 0.023776
+          }
+        },
+        "O-ET2X-R-SourceCandidate-SourceKernel-Integrated": {
+          "ApplicationFrameWall": {
+            "mean_ms": 1.465875,
+            "p95_ms": 1.7385,
+            "p99_ms": 1.8144
+          },
+          "WholeFrame": {
+            "mean_ms": 1.427237,
+            "p95_ms": 1.668096,
+            "p99_ms": 1.717248
+          },
+          "SMAA": {
+            "mean_ms": 0.490391,
+            "p95_ms": 0.508928,
+            "p99_ms": 0.512
+          },
+          "SMAAGenerateCameraVelocity": {
+            "mean_ms": 0.022922,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023552
+          },
+          "SMAASpatial1X": {
+            "mean_ms": 0.377261,
+            "p95_ms": 0.390144,
+            "p99_ms": 0.39424
+          },
+          "TSCMAACopySpatialToHistory": {
+            "mean_ms": 0.022982,
+            "p95_ms": 0.023552,
+            "p99_ms": 0.023776
+          },
+          "TSCMAAClearIntegratedCandidateBuffers": {
+            "mean_ms": 0.003898,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.004096
+          },
+          "TSCMAAComputeDispatchArgs": {
+            "mean_ms": 0.004076,
+            "p95_ms": 0.004096,
+            "p99_ms": 0.00512
+          },
+          "TSCMAAResolveCandidates": {
+            "mean_ms": 0.031633,
+            "p95_ms": 0.038912,
+            "p99_ms": 0.039936
+          },
+          "TSCMAAOutputCopy": {
+            "mean_ms": 0.023997,
+            "p95_ms": 0.024768,
+            "p99_ms": 0.025024
+          }
+        }
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "scene": "bistro",
+      "mode": "O-T2X-R",
+      "metric": "ApplicationFrameWall",
+      "before_ms": 2.959028,
+      "after_ms": 2.9520883333333336,
+      "before_runs_ms": [
+        2.96819,
+        2.921083,
+        2.987811
+      ],
+      "after_runs_ms": [
+        3.00369,
+        2.922979,
+        2.929596
+      ],
+      "pair_percent": [
+        1.1960150798971947,
+        0.06490743330471727,
+        -1.9484164158978023
+      ],
+      "delta_ms_ci95": [
+        -0.12488199060359294,
+        0.11100265727025994
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-T2X-R",
+      "metric": "WholeFrame",
+      "before_ms": 2.9086643333333333,
+      "after_ms": 2.900403,
+      "before_runs_ms": [
+        2.90855,
+        2.875251,
+        2.942192
+      ],
+      "after_runs_ms": [
+        2.945223,
+        2.872056,
+        2.88393
+      ],
+      "pair_percent": [
+        1.2608688177958127,
+        -0.11112073345943552,
+        -1.9802242681646876
+      ],
+      "delta_ms_ci95": [
+        -0.12667979911528637,
+        0.11015713244861977
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-T2X-R",
+      "metric": "SMAA",
+      "before_ms": 0.27377866666666667,
+      "after_ms": 0.27490966666666666,
+      "before_runs_ms": [
+        0.270201,
+        0.274301,
+        0.276834
+      ],
+      "after_runs_ms": [
+        0.274167,
+        0.275151,
+        0.275411
+      ],
+      "pair_percent": [
+        1.467796196165061,
+        0.3098785640591739,
+        -0.514026456287886
+      ],
+      "delta_ms_ci95": [
+        -0.005589752287088513,
+        0.007851752287088462
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-T2X-R",
+      "metric": "SMAAGenerateCameraVelocity",
+      "before_ms": 0.02312466666666667,
+      "after_ms": 0.023176666666666665,
+      "before_runs_ms": [
+        0.022928,
+        0.023247,
+        0.023199
+      ],
+      "after_runs_ms": [
+        0.023021,
+        0.023225,
+        0.023284
+      ],
+      "pair_percent": [
+        0.4056175854849853,
+        -0.0946358669935976,
+        0.3663951032371937
+      ],
+      "delta_ms_ci95": [
+        -0.00010750795067252829,
+        0.00021150795067252588
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-T2X-R",
+      "metric": "SMAAStandardSpatialT2X",
+      "before_ms": 0.213806,
+      "after_ms": 0.214541,
+      "before_runs_ms": [
+        0.210726,
+        0.214145,
+        0.216547
+      ],
+      "after_runs_ms": [
+        0.214223,
+        0.214153,
+        0.215247
+      ],
+      "pair_percent": [
+        1.659500963336269,
+        0.003735786499814431,
+        -0.6003315677427956
+      ],
+      "delta_ms_ci95": [
+        -0.005425059994239026,
+        0.006895059994239033
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-T2X-R",
+      "metric": "SMAAStandardTemporalResolve",
+      "before_ms": 0.036828,
+      "after_ms": 0.037173,
+      "before_runs_ms": [
+        0.036528,
+        0.036887,
+        0.037069
+      ],
+      "after_runs_ms": [
+        0.036906,
+        0.037759,
+        0.036854
+      ],
+      "pair_percent": [
+        1.034822601839691,
+        2.363976468674589,
+        -0.5799994604656189
+      ],
+      "delta_ms_ci95": [
+        -0.0010069940892277892,
+        0.0016969940892277902
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "ApplicationFrameWall",
+      "before_ms": 3.034378333333333,
+      "after_ms": 3.022130333333333,
+      "before_runs_ms": [
+        3.027911,
+        2.996435,
+        3.078789
+      ],
+      "after_runs_ms": [
+        3.0545,
+        3.012768,
+        2.999123
+      ],
+      "pair_percent": [
+        0.8781301696119792,
+        0.5450810713397702,
+        -2.587575829327704
+      ],
+      "delta_ms_ci95": [
+        -0.1578444625927135,
+        0.13334846259271343
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "WholeFrame",
+      "before_ms": 2.9954153333333333,
+      "after_ms": 2.98374,
+      "before_runs_ms": [
+        2.988476,
+        2.959567,
+        3.038203
+      ],
+      "after_runs_ms": [
+        3.015493,
+        2.977257,
+        2.95847
+      ],
+      "pair_percent": [
+        0.9040393832843385,
+        0.5977225722546553,
+        -2.624347352695
+      ],
+      "delta_ms_ci95": [
+        -0.15854718365290843,
+        0.1351965169862419
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "SMAA",
+      "before_ms": 0.49904933333333334,
+      "after_ms": 0.5006703333333333,
+      "before_runs_ms": [
+        0.492871,
+        0.502157,
+        0.50212
+      ],
+      "after_runs_ms": [
+        0.499756,
+        0.500542,
+        0.501713
+      ],
+      "pair_percent": [
+        1.3969172460948087,
+        -0.32161256340147437,
+        -0.08105632119812523
+      ],
+      "delta_ms_ci95": [
+        -0.009802546509416516,
+        0.013044546509416522
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "SMAAGenerateCameraVelocity",
+      "before_ms": 0.02333966666666667,
+      "after_ms": 0.023437333333333334,
+      "before_runs_ms": [
+        0.023076,
+        0.023525,
+        0.023418
+      ],
+      "after_runs_ms": [
+        0.023295,
+        0.023543,
+        0.023474
+      ],
+      "pair_percent": [
+        0.9490379615184619,
+        0.0765143464399598,
+        0.23913229139975734
+      ],
+      "delta_ms_ci95": [
+        -0.00016759380309336406,
+        0.00036292713642669614
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "SMAASpatial1X",
+      "before_ms": 0.21622166666666667,
+      "after_ms": 0.21659,
+      "before_runs_ms": [
+        0.21348,
+        0.217112,
+        0.218073
+      ],
+      "after_runs_ms": [
+        0.217145,
+        0.215804,
+        0.216821
+      ],
+      "pair_percent": [
+        1.71678845793517,
+        -0.602454032941524,
+        -0.5741196755214895
+      ],
+      "delta_ms_ci95": [
+        -0.006724213654934475,
+        0.007460880321601158
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAACopySpatialToHistory",
+      "before_ms": 0.02330633333333333,
+      "after_ms": 0.023438666666666667,
+      "before_runs_ms": [
+        0.023011,
+        0.023479,
+        0.023429
+      ],
+      "after_runs_ms": [
+        0.023315,
+        0.023419,
+        0.023582
+      ],
+      "pair_percent": [
+        1.3211072965103599,
+        -0.25554751054134295,
+        0.6530368346920445
+      ],
+      "delta_ms_ci95": [
+        -0.00032196060244064906,
+        0.0005866272691073144
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAPrepareCandidates",
+      "before_ms": 0.03234733333333333,
+      "after_ms": 0.03240966666666667,
+      "before_runs_ms": [
+        0.031673,
+        0.032632,
+        0.032737
+      ],
+      "after_runs_ms": [
+        0.032378,
+        0.032488,
+        0.032363
+      ],
+      "pair_percent": [
+        2.2258706153506003,
+        -0.4412846285854366,
+        -1.1424382197513516
+      ],
+      "delta_ms_ci95": [
+        -0.0013494577358493997,
+        0.0014741244025160663
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAExtractCandidates",
+      "before_ms": 0.14707166666666666,
+      "after_ms": 0.14774266666666666,
+      "before_runs_ms": [
+        0.145055,
+        0.148417,
+        0.147743
+      ],
+      "after_runs_ms": [
+        0.146945,
+        0.147838,
+        0.148445
+      ],
+      "pair_percent": [
+        1.3029540519113425,
+        -0.39011703511052653,
+        0.4751494148622859
+      ],
+      "delta_ms_ci95": [
+        -0.0023963930886128863,
+        0.003738393088612878
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAComputeDispatchArgs",
+      "before_ms": 0.004052666666666667,
+      "after_ms": 0.004050333333333334,
+      "before_runs_ms": [
+        0.004015,
+        0.004091,
+        0.004052
+      ],
+      "after_runs_ms": [
+        0.004019,
+        0.00406,
+        0.004072
+      ],
+      "pair_percent": [
+        0.09962640099625553,
+        -0.7577609386458017,
+        0.49358341559724295
+      ],
+      "delta_ms_ci95": [
+        -6.712759462849104e-05,
+        6.246092796182433e-05
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAResolveCandidates",
+      "before_ms": 0.023569333333333334,
+      "after_ms": 0.023567333333333332,
+      "before_runs_ms": [
+        0.023428,
+        0.023669,
+        0.023611
+      ],
+      "after_runs_ms": [
+        0.023354,
+        0.023661,
+        0.023687
+      ],
+      "pair_percent": [
+        -0.3158613624722584,
+        -0.03379948455785042,
+        0.3218838676887881
+      ],
+      "delta_ms_ci95": [
+        -0.00018875693789044572,
+        0.00018475693789044633
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAOutputCopy",
+      "before_ms": 0.02339,
+      "after_ms": 0.023517333333333335,
+      "before_runs_ms": [
+        0.023087,
+        0.023539,
+        0.023544
+      ],
+      "after_runs_ms": [
+        0.023421,
+        0.02354,
+        0.023591
+      ],
+      "pair_percent": [
+        1.4467016069649619,
+        0.004248268830431279,
+        0.19962623173632732
+      ],
+      "delta_ms_ci95": [
+        -0.00032093021732588963,
+        0.0005755968839925565
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "ApplicationFrameWall",
+      "before_ms": 3.02127,
+      "after_ms": 3.004392666666667,
+      "before_runs_ms": [
+        3.029969,
+        2.976553,
+        3.057288
+      ],
+      "after_runs_ms": [
+        3.04558,
+        2.979765,
+        2.987833
+      ],
+      "pair_percent": [
+        0.5152197926777458,
+        0.1079100556919288,
+        -2.2717846666718833
+      ],
+      "delta_ms_ci95": [
+        -0.13103263981833893,
+        0.0972779731516727
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "WholeFrame",
+      "before_ms": 2.989912,
+      "after_ms": 2.9636226666666667,
+      "before_runs_ms": [
+        3.001039,
+        2.942008,
+        3.026689
+      ],
+      "after_runs_ms": [
+        3.004992,
+        2.938849,
+        2.947027
+      ],
+      "pair_percent": [
+        0.13172104727730005,
+        -0.10737564275828948,
+        -2.6319849842517784
+      ],
+      "delta_ms_ci95": [
+        -0.141450654079545,
+        0.08887198741287808
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "SMAA",
+      "before_ms": 0.46733433333333335,
+      "after_ms": 0.46876466666666666,
+      "before_runs_ms": [
+        0.461974,
+        0.469979,
+        0.47005
+      ],
+      "after_runs_ms": [
+        0.467226,
+        0.469303,
+        0.469765
+      ],
+      "pair_percent": [
+        1.136860515959759,
+        -0.14383621395848145,
+        -0.060631847675785
+      ],
+      "delta_ms_ci95": [
+        -0.0068056499553545155,
+        0.009666316622021175
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "SMAAGenerateCameraVelocity",
+      "before_ms": 0.023363333333333333,
+      "after_ms": 0.023462333333333335,
+      "before_runs_ms": [
+        0.023168,
+        0.023516,
+        0.023406
+      ],
+      "after_runs_ms": [
+        0.023335,
+        0.023569,
+        0.023483
+      ],
+      "pair_percent": [
+        0.7208218232044317,
+        0.2253784657254787,
+        0.32897547637358304
+      ],
+      "delta_ms_ci95": [
+        -5.029646981771298e-05,
+        0.0002482964698177144
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "SMAASpatial1X",
+      "before_ms": 0.361323,
+      "after_ms": 0.3622166666666667,
+      "before_runs_ms": [
+        0.356628,
+        0.363485,
+        0.363856
+      ],
+      "after_runs_ms": [
+        0.36125,
+        0.362214,
+        0.363186
+      ],
+      "pair_percent": [
+        1.29602835447582,
+        -0.34967055036659866,
+        -0.1841387801767791
+      ],
+      "delta_ms_ci95": [
+        -0.007161856991976834,
+        0.00894919032531016
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAACopySpatialToHistory",
+      "before_ms": 0.023317666666666667,
+      "after_ms": 0.023443,
+      "before_runs_ms": [
+        0.023048,
+        0.023501,
+        0.023404
+      ],
+      "after_runs_ms": [
+        0.023331,
+        0.02345,
+        0.023548
+      ],
+      "pair_percent": [
+        1.227872266574126,
+        -0.21701204204077618,
+        0.6152794394120642
+      ],
+      "delta_ms_ci95": [
+        -0.0002914568090791978,
+        0.000542123475745863
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAClearIntegratedCandidateBuffers",
+      "before_ms": 0.004151666666666666,
+      "after_ms": 0.004353333333333333,
+      "before_runs_ms": [
+        0.004178,
+        0.004012,
+        0.004265
+      ],
+      "after_runs_ms": [
+        0.004279,
+        0.004503,
+        0.004278
+      ],
+      "pair_percent": [
+        2.417424605074192,
+        12.238285144566309,
+        0.304806565064486
+      ],
+      "delta_ms_ci95": [
+        -0.00043030760166234386,
+        0.0008336409349956769
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAComputeDispatchArgs",
+      "before_ms": 0.0041266666666666665,
+      "after_ms": 0.004123,
+      "before_runs_ms": [
+        0.00409,
+        0.004157,
+        0.004133
+      ],
+      "after_runs_ms": [
+        0.004092,
+        0.004165,
+        0.004112
+      ],
+      "pair_percent": [
+        0.04889975550121939,
+        0.19244647582392638,
+        -0.508105492378419
+      ],
+      "delta_ms_ci95": [
+        -4.169372256408554e-05,
+        3.436038923075239e-05
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAResolveCandidates",
+      "before_ms": 0.023421333333333332,
+      "after_ms": 0.02335,
+      "before_runs_ms": [
+        0.023285,
+        0.023476,
+        0.023503
+      ],
+      "after_runs_ms": [
+        0.023099,
+        0.023517,
+        0.023434
+      ],
+      "pair_percent": [
+        -0.7987975091260369,
+        0.17464644743567792,
+        -0.29357954303705913
+      ],
+      "delta_ms_ci95": [
+        -0.0003533276453895363,
+        0.00021066097872287037
+      ]
+    },
+    {
+      "scene": "bistro",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAOutputCopy",
+      "before_ms": 0.023894666666666665,
+      "after_ms": 0.023994666666666668,
+      "before_runs_ms": [
+        0.023679,
+        0.023992,
+        0.024013
+      ],
+      "after_runs_ms": [
+        0.023819,
+        0.023986,
+        0.024179
+      ],
+      "pair_percent": [
+        0.5912411841716425,
+        -0.025008336112031238,
+        0.691292216715933
+      ],
+      "delta_ms_ci95": [
+        -0.0001303158737811583,
+        0.0003303158737811594
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-T2X-R",
+      "metric": "ApplicationFrameWall",
+      "before_ms": 1.2597423333333333,
+      "after_ms": 1.269105,
+      "before_runs_ms": [
+        1.283454,
+        1.247866,
+        1.247907
+      ],
+      "after_runs_ms": [
+        1.280187,
+        1.279573,
+        1.247555
+      ],
+      "pair_percent": [
+        -0.25454749449532743,
+        2.5408978207596133,
+        -0.028207230186239052
+      ],
+      "delta_ms_ci95": [
+        -0.03884344692337347,
+        0.05756878025670673
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-T2X-R",
+      "metric": "WholeFrame",
+      "before_ms": 1.2213513333333332,
+      "after_ms": 1.2293396666666667,
+      "before_runs_ms": [
+        1.247142,
+        1.209419,
+        1.207493
+      ],
+      "after_runs_ms": [
+        1.231277,
+        1.244825,
+        1.211917
+      ],
+      "pair_percent": [
+        -1.272108548986406,
+        2.927521396637567,
+        0.36637893553006506
+      ],
+      "delta_ms_ci95": [
+        -0.05615377710641072,
+        0.0721304437730774
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-T2X-R",
+      "metric": "SMAA",
+      "before_ms": 0.29310566666666665,
+      "after_ms": 0.29286966666666664,
+      "before_runs_ms": [
+        0.292557,
+        0.294523,
+        0.292237
+      ],
+      "after_runs_ms": [
+        0.293346,
+        0.291489,
+        0.293774
+      ],
+      "pair_percent": [
+        0.26969103456762067,
+        -1.0301402606927024,
+        0.5259429846323105
+      ],
+      "delta_ms_ci95": [
+        -0.006326687748701507,
+        0.005854687748701479
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-T2X-R",
+      "metric": "SMAAGenerateCameraVelocity",
+      "before_ms": 0.022783666666666667,
+      "after_ms": 0.022734333333333332,
+      "before_runs_ms": [
+        0.022774,
+        0.022812,
+        0.022765
+      ],
+      "after_runs_ms": [
+        0.022771,
+        0.02268,
+        0.022752
+      ],
+      "pair_percent": [
+        -0.013172916483705777,
+        -0.5786428195686533,
+        -0.05710520535909813
+      ],
+      "delta_ms_ci95": [
+        -0.00022760952036934894,
+        0.00012894285370268304
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-T2X-R",
+      "metric": "SMAAStandardSpatialT2X",
+      "before_ms": 0.23229833333333333,
+      "after_ms": 0.23237866666666668,
+      "before_runs_ms": [
+        0.231668,
+        0.233671,
+        0.231556
+      ],
+      "after_runs_ms": [
+        0.232791,
+        0.231,
+        0.233345
+      ],
+      "pair_percent": [
+        0.48474541153720185,
+        -1.143060114434391,
+        0.7725992848382157
+      ],
+      "delta_ms_ci95": [
+        -0.0058962073943523916,
+        0.006056874061019053
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-T2X-R",
+      "metric": "SMAAStandardTemporalResolve",
+      "before_ms": 0.038002,
+      "after_ms": 0.037735333333333336,
+      "before_runs_ms": [
+        0.038102,
+        0.038019,
+        0.037885
+      ],
+      "after_runs_ms": [
+        0.037767,
+        0.037784,
+        0.037655
+      ],
+      "pair_percent": [
+        -0.879218938638382,
+        -0.6181119966332638,
+        -0.6071004355285736
+      ],
+      "delta_ms_ci95": [
+        -0.00041380508823708355,
+        -0.00011952824509624656
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "ApplicationFrameWall",
+      "before_ms": 1.5205086666666667,
+      "after_ms": 1.5339566666666666,
+      "before_runs_ms": [
+        1.543053,
+        1.508232,
+        1.510241
+      ],
+      "after_runs_ms": [
+        1.549243,
+        1.539555,
+        1.513072
+      ],
+      "pair_percent": [
+        0.40115277958696627,
+        2.0768025078369945,
+        0.18745352562934414
+      ],
+      "delta_ms_ci95": [
+        -0.025232619827539216,
+        0.05212861982753918
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "WholeFrame",
+      "before_ms": 1.4841066666666667,
+      "after_ms": 1.4941796666666667,
+      "before_runs_ms": [
+        1.507017,
+        1.469085,
+        1.476218
+      ],
+      "after_runs_ms": [
+        1.507038,
+        1.50312,
+        1.472381
+      ],
+      "pair_percent": [
+        0.0013934812945093356,
+        2.3167481799895917,
+        -0.2599209601833907
+      ],
+      "delta_ms_ci95": [
+        -0.04169932187682223,
+        0.06184532187682223
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "SMAA",
+      "before_ms": 0.520537,
+      "after_ms": 0.519958,
+      "before_runs_ms": [
+        0.519338,
+        0.5217,
+        0.520573
+      ],
+      "after_runs_ms": [
+        0.520107,
+        0.517262,
+        0.522505
+      ],
+      "pair_percent": [
+        0.14807312386153626,
+        -0.8506804677017588,
+        0.37112950537196987
+      ],
+      "delta_ms_ci95": [
+        -0.0090057037218066,
+        0.007847703721806607
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "SMAAGenerateCameraVelocity",
+      "before_ms": 0.022768,
+      "after_ms": 0.022740333333333335,
+      "before_runs_ms": [
+        0.022749,
+        0.022781,
+        0.022774
+      ],
+      "after_runs_ms": [
+        0.022758,
+        0.02269,
+        0.022773
+      ],
+      "pair_percent": [
+        0.03956217855731747,
+        -0.39945568675651133,
+        -0.004390972161227857
+      ],
+      "delta_ms_ci95": [
+        -0.0001644823036410245,
+        0.00010914897030769364
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "SMAASpatial1X",
+      "before_ms": 0.23195866666666667,
+      "after_ms": 0.23223866666666668,
+      "before_runs_ms": [
+        0.231123,
+        0.233115,
+        0.231638
+      ],
+      "after_runs_ms": [
+        0.232438,
+        0.230257,
+        0.234021
+      ],
+      "pair_percent": [
+        0.5689611159426011,
+        -1.2260043326255299,
+        1.0287603933724077
+      ],
+      "delta_ms_ci95": [
+        -0.006599957860289441,
+        0.007159957860289446
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAACopySpatialToHistory",
+      "before_ms": 0.022882666666666666,
+      "after_ms": 0.022798333333333334,
+      "before_runs_ms": [
+        0.022865,
+        0.022873,
+        0.02291
+      ],
+      "after_runs_ms": [
+        0.022773,
+        0.022741,
+        0.022881
+      ],
+      "pair_percent": [
+        -0.40236168816968343,
+        -0.5770996371267434,
+        -0.12658227848101333
+      ],
+      "delta_ms_ci95": [
+        -0.00021332523882685228,
+        4.465857216018577e-05
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAPrepareCandidates",
+      "before_ms": 0.031523333333333334,
+      "after_ms": 0.031435333333333336,
+      "before_runs_ms": [
+        0.031497,
+        0.031522,
+        0.031551
+      ],
+      "after_runs_ms": [
+        0.03143,
+        0.031347,
+        0.031529
+      ],
+      "pair_percent": [
+        -0.2127186716195162,
+        -0.5551678193008058,
+        -0.06972837627967632
+      ],
+      "delta_ms_ci95": [
+        -0.0002833328520279351,
+        0.00010733285202793484
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAExtractCandidates",
+      "before_ms": 0.14632099999999998,
+      "after_ms": 0.14597166666666667,
+      "before_runs_ms": [
+        0.14619,
+        0.14633,
+        0.146443
+      ],
+      "after_runs_ms": [
+        0.145903,
+        0.145581,
+        0.146431
+      ],
+      "pair_percent": [
+        -0.19631985771939586,
+        -0.5118567621130277,
+        -0.00819431451143382
+      ],
+      "delta_ms_ci95": [
+        -0.0012745081732582974,
+        0.0005758415065916537
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAComputeDispatchArgs",
+      "before_ms": 0.004004666666666667,
+      "after_ms": 0.003977,
+      "before_runs_ms": [
+        0.004009,
+        0.004032,
+        0.003973
+      ],
+      "after_runs_ms": [
+        0.003994,
+        0.003953,
+        0.003984
+      ],
+      "pair_percent": [
+        -0.374158144175607,
+        -1.9593253968253954,
+        0.2768688648376427
+      ],
+      "delta_ms_ci95": [
+        -0.000142726319231175,
+        8.739298589784126e-05
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAResolveCandidates",
+      "before_ms": 0.032418333333333334,
+      "after_ms": 0.032343333333333335,
+      "before_runs_ms": [
+        0.032412,
+        0.032398,
+        0.032445
+      ],
+      "after_runs_ms": [
+        0.032383,
+        0.032354,
+        0.032293
+      ],
+      "pair_percent": [
+        -0.08947303467852219,
+        -0.13581085252176717,
+        -0.4684851286792968
+      ],
+      "delta_ms_ci95": [
+        -0.00024169656143117917,
+        9.169656143117717e-05
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Separate",
+      "metric": "TSCMAAOutputCopy",
+      "before_ms": 0.022891666666666664,
+      "after_ms": 0.022849,
+      "before_runs_ms": [
+        0.022868,
+        0.022902,
+        0.022905
+      ],
+      "after_runs_ms": [
+        0.022862,
+        0.022777,
+        0.022908
+      ],
+      "pair_percent": [
+        -0.026237537169837566,
+        -0.5458038599248982,
+        0.013097576948273293
+      ],
+      "delta_ms_ci95": [
+        -0.00022014493467772343,
+        0.00013481160134439266
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "ApplicationFrameWall",
+      "before_ms": 1.4785753333333334,
+      "after_ms": 1.4907976666666667,
+      "before_runs_ms": [
+        1.502146,
+        1.467307,
+        1.466273
+      ],
+      "after_runs_ms": [
+        1.503523,
+        1.502995,
+        1.465875
+      ],
+      "pair_percent": [
+        0.09166885242846146,
+        2.4322108461283243,
+        -0.027143649238570156
+      ],
+      "delta_ms_ci95": [
+        -0.03830809252303698,
+        0.0627527591897038
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "WholeFrame",
+      "before_ms": 1.4371823333333333,
+      "after_ms": 1.4511416666666668,
+      "before_runs_ms": [
+        1.460023,
+        1.423658,
+        1.427866
+      ],
+      "after_runs_ms": [
+        1.46111,
+        1.465078,
+        1.427237
+      ],
+      "pair_percent": [
+        0.07445088193815952,
+        2.9094066131051255,
+        -0.044051752755513984
+      ],
+      "delta_ms_ci95": [
+        -0.045155958787507514,
+        0.07307462545417409
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "SMAA",
+      "before_ms": 0.48887800000000003,
+      "after_ms": 0.488446,
+      "before_runs_ms": [
+        0.487271,
+        0.490586,
+        0.488777
+      ],
+      "after_runs_ms": [
+        0.488234,
+        0.486713,
+        0.490391
+      ],
+      "pair_percent": [
+        0.1976312975736194,
+        -0.789464028732989,
+        0.3302119371410672
+      ],
+      "delta_ms_ci95": [
+        -0.007878743418765006,
+        0.0070147434187649935
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "SMAAGenerateCameraVelocity",
+      "before_ms": 0.022864,
+      "after_ms": 0.022849666666666667,
+      "before_runs_ms": [
+        0.022823,
+        0.022897,
+        0.022872
+      ],
+      "after_runs_ms": [
+        0.022826,
+        0.022801,
+        0.022922
+      ],
+      "pair_percent": [
+        0.013144634798223365,
+        -0.41926889985588467,
+        0.2186079048618561
+      ],
+      "delta_ms_ci95": [
+        -0.00019946965795238845,
+        0.0001708029912857209
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "SMAASpatial1X",
+      "before_ms": 0.37578066666666665,
+      "after_ms": 0.3755886666666667,
+      "before_runs_ms": [
+        0.374368,
+        0.377348,
+        0.375626
+      ],
+      "after_runs_ms": [
+        0.375459,
+        0.374046,
+        0.377261
+      ],
+      "pair_percent": [
+        0.2914244807248556,
+        -0.8750543265102828,
+        0.43527338363158474
+      ],
+      "delta_ms_ci95": [
+        -0.006916657140954222,
+        0.006532657140954207
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAACopySpatialToHistory",
+      "before_ms": 0.022967666666666667,
+      "after_ms": 0.022920333333333334,
+      "before_runs_ms": [
+        0.022909,
+        0.023007,
+        0.022987
+      ],
+      "after_runs_ms": [
+        0.022904,
+        0.022875,
+        0.022982
+      ],
+      "pair_percent": [
+        -0.02182548343444557,
+        -0.5737384274351331,
+        -0.02175142471833036
+      ],
+      "delta_ms_ci95": [
+        -0.00022947896557000048,
+        0.00013481229890333396
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAClearIntegratedCandidateBuffers",
+      "before_ms": 0.003904,
+      "after_ms": 0.0038953333333333335,
+      "before_runs_ms": [
+        0.003888,
+        0.003908,
+        0.003916
+      ],
+      "after_runs_ms": [
+        0.003896,
+        0.003892,
+        0.003898
+      ],
+      "pair_percent": [
+        0.2057613168724437,
+        -0.4094165813715467,
+        -0.4596527068437273
+      ],
+      "delta_ms_ci95": [
+        -4.460805612136003e-05,
+        2.7274722788026706e-05
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAComputeDispatchArgs",
+      "before_ms": 0.004099,
+      "after_ms": 0.0040806666666666665,
+      "before_runs_ms": [
+        0.004099,
+        0.004113,
+        0.004085
+      ],
+      "after_runs_ms": [
+        0.0041,
+        0.004066,
+        0.004076
+      ],
+      "pair_percent": [
+        0.02439619419369876,
+        -1.1427182105519074,
+        -0.22031823745410906
+      ],
+      "delta_ms_ci95": [
+        -8.124302757905801e-05,
+        4.457636091239109e-05
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAResolveCandidates",
+      "before_ms": 0.031658,
+      "after_ms": 0.03164666666666667,
+      "before_runs_ms": [
+        0.031702,
+        0.031657,
+        0.031615
+      ],
+      "after_runs_ms": [
+        0.031715,
+        0.031592,
+        0.031633
+      ],
+      "pair_percent": [
+        0.04100687653776358,
+        -0.20532583630791246,
+        0.05693499920924605
+      ],
+      "delta_ms_ci95": [
+        -0.00012695475605364412,
+        0.00010428808938698253
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "mode": "O-ET2X-R-SourceCandidate-SourceKernel-Integrated",
+      "metric": "TSCMAAOutputCopy",
+      "before_ms": 0.023733333333333335,
+      "after_ms": 0.023817333333333333,
+      "before_runs_ms": [
+        0.023768,
+        0.023688,
+        0.023744
+      ],
+      "after_runs_ms": [
+        0.023729,
+        0.023726,
+        0.023997
+      ],
+      "pair_percent": [
+        -0.1640861662739801,
+        0.1604187774400634,
+        1.0655323450134757
+      ],
+      "delta_ms_ci95": [
+        -0.0002919428716593821,
+        0.0004599428716593813
+      ]
+    }
+  ],
+  "source_vs_standard": [
+    {
+      "scene": "bistro",
+      "variant": "SourceClip",
+      "source_over_standard_smaa_percent": [
+        70.97420068763623,
+        71.33696195055794,
+        69.79489513571309
+      ]
+    },
+    {
+      "scene": "bistro",
+      "variant": "SignedChroma-YCoCgClamp",
+      "source_over_standard_smaa_percent": [
+        70.41657092210221,
+        70.56198232970263,
+        70.56871366793627
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "variant": "SourceClip",
+      "source_over_standard_smaa_percent": [
+        66.55591901749061,
+        66.56967367574012,
+        67.25363318128778
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "variant": "SignedChroma-YCoCgClamp",
+      "source_over_standard_smaa_percent": [
+        66.4362220722287,
+        66.97474004164823,
+        66.92797865025497
+      ]
+    }
+  ],
+  "window_observations": [
+    {
+      "label": "bistro-Benchmark-SourceClip-pair-1",
+      "process_id": 2976,
+      "samples": 22,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "bistro-Benchmark-SignedChroma-YCoCgClamp-pair-1",
+      "process_id": 12532,
+      "samples": 24,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "bistro-Benchmark-SignedChroma-YCoCgClamp-pair-2",
+      "process_id": 13680,
+      "samples": 24,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "bistro-Benchmark-SourceClip-pair-2",
+      "process_id": 19588,
+      "samples": 24,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "bistro-Benchmark-SourceClip-pair-3",
+      "process_id": 9800,
+      "samples": 25,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "bistro-Benchmark-SignedChroma-YCoCgClamp-pair-3",
+      "process_id": 8996,
+      "samples": 24,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "minecraft-Benchmark-SourceClip-pair-1",
+      "process_id": 13048,
+      "samples": 11,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "minecraft-Benchmark-SignedChroma-YCoCgClamp-pair-1",
+      "process_id": 17064,
+      "samples": 12,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "minecraft-Benchmark-SignedChroma-YCoCgClamp-pair-2",
+      "process_id": 7228,
+      "samples": 11,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "minecraft-Benchmark-SourceClip-pair-2",
+      "process_id": 7104,
+      "samples": 11,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "minecraft-Benchmark-SourceClip-pair-3",
+      "process_id": 18984,
+      "samples": 11,
+      "visible": true,
+      "minimized": false
+    },
+    {
+      "label": "minecraft-Benchmark-SignedChroma-YCoCgClamp-pair-3",
+      "process_id": 17624,
+      "samples": 11,
+      "visible": true,
+      "minimized": false
+    }
+  ],
+  "scope": "Both source separate and integrated use the clipping switch; Standard is unchanged. Three independent process pairs, descriptive unadjusted t(2) intervals."
+}
