@@ -1,0 +1,36 @@
+{
+  "attempts": [
+    {
+      "kind": "manual-abort-stalled-render-readiness",
+      "label": "minecraft-Masks-profile-0",
+      "pid": 3824,
+      "start_time": "2026-09-15T19:42:11.168501+09:00",
+      "observed_at": "2026-09-15T19:45:45.3483069+09:00",
+      "elapsed_seconds": 214.1798059,
+      "cpu_seconds": 2.328125,
+      "working_set_bytes": 535339008,
+      "configured_timeout_seconds": 600,
+      "aborted_before_timeout": true,
+      "accepted_result": false,
+      "cause": "Unresolved; shader cache misses were the last log entries. No completed capture report. CPU image analysis was running concurrently; causation is not established.",
+      "log_sha256": "D01138B85CE2FA04E16F73A835C647BF436E060BA299CCE8E6526258608C4A01",
+      "residual_processes_after_stop": 0
+    },
+    {
+      "label": "minecraft-Masks-profile-1",
+      "pid": 20184,
+      "start_report_id": "20260915_195534",
+      "accepted_result": false,
+      "manual_abort_before_configured_timeout": true,
+      "configured_timeout_seconds": 600,
+      "concurrent_cpu_image_analysis": false,
+      "residual_processes_after_stop": 0,
+      "evidence": "Local dump contains compiler messages: missing VA_RM_INPUT_LOAD_Albedo and empty VS entry. No stack unwind was performed.",
+      "log_sha256": "fa239e70959fc22f5e00687c588bd0cddb39aacad3bebb8ed05c3f28b38ae317",
+      "dump_policy": "Full process dump retained locally only; not committed or uploaded."
+    }
+  ],
+  "correction_commit": "fb1fe9c",
+  "correction": "Defer APACK/unpacked material UID registration until successful pack insertion after deserialization.",
+  "scope": "Removes an observed-compatible early-publication path; does not establish first stall or earlier BSOD root cause."
+}

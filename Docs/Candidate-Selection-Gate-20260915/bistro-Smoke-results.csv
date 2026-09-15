@@ -1,0 +1,59 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1017
+Vsync:        OFF
+Fullscreen:   Windowed
+
+Candidate-selection paired gate: O-T2X-R control versus DocCandidate/DocKernel and SourceCandidate/DocKernel. Both selective modes use first-edge-pass integrated candidates, CompactIndirect, expansion None, removal 0.5, no jitter, camera/depth reprojection, document sampler/clipping, weight 0.8, resolved-output feedback and two copies. Only candidate selection changes between selective modes. Standard retains paired sample pattern and spatial-frame history.
+Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, UI hidden, no PNG capture.
+GPU pass timings use the built-in timestamp-query profiler; values are milliseconds.
+WholeFrame covers GPU work between BeginFrame and EndAndPresentFrame, excluding Present itself.
+ApplicationFrameWall is the observed CPU wall interval between corresponding AutoBench ticks and includes Present/OS scheduling.
+1% low FPS is computed as 1000 / p99 frame time.
+Repeat traversal alternates forward and reverse mode order to reduce order bias.
+Scene: bistro.
+Candidate counter readback: enabled and reported explicitly.
+Start time: 0.000 s, repeats: 1, warm-up: 60 frames, measurement: 180 frames per mode per repeat.
+
+Mode, Timing metric, Type, Samples, Mean ms, Median ms, Frame stddev ms, P95 ms, P99 ms, Max ms, Runs, Run-mean stddev ms, 
+O-T2X-R, ApplicationFrameWall, CPU wall interval, 180, 2.902899, 2.820650, 0.245301, 3.494600, 4.105400, 4.178600, 1, 0.000000, 
+O-T2X-R, WholeFrame, GPU timestamp, 180, 2.839689, 2.683904, 0.336959, 3.241984, 4.040704, 4.110336, 1, 0.000000, 
+O-T2X-R, SMAA, GPU timestamp, 180, 0.186146, 0.186368, 0.014505, 0.202752, 0.226304, 0.226304, 1, 0.000000, 
+O-T2X-R, SMAAGenerateCameraVelocity, GPU timestamp, 180, 0.023444, 0.022528, 0.002689, 0.029696, 0.033792, 0.033792, 1, 0.000000, 
+O-T2X-R, SMAAStandardSpatialT2X, GPU timestamp, 180, 0.126692, 0.128000, 0.011491, 0.144384, 0.145408, 0.149504, 1, 0.000000, 
+O-T2X-R, SMAAStandardTemporalResolve, GPU timestamp, 180, 0.036011, 0.034816, 0.004131, 0.039936, 0.054272, 0.055296, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, ApplicationFrameWall, CPU wall interval, 180, 2.855662, 2.825450, 0.135238, 3.083800, 3.214800, 3.265000, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, WholeFrame, GPU timestamp, 180, 2.802671, 2.774016, 0.201341, 3.187712, 3.231744, 3.283968, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, SMAA, GPU timestamp, 180, 0.226970, 0.228352, 0.014697, 0.248832, 0.252928, 0.252928, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, SMAAGenerateCameraVelocity, GPU timestamp, 180, 0.022414, 0.022528, 0.000356, 0.022528, 0.023552, 0.023552, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, SMAASpatial1X, GPU timestamp, 180, 0.131521, 0.133120, 0.014547, 0.151552, 0.154624, 0.156672, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAACopySpatialToHistory, GPU timestamp, 180, 0.022185, 0.022112, 0.000342, 0.022752, 0.022752, 0.022784, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAClearIntegratedCandidateBuffers, GPU timestamp, 180, 0.004050, 0.004096, 0.000211, 0.004096, 0.004096, 0.004096, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAComputeDispatchArgs, GPU timestamp, 180, 0.003891, 0.004096, 0.000410, 0.004096, 0.004096, 0.004096, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAResolveCandidates, GPU timestamp, 180, 0.013955, 0.014336, 0.000495, 0.014336, 0.014336, 0.014336, 1, 0.000000, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAOutputCopy, GPU timestamp, 180, 0.022973, 0.022944, 0.000136, 0.023136, 0.023520, 0.023520, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, ApplicationFrameWall, CPU wall interval, 180, 2.909318, 2.868050, 0.146031, 3.146500, 3.310300, 3.414700, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, WholeFrame, GPU timestamp, 180, 2.862228, 2.825216, 0.220430, 3.190784, 3.448832, 3.448832, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, SMAA, GPU timestamp, 180, 0.377168, 0.377856, 0.003220, 0.380928, 0.380928, 0.381952, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, SMAAGenerateCameraVelocity, GPU timestamp, 180, 0.022761, 0.022528, 0.000516, 0.023552, 0.023552, 0.023552, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, SMAASpatial1X, GPU timestamp, 180, 0.283802, 0.283648, 0.002736, 0.287744, 0.289792, 0.289792, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAACopySpatialToHistory, GPU timestamp, 180, 0.022544, 0.022560, 0.000276, 0.022944, 0.023136, 0.023136, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAClearIntegratedCandidateBuffers, GPU timestamp, 180, 0.004170, 0.004096, 0.000286, 0.005120, 0.005120, 0.005120, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAComputeDispatchArgs, GPU timestamp, 180, 0.004045, 0.004096, 0.000223, 0.004096, 0.004096, 0.004096, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAResolveCandidates, GPU timestamp, 180, 0.010587, 0.010240, 0.000485, 0.011264, 0.011264, 0.011264, 1, 0.000000, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAOutputCopy, GPU timestamp, 180, 0.023246, 0.023264, 0.000162, 0.023488, 0.023648, 0.023648, 1, 0.000000, 
+
+Frame-rate characterization:
+Mode, Wall average FPS, Wall 1% low FPS, GPU-equivalent average FPS, GPU-equivalent 1% low FPS, 
+O-T2X-R, 344.483, 243.582, 352.151, 247.482, 
+O-ET2X-R-DocCandidate-DocKernel, 350.181, 311.061, 356.803, 309.430, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, 343.723, 302.087, 349.378, 289.953, 
+
+Candidate counter characterization (asynchronous diagnostic readback enabled):
+Mode, Counter samples, Mean base edges, Mean candidates, Mean process count, Mean candidate/base, 
+O-ET2X-R-DocCandidate-DocKernel, 180, 49198.644, 33127.989, 33127.989, 0.673352, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, 180, 49271.539, 21453.389, 21453.389, 0.435411, 
+
+Performance benchmark validation: PASS
+

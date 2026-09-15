@@ -48,11 +48,22 @@ def images(runs,full):
     count=480 if full else 12;mode='Quality' if full else 'Short'
     for scene in HIST:
         ref=paths(Path(old['quality'][scene]['reference'])/'SS_Reference',480)
+        for k in KEYS:
+            run=runs[f'{scene}-{mode}-{k}'];t=report(run)
+            assert f'capture [0, {count-1}]' in t and 'Warm-up:         60' in t
+            assert 'flythrough-wide-yaw-360' in t and '1920 x 1017' in t and 'SMAA Ultra' in t
+            if k.startswith('profile-'):
+                args=run['arguments'];assert args[args.index('-smaaRecoveredSourceProfile')+1]==k[-1]
+                assert args[args.index('-smaaRecoveredSourceIntegratedCandidates')+1]=='1'
+                rawlog=(Path(run['report'])/'candidate-selection-execution.log').read_bytes()
+                log=rawlog.decode('utf-16' if rawlog.startswith((b'\xff\xfe',b'\xfe\xff')) else 'utf-8-sig')
+                for token in ('sampler=CatmullRom5Tap','clipping=YCoCgVariance','jitter=None','feedback=ResolvedOutput','historyWeight=0.800','expansion=None'):
+                    assert token in log,(scene,k,token)
         bykey={k:paths(runs[f'{scene}-{mode}-{k}']['report'],count) for k in KEYS}
         oldseq={k:paths(historical(scene,k,old),480) for k in KEYS}
         short={k:paths(runs[f'{scene}-Short-{k}']['report'],12) for k in KEYS} if full else {}
         hashes={k:{w:hashlib.sha256() for w in WINDOWS} for k in KEYS+['reference']}
-        rows=[];prev=None;prevref=None
+        rows=[];prev=None;prevref=None;peak=(-1,None)
         for i in range(count):
             arrays={k:rgb(bykey[k][i]) for k in KEYS}
             for k,a in arrays.items():
@@ -66,6 +77,8 @@ def images(runs,full):
                         for k,a in {**arrays,'reference':target}.items():
                             hashes[k][w].update(i.to_bytes(8,'little'));hashes[k][w].update(a.tobytes())
                 floating={k:a.astype(np.float32) for k,a in arrays.items()}
+                disagreement=float(np.mean(abs(floating['profile-1']-floating['profile-0'])))
+                if 60<=i<420 and disagreement>peak[0]:peak=(disagreement,i)
                 for k,a in floating.items():
                     delta=a-tf;mse=float(np.mean(delta*delta))
                     rows.append(dict(frame=i,mode=k,mae=float(np.mean(abs(delta))),psnr=10*math.log10(255**2/max(mse,1e-20)),
@@ -78,10 +91,12 @@ def images(runs,full):
                 writer=csv.DictWriter(f,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
             quality[scene]={w:{k:{metric:float(np.mean([r[metric] for r in rows if r['mode']==k and lo<=r['frame']<=hi]))
                 for metric in ('mae','psnr','temporal_delta_residual')} for k in KEYS} for w,(lo,hi) in WINDOWS.items()}
+            quality[scene]['peak_candidate_disagreement']=dict(frame=peak[1],mean_rgb_difference=peak[0])
             for w in ('central','transition'):
                 for k in KEYS[1:]:
                     result=(ROOT/'tmp/integrated-source-cgvqm'/scene/'standard'/w/'CGVQM-Results.json') if k=='O-T2X-R' else ROOT/'tmp/source-comparison-cgvqm'/scene/k/w/'CGVQM-Results.json'
                     d=load_result(result,hashes['reference'][w].hexdigest())
+                    assert d['runtime']['device']=='cuda' and d['runtime']['cuda_available']
                     assert d['test_sequence']['pixel_sha256']==hashes[k][w].hexdigest(),(scene,k,w)
                     lo,hi=WINDOWS[w]
                     for side in ('test','reference'):
@@ -118,7 +133,10 @@ def performance(runs,smoke):
         for k in IDS:
             assert common<=set(data[k]),(k,list(data[k]))
             assert len(rates[k])==4
+        assert set(data[IDS[0]])==common|{'SMAAStandardSpatialT2X','SMAAStandardTemporalResolve'}
         for k in IDS[1:]:
+            assert set(data[k])==common|{'SMAASpatial1X','TSCMAACopySpatialToHistory','TSCMAAClearIntegratedCandidateBuffers',
+                'TSCMAAComputeDispatchArgs','TSCMAAResolveCandidates','TSCMAAOutputCopy'}
             assert 'TSCMAAClearIntegratedCandidateBuffers' in data[k]
             assert 'TSCMAAExtractCandidates' not in data[k] and 'TSCMAAPrepareCandidates' not in data[k]
             if smoke:assert counters[k]['candidate']==counters[k]['process'] and counters[k]['candidate']>0

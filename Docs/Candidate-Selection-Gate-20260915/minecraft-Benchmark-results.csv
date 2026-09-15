@@ -1,0 +1,56 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1017
+Vsync:        OFF
+Fullscreen:   Windowed
+
+Candidate-selection paired gate: O-T2X-R control versus DocCandidate/DocKernel and SourceCandidate/DocKernel. Both selective modes use first-edge-pass integrated candidates, CompactIndirect, expansion None, removal 0.5, no jitter, camera/depth reprojection, document sampler/clipping, weight 0.8, resolved-output feedback and two copies. Only candidate selection changes between selective modes. Standard retains paired sample pattern and spatial-frame history.
+Release x64, DirectX 11, SMAA Ultra, VSync Off, fixed 60 Hz camera path, UI hidden, no PNG capture.
+GPU pass timings use the built-in timestamp-query profiler; values are milliseconds.
+WholeFrame covers GPU work between BeginFrame and EndAndPresentFrame, excluding Present itself.
+ApplicationFrameWall is the observed CPU wall interval between corresponding AutoBench ticks and includes Present/OS scheduling.
+1% low FPS is computed as 1000 / p99 frame time.
+Repeat traversal alternates forward and reverse mode order to reduce order bias.
+Scene: minecraft.
+Candidate counter readback: disabled for timing isolation.
+Start time: 0.000 s, repeats: 3, warm-up: 300 frames, measurement: 4800 frames per mode per repeat.
+
+Mode, Timing metric, Type, Samples, Mean ms, Median ms, Frame stddev ms, P95 ms, P99 ms, Max ms, Runs, Run-mean stddev ms, 
+O-T2X-R, ApplicationFrameWall, CPU wall interval, 14400, 1.251308, 1.211700, 0.109446, 1.488900, 1.578300, 1.749500, 3, 0.001397, 
+O-T2X-R, WholeFrame, GPU timestamp, 14400, 1.212706, 1.171456, 0.107095, 1.445888, 1.522688, 1.696768, 3, 0.002093, 
+O-T2X-R, SMAA, GPU timestamp, 14400, 0.293613, 0.295936, 0.016003, 0.306176, 0.311296, 0.315392, 3, 0.000865, 
+O-T2X-R, SMAAGenerateCameraVelocity, GPU timestamp, 14400, 0.022907, 0.022528, 0.000498, 0.023552, 0.023552, 0.023552, 3, 0.000050, 
+O-T2X-R, SMAAStandardSpatialT2X, GPU timestamp, 14400, 0.232734, 0.235520, 0.015321, 0.244736, 0.247808, 0.251904, 3, 0.000710, 
+O-T2X-R, SMAAStandardTemporalResolve, GPU timestamp, 14400, 0.037884, 0.037888, 0.001197, 0.039936, 0.039936, 0.040960, 3, 0.000027, 
+O-ET2X-R-DocCandidate-DocKernel, ApplicationFrameWall, CPU wall interval, 14400, 1.359050, 1.322400, 0.124607, 1.619600, 1.701100, 1.993000, 3, 0.001636, 
+O-ET2X-R-DocCandidate-DocKernel, WholeFrame, GPU timestamp, 14400, 1.319646, 1.282048, 0.112918, 1.559552, 1.633280, 1.777664, 3, 0.001453, 
+O-ET2X-R-DocCandidate-DocKernel, SMAA, GPU timestamp, 14400, 0.382936, 0.387072, 0.024921, 0.403456, 0.407552, 0.414720, 3, 0.000706, 
+O-ET2X-R-DocCandidate-DocKernel, SMAAGenerateCameraVelocity, GPU timestamp, 14400, 0.022814, 0.022528, 0.000471, 0.023552, 0.023552, 0.023552, 3, 0.000042, 
+O-ET2X-R-DocCandidate-DocKernel, SMAASpatial1X, GPU timestamp, 14400, 0.257361, 0.260096, 0.018467, 0.271360, 0.275456, 0.280576, 3, 0.000603, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAACopySpatialToHistory, GPU timestamp, 14400, 0.022812, 0.022816, 0.000367, 0.023392, 0.023712, 0.024320, 3, 0.000040, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAClearIntegratedCandidateBuffers, GPU timestamp, 14400, 0.003899, 0.004096, 0.000408, 0.004096, 0.004096, 0.005120, 3, 0.000006, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAComputeDispatchArgs, GPU timestamp, 14400, 0.004027, 0.004096, 0.000283, 0.004096, 0.004096, 0.005120, 3, 0.000008, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAResolveCandidates, GPU timestamp, 14400, 0.044973, 0.046080, 0.007135, 0.052224, 0.053248, 0.054272, 3, 0.000064, 
+O-ET2X-R-DocCandidate-DocKernel, TSCMAAOutputCopy, GPU timestamp, 14400, 0.023858, 0.023904, 0.000495, 0.024576, 0.024896, 0.025920, 3, 0.000046, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, ApplicationFrameWall, CPU wall interval, 14400, 1.470091, 1.432700, 0.121826, 1.728000, 1.809100, 1.976900, 3, 0.001105, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, WholeFrame, GPU timestamp, 14400, 1.430186, 1.389568, 0.113518, 1.673216, 1.758208, 1.869824, 3, 0.002486, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, SMAA, GPU timestamp, 14400, 0.492592, 0.494592, 0.018923, 0.510976, 0.515072, 0.517120, 3, 0.000397, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, SMAAGenerateCameraVelocity, GPU timestamp, 14400, 0.022904, 0.022528, 0.000495, 0.023552, 0.023552, 0.023552, 3, 0.000019, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, SMAASpatial1X, GPU timestamp, 14400, 0.375722, 0.377856, 0.013961, 0.388096, 0.391168, 0.397312, 3, 0.000216, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAACopySpatialToHistory, GPU timestamp, 14400, 0.022886, 0.022880, 0.000391, 0.023520, 0.023808, 0.024064, 3, 0.000028, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAClearIntegratedCandidateBuffers, GPU timestamp, 14400, 0.003899, 0.004096, 0.000412, 0.004096, 0.004096, 0.005120, 3, 0.000005, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAComputeDispatchArgs, GPU timestamp, 14400, 0.004064, 0.004096, 0.000246, 0.004096, 0.005120, 0.005120, 3, 0.000014, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAResolveCandidates, GPU timestamp, 14400, 0.035639, 0.035840, 0.006522, 0.045056, 0.046080, 0.047104, 3, 0.000016, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, TSCMAAOutputCopy, GPU timestamp, 14400, 0.023936, 0.024000, 0.000505, 0.024640, 0.024960, 0.025920, 3, 0.000046, 
+
+Frame-rate characterization:
+Mode, Wall average FPS, Wall 1% low FPS, GPU-equivalent average FPS, GPU-equivalent 1% low FPS, 
+O-T2X-R, 799.164, 633.593, 824.602, 656.733, 
+O-ET2X-R-DocCandidate-DocKernel, 735.808, 587.855, 757.779, 612.265, 
+O-ET2X-R-SourceCandidate-DocKernel-Integrated, 680.230, 552.761, 699.210, 568.761, 
+
+Candidate counter readback was disabled for uncontaminated timing.
+
+Performance benchmark validation: PASS
+

@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Short','Quality','Masks','Smoke','Benchmark','Regression')][string]$Mode='Short',
+    [ValidateSet('Short','Quality','Masks','Smoke','Benchmark','Regression','Publication')][string]$Mode='Short',
     [ValidateSet('bistro','minecraft')][string[]]$Scenes=@('bistro','minecraft'),
     [string]$Manifest='tmp/candidate-selection-gate/runs.json'
 )
@@ -31,7 +31,10 @@ function Invoke-Gate([string]$label,[string[]]$demoArguments,[bool]$hidden=$true
     ConvertTo-Json -InputObject @($script:runs) -Depth 8 | Set-Content -LiteralPath $manifestPath -Encoding utf8
 }
 try {
-    if($Mode-eq 'Regression') {
+    if($Mode-eq 'Publication') {
+        Invoke-Gate 'material-publication-1' @('-smaaMaterialPublicationTest')
+        Invoke-Gate 'material-publication-2' @('-smaaMaterialPublicationTest')
+    } elseif($Mode-eq 'Regression') {
         Invoke-Gate 'default-eight' @('-smaaEightCaseCapture','"1 12 60"')
         Invoke-Gate 'source-candidate-document-feedback' @('-smaaRecoveredSourceProfile','1','-smaaRecoveredSourceIntegratedCandidates','1','-smaaTemporalFeedbackTest')
     } else {
