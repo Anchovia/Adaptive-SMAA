@@ -22,6 +22,15 @@
 #ifndef SMAA_RECOVERED_YCOCG_CLAMP
 #define SMAA_RECOVERED_YCOCG_CLAMP 0
 #endif
+#ifndef SMAA_RECOVERED_DISABLE_SHARPEN
+#define SMAA_RECOVERED_DISABLE_SHARPEN 0
+#endif
+#ifndef SMAA_RECOVERED_SEGMENT_CLIP
+#define SMAA_RECOVERED_SEGMENT_CLIP 0
+#endif
+#if SMAA_RECOVERED_SEGMENT_CLIP && (!SMAA_RECOVERED_SIGNED_CHROMA || !SMAA_RECOVERED_YCOCG_CLAMP)
+#error Segment ablation requires signed chroma and YCoCg clipping
+#endif
 ///////////////////////////////////////
 //
 // Utility function for HLSL shader
@@ -179,6 +188,26 @@ float3 BicubicTextureSample(Texture2D<float4> Texture, SamplerState Sampler, flo
 }
 ////////////////////////////////////////////////////////////////////////////////////
 //Color Clipping
+#if SMAA_RECOVERED_SEGMENT_CLIP
+// Document-style segment limiter in the source's YCoCg coordinates.
+// The unsharpened current color is the anchor. If it lies outside the box,
+// this limiter may return that anchor; it does not guarantee box containment.
+float3 RecoveredClipHistorySegment(float3 current, float3 history, float3 minimum, float3 maximum)
+{
+    float3 direction = history - current;
+    float amount = 1.0;
+    [unroll] for (int axis = 0; axis < 3; ++axis)
+    {
+        // Document Co/Cg coordinates have twice the source chroma scale.
+        float epsilon = axis == 0 ? 1e-6 : 5e-7;
+        if (direction[axis] > epsilon)
+            amount = min(amount, (maximum[axis] - current[axis]) / direction[axis]);
+        else if (direction[axis] < -epsilon)
+            amount = min(amount, (minimum[axis] - current[axis]) / direction[axis]);
+    }
+    return current + direction * saturate(amount);
+}
+#endif
 float3 ClipColor(float3 historyColor, float3 currentColor, Texture2D texIn, float2 texCoord, SamplerState ss, float sharpenAmount, float WIDTH, float HEIGHT)
 {
     float3 newHistoryColor = historyColor;
@@ -211,9 +240,14 @@ float3 ClipColor(float3 historyColor, float3 currentColor, Texture2D texIn, floa
     b2 = RGB2YCoCg(b2);
     b3 = RGB2YCoCg(b3);
     currentColor = RGB2YCoCg(currentColor);
+#if SMAA_RECOVERED_SEGMENT_CLIP
+    float3 segmentAnchor = currentColor;
+#endif
 
+#if !SMAA_RECOVERED_DISABLE_SHARPEN
     float3 corners = (t0 + t2 + b1 + b3) * 0.25f;
     currentColor += (currentColor - corners) * sharpenAmount;
+#endif
 #if SMAA_RECOVERED_SIGNED_CHROMA
     // Chroma is signed. Keep the source luminance floor and sharpening unchanged.
     currentColor.x = max(0, currentColor.x);
@@ -236,7 +270,11 @@ float3 ClipColor(float3 historyColor, float3 currentColor, Texture2D texIn, floa
 #if SMAA_RECOVERED_YCOCG_CLAMP
     // Clamp in the space where the variance box was constructed.
     // Converting only two opposite corners does not give RGB axis-aligned bounds.
+#if SMAA_RECOVERED_SEGMENT_CLIP
+    newHistoryColor = YCoCg2RGB(RecoveredClipHistorySegment(segmentAnchor, RGB2YCoCg(historyColor), minimum, maximum));
+#else
     newHistoryColor = YCoCg2RGB(clamp(RGB2YCoCg(historyColor), minimum, maximum));
+#endif
 #else
     minimum = YCoCg2RGB(minimum);
     maximum = YCoCg2RGB(maximum);
