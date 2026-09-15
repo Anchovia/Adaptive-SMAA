@@ -40,7 +40,7 @@ def correctness(runs,extra):
                 snapshot=by['snapshot'],runs=runs+extra)
 
 def performance(runs):
-    runs=[r for r in runs if '-pair-' in r['label']];assert len(runs)==12
+    runs=[r for r in runs if re.fullmatch(r'(bistro|minecraft)-pair-[123]-optional-[01]',r['label'])];assert len(runs)==12
     assert len({r['exe_sha256'] for r in runs})==1
     assert len({r['candidate_sha256'] for r in runs})==1
     assert len({r['shader_sha256'] for r in runs})==2
@@ -84,7 +84,18 @@ def performance(runs):
                 rows.append(dict(scene=scene,mode=mode,metric=metric,before_ms=statistics.mean(before),after_ms=statistics.mean(after),
                     before_runs_ms=before,after_runs_ms=after,pair_percent=pct,mean_pair_percent=statistics.mean(pct),
                     delta_ms_ci95=[mean-h,mean+h]))
-    return dict(status='PASS',runs=runs,run_metrics=run_metrics,metrics=rows,notes='Three independent process pairs; descriptive unadjusted t(2) intervals. No per-frame pseudoreplication.')
+    normalized=[]
+    for scene in ('bistro','minecraft'):
+        for control in IDS[:2]:
+            ratios=[]
+            for pair in (1,2,3):
+                before=data[(scene,pair,0)];after=data[(scene,pair,1)]
+                rb=before[IDS[2]]['SMAA']['mean_ms']/before[control]['SMAA']['mean_ms']
+                ra=after[IDS[2]]['SMAA']['mean_ms']/after[control]['SMAA']['mean_ms']
+                ratios.append(100*(ra/rb-1))
+            normalized.append(dict(scene=scene,control=control,pair_ratio_percent=ratios,mean_percent=statistics.mean(ratios)))
+    return dict(status='PASS',runs=runs,run_metrics=run_metrics,metrics=rows,control_normalized_diagnostic=normalized,
+        notes='Three independent process pairs; descriptive unadjusted t(2) intervals. No per-frame pseudoreplication. Control ratios are auxiliary diagnostics, not a replacement for raw timing.')
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--performance',action='store_true');a=p.parse_args()
