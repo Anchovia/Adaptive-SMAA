@@ -48,7 +48,9 @@ def main():
                 controls.append(dict(scene=scene,window=window,mode=name,historical_control=True,**d))
     OUT.mkdir(parents=True,exist_ok=True)
     result=dict(status='PASS',records=details,historical_controls=controls,effects=effects,
-        scope='New clipping scores plus pixel-identical source reuse. Standard/document controls are previous validated captures, with matching reference hashes; not newly captured in this gate.')
+        fresh_gate_score_count=sum(not r['reused_baseline'] for r in details),
+        pixel_exact_baseline_reuse_count=sum(r['reused_baseline'] for r in details),
+        scope='Sharpening/segment factorial on the signed YCoCg control. Matching baseline windows may reuse verified scores; the Minecraft transition baseline is also recomputed independently. Standard/document controls are historical captures with matching reference hashes.')
     (OUT/'cgvqm.json').write_text(json.dumps(result,indent=2))
     print(json.dumps(effects,indent=2))
 if __name__=='__main__':main()

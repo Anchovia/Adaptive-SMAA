@@ -27,7 +27,7 @@ def main():
                     args=[sys.executable,str(ROOT/'Tools/SMAA/run_cgvqm_png_sequences.py'),'--test-dir',str(directory),'--reference-dir',str(reference),
                         '--output-dir',str(dest),'--start-index',str(start),'--frames',str(count),'--model','2','--device','cuda',
                         '--classification','formal','--scene',scene,'--camera-profile','flythrough-wide-yaw-360','--test-mode',run['semantic_id'],
-                        '--patch-scale','4','--patch-pool','mean']
+                        '--patch-scale','4','--patch-pool','mean','--skip-error-map-video']
                     print(f'Starting CGVQM-2 {scene} {window} {name}',flush=True)
                     with (dest/'execution.log').open('w',encoding='utf-8') as log:
                         subprocess.run(args,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=1800,cwd=ROOT)

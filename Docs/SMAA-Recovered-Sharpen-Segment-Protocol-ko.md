@@ -55,6 +55,8 @@ anchor가 box 밖이면 현재색을 그대로 반환하거나 box 밖 결과가
 5. 동일 supersample spatial-reference proxy에서 MAE/PSNR/temporal-delta residual,
    central 150–329와 transition 410–439의 공식 CGVQM-2, 대표 연속 영상을 비교한다.
    post-still 440–479도 별도 분석한다. reference는 절대 temporal/ghosting 정답이 아니다.
+   CGVQM error-map 통계와 프레임별 수치는 저장하되 별도 heatmap 영상 인코딩은 생략한다.
+   이 옵션은 모델·점수·통계 계산 이후의 영상 저장만 생략한다. 육안 비교 영상은 PNG에서 만든다.
 6. 움직임 격차가 남으면 이 clipping 범위의 추가 탐색을 종료하고 기존 temporal kernel을
    핵심 후보로 유지한다. 품질상 채택 근거가 없으면 비용 본 측정을 확대하지 않는다.
    개선 후보가 있으면 PNG/readback Off, visible 상태, 300 warm-up/4800 frame의
@@ -68,3 +70,11 @@ CGVQM과 CMAA2는 동시에 실행하지 않는다. startup scene은 임시 Bist
 
 표준 및 document 대조군은 이전 검증 결과를 사용하되 같은 reference hash와 정확한
 설정을 확인하고 historical control임을 명시한다. 새로 측정한 값으로 표현하지 않는다.
+
+## 실행 중 확인한 기반 코드 결함
+
+두 차례의 시작 단계 앱 종료를 조사해 DX11 concrete shader 소멸 전에 비동기 컴파일을
+기다리지 않는 결함을 수정했다(`3e540f6`). 상세 근거와 한계는
+`SMAA-DX11-Shader-Lifetime-Fix-ko.md`에 기록한다. 최종 gate의 short/mask/quality는
+모두 수정 후 동일 실행파일에서 다시 수집하며, 수정 전 완료된 20개 명령의 자료는
+별도 보존하고 새 자료와 픽셀 hash로 비교한다. 실패한 실행은 포함하지 않는다.

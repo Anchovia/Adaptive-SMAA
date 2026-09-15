@@ -19,7 +19,9 @@ def sequence(path,count):
 
 def manifest(path,mode,scene):
     all_runs=json.loads(path.read_text(encoding='utf-8-sig'))
-    runs={r['variant']:r for r in all_runs if r['mode']==mode and r['scene']==scene}
+    selected=[r for r in all_runs if r['mode']==mode and r['scene']==scene]
+    assert len(selected)==4,'Missing or duplicate factorial run'
+    runs={r['variant']:r for r in selected}
     assert set(runs)==set(NAMES),(mode,scene)
     for i,name in enumerate(NAMES):
         r=runs[name];assert r['status']=='PASS' and r['signed_chroma']==1 and r['ycocg_clamp']==1 and r['disable_sharpen']==i&1 and r['segment_clip']==i>>1
@@ -41,6 +43,9 @@ def verify(a):
     results={}
     for scene in OLD:
         runs=manifest(a.manifest,'Short',scene);masks=manifest(a.manifest,'Masks',scene)
+        for name in NAMES:
+            for field in ('exe_sha256','candidate_sha256','utility_sha256'):
+                assert runs[name][field]==masks[name][field],('Short/mask code mismatch',scene,name,field)
         prior=sequence(BENCH/OLD[scene],480)
         short=sequence(runs[NAMES[0]]['report'],12)
         assert all(digest(rgb(x))==digest(rgb(y)) for x,y in zip(short,prior))
@@ -60,11 +65,31 @@ def verify(a):
         if a.compare_full_prefix:
             full=manifest(a.manifest,'Quality',scene)
             for name in NAMES:
+                for field in ('exe_sha256','candidate_sha256','utility_sha256'):
+                    assert full[name][field]==runs[name][field],('Quality/short code mismatch',scene,name,field)
                 short_paths=sequence(runs[name]['report'],12);full_paths=sequence(full[name]['report'],480)
                 assert all(digest(rgb(x))==digest(rgb(y)) for x,y in zip(short_paths,full_paths)),(scene,name,'Independent prefix repeat')
             results[scene]['independent_full_prefix_mismatch']=0
             results[scene]['independent_full_prefix_frames']=48
-    return dict(status='PASS',scenes=results)
+    output=dict(status='PASS',scenes=results)
+    if a.prior_manifest:
+        prior=json.loads(a.prior_manifest.read_text(encoding='utf-8-sig'))
+        current=json.loads(a.manifest.read_text(encoding='utf-8-sig'))
+        bridges=[]
+        for old in prior:
+            if old['mode'] not in ('Short','Masks','Quality') or old['status']!='PASS':continue
+            matching=[r for r in current if r['label']==old['label'] and r['status']=='PASS']
+            assert len(matching)==1,old['label']
+            new=matching[0]
+            for field in ('candidate_sha256','utility_sha256','arguments'):
+                assert new[field]==old[field],('Lifetime bridge changed algorithm configuration',field)
+            count=480 if old['mode']=='Quality' else 12
+            before=sequence(old['report'],count);after=sequence(new['report'],count)
+            assert all(digest(rgb(x))==digest(rgb(y)) for x,y in zip(before,after)),('Lifetime fix pixel change',old['label'])
+            bridges.append(dict(label=old['label'],frames=count,mismatch=0,before_report=old['report'],after_report=new['report']))
+            print('PASS lifetime bridge: '+old['label'],flush=True)
+        output['lifetime_fix_bridges']=bridges
+    return output
 
 def quality(a):
     result={}
@@ -76,7 +101,12 @@ def quality(a):
         ref=sequence(BENCH/HISTORIC[scene][1]/'SS_Reference',480)
         rows=[];previous=None;prevref=None;peak=(-1,0)
         for n in range(480):
-            raw=[rgb(s[n]) for s in seq];assert digest(raw[0])==digest(rgb(prior[n])),(scene,n,'baseline bridge')
+            raw=[rgb(s[n]) for s in seq];old_image=rgb(prior[n])
+            if digest(raw[0])!=digest(old_image):
+                # Preserve the actual failing arrays before stopping; a later
+                # reread alone cannot establish why an earlier check failed.
+                np.savez_compressed(a.output/f'{scene}-baseline-failure-{n}.npz',current=raw[0],prior=old_image)
+                raise AssertionError((scene,n,'baseline bridge',str(seq[0][n]),str(prior[n])))
             images=[v.astype(np.float32) for v in raw];r=rgb(ref[n]).astype(np.float32)
             for i,v in enumerate(images):
                 d=v-r;mse=float(np.mean(d*d));delta=None
@@ -123,6 +153,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--mode',choices=['verify','quality'],required=True)
     p.add_argument('--scene',choices=['bistro','minecraft'])
     p.add_argument('--compare-full-prefix',action='store_true')
+    p.add_argument('--prior-manifest',type=Path,help='Compare all completed pre-lifetime-fix captures by label and RGB hash')
     p.add_argument('--manifest',type=Path,default=ROOT/'tmp/recovered-sharpen-segment/runs.json')
     p.add_argument('--output',type=Path,default=ROOT/'tmp/recovered-sharpen-segment/analysis');a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
     result=verify(a) if a.mode=='verify' else quality(a)
