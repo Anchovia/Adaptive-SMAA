@@ -1,0 +1,520 @@
+{
+  "bistro": {
+    "spatial_temporal": {
+      "provenance": {
+        "standard_hash_bridge_frames": 480,
+        "mismatches": 0,
+        "archived_control_root": "D:\\SMAA-Research-Data\\AutoBench\\20260828_072817",
+        "reference_root": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014143",
+        "capture_records": [
+          {
+            "scene": "bistro",
+            "mode": "O-T2X-R",
+            "arguments": [
+              "-smaaCandidateStatisticsReadback",
+              "0",
+              "-smaaObjectMotionReprojectionOverride",
+              "0",
+              "-smaaDisocclusionRejectionOverride",
+              "0",
+              "-smaaTemporalDebugView",
+              "0",
+              "-smaaCameraMotionSingleModeCapture",
+              "\"bistro flythrough-wide-yaw-360 O-T2X-R 0 480 60\""
+            ],
+            "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260917_121929\\20260917_121929_results.csv",
+            "executable_sha256": "73A24A9C2FCF10D0BD9C0F7575F4AEF4C74EE9605D699E71430265587E7CC424",
+            "window": "hidden",
+            "purpose": "complete-timeline native coverage-only quality comparison"
+          },
+          {
+            "scene": "bistro",
+            "mode": "ABL-Standard-EdgeMask-R",
+            "arguments": [
+              "-smaaCandidateStatisticsReadback",
+              "0",
+              "-smaaObjectMotionReprojectionOverride",
+              "0",
+              "-smaaDisocclusionRejectionOverride",
+              "0",
+              "-smaaTemporalDebugView",
+              "0",
+              "-smaaCameraMotionSingleModeCapture",
+              "\"bistro flythrough-wide-yaw-360 ABL-Standard-EdgeMask-R 0 480 60\""
+            ],
+            "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260917_122029\\20260917_122029_results.csv",
+            "executable_sha256": "73A24A9C2FCF10D0BD9C0F7575F4AEF4C74EE9605D699E71430265587E7CC424",
+            "window": "hidden",
+            "purpose": "complete-timeline native coverage-only quality comparison"
+          }
+        ]
+      },
+      "windows": {
+        "central_motion": {
+          "range_half_open": [
+            150,
+            330
+          ],
+          "modes": {
+            "standard": {
+              "rgb_mae": 2.2134236365277933,
+              "psnr_db": 33.38675396049326,
+              "luma_ssim": 0.9623342501676803,
+              "edge_reference_ratio": 0.9753809737846991,
+              "temporal_delta_residual": 3.568851843126722,
+              "luma_delta1": 22.417903963724772,
+              "luma_delta2": 38.159865315755205
+            },
+            "masked": {
+              "rgb_mae": 2.38752230693185,
+              "psnr_db": 33.08979998140936,
+              "luma_ssim": 0.9552830556800243,
+              "edge_reference_ratio": 1.0012337708823176,
+              "temporal_delta_residual": 3.8367716432529706,
+              "luma_delta1": 22.599274645911322,
+              "luma_delta2": 38.524385399288605
+            },
+            "o1x": {
+              "rgb_mae": 1.4082325580866017,
+              "psnr_db": 36.901657710604994,
+              "luma_ssim": 0.9823219553933558,
+              "edge_reference_ratio": 1.0090102819523517,
+              "temporal_delta_residual": 2.2650132299519283,
+              "luma_delta1": 22.693829854329426,
+              "luma_delta2": 38.67527067396376
+            }
+          },
+          "masked_minus_standard_percent": {
+            "rgb_mae": 7.8655828703973585,
+            "psnr_db": -0.8894365095669099,
+            "luma_ssim": -0.7327178146706692,
+            "edge_reference_ratio": 2.650533257513077,
+            "temporal_delta_residual": 7.507170706518318,
+            "luma_delta1": 0.8090438895627106,
+            "luma_delta2": 0.9552446805489501
+          }
+        },
+        "transition": {
+          "range_half_open": [
+            410,
+            440
+          ],
+          "modes": {
+            "standard": {
+              "rgb_mae": 1.5179978502039404,
+              "psnr_db": 35.926111412242484,
+              "luma_ssim": 0.9839828861718395,
+              "edge_reference_ratio": 0.9586834992180744,
+              "temporal_delta_residual": 0.47390273339342287,
+              "luma_delta1": 0.4690482556819916,
+              "luma_delta2": 0.8059075872103373
+            },
+            "masked": {
+              "rgb_mae": 2.3154603169725774,
+              "psnr_db": 33.46803802060041,
+              "luma_ssim": 0.9621182502837952,
+              "edge_reference_ratio": 0.9970998430185718,
+              "temporal_delta_residual": 3.1652654070614377,
+              "luma_delta1": 2.8754811684290567,
+              "luma_delta2": 5.672169287999471
+            },
+            "o1x": {
+              "rgb_mae": 1.5290924139171131,
+              "psnr_db": 35.72536461296486,
+              "luma_ssim": 0.982480119233725,
+              "edge_reference_ratio": 1.0046016341929098,
+              "temporal_delta_residual": 0.2912327242434174,
+              "luma_delta1": 0.3906590706358353,
+              "luma_delta2": 0.5141780745238066
+            }
+          },
+          "masked_minus_standard_percent": {
+            "rgb_mae": 52.53383373774207,
+            "psnr_db": -6.8420246305990196,
+            "luma_ssim": -2.222054488478775,
+            "edge_reference_ratio": 4.007197769840687,
+            "temporal_delta_residual": 567.9145706538285,
+            "luma_delta1": 513.0459144865883,
+            "luma_delta2": 603.8237855079365
+          }
+        },
+        "late_still": {
+          "range_half_open": [
+            440,
+            480
+          ],
+          "modes": {
+            "standard": {
+              "rgb_mae": 1.4486900427114062,
+              "psnr_db": 36.13965611277847,
+              "luma_ssim": 0.9844254931731701,
+              "edge_reference_ratio": 0.9558754767456238,
+              "temporal_delta_residual": 1.2047791707636839e-05,
+              "luma_delta1": 0.0,
+              "luma_delta2": 0.0
+            },
+            "masked": {
+              "rgb_mae": 2.2924569685144216,
+              "psnr_db": 33.545199433296645,
+              "luma_ssim": 0.9623750757668119,
+              "edge_reference_ratio": 0.9966168900538624,
+              "temporal_delta_residual": 3.0344340269242323,
+              "luma_delta1": 2.7490060329437256,
+              "luma_delta2": 5.498012065887451
+            },
+            "o1x": {
+              "rgb_mae": 1.530303337191358,
+              "psnr_db": 35.723414737291414,
+              "luma_ssim": 0.9824676696908494,
+              "edge_reference_ratio": 1.0044510358996315,
+              "temporal_delta_residual": 1.2047791707636839e-05,
+              "luma_delta1": 0.0,
+              "luma_delta2": 0.0
+            }
+          },
+          "masked_minus_standard_percent": {
+            "rgb_mae": 58.24344068961771,
+            "psnr_db": -7.178974452289988,
+            "luma_ssim": -2.239927506883377,
+            "edge_reference_ratio": 4.262209283467233,
+            "temporal_delta_residual": 25186540.843074746,
+            "luma_delta1": null,
+            "luma_delta2": null
+          }
+        }
+      },
+      "pixel_hashes": {
+        "central_motion": {
+          "standard": "015fa9054e664e51c01bff60e970a955d7a9c6aab362a04dd34675d58d37d949",
+          "masked": "499fad7c5f2032dee5817c1cba60ee6e01c0aa62cd483be5ebd5e242eb03f490",
+          "o1x": "0c90edc55c4d4a77e801680849c4ad26f7a7026c9157b750cc7b8c0272bd2109",
+          "reference": "a1b9a69f36567f82ef0e6eb9c8111db160d7872ba4e4badeae624c2206ba93eb"
+        },
+        "transition": {
+          "standard": "88398c20ea2d936fc387fcb3daef0e43952f9ab077941ea81fba6fba887da7c2",
+          "masked": "dca5ce8d5aeb755daef9173f15c0e1b44624632ba85bc9becbe4e0c8e25aa511",
+          "o1x": "86bf775cd871b66663bb39ec1e2c2f1a6197ab9b9901fb85975e41ed370a6763",
+          "reference": "055e82e6a2b9221bb41fe9f37295f1f38d13da7b494f96909aa63b5aed59a814"
+        }
+      },
+      "standard_cgvqm_reused": {
+        "central_motion": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Bistro\\central_motion_00150_00329\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "cb4c27fc86e63cb35fe316fa6da1b21a13a496b6494624c38d127096eeca9504",
+          "score": 94.13301849365234
+        },
+        "transition": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Bistro\\transition_00410_00439\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "2eb5810edf7e88354e6f8e71c20982fd893ffaaf572da8d51a856b63458f9ede",
+          "score": 95.12677764892578
+        }
+      },
+      "media": {
+        "roi_xyxy": [
+          800,
+          500,
+          1280,
+          860
+        ],
+        "playback": "20 FPS, 3x slower than recorded 60 Hz; GIF only for viewing"
+      }
+    },
+    "cgvqm2": {
+      "central_motion": {
+        "standard": 94.13301849365234,
+        "masked": 93.74158477783203,
+        "masked_minus_standard": -0.3914337158203125,
+        "masked_result": "D:\\SMAA-Research-Data\\AutoBench\\20260917_StandardEdgeMaskQuality\\CGVQM2\\bistro\\central_motion_00150_00329\\CGVQM-Results.json",
+        "standard_reuse": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Bistro\\central_motion_00150_00329\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "cb4c27fc86e63cb35fe316fa6da1b21a13a496b6494624c38d127096eeca9504",
+          "score": 94.13301849365234
+        }
+      },
+      "transition": {
+        "standard": 95.12677764892578,
+        "masked": 85.07135772705078,
+        "masked_minus_standard": -10.055419921875,
+        "masked_result": "D:\\SMAA-Research-Data\\AutoBench\\20260917_StandardEdgeMaskQuality\\CGVQM2\\bistro\\transition_00410_00439\\CGVQM-Results.json",
+        "standard_reuse": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Bistro\\transition_00410_00439\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "2eb5810edf7e88354e6f8e71c20982fd893ffaaf572da8d51a856b63458f9ede",
+          "score": 95.12677764892578
+        }
+      }
+    },
+    "late_still_periodicity": {
+      "O-T2X-R": {
+        "frames": 40,
+        "unique_png_hashes": 1,
+        "adjacent_equal": 39,
+        "two_frame_equal": 38
+      },
+      "ABL-Standard-EdgeMask-R": {
+        "frames": 40,
+        "unique_png_hashes": 2,
+        "adjacent_equal": 0,
+        "two_frame_equal": 38
+      }
+    }
+  },
+  "minecraft": {
+    "spatial_temporal": {
+      "provenance": {
+        "standard_hash_bridge_frames": 480,
+        "mismatches": 0,
+        "archived_control_root": "D:\\SMAA-Research-Data\\AutoBench\\20260828_073715",
+        "reference_root": "D:\\SMAA-Research-Data\\AutoBench\\20260827_014612",
+        "capture_records": [
+          {
+            "scene": "minecraft",
+            "mode": "O-T2X-R",
+            "arguments": [
+              "-smaaCandidateStatisticsReadback",
+              "0",
+              "-smaaObjectMotionReprojectionOverride",
+              "0",
+              "-smaaDisocclusionRejectionOverride",
+              "0",
+              "-smaaTemporalDebugView",
+              "0",
+              "-smaaCameraMotionSingleModeCapture",
+              "\"minecraft flythrough-wide-yaw-360 O-T2X-R 0 480 60\""
+            ],
+            "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260917_122137\\20260917_122137_results.csv",
+            "executable_sha256": "73A24A9C2FCF10D0BD9C0F7575F4AEF4C74EE9605D699E71430265587E7CC424",
+            "window": "hidden",
+            "purpose": "complete-timeline native coverage-only quality comparison"
+          },
+          {
+            "scene": "minecraft",
+            "mode": "ABL-Standard-EdgeMask-R",
+            "arguments": [
+              "-smaaCandidateStatisticsReadback",
+              "0",
+              "-smaaObjectMotionReprojectionOverride",
+              "0",
+              "-smaaDisocclusionRejectionOverride",
+              "0",
+              "-smaaTemporalDebugView",
+              "0",
+              "-smaaCameraMotionSingleModeCapture",
+              "\"minecraft flythrough-wide-yaw-360 ABL-Standard-EdgeMask-R 0 480 60\""
+            ],
+            "report": "C:\\Users\\USER\\Desktop\\research\\Projects\\CMAA2\\AutoBench\\20260917_122229\\20260917_122229_results.csv",
+            "executable_sha256": "73A24A9C2FCF10D0BD9C0F7575F4AEF4C74EE9605D699E71430265587E7CC424",
+            "window": "hidden",
+            "purpose": "complete-timeline native coverage-only quality comparison"
+          }
+        ]
+      },
+      "windows": {
+        "central_motion": {
+          "range_half_open": [
+            150,
+            330
+          ],
+          "modes": {
+            "standard": {
+              "rgb_mae": 1.2237200908248054,
+              "psnr_db": 34.25179956771207,
+              "luma_ssim": 0.9719270786781798,
+              "edge_reference_ratio": 0.9655298862133598,
+              "temporal_delta_residual": 2.0288144312884664,
+              "luma_delta1": 9.494391610887316,
+              "luma_delta2": 16.26434727774726
+            },
+            "masked": {
+              "rgb_mae": 1.3068952944617431,
+              "psnr_db": 33.77718618482275,
+              "luma_ssim": 0.965675236738296,
+              "edge_reference_ratio": 0.99471119323683,
+              "temporal_delta_residual": 2.1679968942332204,
+              "luma_delta1": 9.615232051743401,
+              "luma_delta2": 16.51210725572374
+            },
+            "o1x": {
+              "rgb_mae": 0.8361692384934508,
+              "psnr_db": 35.62927917373061,
+              "luma_ssim": 0.984083600999451,
+              "edge_reference_ratio": 1.0111015842729245,
+              "temporal_delta_residual": 1.4107388923410054,
+              "luma_delta1": 9.706898458798726,
+              "luma_delta2": 16.745424270629883
+            }
+          },
+          "masked_minus_standard_percent": {
+            "rgb_mae": 6.796914119541531,
+            "psnr_db": -1.385659699283992,
+            "luma_ssim": -0.6432418724649946,
+            "edge_reference_ratio": 3.022310074514034,
+            "temporal_delta_residual": 6.860285534165955,
+            "luma_delta1": 1.2727560206966526,
+            "luma_delta2": 1.5233318235615023
+          }
+        },
+        "transition": {
+          "range_half_open": [
+            410,
+            440
+          ],
+          "modes": {
+            "standard": {
+              "rgb_mae": 1.5317360769692996,
+              "psnr_db": 33.62875419266465,
+              "luma_ssim": 0.9743310155659636,
+              "edge_reference_ratio": 0.9331661680199933,
+              "temporal_delta_residual": 0.43231832573108997,
+              "luma_delta1": 0.4664337339500586,
+              "luma_delta2": 0.8392057232558727
+            },
+            "masked": {
+              "rgb_mae": 2.1988228529352853,
+              "psnr_db": 31.688343113511014,
+              "luma_ssim": 0.9459791836460103,
+              "edge_reference_ratio": 0.9767853979567407,
+              "temporal_delta_residual": 2.6933960575312286,
+              "luma_delta1": 3.001699121793111,
+              "luma_delta2": 5.923687076568603
+            },
+            "o1x": {
+              "rgb_mae": 1.5951012133999787,
+              "psnr_db": 32.51044037814873,
+              "luma_ssim": 0.9709787698618343,
+              "edge_reference_ratio": 1.0052624924733689,
+              "temporal_delta_residual": 0.31697897319640195,
+              "luma_delta1": 0.3659359157085419,
+              "luma_delta2": 0.5945623199144999
+            }
+          },
+          "masked_minus_standard_percent": {
+            "rgb_mae": 43.55102592385804,
+            "psnr_db": -5.770095044367995,
+            "luma_ssim": -2.9098767736018827,
+            "edge_reference_ratio": 4.674326120212791,
+            "temporal_delta_residual": 523.0122336304964,
+            "luma_delta1": 543.5424591555175,
+            "luma_delta2": 605.8682885987038
+          }
+        },
+        "late_still": {
+          "range_half_open": [
+            440,
+            480
+          ],
+          "modes": {
+            "standard": {
+              "rgb_mae": 1.4867881432317274,
+              "psnr_db": 33.78343937262916,
+              "luma_ssim": 0.9745463156606672,
+              "edge_reference_ratio": 0.9302202442162318,
+              "temporal_delta_residual": 0.0,
+              "luma_delta1": 0.0,
+              "luma_delta2": 0.0
+            },
+            "masked": {
+              "rgb_mae": 2.1801009573363923,
+              "psnr_db": 31.750281377620883,
+              "luma_ssim": 0.9461119548724811,
+              "edge_reference_ratio": 0.9750180840064541,
+              "temporal_delta_residual": 2.515327966240577,
+              "luma_delta1": 2.817135810852051,
+              "luma_delta2": 5.634271621704102
+            },
+            "o1x": {
+              "rgb_mae": 1.5949038225172074,
+              "psnr_db": 32.50548843724055,
+              "luma_ssim": 0.9709721906943237,
+              "edge_reference_ratio": 1.005328482285576,
+              "temporal_delta_residual": 0.0,
+              "luma_delta1": 0.0,
+              "luma_delta2": 0.0
+            }
+          },
+          "masked_minus_standard_percent": {
+            "rgb_mae": 46.63158078444582,
+            "psnr_db": -6.018209018278675,
+            "luma_ssim": -2.9177023535212676,
+            "edge_reference_ratio": 4.815831526862446,
+            "temporal_delta_residual": null,
+            "luma_delta1": null,
+            "luma_delta2": null
+          }
+        }
+      },
+      "pixel_hashes": {
+        "central_motion": {
+          "standard": "a5e2b069b5e10e0f824612ebe54b3a7c06139cc11be67facc4c10f04906015b1",
+          "masked": "4924ebbfdc098596b56dfb6f0ff12b79010b402f01f65bb886f9cb2efc09b139",
+          "o1x": "4a607457983173110f945b223135148ab2081267894dbd07746a57105ae5c39d",
+          "reference": "24f82cc8487f1600e7d51cee46f1b83504f0613ce21a28709c8999edb12a7137"
+        },
+        "transition": {
+          "standard": "2a95c578d2f72b00c66e2498b58358d4e76e4c7ef0e7d313e3998a8617de3165",
+          "masked": "471ad164282183d1cbaf03eed4c3a9d731b453d2e37500c497e20f1d02c45183",
+          "o1x": "a3bf2f6592fbffb7d75d993409c95546c63c79bf051231c7ef5133e8e3a5d8c2",
+          "reference": "8c57181caa4bbf9c31e289c8d6fdda89b389198fb2ef8611082d3d9f2b73c078"
+        }
+      },
+      "standard_cgvqm_reused": {
+        "central_motion": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Minecraft\\central_motion_00150_00329\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "477ffb1b4be32661dd2ab65315a8b1e09fe1993f93b5dd1f6bc7fcfcfbdf2d7b",
+          "score": 95.98645782470703
+        },
+        "transition": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Minecraft\\transition_00410_00439\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "a3039dfc49ffc94f94caba4866150ff2b88f2f688fb61422b2d348d81ae66400",
+          "score": 94.64678955078125
+        }
+      },
+      "media": {
+        "roi_xyxy": [
+          720,
+          330,
+          1200,
+          690
+        ],
+        "playback": "20 FPS, 3x slower than recorded 60 Hz; GIF only for viewing"
+      }
+    },
+    "cgvqm2": {
+      "central_motion": {
+        "standard": 95.98645782470703,
+        "masked": 95.67534637451172,
+        "masked_minus_standard": -0.3111114501953125,
+        "masked_result": "D:\\SMAA-Research-Data\\AutoBench\\20260917_StandardEdgeMaskQuality\\CGVQM2\\minecraft\\central_motion_00150_00329\\CGVQM-Results.json",
+        "standard_reuse": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Minecraft\\central_motion_00150_00329\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "477ffb1b4be32661dd2ab65315a8b1e09fe1993f93b5dd1f6bc7fcfcfbdf2d7b",
+          "score": 95.98645782470703
+        }
+      },
+      "transition": {
+        "standard": 94.64678955078125,
+        "masked": 85.47967529296875,
+        "masked_minus_standard": -9.1671142578125,
+        "masked_result": "D:\\SMAA-Research-Data\\AutoBench\\20260917_StandardEdgeMaskQuality\\CGVQM2\\minecraft\\transition_00410_00439\\CGVQM-Results.json",
+        "standard_reuse": {
+          "source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_FinalIntegratedEightCase\\CGVQM\\Minecraft\\transition_00410_00439\\O_T2X_R\\CGVQM-Results.json",
+          "json_sha256": "a3039dfc49ffc94f94caba4866150ff2b88f2f688fb61422b2d348d81ae66400",
+          "score": 94.64678955078125
+        }
+      }
+    },
+    "late_still_periodicity": {
+      "O-T2X-R": {
+        "frames": 40,
+        "unique_png_hashes": 1,
+        "adjacent_equal": 39,
+        "two_frame_equal": 38
+      },
+      "ABL-Standard-EdgeMask-R": {
+        "frames": 40,
+        "unique_png_hashes": 2,
+        "adjacent_equal": 0,
+        "two_frame_equal": 38
+      }
+    }
+  }
+}
