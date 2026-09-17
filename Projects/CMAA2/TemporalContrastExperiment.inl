@@ -16,7 +16,9 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     void Configure() {
         auto smaa = m_parent.GetSMAA();
         const auto c = Current();
-        smaa->SetTemporalContrast(c.kind,c.threshold);
+        m_parent.Settings().CurrentAAOption = c.kind==4 ?
+            CMAA2Sample::AAType::SuperSampleReference : CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+        smaa->SetTemporalContrast(c.kind==4?0:c.kind,c.threshold);
         smaa->ResetTemporalHistory();
         m_frame = -m_warmup;
         m_total.clear();m_spatial.clear();m_resolve.clear();
@@ -38,7 +40,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
             vaStringTools::Format("%.9f",c.threshold)});
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
@@ -50,6 +52,11 @@ public:
             m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
             m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
             m_configs.push_back({"O-T2X-R-Repeat",0,0});
+        }
+        if(quality) {
+            m_configs={{"O-T2X-R",0,0},{"DBG-ContrastMask-0005-R",2,0.005f},
+                {"DBG-ContrastMask-001-R",2,0.01f},{"DBG-ContrastMask-002-R",2,0.02f},
+                {"SS-Reference",4,0}};
         }
     }
     void Tick(AutoBenchTool& tool,float) override {
@@ -73,6 +80,8 @@ public:
             tool.ReportAddText(vaStringTools::Format("Scene: %s\r\nFrames: %d\r\nWarmup: %d\r\nRepeats: %d\r\n",
                 m_scene==CMAA2Sample::SceneSelectionType::MinecraftLostEmpire?"minecraft":"bistro",m_frames,m_warmup,m_repeats));
             tool.ReportAddText("Profile: original flythrough t=2, 60 still + 120 moving + 60 still; 240-frame period. Fixed 60 Hz. Spatial history, paired jitter, camera reprojection. History and jitter reset at frame 0 after resource warmup; first 60 captured frames settle at the same pose.\r\n");
+            tool.ReportAddText(vaStringTools::Format("SS-Reference if requested: %dx linear resolution, %dx%d within-frame grid, %dx MSAA; no temporal history. MIP bias 0.95, sharpen 0.12, derivative bias 0.20 (baseline defaults). Spatial reference proxy, not absolute temporal ground truth.\r\n",
+                m_parent.GetSSResScale(),m_parent.GetSSGridRes(),m_parent.GetSSGridRes(),m_parent.GetSSMSAASampleCount()));
             if(!m_capture)tool.ReportAddRowValues({"kind","mode","run","metric","samples","mean_ms","p95_ms","threshold"});
             Configure();
         } else {
@@ -121,10 +130,13 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool capture=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastCapture")==0;
         bool bench=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastBenchmark")==0;
         bool smoke=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastSmoke")==0;
-        if(!capture && !bench && !smoke)continue;
+        bool quality=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastQualityCapture")==0;
+        if(!capture && !bench && !smoke && !quality)continue;
         std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture,scene==L"minecraft",capture?240:smoke?240:4800,smoke?1:3));
+        int qualityFrames=240;
+        if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality));
         return true;
     }
     return false;

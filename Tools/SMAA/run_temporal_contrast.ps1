@@ -1,14 +1,16 @@
 param(
-    [ValidateSet('Capture','Smoke','Benchmark')][string] $Phase = 'Capture',
+    [ValidateSet('Capture','Smoke','Benchmark','QualityCapture')][string] $Phase = 'Capture',
     [ValidateSet('bistro','minecraft')][string] $Scene = 'bistro',
-    [string] $Receipt = 'tmp/temporal-contrast-runs.json'
+    [string] $Receipt = 'tmp/temporal-contrast-runs.json',
+    [ValidateRange(1,240)][int] $QualityFrames = 240
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $exe = Join-Path $root 'Projects/CMAA2/CMAA2.exe'
 $beforeHash = (Get-FileHash -LiteralPath $exe).Hash
 $argsForDemo = @("-smaaTemporalContrast$Phase",$Scene)
-$runOutput = & (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $argsForDemo -Hidden -TimeoutSeconds 600
+if ($Phase -eq 'QualityCapture') { $argsForDemo += "$QualityFrames" }
+$runOutput = & (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $argsForDemo -Hidden -TimeoutSeconds 1200
 $passLine = $runOutput | Where-Object { $_ -match 'PASS:.*report=' } | Select-Object -Last 1
 if (!$passLine) { throw 'No completed report was returned' }
 if ((Get-FileHash -LiteralPath $exe).Hash -ne $beforeHash) { throw 'Executable changed during run' }
