@@ -237,6 +237,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     blendingWeightCalculationTechnique = techniqueManagerInterface->CreateTechnique("BlendingWeightCalculation", defines);
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
+    contrastTechniques[0] = techniqueManagerInterface->CreateTechnique("ContrastResolve", defines);
+    contrastTechniques[1] = techniqueManagerInterface->CreateTechnique("ContrastMask", defines);
+    contrastTechniques[2] = techniqueManagerInterface->CreateTechnique("CurrentSpatial", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
@@ -364,7 +367,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
                      ID3D11ShaderResourceView *currentSRV,
                      ID3D11ShaderResourceView *previousSRV,
                      ID3D11ShaderResourceView *velocitySRV,
-                     ID3D11RenderTargetView *dstRTV) {
+                     ID3D11RenderTargetView *dstRTV, int resolveKind) {
     // Save the state:
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
@@ -380,7 +383,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexPrev(context, previousSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
-    resolveTechnique->ApplyStates(context);
+    (resolveKind == 0 ? resolveTechnique : contrastTechniques[resolveKind-1])->ApplyStates( context );
 
     // Do it!
     context->OMSetRenderTargets(1, &dstRTV, nullptr);

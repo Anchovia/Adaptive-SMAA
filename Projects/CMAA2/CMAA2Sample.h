@@ -235,6 +235,7 @@ namespace VertexAsylum
         const vaApplicationBase &               GetApplication( ) const             { return m_application; }
 
     public:
+        const shared_ptr<vaSMAAWrapper> & GetSMAA() const { return m_SMAA; }
         shared_ptr<vaCameraBase> &              Camera( )                           { return m_camera; }
         CMAA2SampleSettings &                   Settings( )                         { return m_settings; }
         shared_ptr<vaPostProcessTonemap>  &     PostProcessTonemap( )               { return m_postProcessTonemap; }

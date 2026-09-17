@@ -33,6 +33,8 @@
 
 using namespace VertexAsylum;
 
+#include "TemporalContrastExperiment.inl"
+
 void CMAA2StartStopCallback(vaApplicationBase& application, bool starting)
 {
     static shared_ptr<CMAA2Sample> cmaa2Sample;
@@ -403,6 +405,12 @@ void CMAA2Sample::OnBeforeStopped()
 
 void CMAA2Sample::OnTick(float deltaTime)
 {
+    static bool examined = false, contrastExperiment = false;
+    if(!examined) {
+        examined = true;
+        contrastExperiment = QueueTemporalContrastExperiment(*this, *m_autoBench);
+    }
+    if(contrastExperiment && !m_autoBench->IsActive()) { m_application.Quit(); return; }
     vaDrawResultFlags prevDrawResultFlags = m_currentDrawResults;
     m_currentDrawResults = vaDrawResultFlags::None;
 
@@ -413,6 +421,10 @@ void CMAA2Sample::OnTick(float deltaTime)
     // if everything was OK with the last tick we can continue with the autobench, otherwise skip the frame until everything is loaded / compiled
     if (prevDrawResultFlags == vaDrawResultFlags::None)
         m_autoBench->Tick(deltaTime);
+
+    // Do not render restored settings after an automated gate completes.
+    // A scene switch here can spawn background shaders immediately before teardown.
+    if(contrastExperiment && !m_autoBench->IsActive()) { m_application.Quit(); return; }
 
     if (m_fixedDeltaTime > 0.0f)
         deltaTime = m_fixedDeltaTime;
@@ -628,7 +640,7 @@ void CMAA2Sample::OnTick(float deltaTime)
                 }
             }
         }
-        GetRenderDevice().BeginFrame(deltaTime);
+        // One BeginFrame per rendered frame (called above RenderTick).
 
         // draw imgui 
         if (vaUIManager::GetInstance().IsVisible())

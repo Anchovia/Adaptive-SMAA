@@ -151,7 +151,7 @@ class SMAA {
                        ID3D11ShaderResourceView *currentSRV,
                        ID3D11ShaderResourceView *previousSRV,
                        ID3D11ShaderResourceView *velocitySRV,
-                       ID3D11RenderTargetView *dstRTV);
+                       ID3D11RenderTargetView *dstRTV, int resolveKind = 0);
 
         /**
          * This function separates 2 subsamples in a 2x multisampled buffer
@@ -309,6 +309,7 @@ class SMAA {
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        resolveTechnique;
+        SMAATechniqueInterface *        contrastTechniques[3];
         SMAATechniqueInterface *        separateTechnique;
 
         SMAATechniqueInterface * msaaOrderRenderTechnique;

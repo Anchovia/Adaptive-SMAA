@@ -57,6 +57,7 @@ namespace VertexAsylum
         bool                        m_temporalModeEnabled               = false;
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
+        int                         m_contrastResolveKind               = 0;
 
         //bool                        m_debugShowEdges;
 
@@ -84,6 +85,20 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
+
+        // Default-off native temporal ablation: no edge/metadata texture binding.
+        void SetTemporalContrast(int kind, float threshold) {
+            kind = vaMath::Clamp(kind, 0, 3);
+            threshold = vaMath::Clamp(threshold, 0.0f, 2.0f);
+            if(m_contrastResolveKind != kind || m_constants.padding0 != threshold) {
+                m_contrastResolveKind = kind;
+                m_constants.padding0 = threshold;
+                ResetTemporalHistory();
+            }
+        }
+        Settings & GetSettings() { return m_settings; }
+        int GetTemporalContrastKind() const { return m_contrastResolveKind; }
+        float GetTemporalContrastThreshold() const { return m_constants.padding0; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips

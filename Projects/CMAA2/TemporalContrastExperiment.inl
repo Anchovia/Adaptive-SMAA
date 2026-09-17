@@ -1,0 +1,131 @@
+// Engineering ablation on the original T2X baseline. No final eight-case claim.
+class BenchItemTemporalContrast : public AutoBenchToolWorkItem
+{
+    struct Config { const char* name; int kind; float threshold; };
+    std::vector<Config> m_configs;
+    bool m_capture, m_done = false, m_started = false, m_failed = false;
+    int m_frames, m_warmup, m_repeats, m_run = 0, m_slot = 0, m_frame = 0;
+    int m_savedKind = 0, m_savedPreset = 0;
+    float m_savedThreshold = 0;
+    CMAA2Sample::SceneSelectionType m_scene;
+    std::vector<double> m_total, m_spatial, m_resolve;
+    Config Current() const {
+        const int i = (m_run % 2) ? int(m_configs.size())-1-m_slot : m_slot;
+        return m_configs[i];
+    }
+    void Configure() {
+        auto smaa = m_parent.GetSMAA();
+        const auto c = Current();
+        smaa->SetTemporalContrast(c.kind,c.threshold);
+        smaa->ResetTemporalHistory();
+        m_frame = -m_warmup;
+        m_total.clear();m_spatial.clear();m_resolve.clear();
+    }
+    static double Time(const char* name) {
+        auto p = vaProfiler::GetInstancePtr();
+        const auto node = p ? p->FindNode(name) : nullptr;
+        return node ? node->GetFrameLastTotalTimeGPU()*1000.0 : 0.0;
+    }
+    void ReportSamples(AutoBenchTool& tool, const char* metric, std::vector<double> values) {
+        if(values.size()!=size_t(m_frames)) m_failed=true;
+        if(values.empty()) return;
+        double mean=0; for(double v:values)mean+=v; mean/=values.size();
+        std::sort(values.begin(),values.end());
+        const auto c=Current();
+        tool.ReportAddRowValues({"timing", c.name, std::to_string(m_run), metric,
+            std::to_string(values.size()),vaStringTools::Format("%.9f",mean),
+            vaStringTools::Format("%.9f",values[size_t((values.size()-1)*0.95)]),
+            vaStringTools::Format("%.9f",c.threshold)});
+    }
+public:
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats)
+        :AutoBenchToolWorkItem(parent),m_capture(capture),m_frames(frames),
+         m_warmup(capture?60:300),m_repeats(capture?1:repeats),
+         m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
+    {
+        m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-All-R",1,0},
+            {"ABL-Contrast-0005-R",1,0.005f},{"ABL-Contrast-001-R",1,0.01f},
+            {"ABL-Contrast-002-R",1,0.02f},{"ABL-Contrast-None-R",1,2.0f}};
+        if(capture) {
+            m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
+            m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
+            m_configs.push_back({"O-T2X-R-Repeat",0,0});
+        }
+    }
+    void Tick(AutoBenchTool& tool,float) override {
+        if(!m_started) {
+            m_started=true;
+            auto smaa=m_parent.GetSMAA();
+            m_savedKind=smaa->GetTemporalContrastKind();
+            m_savedThreshold=smaa->GetTemporalContrastThreshold();
+            m_savedPreset=int(smaa->GetSettings().Preset);
+            smaa->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
+            m_parent.Settings().SceneChoice=m_scene;
+            m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+            m_parent.SetRequireDeterminism(true);
+            m_parent.SetFixedDeltaTime(1.0f/60.0f);
+            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed=std::numeric_limits<float>::infinity();
+            vaUIManager::GetInstance().SetVisible(false);
+            vaUIManager::GetInstance().SetConsoleVisible(false);
+            tool.ReportStart();
+            tool.ReportAddText("Native Standard temporal contrast engineering gate\r\n");
+            tool.ReportAddText(m_capture?"Purpose: quality/correctness capture; no GPU performance claim\r\n":"Purpose: paired GPU performance; no PNG or candidate readback\r\n");
+            tool.ReportAddText(vaStringTools::Format("Scene: %s\r\nFrames: %d\r\nWarmup: %d\r\nRepeats: %d\r\n",
+                m_scene==CMAA2Sample::SceneSelectionType::MinecraftLostEmpire?"minecraft":"bistro",m_frames,m_warmup,m_repeats));
+            tool.ReportAddText("Profile: original flythrough t=2, 60 still + 120 moving + 60 still; 240-frame period. Fixed 60 Hz. Spatial history, paired jitter, camera reprojection. History and jitter reset at frame 0 after resource warmup; first 60 captured frames settle at the same pose.\r\n");
+            if(!m_capture)tool.ReportAddRowValues({"kind","mode","run","metric","samples","mean_ms","p95_ms","threshold"});
+            Configure();
+        } else {
+            if(!m_capture && m_frame>=0) {
+                const double t=Time("SMAA"),s=Time("SMAASpatial"),r=Time("SMAATemporalResolve");
+                if(t>0 && s>0 && r>0) {m_total.push_back(t);m_spatial.push_back(s);m_resolve.push_back(r);}
+                else m_failed=true;
+            }
+            ++m_frame;
+            if(m_frame>=m_frames) {
+                if(!m_capture) {ReportSamples(tool,"SMAA",m_total);ReportSamples(tool,"Spatial",m_spatial);ReportSamples(tool,"Resolve",m_resolve);}
+                if(++m_slot==int(m_configs.size())) {m_slot=0;++m_run;}
+                if(m_run==m_repeats) {
+                    tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");
+                    tool.ReportFinish();m_done=true;
+                    m_parent.GetSMAA()->SetTemporalContrast(m_savedKind,m_savedThreshold);
+                    m_parent.GetSMAA()->GetSettings().Preset=vaSMAAWrapper::Preset(m_savedPreset);
+                    return;
+                }
+                Configure();
+            }
+        }
+        // Loading may render additional frames while Tick is held. Seed the
+        // captured timeline explicitly so every mode starts with jitter S0.
+        if(m_frame==0)m_parent.GetSMAA()->ResetTemporalHistory();
+        const int phase=m_frame<0?0:m_frame%240;
+        const float t=2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f;
+        m_parent.GetFlythroughCameraController()->SetPlayTime(t);
+    }
+    void OnRender(AutoBenchTool&) override {}
+    void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& context,
+        const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
+        if(!m_capture || m_frame<0 || m_done)return;
+        const auto c=Current();
+        const auto dir=tool.ReportGetDir()+vaStringTools::SimpleWiden(c.name)+L"\\";
+        vaFileTools::EnsureDirectoryExists(dir);
+        const auto path=dir+vaStringTools::Format(L"frame_%05d.png",m_frame);
+        if(!color->SaveToPNGFile(context,path))m_failed=true;
+    }
+    bool IsDone(AutoBenchTool&) const override{return m_done;}
+    float GetProgress() const override{return float(m_run*m_configs.size()+m_slot)/float(m_repeats*m_configs.size());}
+};
+
+static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& tool) {
+    for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
+        bool capture=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastCapture")==0;
+        bool bench=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastBenchmark")==0;
+        bool smoke=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastSmoke")==0;
+        if(!capture && !bench && !smoke)continue;
+        std::wistringstream input(p.second);std::wstring scene;input>>scene;
+        if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture,scene==L"minecraft",capture?240:smoke?240:4800,smoke?1:3));
+        return true;
+    }
+    return false;
+}

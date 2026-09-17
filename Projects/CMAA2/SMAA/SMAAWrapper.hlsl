@@ -205,6 +205,45 @@ float4 DX10_SMAANeighborhoodBlendingPS(float4 position : SV_POSITION,
     #endif
 }
 
+// Current-color-only contrast proxy. Derivatives execute before divergent flow.
+// Linear RGB is sampled through the same SRV as native Standard resolve.
+float SMAATemporalContrast(float3 rgb) {
+    float y = dot(rgb, float3(0.2126, 0.7152, 0.0722));
+    return max(abs(ddx_fine(y)), abs(ddy_fine(y)));
+}
+
+float4 DX10_SMAAContrastResolvePS(float4 position : SV_POSITION,
+                                float2 texcoord : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, texcoord);
+    float contrast = SMAATemporalContrast(current.rgb);
+    [branch]
+    if (contrast < g_SMAA.padding0)
+        return current;
+    // Mirror native SMAAResolvePS, reusing the current sample above.
+    #if SMAA_REPROJECTION
+    float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.SampleLevel(PointSampler, texcoord, 0).rg);
+    float4 previous = colorTexPrev.SampleLevel(PointSampler, texcoord + velocity, 0);
+    float delta = abs(current.a * current.a - previous.a * previous.a) / 5.0;
+    float weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    return lerp(current, previous, weight);
+    #else
+    float4 previous = colorTexPrev.SampleLevel(PointSampler, texcoord, 0);
+    return lerp(current, previous, 0.5);
+    #endif
+}
+
+float4 DX10_SMAAContrastMaskPS(float4 position : SV_POSITION,
+                             float2 texcoord : TEXCOORD0) : SV_TARGET {
+    float3 current = SMAASamplePoint(colorTex, texcoord).rgb;
+    float selected = SMAATemporalContrast(current) >= g_SMAA.padding0 ? 1.0 : 0.0;
+    return float4(selected.xxx, 1.0);
+}
+
+float4 DX10_SMAACurrentSpatialPS(float4 position : SV_POSITION,
+                               float2 texcoord : TEXCOORD0) : SV_TARGET {
+    return SMAASamplePoint(colorTex, texcoord);
+}
+
 float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
                           float2 texcoord : TEXCOORD0) : SV_TARGET {
     #if SMAA_REPROJECTION

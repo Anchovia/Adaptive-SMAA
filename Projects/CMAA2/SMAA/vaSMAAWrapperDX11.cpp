@@ -429,11 +429,17 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
-            m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+            {
+                VA_SCOPE_CPUGPU_TIMER(SMAASpatial, deviceContext);
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+            }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            {
+                VA_SCOPE_CPUGPU_TIMER(SMAATemporalResolve, deviceContext);
+                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), GetTemporalContrastKind() );
+            }
 
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
@@ -628,11 +634,14 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->SampleMask = 0xFFFFFFFF;
         tech->StencilRef = 0;
     }
-    else if( name == "Resolve" )
+    else if( name == "Resolve" || name == "ContrastResolve" || name == "ContrastMask" || name == "CurrentSpatial" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        tech->PS->CreateShaderFromFile( shaderFileName, psVersion, "DX10_SMAAResolvePS", shaderMacros, true );
+        const char * entry = name == "ContrastResolve" ? "DX10_SMAAContrastResolvePS" :
+            name == "ContrastMask" ? "DX10_SMAAContrastMaskPS" :
+            name == "CurrentSpatial" ? "DX10_SMAACurrentSpatialPS" : "DX10_SMAAResolvePS";
+        tech->PS->CreateShaderFromFile( shaderFileName, name == "Resolve" ? psVersion : "ps_5_0", entry, shaderMacros, true );
         tech->DSS = m_DisableDepthStencil;
         tech->BS  = m_NoBlending;
         tech->BlendFactor[0] = 0.0f; tech->BlendFactor[1] = 0.0f; tech->BlendFactor[2] = 0.0f; tech->BlendFactor[3] = 0.0f;
