@@ -77,6 +77,7 @@ namespace
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R
+            || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R
             || aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_K0_PATTERN_ON_R
@@ -147,8 +148,10 @@ namespace
             settings.Bounds = vaSMAAWrapper::HistoryBounds::Clamp;
             settings.HistoryWeight = 0.5f;
             break;
+        case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R:
         case CMAA2Sample::AAType::SMAA_O_T2X_R:
         case CMAA2Sample::AAType::SMAA_A_T2X_R:
+            settings.StandardEdgeMask = aaType == CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R;
             settings.Coverage = vaSMAAWrapper::TemporalCoverage::FullScreen;
             settings.Reprojection = vaSMAAWrapper::ReprojectionMode::CameraDepthMatrices;
             settings.Jitter = vaSMAAWrapper::JitterPolicy::SMAAT2X;
@@ -498,6 +501,7 @@ namespace
             { L"O-1X",     CMAA2Sample::AAType::SMAA,          "O-1X" },
             { L"O-T2X",    CMAA2Sample::AAType::SMAA_O_T2X,    "O-T2X" },
             { L"O-T2X-R",  CMAA2Sample::AAType::SMAA_O_T2X_R,  "O-T2X-R" },
+            { L"ABL-Standard-EdgeMask-R", CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R, "ABL-Standard-EdgeMask-R" },
             { L"O-ET2X",   CMAA2Sample::AAType::SMAA_O_ET2X,   "O-ET2X" },
             { L"O-ET2X-R", CMAA2Sample::AAType::SMAA_O_ET2X_R, "O-ET2X-R" },
             { L"ABL-Standard-PatternOff-R",
@@ -816,6 +820,8 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
         return "ABL-Document-FullScreen - O-ET2X document temporal kernel applied full-screen";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
         return "ABL-Document-FullScreen-R - O-ET2X-R document temporal kernel applied full-screen";
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R:
+        return "ABL-Standard-EdgeMask-R - Native Standard T2X-R on first-pass edge pixels only";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R:
         return "ABL-Standard-PatternOff-R - Standard full-screen T2X-R with paired jitter/subsample pattern disabled";
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R:
@@ -895,6 +901,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_R_ARM_DUAL_FILTER:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_R:
+    case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_DOCUMENT_FULLSCREEN_PATTERN_ON_R:
     case CMAA2Sample::AAType::SMAA_O_ABLATION_ET2X_SPATIAL_FEEDBACK_R:
@@ -2272,6 +2279,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
             temporalSMAASettings.HistoryWeight,
             temporalSMAASettings.NonDominantRemovalAmount,
             temporalSMAASettings.EdgeThreshold );
+        if(temporalSMAASettings.StandardEdgeMask)
+            VA_LOG("ACTIVE STANDARD EDGE MASK: native pixel resolve, existing first-pass RG edge != 0, no expansion/compact/indirect/copies; spatial-frame history retained.");
         if(GetSMAARecoveredSourceProfile()!=0 && m_SMAA->GetEdgeSelectiveTemporalEnabled())
             VA_LOG("ACTIVE RECOVERED-SOURCE ABLATION: %s; preceding profile describes base settings. Source candidate uses pre-AA UNORM RGB; Source kernel overrides sampler/clipping/bounds/weight/color-space with recovered formulas, black border, weight=0.789473712.",RecoveredProfileID(GetSMAARecoveredSourceProfile()));
         m_lastLoggedSMAAOption = m_settings.CurrentAAOption;
@@ -6684,6 +6693,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
     const bool m_matchedKernelAblation;
     const bool m_armThresholdAblation;
     const bool m_candidateExecutionAblation;
+    const bool m_standardEdgeMaskAblation;
     const bool m_feedbackTopologyAblation;
     const bool m_recoveredMatrix, m_integratedRecoveredMatrix, m_candidateSelectionMatrix, m_savedRecoveredIntegrated;
     const int m_savedRecoveredProfile;
@@ -6760,6 +6770,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     const char * GetModeID( int mode ) const
     {
+        if(m_standardEdgeMaskAblation) return mode == 0 ? "O-T2X-R" : "ABL-Standard-EdgeMask-R";
         if(m_candidateSelectionMatrix) { const char * ids[]={"O-T2X-R","O-ET2X-R-DocCandidate-DocKernel","O-ET2X-R-SourceCandidate-DocKernel-Integrated"}; return ids[mode]; }
         if(m_integratedRecoveredMatrix) { const char * ids[]={"O-T2X-R","O-ET2X-R-SourceCandidate-SourceKernel-Separate","O-ET2X-R-SourceCandidate-SourceKernel-Integrated"}; return ids[mode]; }
         if(m_recoveredMatrix) return RecoveredProfileID(mode);
@@ -6947,6 +6958,7 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     CMAA2Sample::AAType GetModeAAType( int mode ) const
     {
+        if(m_standardEdgeMaskAblation) return mode == 0 ? CMAA2Sample::AAType::SMAA_O_T2X_R : CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R;
         if(m_integratedRecoveredMatrix) return mode==0?CMAA2Sample::AAType::SMAA_O_T2X_R:CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if(m_recoveredMatrix) return CMAA2Sample::AAType::SMAA_O_ET2X_R;
         if( m_feedbackTopologyAblation )
@@ -7165,6 +7177,9 @@ class BenchItemSMAATemporalPerformanceBenchmark : public AutoBenchToolWorkItem
 
     bool IsMetricExpected( int mode, Metric metric ) const
     {
+        if(m_standardEdgeMaskAblation)
+            return metric == ApplicationFrameWall || metric == WholeFrame || metric == SMAATotal
+                || metric == GenerateCameraVelocity || metric == StandardSpatialT2X || metric == StandardTemporalResolve;
         if(m_integratedRecoveredMatrix) {
             if(metric==ApplicationFrameWall || metric==WholeFrame || metric==SMAATotal || metric==GenerateCameraVelocity) return true;
             if(mode==0) return metric==StandardSpatialT2X || metric==StandardTemporalResolve;
@@ -7646,7 +7661,7 @@ public:
         bool armThresholdAblation = false,
         bool candidateExecutionAblation = false,
         bool feedbackTopologyAblation = false, bool recoveredMatrix = false, bool integratedRecoveredMatrix = false,
-        bool candidateSelectionMatrix = false )
+        bool candidateSelectionMatrix = false, bool standardEdgeMaskAblation = false )
         : AutoBenchToolWorkItem( parent ),
         m_scene( scene ),
         m_startTime( vaMath::Max( 0.0f, startTime ) ),
@@ -7668,6 +7683,7 @@ public:
         m_matchedKernelAblation( matchedKernelAblation ),
         m_armThresholdAblation( armThresholdAblation ),
         m_candidateExecutionAblation( candidateExecutionAblation ),
+        m_standardEdgeMaskAblation( standardEdgeMaskAblation ),
         m_feedbackTopologyAblation( feedbackTopologyAblation ),
         m_recoveredMatrix(recoveredMatrix), m_integratedRecoveredMatrix(integratedRecoveredMatrix),
         m_candidateSelectionMatrix(candidateSelectionMatrix),
@@ -7702,7 +7718,7 @@ public:
         m_useCameraMotionProfile( useCameraMotionProfile ),
         m_cameraMotionProfile( cameraMotionProfile ),
         m_firstProfileFrame( vaMath::Max( 0, firstProfileFrame ) ),
-        m_modeCount( integratedRecoveredMatrix? 3 : feedbackTopologyAblation? 2 : (candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionDisocclusionAblation? c_modeCapacity : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
+        m_modeCount( standardEdgeMaskAblation? 2 : integratedRecoveredMatrix? 3 : feedbackTopologyAblation? 2 : (candidateExecutionAblation? 4 : (armThresholdAblation? 5 : (matchedKernelAblation? 4 : (objectMotionDisocclusionAblation? c_modeCapacity : (objectMotionReprojectionAblation? 4 : (integratedSourceOverheadComparison? c_modeCapacity : (integratedRemovalAblation? c_modeCapacity : (candidateEdgeSourceAblation? 6 : (armDualFilterAblation? c_modeCapacity : (filteredQuarterAblation? 6 : (currentEdgeDilationAblation? 4 :
             (candidateAblation? (fullComponentAblation? 6 : 3) :
             (includeAdaptive? c_modeCapacity : c_originalModeCount))))))))))))) )
     {
@@ -7713,7 +7729,7 @@ public:
             + (int)objectMotionReprojectionAblation + (int)objectMotionDisocclusionAblation
             + (int)matchedKernelAblation
             + (int)armThresholdAblation + (int)candidateExecutionAblation
-            + (int)feedbackTopologyAblation + (int)recoveredMatrix + (int)integratedRecoveredMatrix <= 1 );
+            + (int)standardEdgeMaskAblation + (int)feedbackTopologyAblation + (int)recoveredMatrix + (int)integratedRecoveredMatrix <= 1 );
     }
 
 protected:
@@ -7788,7 +7804,10 @@ protected:
             m_wallTimer.Tick( );
 
             abTool.ReportStart( );
-            if(m_candidateSelectionMatrix) {
+            if(m_standardEdgeMaskAblation) {
+                abTool.ReportAddText("Native Standard coverage-only paired gate: O-T2X-R versus ABL-Standard-EdgeMask-R. Both retain Original spatial SMAA, paired jitter/subsample, camera/depth velocity, native point sampler, adaptive 0..0.5 weight and spatial-frame history. Only resolve coverage changes: any existing first-pass RG edge > 0. No extra pass, candidate list, expansion or history copy. Full-screen raster draw with non-edge early return.\r\n");
+            }
+            else if(m_candidateSelectionMatrix) {
                 abTool.ReportAddText("Candidate-selection paired gate: O-T2X-R control versus DocCandidate/DocKernel and SourceCandidate/DocKernel. Both selective modes use first-edge-pass integrated candidates, CompactIndirect, expansion None, removal 0.5, no jitter, camera/depth reprojection, document sampler/clipping, weight 0.8, resolved-output feedback and two copies. Only candidate selection changes between selective modes. Standard retains paired sample pattern and spatial-frame history.\r\n");
             }
             else if(m_integratedRecoveredMatrix) {
@@ -9230,6 +9249,7 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         O_T2X,
         O_T2X_R,
         StandardPatternOffR,
+        StandardEdgeMaskR,
         DocumentFullScreenPatternOnR,
         O_ET2X,
         O_ET2X_R,
@@ -9285,6 +9305,8 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::O_T2X_R:                return "O-T2X-R mode change";
         case Phase::StandardPatternOffR:
             return "ABL-Standard-PatternOff-R mode change";
+        case Phase::StandardEdgeMaskR:
+            return "ABL-Standard-EdgeMask-R mode change";
         case Phase::DocumentFullScreenPatternOnR:
             return "ABL-Document-FullScreen-PatternOn-R mode change";
         case Phase::O_ET2X:                 return "O-ET2X mode change";
@@ -9378,6 +9400,10 @@ class BenchItemValidateSMAATemporalLifecycle : public AutoBenchToolWorkItem
         case Phase::StandardPatternOffR:
             m_parent.Settings().CurrentAAOption =
                 CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_PATTERN_OFF_R;
+            break;
+        case Phase::StandardEdgeMaskR:
+            m_parent.Settings().CurrentAAOption =
+                CMAA2Sample::AAType::SMAA_O_ABLATION_STANDARD_EDGE_MASK_R;
             break;
         case Phase::DocumentFullScreenPatternOnR:
             m_parent.Settings().CurrentAAOption =
@@ -10928,6 +10954,10 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             _wcsicmp(parameter.first.c_str(), L"smaaCandidateExecutionPerformanceSmoke") == 0;
         const bool candidateExecutionPerformanceBenchmark =
             _wcsicmp(parameter.first.c_str(), L"smaaCandidateExecutionPerformanceBenchmark") == 0;
+        const bool standardEdgeMaskPerformanceSmoke =
+            _wcsicmp(parameter.first.c_str(), L"smaaStandardEdgeMaskPerformanceSmoke") == 0;
+        const bool standardEdgeMaskPerformanceBenchmark =
+            _wcsicmp(parameter.first.c_str(), L"smaaStandardEdgeMaskPerformanceBenchmark") == 0;
         const bool feedbackTopologyPerformanceSmoke =
             _wcsicmp(parameter.first.c_str(), L"smaaET2XFeedbackTopologyPerformanceSmoke") == 0;
         const bool feedbackTopologyPerformanceBenchmark =
@@ -10945,7 +10975,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || integratedRemovalPerformanceSmoke || integratedSourceOverheadPerformanceSmoke
             || objectMotionReprojectionPerformanceSmoke || objectMotionDisocclusionPerformanceSmoke
             || matchedKernelPerformanceSmoke
-            || candidateExecutionPerformanceSmoke || feedbackTopologyPerformanceSmoke;
+            || candidateExecutionPerformanceSmoke || feedbackTopologyPerformanceSmoke || standardEdgeMaskPerformanceSmoke;
         const bool repeatedPerformanceBenchmark = originalPerformanceBenchmark || eightCasePerformanceBenchmark
             || candidateAblationPerformanceBenchmark || componentAblationPerformanceBenchmark
             || currentEdgeDilationPerformanceBenchmark || filteredQuarterPerformanceBenchmark
@@ -10954,7 +10984,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
             || integratedRemovalPerformanceBenchmark || integratedSourceOverheadPerformanceBenchmark
             || objectMotionReprojectionPerformanceBenchmark || objectMotionDisocclusionPerformanceBenchmark
             || matchedKernelPerformanceBenchmark
-            || candidateExecutionPerformanceBenchmark || feedbackTopologyPerformanceBenchmark;
+            || candidateExecutionPerformanceBenchmark || feedbackTopologyPerformanceBenchmark || standardEdgeMaskPerformanceBenchmark;
         const bool includeAdaptive = eightCasePerformanceSmoke || eightCasePerformanceBenchmark;
         if (performanceSmoke || repeatedPerformanceBenchmark)
         {
@@ -10973,6 +11003,7 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                     || integratedSourceOverheadPerformanceSmoke || integratedSourceOverheadPerformanceBenchmark
                     || matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark
                     || candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark
+                    || standardEdgeMaskPerformanceSmoke || standardEdgeMaskPerformanceBenchmark
                     || feedbackTopologyPerformanceSmoke || feedbackTopologyPerformanceBenchmark
                     || eightCasePerformanceSmoke || eightCasePerformanceBenchmark )
                 {
@@ -11066,9 +11097,11 @@ void CMAA2Sample::ProcessCommandLineCaptureRequest()
                 matchedKernelPerformanceSmoke || matchedKernelPerformanceBenchmark,
                 armThresholdPerformanceSmoke || armThresholdPerformanceBenchmark,
                 candidateExecutionPerformanceSmoke || candidateExecutionPerformanceBenchmark,
-                feedbackTopologyPerformanceSmoke || feedbackTopologyPerformanceBenchmark));
+                feedbackTopologyPerformanceSmoke || feedbackTopologyPerformanceBenchmark, false, false, false,
+                standardEdgeMaskPerformanceSmoke || standardEdgeMaskPerformanceBenchmark));
             m_quitAfterCommandLineCapture = true;
-            const char * performanceKind = "Original four-mode";
+            const char * performanceKind = (standardEdgeMaskPerformanceSmoke || standardEdgeMaskPerformanceBenchmark)?
+                "native Standard first-pass edge-mask paired ablation" : "Original four-mode";
             if( includeAdaptive )
                 performanceKind = "eight-case";
             if( candidateAblationPerformance )

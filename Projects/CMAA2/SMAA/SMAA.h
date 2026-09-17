@@ -178,7 +178,8 @@ class SMAA {
                        ID3D11ShaderResourceView *currentSRV,
                        ID3D11ShaderResourceView *previousSRV,
                        ID3D11ShaderResourceView *velocitySRV,
-                       ID3D11RenderTargetView *dstRTV);
+                       ID3D11RenderTargetView *dstRTV,
+                       bool edgeMasked = false, bool edgeMaskDebug = false);
 
         /**
          * This function separates 2 subsamples in a 2x multisampled buffer
@@ -344,6 +345,8 @@ class SMAA {
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        resolveTechnique;
+        SMAATechniqueInterface *        resolveEdgeMaskTechnique;
+        SMAATechniqueInterface *        edgeMaskDebugTechnique;
         SMAATechniqueInterface *        separateTechnique;
 
         SMAATechniqueInterface * msaaOrderRenderTechnique;

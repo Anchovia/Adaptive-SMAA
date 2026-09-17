@@ -573,6 +573,26 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
     #endif
 }
 
+// Coverage-only experiment: reuse the completed first-pass edge texture.
+// The selected path calls the unchanged native Standard resolve above.
+float4 DX10_SMAAResolveEdgeMaskPS(float4 position : SV_POSITION,
+                                float2 texcoord : TEXCOORD0) : SV_TARGET {
+    [branch]
+    if (!any(edgesTex.Load(int3(int2(position.xy), 0)).rg > 0.0))
+        return SMAASamplePoint(colorTex, texcoord);
+    #if SMAA_REPROJECTION
+    return SMAAResolvePS(texcoord, colorTex, colorTexPrev, velocityTex);
+    #else
+    return SMAAResolvePS(texcoord, colorTex, colorTexPrev);
+    #endif
+}
+
+float4 DX10_SMAAEdgeMaskDebugPS(float4 position : SV_POSITION,
+                              float2 texcoord : TEXCOORD0) : SV_TARGET {
+    float selected = any(edgesTex.Load(int3(int2(position.xy), 0)).rg > 0.0) ? 1.0 : 0.0;
+    return float4(selected.xxx, 1.0);
+}
+
 struct SMAAVelocityDepthOutput
 {
     float2 Velocity : SV_TARGET0;

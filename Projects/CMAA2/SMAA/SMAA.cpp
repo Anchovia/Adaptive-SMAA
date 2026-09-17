@@ -260,6 +260,8 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     blendingWeightCalculationTechnique = techniqueManagerInterface->CreateTechnique("BlendingWeightCalculation", defines);
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
+    resolveEdgeMaskTechnique = techniqueManagerInterface->CreateTechnique("ResolveEdgeMask", defines);
+    edgeMaskDebugTechnique = techniqueManagerInterface->CreateTechnique("EdgeMaskDebug", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
@@ -395,7 +397,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
                      ID3D11ShaderResourceView *currentSRV,
                      ID3D11ShaderResourceView *previousSRV,
                      ID3D11ShaderResourceView *velocitySRV,
-                     ID3D11RenderTargetView *dstRTV) {
+                     ID3D11RenderTargetView *dstRTV, bool edgeMasked, bool edgeMaskDebug) {
     // Save the state:
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
@@ -411,12 +413,18 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexPrev(context, previousSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
-    resolveTechnique->ApplyStates(context);
+    if (edgeMasked || edgeMaskDebug)
+        texturesInterface->SetResource_edgesTex(context, *edgesRT);
+    (edgeMaskDebug ? edgeMaskDebugTechnique :
+        (edgeMasked ? resolveEdgeMaskTechnique : resolveTechnique))->ApplyStates(context);
 
     // Do it!
     context->OMSetRenderTargets(1, &dstRTV, nullptr);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
+
+    if (edgeMasked || edgeMaskDebug)
+        texturesInterface->SetResource_edgesTex(context, nullptr);
 
     // Reset external inputs, to avoid warnings:
     texturesInterface->SetResource_colorTex(context, nullptr);

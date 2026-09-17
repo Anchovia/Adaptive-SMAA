@@ -170,6 +170,8 @@ namespace VertexAsylum
             // Keep new diagnostics after all previously serialized AA values.
             SMAA_O_ABLATION_ET2X_SPATIAL_FEEDBACK_R, // Diagnostic: O-ET2X-R with previous spatial-frame history instead of recursive resolved-output feedback
 
+            SMAA_O_ABLATION_STANDARD_EDGE_MASK_R, // Native Standard T2X-R restricted to first-pass edge pixels
+
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
 

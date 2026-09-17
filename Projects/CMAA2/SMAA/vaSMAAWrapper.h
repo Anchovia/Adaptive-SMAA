@@ -361,6 +361,8 @@ namespace VertexAsylum
 
         struct TemporalSettings
         {
+            // Native Standard pixel resolve with only first-pass edge coverage changed.
+            bool                         StandardEdgeMask            = false;
             TemporalCoverage             Coverage                    = TemporalCoverage::Disabled;
             ReprojectionMode             Reprojection                = ReprojectionMode::Off;
             JitterPolicy                 Jitter                      = JitterPolicy::None;
@@ -384,7 +386,8 @@ namespace VertexAsylum
 
             bool operator == ( const TemporalSettings & other ) const
             {
-                return Coverage == other.Coverage
+                return StandardEdgeMask == other.StandardEdgeMask
+                    && Coverage == other.Coverage
                     && Reprojection == other.Reprojection
                     && Jitter == other.Jitter
                     && Sampler == other.Sampler

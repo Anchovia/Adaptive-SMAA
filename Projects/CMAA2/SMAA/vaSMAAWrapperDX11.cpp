@@ -1204,6 +1204,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     const bool temporalReprojectionEnabled = GetTemporalReprojectionEnabled( );
     const bool rigidObjectMotionEnabled = GetRigidObjectMotionReprojectionEnabled( );
     const bool previousDepthRejectionEnabled = GetPreviousDepthDisocclusionRejectionEnabled( );
+    if( GetTemporalSettings().StandardEdgeMask && previousDepthRejectionEnabled )
+    {
+        VA_LOG_ERROR("Standard edge-mask coverage gate requires previous-depth rejection Off");
+        return restoreOutputsAndReturn( vaDrawResultFlags::UnspecifiedError );
+    }
     const bool edgeSelectiveTemporalEnabled = GetEdgeSelectiveTemporalEnabled( );
     const bool documentFullScreenTemporalEnabled = GetDocumentFullScreenTemporalEnabled( );
     const bool documentTemporalEnabled = edgeSelectiveTemporalEnabled || documentFullScreenTemporalEnabled;
@@ -1633,7 +1638,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                         dx11Context->PSSetConstantBuffers( 1, 1, &reprojectionConstants );
                         dx11Context->PSSetShaderResources( 18, 2, depthRejectSRVs );
                     }
-                    m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+                    m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV,
+                        dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), GetTemporalSettings().StandardEdgeMask,
+                        GetTemporalDebugView() == TemporalDebugView::BaseEdges );
                     if( previousDepthRejectionEnabled )
                     {
                         ID3D11ShaderResourceView * nullDepthRejectSRVs[2] = { nullptr, nullptr };
@@ -3675,11 +3682,13 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->SampleMask = 0xFFFFFFFF;
         tech->StencilRef = 0;
     }
-    else if( name == "Resolve" )
+    else if( name == "Resolve" || name == "ResolveEdgeMask" || name == "EdgeMaskDebug" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        tech->PS->CreateShaderFromFile( shaderFileName, psVersion, "DX10_SMAAResolvePS", shaderMacros, true );
+        tech->PS->CreateShaderFromFile( shaderFileName, psVersion,
+            name == "EdgeMaskDebug" ? "DX10_SMAAEdgeMaskDebugPS" :
+            (name == "ResolveEdgeMask" ? "DX10_SMAAResolveEdgeMaskPS" : "DX10_SMAAResolvePS"), shaderMacros, true );
         tech->DSS = m_DisableDepthStencil;
         tech->BS  = m_NoBlending;
         tech->BlendFactor[0] = 0.0f; tech->BlendFactor[1] = 0.0f; tech->BlendFactor[2] = 0.0f; tech->BlendFactor[3] = 0.0f;
