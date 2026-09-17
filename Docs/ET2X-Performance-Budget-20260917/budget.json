@@ -1,0 +1,202 @@
+{
+  "status": "PASS",
+  "classification": "historical measured-cost audit; no new GPU benchmark",
+  "assumption": "Subtractions hold all remaining costs fixed and assign zero replacement cost. They are not measured speedups, hardware lower bounds, or proof of impossibility.",
+  "comparison_limit": "September baseline and August matched evidence use different runs and paths; absolute timings are never subtracted across those sets.",
+  "baseline_summary_sha256": "82727e002314286a6da4bf3c1c6fc45909ce80e06b6504a067884bf1a07683eb",
+  "matched_summary_sha256": "067e3b8880e8e4636cea1d81da57f1247173727a56a8f25e8cb09f5110e5546e",
+  "scenes": {
+    "bistro": {
+      "source": "Docs/Candidate-Selection-Gate-20260915/bistro-Benchmark-results.csv",
+      "sha256": "49866fd2dad694ef3b7799d249784c6e1cb3e543efd87fc98de3c8ca29a31e34",
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 3,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "bistro",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "timings_ms": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": 2.921952,
+          "WholeFrame": 2.875217,
+          "SMAA": 0.277314,
+          "SMAAGenerateCameraVelocity": 0.023124,
+          "SMAAStandardSpatialT2X": 0.216971,
+          "SMAAStandardTemporalResolve": 0.037102
+        },
+        "O-ET2X-R-DocCandidate-DocKernel": {
+          "ApplicationFrameWall": 2.929845,
+          "WholeFrame": 2.889945,
+          "SMAA": 0.341403,
+          "SMAAGenerateCameraVelocity": 0.023233,
+          "SMAASpatial1X": 0.231272,
+          "TSCMAACopySpatialToHistory": 0.023145,
+          "TSCMAAClearIntegratedCandidateBuffers": 0.004229,
+          "TSCMAAComputeDispatchArgs": 0.004107,
+          "TSCMAAResolveCandidates": 0.027883,
+          "TSCMAAOutputCopy": 0.023906
+        }
+      },
+      "timer_residual_ms": {
+        "O-T2X-R": 0.00011699999999997823,
+        "O-ET2X-R-DocCandidate-DocKernel": 0.00362800000000002
+      },
+      "gap_ms": 0.06408900000000001,
+      "required_reduction_percent": 18.77224277466806,
+      "gap_decomposition": {
+        "spatial_path_delta_not_candidate_only_ms": 0.014301000000000008,
+        "velocity_delta_ms": 0.00010900000000000146,
+        "copies_ms": 0.047050999999999996,
+        "clear_and_args_ms": 0.008336,
+        "resolve_delta_ms": -0.009219000000000001,
+        "timer_residual_delta_ms": 0.003511000000000042
+      },
+      "conditional_scenarios": {
+        "output_copy_zero": {
+          "conditional_ms": 0.31749700000000003,
+          "gap_to_standard_ms": 0.040183000000000024,
+          "gap_to_standard_percent": 14.490072625255124
+        },
+        "both_copies_zero": {
+          "conditional_ms": 0.294352,
+          "gap_to_standard_ms": 0.017037999999999998,
+          "gap_to_standard_percent": 6.143937918749143
+        },
+        "both_copies_clear_args_zero": {
+          "conditional_ms": 0.28601600000000005,
+          "gap_to_standard_ms": 0.008702000000000043,
+          "gap_to_standard_percent": 3.137959136574442
+        },
+        "candidate_resolve_zero": {
+          "conditional_ms": 0.31352,
+          "gap_to_standard_ms": 0.036206000000000016,
+          "gap_to_standard_percent": 13.055958227857234
+        }
+      },
+      "nonspatial_budget_after_current_spatial_and_velocity_ms": 0.022809
+    },
+    "minecraft": {
+      "source": "Docs/Candidate-Selection-Gate-20260915/minecraft-Benchmark-results.csv",
+      "sha256": "9d48c336f8f39cc7eb78282f84406e98a293b0cbcb6466cb10560517fc0547c4",
+      "metadata": {
+        "system_info": "AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti",
+        "api": "DirectX11",
+        "resolution": "1920 x 1017",
+        "vsync": "OFF",
+        "fullscreen": "Windowed",
+        "start_time_seconds": 0.0,
+        "repeats": 3,
+        "warmup_frames": 300,
+        "measurement_frames": 4800,
+        "scene": "minecraft",
+        "candidate_readback_disabled": true,
+        "benchmark_validation_pass": true
+      },
+      "timings_ms": {
+        "O-T2X-R": {
+          "ApplicationFrameWall": 1.251308,
+          "WholeFrame": 1.212706,
+          "SMAA": 0.293613,
+          "SMAAGenerateCameraVelocity": 0.022907,
+          "SMAAStandardSpatialT2X": 0.232734,
+          "SMAAStandardTemporalResolve": 0.037884
+        },
+        "O-ET2X-R-DocCandidate-DocKernel": {
+          "ApplicationFrameWall": 1.35905,
+          "WholeFrame": 1.319646,
+          "SMAA": 0.382936,
+          "SMAAGenerateCameraVelocity": 0.022814,
+          "SMAASpatial1X": 0.257361,
+          "TSCMAACopySpatialToHistory": 0.022812,
+          "TSCMAAClearIntegratedCandidateBuffers": 0.003899,
+          "TSCMAAComputeDispatchArgs": 0.004027,
+          "TSCMAAResolveCandidates": 0.044973,
+          "TSCMAAOutputCopy": 0.023858
+        }
+      },
+      "timer_residual_ms": {
+        "O-T2X-R": 8.80000000000325e-05,
+        "O-ET2X-R-DocCandidate-DocKernel": 0.0031919999999999726
+      },
+      "gap_ms": 0.08932299999999999,
+      "required_reduction_percent": 23.325829903691474,
+      "gap_decomposition": {
+        "spatial_path_delta_not_candidate_only_ms": 0.02462700000000001,
+        "velocity_delta_ms": -9.299999999999933e-05,
+        "copies_ms": 0.04667,
+        "clear_and_args_ms": 0.007926,
+        "resolve_delta_ms": 0.007088999999999998,
+        "timer_residual_delta_ms": 0.00310399999999994
+      },
+      "conditional_scenarios": {
+        "output_copy_zero": {
+          "conditional_ms": 0.359078,
+          "gap_to_standard_ms": 0.065465,
+          "gap_to_standard_percent": 22.296356087775404
+        },
+        "both_copies_zero": {
+          "conditional_ms": 0.336266,
+          "gap_to_standard_ms": 0.042652999999999996,
+          "gap_to_standard_percent": 14.526945332802011
+        },
+        "both_copies_clear_args_zero": {
+          "conditional_ms": 0.32833999999999997,
+          "gap_to_standard_ms": 0.03472699999999995,
+          "gap_to_standard_percent": 11.827473579167114
+        },
+        "candidate_resolve_zero": {
+          "conditional_ms": 0.337963,
+          "gap_to_standard_ms": 0.04435,
+          "gap_to_standard_percent": 15.104917016617115
+        }
+      },
+      "nonspatial_budget_after_current_spatial_and_velocity_ms": 0.013438000000000005
+    }
+  },
+  "matched_historical_evidence": [
+    {
+      "scene": "bistro",
+      "path_kind": "legacy",
+      "raw_source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_170059\\20260828_170059_results.csv",
+      "sha256": "6722fb5b1afc31ba6a91ae1aabbb2bdbda6da90648528802a82657632956e696",
+      "full_screen_ms": 0.445663,
+      "selective_ms": 0.349862,
+      "selective_change_percent": -21.496287553599913
+    },
+    {
+      "scene": "minecraft",
+      "path_kind": "legacy",
+      "raw_source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_170751\\20260828_170751_results.csv",
+      "sha256": "71c0dcfdf839b13622365f1d90383cd6f655701ecd7fed62d1cd8c2384e67656",
+      "full_screen_ms": 0.454113,
+      "selective_ms": 0.391691,
+      "selective_change_percent": -13.745917866257951
+    },
+    {
+      "scene": "bistro",
+      "path_kind": "dual",
+      "raw_source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_174102\\20260828_174102_results.csv",
+      "sha256": "45775fcc9addba5fc525edf93d6a87198b238b6744d9f673401a06fd96f350c1",
+      "full_screen_ms": 0.451351,
+      "selective_ms": 0.356,
+      "selective_change_percent": -21.125687103828284
+    },
+    {
+      "scene": "minecraft",
+      "path_kind": "dual",
+      "raw_source": "D:\\SMAA-Research-Data\\AutoBench\\20260828_174426\\20260828_174426_results.csv",
+      "sha256": "2cf29c08c6eb4b1dc37941cc1ae76b342ad665740717ba4e1ace8e34946489e2",
+      "full_screen_ms": 0.464066,
+      "selective_ms": 0.407268,
+      "selective_change_percent": -12.239207354126346
+    }
+  ]
+}
