@@ -1,5 +1,8 @@
 # 현재 색상 대비에 따른 선택적 Standard T2X 실험
 
+완료한 두 장면의 성능·정지 안정성 결과는
+[초기 비교 결과](Temporal-Contrast-Initial/report.md)에 정리했다.
+
 ## 연구 질문과 구현
 
 원본 `baseline/smaa-t2x`의 `88893da`에서 분기한
@@ -68,7 +71,8 @@ GPU profiler frame 경계를 일치시키기 위해 두 번째 호출만 제거�
 - `validate_temporal_contrast_shaders.py`: native 8개 DXBC byte 일치, 실험 6개 entry/재투영
   조합 컴파일, fine derivative 명령과 current 샘플 재사용 및 추가 edge texture 부재 검사.
 - `analyze_temporal_contrast.py`: 240-frame index/해상도, 원본 반복, 모두 선택=원본,
-  모두 생략=공간 결과, 선택된 pixel=원본, 생략 pixel=공간 결과의 RGB 일치 검사.
+  모두 생략=공간 결과를 검사한다. 별도 mask를 캡처한 threshold 0.01에서는
+  선택된 pixel=원본, 생략 pixel=공간 결과의 RGB 일치도 검사한다.
 - 품질 보조 지표: native 대비 RGB 차이, 후기 정지 luma 시간 차분, 출력 hash 주기,
   threshold 0.01 GPU mask의 실제 선택 비율. Native 차이를 절대 품질 점수로 표현하지 않는다.
 - Reference 기반 CGVQM/PSNR 측정은 이번 초기 검증에 포함하지 않았다.

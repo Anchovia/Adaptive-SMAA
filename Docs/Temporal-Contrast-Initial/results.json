@@ -1,0 +1,1444 @@
+{
+  "classification": "Initial engineering gate, not final eight-case or full-reference quality ranking",
+  "baseline_commit": "88893dae85b3018c6db5de0d43c683b0e37536bf",
+  "implementation_commit": "1efc5d31964a463e6b659cf7b934d1d0f5212dfe",
+  "records": [
+    {
+      "scene": "bistro",
+      "phase": "Capture",
+      "window": "hidden",
+      "executable_sha256": "656f4a250583e2d57d87d8beaddad840c9911bb4505d8fc7f38364ecccbb3aa1",
+      "arguments": [
+        "-smaaTemporalContrastCapture",
+        "bistro"
+      ],
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_133851\\20260917_133851_results.csv"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Capture",
+      "window": "hidden",
+      "executable_sha256": "0D39F089D8FEB9F9AA4B1EC74300472D942C7D28933AF791FB000D945FCEEC68",
+      "arguments": [
+        "-smaaTemporalContrastCapture",
+        "minecraft"
+      ],
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_134852\\20260917_134852_results.csv"
+    },
+    {
+      "scene": "bistro",
+      "phase": "Benchmark",
+      "window": "hidden",
+      "executable_sha256": "0D39F089D8FEB9F9AA4B1EC74300472D942C7D28933AF791FB000D945FCEEC68",
+      "arguments": [
+        "-smaaTemporalContrastBenchmark",
+        "bistro"
+      ],
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_135321\\20260917_135321_results.csv"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Benchmark",
+      "window": "hidden",
+      "executable_sha256": "0D39F089D8FEB9F9AA4B1EC74300472D942C7D28933AF791FB000D945FCEEC68",
+      "arguments": [
+        "-smaaTemporalContrastBenchmark",
+        "minecraft"
+      ],
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140021\\20260917_140021_results.csv"
+    }
+  ],
+  "scenes": {
+    "bistro": {
+      "quality": {
+        "source": "Projects\\CMAA2\\AutoBench\\20260917_133851",
+        "shape": [
+          1061,
+          1920,
+          3
+        ],
+        "checks": {
+          "native_repeat_mismatched_values": 0,
+          "all_native_mismatched_values": 0,
+          "none_spatial_mismatched_values": 0,
+          "selected_native_mismatched_values": 0,
+          "bypassed_spatial_mismatched_values": 0
+        },
+        "modes": {
+          "O-T2X-R": {
+            "moving_rgb_mae_vs_native": 0.0,
+            "late_still_luma_delta1": 0.0,
+            "late_still_unique_png": 1,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-All-R": {
+            "moving_rgb_mae_vs_native": 0.0,
+            "late_still_luma_delta1": 0.0,
+            "late_still_unique_png": 1,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-0005-R": {
+            "moving_rgb_mae_vs_native": 0.49767545603597235,
+            "late_still_luma_delta1": 1.0590217113494873,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-001-R": {
+            "moving_rgb_mae_vs_native": 0.562015320648759,
+            "late_still_luma_delta1": 1.205930471420288,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-002-R": {
+            "moving_rgb_mae_vs_native": 0.5948661931768596,
+            "late_still_luma_delta1": 1.2850923538208008,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-None-R": {
+            "moving_rgb_mae_vs_native": 0.6903188638317275,
+            "late_still_luma_delta1": 1.5203768014907837,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          }
+        },
+        "coverage_at_threshold_001": {
+          "mean": 0.015121891853859044,
+          "min": 0.013065995130380145,
+          "max": 0.01717964577442664
+        },
+        "scope": "Engineering correctness and temporal stability; native differences are not ground-truth quality scores."
+      },
+      "performance": {
+        "source": "Projects\\CMAA2\\AutoBench\\20260917_135321\\20260917_135321_results.csv",
+        "rows": [
+          {
+            "mode": "O-T2X-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.205885013,
+            "p95_ms": 0.214016
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.149551573,
+            "p95_ms": 0.155648
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.033082667,
+            "p95_ms": 0.036864
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.217883733,
+            "p95_ms": 0.22528
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.151216853,
+            "p95_ms": 0.155648
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.043315627,
+            "p95_ms": 0.047104
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.202299307,
+            "p95_ms": 0.207872
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.151613653,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.027280213,
+            "p95_ms": 0.029696
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.200294613,
+            "p95_ms": 0.2048
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.151802453,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.025086507,
+            "p95_ms": 0.026624
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.198810667,
+            "p95_ms": 0.203776
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.152169173,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.023159253,
+            "p95_ms": 0.024576
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.19569152,
+            "p95_ms": 0.19968
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.152286507,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.019903147,
+            "p95_ms": 0.02048
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.195704747,
+            "p95_ms": 0.200704
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.152285653,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.019909547,
+            "p95_ms": 0.02048
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.19917312,
+            "p95_ms": 0.203776
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.152393387,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.023267413,
+            "p95_ms": 0.024576
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.201151787,
+            "p95_ms": 0.205824
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.152413013,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.025188267,
+            "p95_ms": 0.026624
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.20339648,
+            "p95_ms": 0.208896
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15250432,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.027350613,
+            "p95_ms": 0.029696
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.21945024,
+            "p95_ms": 0.226304
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15240128,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.04352704,
+            "p95_ms": 0.047104
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.209394347,
+            "p95_ms": 0.217088
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.152516053,
+            "p95_ms": 0.157696
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03334784,
+            "p95_ms": 0.037888
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.20956992,
+            "p95_ms": 0.217088
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15263104,
+            "p95_ms": 0.157696
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03338624,
+            "p95_ms": 0.037888
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.219916587,
+            "p95_ms": 0.227328
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15273472,
+            "p95_ms": 0.157696
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.04359232,
+            "p95_ms": 0.047104
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.203318187,
+            "p95_ms": 0.208896
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15245184,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.027344213,
+            "p95_ms": 0.029696
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.201268693,
+            "p95_ms": 0.206848
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15257792,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.025156693,
+            "p95_ms": 0.026624
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.19929792,
+            "p95_ms": 0.203776
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15255232,
+            "p95_ms": 0.156672
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.02319744,
+            "p95_ms": 0.024576
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.195879253,
+            "p95_ms": 0.200704
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.15241088,
+            "p95_ms": 0.157696
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.019939627,
+            "p95_ms": 0.02048
+          }
+        ],
+        "modes": {
+          "ABL-Contrast-0005-R": {
+            "SMAA": {
+              "mean_ms": 0.203004658,
+              "run_std_ms": 0.0006121049528985955,
+              "runs_ms": [
+                0.202299307,
+                0.20339648,
+                0.203318187
+              ],
+              "percent_vs_native": -2.534260101892083
+            },
+            "Spatial": {
+              "mean_ms": 0.15218993766666666,
+              "run_std_ms": 0.0004997664958521547,
+              "runs_ms": [
+                0.151613653,
+                0.15250432,
+                0.15245184
+              ],
+              "percent_vs_native": 0.4115136330749669
+            },
+            "Resolve": {
+              "mean_ms": 0.027325013,
+              "run_std_ms": 3.892968019390756e-05,
+              "runs_ms": [
+                0.027280213,
+                0.027350613,
+                0.027344213
+              ],
+              "percent_vs_native": -17.874463490580396
+            }
+          },
+          "ABL-Contrast-001-R": {
+            "SMAA": {
+              "mean_ms": 0.200905031,
+              "run_std_ms": 0.0005318593369040285,
+              "runs_ms": [
+                0.200294613,
+                0.201151787,
+                0.201268693
+              ],
+              "percent_vs_native": -3.5423241585554655
+            },
+            "Spatial": {
+              "mean_ms": 0.15226446200000002,
+              "run_std_ms": 0.00040851905307219403,
+              "runs_ms": [
+                0.151802453,
+                0.152413013,
+                0.15257792
+              ],
+              "percent_vs_native": 0.4606831197521144
+            },
+            "Resolve": {
+              "mean_ms": 0.025143822333333333,
+              "run_std_ms": 5.2086610038793104e-05,
+              "runs_ms": [
+                0.025086507,
+                0.025188267,
+                0.025156693
+              ],
+              "percent_vs_native": -24.430048797322556
+            }
+          },
+          "ABL-Contrast-002-R": {
+            "SMAA": {
+              "mean_ms": 0.19909390233333335,
+              "run_std_ms": 0.00025310166047723377,
+              "runs_ms": [
+                0.198810667,
+                0.19917312,
+                0.19929792
+              ],
+              "percent_vs_native": -4.411875612627714
+            },
+            "Spatial": {
+              "mean_ms": 0.15237162666666668,
+              "run_std_ms": 0.00019249815578943453,
+              "runs_ms": [
+                0.152169173,
+                0.152393387,
+                0.15255232
+              ],
+              "percent_vs_native": 0.5313879676084321
+            },
+            "Resolve": {
+              "mean_ms": 0.023208035333333335,
+              "run_std_ms": 5.485291438322415e-05,
+              "runs_ms": [
+                0.023159253,
+                0.023267413,
+                0.02319744
+              ],
+              "percent_vs_native": -30.24807149846307
+            }
+          },
+          "ABL-Contrast-All-R": {
+            "SMAA": {
+              "mean_ms": 0.21908352,
+              "run_std_ms": 0.0010648880293857184,
+              "runs_ms": [
+                0.217883733,
+                0.21945024,
+                0.219916587
+              ],
+              "percent_vs_native": 5.18545528291241
+            },
+            "Spatial": {
+              "mean_ms": 0.15211761766666668,
+              "run_std_ms": 0.0007977018847516386,
+              "runs_ms": [
+                0.151216853,
+                0.15240128,
+                0.15273472
+              ],
+              "percent_vs_native": 0.3637985161803803
+            },
+            "Resolve": {
+              "mean_ms": 0.043478329,
+              "run_std_ms": 0.00014463514511694385,
+              "runs_ms": [
+                0.043315627,
+                0.04352704,
+                0.04359232
+              ],
+              "percent_vs_native": 30.67445185325466
+            }
+          },
+          "ABL-Contrast-None-R": {
+            "SMAA": {
+              "mean_ms": 0.1957585066666667,
+              "run_std_ms": 0.00010477831904708409,
+              "runs_ms": [
+                0.19569152,
+                0.195704747,
+                0.195879253
+              ],
+              "percent_vs_native": -6.013251707675781
+            },
+            "Spatial": {
+              "mean_ms": 0.15232768,
+              "run_std_ms": 7.205457882050719e-05,
+              "runs_ms": [
+                0.152286507,
+                0.152285653,
+                0.15241088
+              ],
+              "percent_vs_native": 0.5023929408229266
+            },
+            "Resolve": {
+              "mean_ms": 0.01991744033333333,
+              "run_std_ms": 1.9478863758786723e-05,
+              "runs_ms": [
+                0.019903147,
+                0.019909547,
+                0.019939627
+              ],
+              "percent_vs_native": -40.13798005258577
+            }
+          },
+          "O-T2X-R": {
+            "SMAA": {
+              "mean_ms": 0.2082830933333333,
+              "run_std_ms": 0.002078653033438318,
+              "runs_ms": [
+                0.205885013,
+                0.209394347,
+                0.20956992
+              ],
+              "percent_vs_native": 0.0
+            },
+            "Spatial": {
+              "mean_ms": 0.151566222,
+              "run_std_ms": 0.001745684234746657,
+              "runs_ms": [
+                0.149551573,
+                0.152516053,
+                0.15263104
+              ],
+              "percent_vs_native": 0.0
+            },
+            "Resolve": {
+              "mean_ms": 0.033272249,
+              "run_std_ms": 0.00016530166678832637,
+              "runs_ms": [
+                0.033082667,
+                0.03334784,
+                0.03338624
+              ],
+              "percent_vs_native": 0.0
+            }
+          }
+        },
+        "report_sha256": "aad444fd00e368008550bc8ad81acd259dd69139b2e6bdfcece893cd6f111088"
+      }
+    },
+    "minecraft": {
+      "quality": {
+        "source": "Projects\\CMAA2\\AutoBench\\20260917_134852",
+        "shape": [
+          1061,
+          1920,
+          3
+        ],
+        "checks": {
+          "native_repeat_mismatched_values": 0,
+          "all_native_mismatched_values": 0,
+          "none_spatial_mismatched_values": 0,
+          "selected_native_mismatched_values": 0,
+          "bypassed_spatial_mismatched_values": 0
+        },
+        "modes": {
+          "O-T2X-R": {
+            "moving_rgb_mae_vs_native": 0.0,
+            "late_still_luma_delta1": 0.0,
+            "late_still_unique_png": 1,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-All-R": {
+            "moving_rgb_mae_vs_native": 0.0,
+            "late_still_luma_delta1": 0.0,
+            "late_still_unique_png": 1,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-0005-R": {
+            "moving_rgb_mae_vs_native": 0.10425157411770865,
+            "late_still_luma_delta1": 0.24219359457492828,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-001-R": {
+            "moving_rgb_mae_vs_native": 0.23850138376182498,
+            "late_still_luma_delta1": 0.556121289730072,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-002-R": {
+            "moving_rgb_mae_vs_native": 0.5415552130240513,
+            "late_still_luma_delta1": 1.2149686813354492,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          },
+          "ABL-Contrast-None-R": {
+            "moving_rgb_mae_vs_native": 2.3992146960741962,
+            "late_still_luma_delta1": 5.294129848480225,
+            "late_still_unique_png": 2,
+            "two_frame_equal_of_38": 38
+          }
+        },
+        "coverage_at_threshold_001": {
+          "mean": 0.5044904407529586,
+          "min": 0.19369943842287152,
+          "max": 0.7240412935909519
+        },
+        "scope": "Engineering correctness and temporal stability; native differences are not ground-truth quality scores.",
+        "exact_png_analysis_bridge": {
+          "cached_analysis": "Projects\\CMAA2\\AutoBench\\ContrastAnalysis\\minecraft-failed-exit",
+          "frames": 2160,
+          "mismatches": 0
+        }
+      },
+      "performance": {
+        "source": "Projects\\CMAA2\\AutoBench\\20260917_140021\\20260917_140021_results.csv",
+        "rows": [
+          {
+            "mode": "O-T2X-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.27627008,
+            "p95_ms": 0.311296
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.218618667,
+            "p95_ms": 0.247808
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03448512,
+            "p95_ms": 0.04096
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.28839936,
+            "p95_ms": 0.321536
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.22140352,
+            "p95_ms": 0.249856
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.043768533,
+            "p95_ms": 0.049152
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.284457813,
+            "p95_ms": 0.321536
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.221163093,
+            "p95_ms": 0.249856
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.040029653,
+            "p95_ms": 0.048128
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.284224213,
+            "p95_ms": 0.321536
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.22232128,
+            "p95_ms": 0.249856
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03854272,
+            "p95_ms": 0.048128
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.28258112,
+            "p95_ms": 0.321536
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.22219648,
+            "p95_ms": 0.25088
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.037009067,
+            "p95_ms": 0.047104
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 0,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.267354667,
+            "p95_ms": 0.29696
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 0,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.2230016,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 0,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.02094016,
+            "p95_ms": 0.022528
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.267038507,
+            "p95_ms": 0.29696
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.222666453,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.020912213,
+            "p95_ms": 0.022528
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.283948373,
+            "p95_ms": 0.32256
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.223366827,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03715776,
+            "p95_ms": 0.047104
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.284857173,
+            "p95_ms": 0.323584
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.222850347,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03855616,
+            "p95_ms": 0.048128
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.287940053,
+            "p95_ms": 0.323584
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.22398528,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.04042048,
+            "p95_ms": 0.049152
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.29117376,
+            "p95_ms": 0.324608
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.223509333,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.044128,
+            "p95_ms": 0.049152
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 1,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.28250624,
+            "p95_ms": 0.316416
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 1,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.22419904,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 1,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.0347712,
+            "p95_ms": 0.04096
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.282141653,
+            "p95_ms": 0.316416
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.223817173,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "O-T2X-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03477568,
+            "p95_ms": 0.04096
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.292054187,
+            "p95_ms": 0.324608
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.224332587,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-All-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.044164053,
+            "p95_ms": 0.049152
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.287638827,
+            "p95_ms": 0.324608
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.223738027,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-0005-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.040336853,
+            "p95_ms": 0.049152
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.286837333,
+            "p95_ms": 0.323584
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.22451328,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-001-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.03879808,
+            "p95_ms": 0.048128
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.28455872,
+            "p95_ms": 0.32256
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.223807573,
+            "p95_ms": 0.251904
+          },
+          {
+            "mode": "ABL-Contrast-002-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.037192107,
+            "p95_ms": 0.047104
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 2,
+            "metric": "SMAA",
+            "samples": 4800,
+            "mean_ms": 0.269075627,
+            "p95_ms": 0.299008
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 2,
+            "metric": "Spatial",
+            "samples": 4800,
+            "mean_ms": 0.224539947,
+            "p95_ms": 0.252928
+          },
+          {
+            "mode": "ABL-Contrast-None-R",
+            "run": 2,
+            "metric": "Resolve",
+            "samples": 4800,
+            "mean_ms": 0.020991147,
+            "p95_ms": 0.022528
+          }
+        ],
+        "modes": {
+          "ABL-Contrast-0005-R": {
+            "SMAA": {
+              "mean_ms": 0.28667889766666665,
+              "run_std_ms": 0.0019294033010610503,
+              "runs_ms": [
+                0.284457813,
+                0.287940053,
+                0.287638827
+              ],
+              "percent_vs_native": 2.2735534991353834
+            },
+            "Spatial": {
+              "mean_ms": 0.22296213333333334,
+              "run_std_ms": 0.0015629117384620085,
+              "runs_ms": [
+                0.221163093,
+                0.22398528,
+                0.223738027
+              ],
+              "percent_vs_native": 0.33774410363884844
+            },
+            "Resolve": {
+              "mean_ms": 0.04026232866666667,
+              "run_std_ms": 0.0002057956344928966,
+              "runs_ms": [
+                0.040029653,
+                0.04042048,
+                0.040336853
+              ],
+              "percent_vs_native": 16.105607889880048
+            }
+          },
+          "ABL-Contrast-001-R": {
+            "SMAA": {
+              "mean_ms": 0.2853062396666667,
+              "run_std_ms": 0.0013632111674034084,
+              "runs_ms": [
+                0.284224213,
+                0.284857173,
+                0.286837333
+              ],
+              "percent_vs_native": 1.7838536553671736
+            },
+            "Spatial": {
+              "mean_ms": 0.22322830233333335,
+              "run_std_ms": 0.0011438328879239024,
+              "runs_ms": [
+                0.22232128,
+                0.222850347,
+                0.22451328
+              ],
+              "percent_vs_native": 0.4575258648332303
+            },
+            "Resolve": {
+              "mean_ms": 0.038632320000000005,
+              "run_std_ms": 0.00014370957379381384,
+              "runs_ms": [
+                0.03854272,
+                0.03855616,
+                0.03879808
+              ],
+              "percent_vs_native": 11.405106121193477
+            }
+          },
+          "ABL-Contrast-002-R": {
+            "SMAA": {
+              "mean_ms": 0.283696071,
+              "run_std_ms": 0.001012653773213215,
+              "runs_ms": [
+                0.28258112,
+                0.283948373,
+                0.28455872
+              ],
+              "percent_vs_native": 1.2094211714511527
+            },
+            "Spatial": {
+              "mean_ms": 0.22312362666666666,
+              "run_std_ms": 0.0008326253450756444,
+              "runs_ms": [
+                0.22219648,
+                0.223366827,
+                0.223807573
+              ],
+              "percent_vs_native": 0.4104195688050316
+            },
+            "Resolve": {
+              "mean_ms": 0.03711964466666667,
+              "run_std_ms": 9.729077230823817e-05,
+              "runs_ms": [
+                0.037009067,
+                0.03715776,
+                0.037192107
+              ],
+              "percent_vs_native": 7.042961780990442
+            }
+          },
+          "ABL-Contrast-All-R": {
+            "SMAA": {
+              "mean_ms": 0.29054243566666665,
+              "run_std_ms": 0.0019074506311766973,
+              "runs_ms": [
+                0.28839936,
+                0.29117376,
+                0.292054187
+              ],
+              "percent_vs_native": 3.6518822270433127
+            },
+            "Spatial": {
+              "mean_ms": 0.22308181333333332,
+              "run_std_ms": 0.0015106085434891288,
+              "runs_ms": [
+                0.22140352,
+                0.223509333,
+                0.224332587
+              ],
+              "percent_vs_native": 0.39160267161537643
+            },
+            "Resolve": {
+              "mean_ms": 0.04402019533333334,
+              "run_std_ms": 0.00021869019689125084,
+              "runs_ms": [
+                0.043768533,
+                0.044128,
+                0.044164053
+              ],
+              "percent_vs_native": 26.94227353122116
+            }
+          },
+          "ABL-Contrast-None-R": {
+            "SMAA": {
+              "mean_ms": 0.26782293366666665,
+              "run_std_ms": 0.0010963209963023297,
+              "runs_ms": [
+                0.267354667,
+                0.267038507,
+                0.269075627
+              ],
+              "percent_vs_native": -4.45336801000924
+            },
+            "Spatial": {
+              "mean_ms": 0.22340266666666667,
+              "run_std_ms": 0.0009990674628584067,
+              "runs_ms": [
+                0.2230016,
+                0.222666453,
+                0.224539947
+              ],
+              "percent_vs_native": 0.5359935561727536
+            },
+            "Resolve": {
+              "mean_ms": 0.02094784,
+              "run_std_ms": 4.002350420690466e-05,
+              "runs_ms": [
+                0.02094016,
+                0.020912213,
+                0.020991147
+              ],
+              "percent_vs_native": -39.59212549984621
+            }
+          },
+          "O-T2X-R": {
+            "SMAA": {
+              "mean_ms": 0.28030599100000003,
+              "run_std_ms": 0.0034999520168258213,
+              "runs_ms": [
+                0.27627008,
+                0.28250624,
+                0.282141653
+              ],
+              "percent_vs_native": 0.0
+            },
+            "Spatial": {
+              "mean_ms": 0.2222116266666667,
+              "run_std_ms": 0.003117446868214816,
+              "runs_ms": [
+                0.218618667,
+                0.22419904,
+                0.223817173
+              ],
+              "percent_vs_native": 0.0
+            },
+            "Resolve": {
+              "mean_ms": 0.03467733333333334,
+              "run_std_ms": 0.00016647670027164057,
+              "runs_ms": [
+                0.03448512,
+                0.0347712,
+                0.03477568
+              ],
+              "percent_vs_native": 0.0
+            }
+          }
+        },
+        "report_sha256": "c472eb5298c22ca2293f01076d099a935d45f936fbdc0e6f28586679fcbc02f7"
+      }
+    }
+  }
+}
