@@ -21,6 +21,7 @@
 
 기존 renderer의 `SuperSampleReference`를 사용한다. 가로·세로 2배 해상도,
 frame 안에서 3×3 subpixel grid, 8×MSAA이며 모든 subpixel sample은 같은 장면 시점을 공유한다.
+여기서 3×3은 기준 영상을 만드는 표본 배치이며 temporal 후보의 3×3 dilation이 아니다.
 temporal history를 사용하지 않는다. baseline 기본값인 MIP bias 0.95,
 sharpen 0.12, derivative bias 0.20을 기록한다. 이 튜닝을 포함한 공간 기준 영상이며
 절대 temporal ground truth나 무조건 완벽한 reference라고 표현하지 않는다.
@@ -38,6 +39,7 @@ Minecraft reference는 후기 정지에 PNG가 완전히 같았다.
   PSNR은 각 frame dB의 산술 평균이다. MAE 단위는 0~255 RGB level이다.
 - Luma SSIM: 11×11 Gaussian, sigma 1.5, 반사 경계, 5-pixel border 제외.
   보조 지표로 frame 0,10,...,230에서 계산한다. 각 구간 표에는 그 구간의 표본 평균을 기록한다.
+  이동 구간은 12개, 정지 후기는 4개의 SSIM 표본이다.
 - Sobel edge/reference 비율: 기준 영상에 비해 선명도·고주파 성분이 어떻게 바뀌는지 보는
   보조 지표다. 높은 값이 항상 좋은 품질을 의미하지 않는다.
 - 시간 변화: 화면 luma의 인접 frame 차이와
@@ -69,6 +71,7 @@ Tools/SMAA/run_temporal_contrast.ps1 -Phase QualityCapture -Scene bistro -Receip
 Tools/SMAA/run_temporal_contrast.ps1 -Phase QualityCapture -Scene minecraft -Receipt tmp/contrast-quality-runs.json
 python Tools/SMAA/analyze_temporal_contrast_reference.py --scene bistro --capture <old-capture> --quality-capture <new-capture> --output <analysis>
 python Tools/SMAA/run_temporal_contrast_cgvqm.py --analysis <analysis> --cgvqm-root <official-CGVQM-clone>
+python Tools/SMAA/create_temporal_contrast_playback.py --analysis <analysis>
 ```
 
 CGVQM 단계는 기존 CGVQM 전용 Python 환경에서 실행한다. CMAA2 캡처가 모두 종료된 뒤

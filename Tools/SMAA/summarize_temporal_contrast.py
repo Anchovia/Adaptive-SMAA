@@ -30,6 +30,7 @@ dest=root/'Docs/Temporal-Contrast-Initial';dest.mkdir(parents=True,exist_ok=True
 lines=['# Current-color contrast T2X: initial results','',
     '원본 T2X-R에서 현재 색상만으로 대비를 근사해 history 접근 전에 처리 여부를 결정한 실험이다.',
     '설계·실행 도구·실패 수정 사항은 [구현 문서](../SMAA-Temporal-Contrast-Experiment-ko.md)를 따른다.','',
+    '후속 CGVQM·기준 영상 오차와 세 threshold의 실제 선택 수는 [정량 품질 결과](../Temporal-Contrast-Quality/report.md)에 별도로 기록했다.','',
     '이번 구현은 현재 색상의 공간 대비 근사로 velocity/history 읽기를 생략한다. ',
     '시험한 0.005/0.01/0.02에서 전체 SMAA 시간은 Bistro에서 2.53~4.41% 감소하고 Minecraft에서 1.21~2.27% 증가했다.',
     '추가 edge texture와 pass 없이 구현했지만, 시험한 threshold 모두 정지 후 2-frame 교대 변화를 남겼다. ',

@@ -2,6 +2,8 @@
 
 완료한 두 장면의 성능·정지 안정성 결과는
 [초기 비교 결과](Temporal-Contrast-Initial/report.md)에 정리했다.
+후속 기준 영상 평가와 실제 선택 픽셀 수는
+[정량 품질 결과](Temporal-Contrast-Quality/report.md)를 참고한다.
 
 ## 연구 질문과 구현
 
