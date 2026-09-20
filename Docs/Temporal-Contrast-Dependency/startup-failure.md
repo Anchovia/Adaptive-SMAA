@@ -24,3 +24,7 @@
 재실행 성공으로 startup 안정성 문제가 해결됐다고 주장하지 않는다.
 임시 분석 기록은 `tmp/dependency-startup-stack.txt`, `tmp/dependency-startup-failure.log`이며
 개인 메모리를 포함할 수 있는 minidump 자체는 저장소에 올리지 않는다.
+
+후속 수명·재질 등록 순서 감사 및 검증은
+[시작 안정성 보완 결과](../Shader-Lifetime-and-DX11-Profiling/report.md)에 기록했다.
+이 기록의 원래 실패 객체를 특정했다는 뜻은 아니다.
