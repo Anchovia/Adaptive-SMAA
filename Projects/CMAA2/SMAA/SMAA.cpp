@@ -240,6 +240,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     contrastTechniques[0] = techniqueManagerInterface->CreateTechnique("ContrastResolve", defines);
     contrastTechniques[1] = techniqueManagerInterface->CreateTechnique("ContrastMask", defines);
     contrastTechniques[2] = techniqueManagerInterface->CreateTechnique("CurrentSpatial", defines);
+    const char* executionNames[] = {"NativeSM5", "LodResolve", "CurrentFirstResolve",
+        "StructuredResolve", "FlattenResolve", "PrefetchVelocityResolve"};
+    for(int i=0;i<6;++i) executionTechniques[i] = techniqueManagerInterface->CreateTechnique(executionNames[i], defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
@@ -383,7 +386,8 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexPrev(context, previousSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
-    (resolveKind == 0 ? resolveTechnique : contrastTechniques[resolveKind-1])->ApplyStates( context );
+    assert(resolveKind >= 0 && resolveKind <= 10 && resolveKind != 4);
+    (resolveKind == 0 ? resolveTechnique : resolveKind >= 5 ? executionTechniques[resolveKind-5] : contrastTechniques[resolveKind-1])->ApplyStates( context );
 
     // Do it!
     context->OMSetRenderTargets(1, &dstRTV, nullptr);

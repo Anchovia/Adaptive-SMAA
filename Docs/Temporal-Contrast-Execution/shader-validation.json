@@ -1,0 +1,160 @@
+[
+  {
+    "entry": "DX10_SMAAResolvePS",
+    "reprojection": 0,
+    "sha256": "53cc4de9dd3767a59f371869cef58f866490e303116e2f0cc984b1fab85cd0b6",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1",
+      "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 5,
+    "temps": 2
+  },
+  {
+    "entry": "DX10_SMAALodResolvePS",
+    "reprojection": 0,
+    "sha256": "1a5ed27cbbdaa6015eba749ee4e5cd62773704a6e618b00ca23faf76fbc44e99",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 5,
+    "temps": 2
+  },
+  {
+    "entry": "DX10_SMAACurrentFirstResolvePS",
+    "reprojection": 0,
+    "sha256": "1a5ed27cbbdaa6015eba749ee4e5cd62773704a6e618b00ca23faf76fbc44e99",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 5,
+    "temps": 2
+  },
+  {
+    "entry": "DX10_SMAAStructuredResolvePS",
+    "reprojection": 0,
+    "sha256": "2533c1d0510a6d2f157ddfb4a4595a51e3d657af0515218a434cf456a848583a",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [
+      "if_nz r1.x"
+    ],
+    "slots": 14,
+    "temps": 2
+  },
+  {
+    "entry": "DX10_SMAAFlattenResolvePS",
+    "reprojection": 0,
+    "sha256": "b306fe978d38a0fff9d06806cecfb95e96516a1c167bdad3152c2958e5caa648",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [],
+    "slots": 11,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAAPrefetchVelocityResolvePS",
+    "reprojection": 0,
+    "sha256": "2533c1d0510a6d2f157ddfb4a4595a51e3d657af0515218a434cf456a848583a",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [
+      "if_nz r1.x"
+    ],
+    "slots": 14,
+    "temps": 2
+  },
+  {
+    "entry": "DX10_SMAAResolvePS",
+    "reprojection": 1,
+    "sha256": "fad4b4d484e640cb83be29e1fba8ee6d86bd7907658e8065333b9646f1951f73",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1",
+      "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 14,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAALodResolvePS",
+    "reprojection": 1,
+    "sha256": "b1d03747cd2ae074d8fa185fdc4471224437bc573203e70fc5f0869594858e2a",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 14,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAACurrentFirstResolvePS",
+    "reprojection": 1,
+    "sha256": "b1d03747cd2ae074d8fa185fdc4471224437bc573203e70fc5f0869594858e2a",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 14,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAAStructuredResolvePS",
+    "reprojection": 1,
+    "sha256": "8d7dbe8f434068ae2a72c0c8c454fb6fa83660f1619e490b1e36f38babf4da3b",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [
+      "if_nz r1.x"
+    ],
+    "slots": 23,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAAFlattenResolvePS",
+    "reprojection": 1,
+    "sha256": "054b63496a6fc50b1de8e79c04fed7d1dd366242c5990341986275886492ac5b",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 20,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAAPrefetchVelocityResolvePS",
+    "reprojection": 1,
+    "sha256": "8d7dbe8f434068ae2a72c0c8c454fb6fa83660f1619e490b1e36f38babf4da3b",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [
+      "if_nz r1.x"
+    ],
+    "slots": 23,
+    "temps": 3
+  }
+]

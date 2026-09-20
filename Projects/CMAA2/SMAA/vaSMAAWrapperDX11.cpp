@@ -634,13 +634,20 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->SampleMask = 0xFFFFFFFF;
         tech->StencilRef = 0;
     }
-    else if( name == "Resolve" || name == "ContrastResolve" || name == "ContrastMask" || name == "CurrentSpatial" )
+    else if( name == "Resolve" || name == "ContrastResolve" || name == "ContrastMask" || name == "CurrentSpatial" ||
+        name == "NativeSM5" || name == "LodResolve" || name == "CurrentFirstResolve" ||
+        name == "StructuredResolve" || name == "FlattenResolve" || name == "PrefetchVelocityResolve" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
         const char * entry = name == "ContrastResolve" ? "DX10_SMAAContrastResolvePS" :
             name == "ContrastMask" ? "DX10_SMAAContrastMaskPS" :
-            name == "CurrentSpatial" ? "DX10_SMAACurrentSpatialPS" : "DX10_SMAAResolvePS";
+            name == "CurrentSpatial" ? "DX10_SMAACurrentSpatialPS" :
+            name == "LodResolve" ? "DX10_SMAALodResolvePS" :
+            name == "CurrentFirstResolve" ? "DX10_SMAACurrentFirstResolvePS" :
+            name == "StructuredResolve" ? "DX10_SMAAStructuredResolvePS" :
+            name == "FlattenResolve" ? "DX10_SMAAFlattenResolvePS" :
+            name == "PrefetchVelocityResolve" ? "DX10_SMAAPrefetchVelocityResolvePS" : "DX10_SMAAResolvePS";
         tech->PS->CreateShaderFromFile( shaderFileName, name == "Resolve" ? psVersion : "ps_5_0", entry, shaderMacros, true );
         tech->DSS = m_DisableDepthStencil;
         tech->BS  = m_NoBlending;

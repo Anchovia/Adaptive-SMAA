@@ -3,12 +3,13 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
 {
     struct Config { const char* name; int kind; float threshold; };
     std::vector<Config> m_configs;
-    bool m_capture, m_done = false, m_started = false, m_failed = false;
+    bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
     int m_frames, m_warmup, m_repeats, m_run = 0, m_slot = 0, m_frame = 0;
     int m_savedKind = 0, m_savedPreset = 0;
     float m_savedThreshold = 0;
     CMAA2Sample::SceneSelectionType m_scene;
-    std::vector<double> m_total, m_spatial, m_resolve;
+    std::vector<double> m_total, m_spatial, m_resolve, m_whole, m_wall;
+    double m_lastTick = 0;
     Config Current() const {
         const int i = (m_run % 2) ? int(m_configs.size())-1-m_slot : m_slot;
         return m_configs[i];
@@ -21,7 +22,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         smaa->SetTemporalContrast(c.kind==4?0:c.kind,c.threshold);
         smaa->ResetTemporalHistory();
         m_frame = -m_warmup;
-        m_total.clear();m_spatial.clear();m_resolve.clear();
+        m_total.clear();m_spatial.clear();m_resolve.clear();m_whole.clear();m_wall.clear();
     }
     static double Time(const char* name) {
         auto p = vaProfiler::GetInstancePtr();
@@ -38,10 +39,21 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
             std::to_string(values.size()),vaStringTools::Format("%.9f",mean),
             vaStringTools::Format("%.9f",values[size_t((values.size()-1)*0.95)]),
             vaStringTools::Format("%.9f",c.threshold)});
+        if(m_execution) {
+            double variance=0;for(double v:values)variance+=(v-mean)*(v-mean);
+            const size_t tailCount=vaMath::Max(size_t(1),(values.size()+99)/100);
+            double tailMean=0;for(size_t i=values.size()-tailCount;i<values.size();++i)tailMean+=values[i];tailMean/=tailCount;
+            tool.ReportAddRowValues({"distribution",c.name,std::to_string(m_run),metric,
+                std::to_string(values.size()),vaStringTools::Format("%.9f",(values[(values.size()-1)/2]+values[values.size()/2])*0.5),
+                vaStringTools::Format("%.9f",sqrt(variance/vaMath::Max(size_t(1),values.size()-1))),
+                vaStringTools::Format("%.9f",values[size_t((values.size()-1)*0.99)]),
+                vaStringTools::Format("%.9f",strcmp(metric,"WallFrame")==0?1000.0/mean:0),
+                vaStringTools::Format("%.9f",strcmp(metric,"WallFrame")==0?1000.0/tailMean:0)});
+        }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false)
-        :AutoBenchToolWorkItem(parent),m_capture(capture),m_frames(frames),
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false)
+        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
@@ -58,8 +70,21 @@ public:
                 {"DBG-ContrastMask-001-R",2,0.01f},{"DBG-ContrastMask-002-R",2,0.02f},
                 {"SS-Reference",4,0}};
         }
+        if(execution) {
+            m_configs={{"O-T2X-R",0,0},{"ABL-NativeSM5-R",5,0},
+                {"ABL-Lod-R",6,0},{"ABL-CurrentFirst-R",7,0},
+                {"ABL-Contrast-All-R",1,0},{"ABL-Contrast-001-R",1,0.01f},
+                {"ABL-Structured-001-R",8,0.01f},{"ABL-Flatten-001-R",9,0.01f},
+                {"ABL-PrefetchVelocity-001-R",10,0.01f}};
+            if(capture) {
+                m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
+                m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
+            }
+        }
     }
     void Tick(AutoBenchTool& tool,float) override {
+        const double now=m_parent.GetApplication().GetTimeFromStart();
+        const double wallMs=(now-m_lastTick)*1000.0;m_lastTick=now;
         if(!m_started) {
             m_started=true;
             auto smaa=m_parent.GetSMAA();
@@ -83,16 +108,23 @@ public:
             tool.ReportAddText(vaStringTools::Format("SS-Reference if requested: %dx linear resolution, %dx%d within-frame grid, %dx MSAA; no temporal history. MIP bias 0.95, sharpen 0.12, derivative bias 0.20 (baseline defaults). Spatial reference proxy, not absolute temporal ground truth.\r\n",
                 m_parent.GetSSResScale(),m_parent.GetSSGridRes(),m_parent.GetSSGridRes(),m_parent.GetSSMSAASampleCount()));
             if(!m_capture)tool.ReportAddRowValues({"kind","mode","run","metric","samples","mean_ms","p95_ms","threshold"});
+            if(m_execution)tool.ReportAddText("distribution columns: mode, run, metric, samples, median_ms, sample_std_ms, p99_ms, wall_fps, wall_1pct_low_fps (slowest ceil(N/100) intervals). Non-wall FPS fields are 0/not applicable.\r\n");
             Configure();
         } else {
             if(!m_capture && m_frame>=0) {
                 const double t=Time("SMAA"),s=Time("SMAASpatial"),r=Time("SMAATemporalResolve");
                 if(t>0 && s>0 && r>0) {m_total.push_back(t);m_spatial.push_back(s);m_resolve.push_back(r);}
                 else m_failed=true;
+                if(m_execution) {
+                    const double w=Time("WholeFrame");
+                    if(w>0 && wallMs>0) {m_whole.push_back(w);m_wall.push_back(wallMs);}
+                    else m_failed=true;
+                }
             }
             ++m_frame;
             if(m_frame>=m_frames) {
-                if(!m_capture) {ReportSamples(tool,"SMAA",m_total);ReportSamples(tool,"Spatial",m_spatial);ReportSamples(tool,"Resolve",m_resolve);}
+                if(!m_capture) {ReportSamples(tool,"SMAA",m_total);ReportSamples(tool,"Spatial",m_spatial);ReportSamples(tool,"Resolve",m_resolve);
+                    if(m_execution) {ReportSamples(tool,"WholeFrame",m_whole);ReportSamples(tool,"WallFrame",m_wall);}}
                 if(++m_slot==int(m_configs.size())) {m_slot=0;++m_run;}
                 if(m_run==m_repeats) {
                     tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");
@@ -131,12 +163,17 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool bench=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastBenchmark")==0;
         bool smoke=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastSmoke")==0;
         bool quality=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastQualityCapture")==0;
+        bool executionCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionCapture")==0;
+        bool executionBench=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionBenchmark")==0;
+        bool executionSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionSmoke")==0;
+        bool execution=executionCapture||executionBench||executionSmoke;
+        capture=capture||executionCapture;bench=bench||executionBench;smoke=smoke||executionSmoke;
         if(!capture && !bench && !smoke && !quality)continue;
         std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality,execution));
         return true;
     }
     return false;

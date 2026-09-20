@@ -232,6 +232,8 @@ float4 DX10_SMAAContrastResolvePS(float4 position : SV_POSITION,
     #endif
 }
 
+#include "TemporalContrastExecution.hlsl"
+
 float4 DX10_SMAAContrastMaskPS(float4 position : SV_POSITION,
                              float2 texcoord : TEXCOORD0) : SV_TARGET {
     float3 current = SMAASamplePoint(colorTex, texcoord).rgb;
