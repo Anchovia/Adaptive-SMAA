@@ -119,7 +119,7 @@ def analyze(receipt_path, output, smoke_only=False):
     output.mkdir(parents=True, exist_ok=True)
     (output/'results.json').write_text(json.dumps(data, indent=2)+'\n', encoding='utf-8')
     lines = ['# 독립 프로세스 짝 비교 결과', '',
-             'B−A가 양수면 ScalarWeight가 느리다. 각 장면 6 pair, pair당 4,800 frame×2 mode. 95% 구간은 과정 평균 차이 6개로 계산했다.', '',
+             'B−A가 양수면 ScalarWeight가 느리다. 각 장면 6 pair, pair당 4,800 frame×2 mode. 95% 구간은 프로세스 내 평균 차이 6개로 계산했다.', '',
              '| 장면 | 지표 | 원본 ms | Scalar ms | 평균 비율 변화 | B−A ms | paired 95% 구간 ms | 느린 pair |',
              '|---|---|---:|---:|---:|---:|---|---:|']
     for scene, metrics in scenes.items():
