@@ -18,14 +18,33 @@ for r in receipts:
     assert 'Aggregate: PASS' in text and f"Scene: {r['scene']}" in text
     assert 'DirectX11' in text and '1920 x 1061' in text and 'Vsync:        OFF' in text
     r['report_sha256']=hashlib.sha256(report.read_bytes()).hexdigest()
-    if r['phase']=='Capture': assert Path(data[r['scene']]['capture']['capture'])==report.parent
-    if r['phase']=='Benchmark': assert Path(data[r['scene']]['performance']['source'])==report
+    if r['phase']=='Capture': assert (root/Path(data[r['scene']]['capture']['capture'])).resolve()==report.parent.resolve()
+    if r['phase']=='Benchmark': assert (root/Path(data[r['scene']]['performance']['source'])).resolve()==report.resolve()
 out=root/'Docs/Temporal-Contrast-Locality'
+# This publisher documents this completed gate. Refuse contradictory reruns
+# rather than silently retaining its qualitative conclusion with different data.
+for scene,d in data.items():
+    modes=d['performance']['modes']
+    assert modes['DIAG-Stripe32-Branch-R']['Resolve']['mean_ms'] < modes['DIAG-Stripe1-Branch-R']['Resolve']['mean_ms']
+    assert abs(modes['DIAG-Stripe32-Flatten-R']['Resolve']['mean_ms']/modes['DIAG-Stripe1-Flatten-R']['Resolve']['mean_ms']-1)<0.01
+    assert (modes['ABL-Contrast-001-R']['SMAA']['percent_vs_native']<0)==(scene=='bistro')
 result=dict(classification='Synthetic locality diagnostics, not AA quality or final eight-case results',
     implementation_commit=subprocess.check_output(['git','-c',f'safe.directory={root.as_posix()}',
         'log','-1','--format=%H','--','Projects/CMAA2/TemporalContrastExperiment.inl'],cwd=root,text=True).strip(),
     profiler_probe=json.loads(a.profiler.read_text(encoding='utf-8-sig')),receipts=receipts,scenes=data)
 lines=['# 동일 50% 선택률의 배치별 실행 비용','',
+       '## 판단','',
+       '선택률만으로 실행 비용을 예측할 수 없다. 두 장면 모두 같은 50% 선택과 같은 branch shader에서 '
+       '1px 간격 대신 32px 폭으로 선택 위치를 모으면 temporal 시간이 약 22% 줄었다. '
+       '전체 fetch 후 선택하는 flatten에서는 폭에 따른 차이가 1% 미만이었다. '
+       '따라서 조건부 실행과 선택 위치의 조합이 비용에 영향을 준다는 실험 근거를 확보했다.', '',
+       '실제 대비 방식은 전체 선택 대조에서 원본보다 약 9~10 us의 resolve 비용을 추가한다. '
+       'Bistro에서는 생략 이득이 이를 상쇄했지만 Minecraft에서는 상쇄하지 못했다. '
+       '원본 대비 전체 SMAA는 각각 -3.87%, +1.24%다. 현재 경로에는 추가 후보 pass가 없으므로 '
+       '별도 pass 비용으로 설명하지 않는다.', '',
+       '이번 변경은 진단 도구 추가이며 실제 AA 최적화 채택이 아니다. 기본 알고리즘을 유지한다. '
+       '32px 줄무늬를 실제 후보 정책으로 쓰거나 무조건 넓은 블록으로 확장하는 결론은 내리지 않는다. '
+       '후속 설계는 판정의 비용과 선택 분포를 함께 다뤄야 하며, 선택 기준을 바꾸면 반드시 품질 gate가 필요하다.', '',
        'GPU 성능 카운터는 권한 부족으로 수집하지 못했다. 아래는 DX11 GPU timestamp와 '
        '컴파일 산출물/픽셀 검증을 결합한 대조 실험이다. 하드웨어 warp/cache/stall을 측정한 결과가 아니다.',
        '', '## 검증','',
@@ -62,6 +81,16 @@ for scene,d in data.items():
         lines.append(f"| {label} | {l['mean_ms']-r['mean_ms']:+.6f} | "+', '.join(f'{x:+.6f}' for x in paired)+' |')
     lines += ['', '전체 SMAA의 반복별 spatial control(ms): '+
         '; '.join(f"{n}: "+','.join(f'{v:.6f}' for v in m[n]['Spatial']['runs_ms']) for n in ('O-T2X-R','ABL-Contrast-001-R'))+'.','']
+    native=m['O-T2X-R']['Resolve']['mean_ms'];all_selected=m['ABL-Contrast-All-R']['Resolve']['mean_ms']
+    actual=m['ABL-Contrast-001-R']['Resolve']['mean_ms']
+    narrow=m['DIAG-Stripe1-Branch-R']['Resolve']['mean_ms'];wide=m['DIAG-Stripe32-Branch-R']['Resolve']['mean_ms']
+    narrow_flat=m['DIAG-Stripe1-Flatten-R']['Resolve']['mean_ms'];wide_flat=m['DIAG-Stripe32-Flatten-R']['Resolve']['mean_ms']
+    lines += [f'실제 대비 경로: 전체 선택 시 원본보다 {(all_selected-native)*1000:+.3f} us, '
+        f'부분 선택으로 전체 선택 대비 {(actual-all_selected)*1000:+.3f} us, '
+        f'최종적으로 원본 대비 {(actual-native)*1000:+.3f} us다.', '',
+        f'같은 50%/같은 branch shader에서 32px 폭은 1px 폭보다 {(wide/narrow-1)*100:+.2f}%다. '
+        f'반면 전체 fetch 후 선택하는 flatten의 폭 차이는 {(wide_flat/narrow_flat-1)*100:+.2f}%다. '
+        '조건부 실행에서 선택 위치의 영향이 커지는지 판단하는 대조이며, 하드웨어 원인별 기여율은 아니다.', '']
 lines += ['## 해석의 경계','',
     '- 같은 선택률/같은 shader의 폭 비교는 화면 배치에 따른 실행 비용을 조사한다. branch 효율, texture locality 및 실제 lane 배치는 함께 영향을 줄 수 있어 각각의 hardware 원인을 분리하지 못한다.',
     '- 대비 전체 선택−원본은 대비 연산, 판단에 따른 의존 관계 및 실행 구조의 추가 비용이다. 순수 derivative 명령 비용만의 측정이 아니다. SM5/LOD 자체의 대조는 이전 Execution gate를 참고한다.',

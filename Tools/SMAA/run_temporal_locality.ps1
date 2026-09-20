@@ -22,4 +22,3 @@ $records += [pscustomobject]@{
 New-Item -ItemType Directory -Path (Split-Path -Parent ([IO.Path]::GetFullPath($Receipt))) -Force | Out-Null
 ConvertTo-Json -InputObject @($records) -Depth 5 | Set-Content -LiteralPath $Receipt
 Write-Output $passLine
-
