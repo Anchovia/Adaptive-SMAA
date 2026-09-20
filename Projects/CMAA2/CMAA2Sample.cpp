@@ -56,6 +56,7 @@ void CMAA2StartStopCallback(vaApplicationBase& application, bool starting)
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
     hInstance; hPrevInstance; // unreferenced
+    vaShader::SetNonInteractiveCompilation(wcsstr(lpCmdLine, L"-smaaNonInteractiveShaderCompile") != nullptr);
 
     {
         vaCoreInitDeinit core;
@@ -71,7 +72,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
         vaApplicationWin::Run(settings, CMAA2StartStopCallback);
     }
-    return 0;
+    return vaShader::GetCompilationFailureCount() != 0 ? 1 : 0;
 }
 
 
@@ -406,6 +407,7 @@ void CMAA2Sample::OnBeforeStopped()
 
 void CMAA2Sample::OnTick(float deltaTime)
 {
+    if(vaShader::GetCompilationFailureCount() != 0) { m_application.Quit(); return; }
     static bool examined = false, contrastExperiment = false;
     if(!examined) {
         examined = true;

@@ -168,6 +168,15 @@ public:
 
 static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& tool) {
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
+        if(_wcsicmp(p.first.c_str(),L"smaaShaderFailureTest")==0) {
+            VA_LOG_ERROR("EXPECTED_SHADER_FAILURE_TEST");
+            auto shader=VA_RENDERING_MODULE_CREATE_SHARED(vaPixelShader,parent.GetRenderDevice());
+            if(p.second==L"file")
+                shader->CreateShaderFromFile(vaCore::GetExecutableDirectory()+L"../../Tools/SMAA/fixtures/invalid_shader.hlsl","ps_5_0","main",{},false);
+            else
+                shader->CreateShaderFromBuffer("float4 main():SV_Target{return intentionally_missing_symbol;}","ps_5_0","main",{},false);
+            return true; // shared deleter joins; expected compile failure makes process exit nonzero.
+        }
         if(_wcsicmp(p.first.c_str(),L"smaaShaderLifetimeTest")==0) {
             tool.AddTask(std::make_shared<BenchItemShaderLifetime>(parent));
             return true;

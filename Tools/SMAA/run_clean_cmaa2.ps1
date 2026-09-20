@@ -40,7 +40,7 @@ if ($expectsAutoBenchReport -and (Test-Path -LiteralPath $autoBenchRoot -PathTyp
 
 $startParameters = @{
     FilePath = $executable
-    ArgumentList = $CMAA2Arguments
+    ArgumentList = @($CMAA2Arguments) + @('-smaaNonInteractiveShaderCompile')
     WorkingDirectory = (Split-Path -Parent $executable)
     PassThru = $true
 }

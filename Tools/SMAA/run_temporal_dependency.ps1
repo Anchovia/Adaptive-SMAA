@@ -8,7 +8,8 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $exe = Join-Path $root 'Projects/CMAA2/CMAA2.exe'
 $beforeHash = (Get-FileHash -LiteralPath $exe).Hash
 $argsForDemo = @("-smaaTemporalDependency$Phase",$Scene)
-$runOutput = & (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $argsForDemo -Hidden -TimeoutSeconds 1800
+$timeout = if($Phase -eq 'Smoke') {120} else {1800}
+$runOutput = & (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $argsForDemo -Hidden -TimeoutSeconds $timeout
 $passLine = $runOutput | Where-Object { $_ -match 'PASS:.*report=' } | Select-Object -Last 1
 if (!$passLine) { throw 'No completed report was returned' }
 if ((Get-FileHash -LiteralPath $exe).Hash -ne $beforeHash) { throw 'Executable changed during run' }
