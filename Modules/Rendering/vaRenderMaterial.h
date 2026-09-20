@@ -460,7 +460,7 @@ namespace VertexAsylum
         shared_ptr<vaRenderMaterial>                    GetDefaultMaterial( ) const     { return m_defaultMaterial; }
 
     public:
-        shared_ptr<vaRenderMaterial>                    CreateRenderMaterial( const vaGUID & uid = vaCore::GUIDCreate( ) );
+        shared_ptr<vaRenderMaterial>                    CreateRenderMaterial( const vaGUID & uid = vaCore::GUIDCreate( ), bool trackUID = true );
         vaTT_Tracker< vaRenderMaterial * > *            GetRenderMaterialTracker( ) { return &m_renderMaterials; }
 
         bool                                            GetTexturingDisabled( ) const   { return m_texturingDisabled; }

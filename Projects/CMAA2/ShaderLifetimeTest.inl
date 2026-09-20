@@ -49,6 +49,18 @@ public:
         const size_t initialCount=vaShader::GetAllShaderList().size();
         bool pass=true;
         auto& device=m_parent.GetRenderDevice();
+        // Incomplete loaded materials must be invisible to the render thread's UID lookup.
+        const auto uid=vaCore::GUIDCreate();
+        auto material=device.GetMaterialManager().CreateRenderMaterial(uid,false);
+        bool publication=!material->UIDObject_IsTracked() && vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid)==nullptr;
+        material->InitializeDefaultMaterial();
+        publication=publication && vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid)==nullptr;
+        publication=material->UIDObject_Track() && publication;
+        publication=publication && vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid)==material.get();
+        material->UIDObject_Untrack();material.reset();
+        publication=publication && vaUIDObjectRegistrar::Find<vaRenderMaterial>(uid)==nullptr;
+        pass=pass && publication;
+        tool.ReportAddRowValues({"material-publish-after-initialization",publication?"PASS":"FAIL"});
         const vaRenderingModuleParams params(device);
         for(int i=0;i<32;++i) {
             ProbeState state;

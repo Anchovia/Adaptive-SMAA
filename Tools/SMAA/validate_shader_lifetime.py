@@ -9,7 +9,7 @@ def report(path):
     rows=[s for s in text.splitlines() if s.startswith('pending-owner-release,')]
     assert len(rows)==32
     assert [int(s.split(',')[1]) for s in rows]==list(range(32))
-    for name in ['six-stage-shared-and-auto-factories','real-ps-cs-immediate-release-and-reload']:
+    for name in ['material-publish-after-initialization','six-stage-shared-and-auto-factories','real-ps-cs-immediate-release-and-reload']:
         assert name+', PASS' in text
     return dict(path=str(path),sha256=sha(path),pending_release_checks=32)
 

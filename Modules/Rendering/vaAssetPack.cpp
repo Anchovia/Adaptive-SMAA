@@ -826,7 +826,7 @@ vaAssetRenderMaterial * vaAssetRenderMaterial::CreateAndLoadAPACK( vaAssetPack &
     vaGUID uid;
     VERIFY_TRUE_RETURN_ON_FALSE( inStream.ReadValue<vaGUID>( uid ) );
 
-    shared_ptr<vaRenderMaterial> newResource = pack.GetRenderDevice().GetMaterialManager().CreateRenderMaterial( uid );
+    shared_ptr<vaRenderMaterial> newResource = pack.GetRenderDevice().GetMaterialManager().CreateRenderMaterial( uid, false );
 
     if( newResource == nullptr )
         return nullptr;
@@ -880,7 +880,7 @@ vaAssetRenderMesh * vaAssetRenderMesh::CreateAndLoadUnpacked( vaAssetPack & pack
 
 vaAssetRenderMaterial * vaAssetRenderMaterial::CreateAndLoadUnpacked( vaAssetPack & pack, const string & name, const vaGUID & uid, vaXMLSerializer & serializer, const wstring & assetFolder )
 {
-    shared_ptr<vaRenderMaterial> newResource = pack.GetRenderDevice().GetMaterialManager().CreateRenderMaterial( uid );
+    shared_ptr<vaRenderMaterial> newResource = pack.GetRenderDevice().GetMaterialManager().CreateRenderMaterial( uid, false );
 
     if( newResource == nullptr )
         return nullptr;
