@@ -52,8 +52,8 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false)
-        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution),m_frames(frames),
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false)
+        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
@@ -79,6 +79,15 @@ public:
             if(capture) {
                 m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
                 m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
+            }
+        }
+        if(dependency) {
+            m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-001-R",1,0.01f},
+                {"ABL-Structured-001-R",8,0.01f},{"ABL-LoadCurrent-001-R",11,0.01f},
+                {"ABL-LoadCurrentVelocity-001-R",12,0.01f}};
+            if(capture) {
+                m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
+                m_configs.push_back({"DBG-LoadContrastMask-001-R",13,0.01f});
             }
         }
     }
@@ -168,12 +177,17 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool executionSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionSmoke")==0;
         bool execution=executionCapture||executionBench||executionSmoke;
         capture=capture||executionCapture;bench=bench||executionBench;smoke=smoke||executionSmoke;
+        bool dependencyCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalDependencyCapture")==0;
+        bool dependencyBench=_wcsicmp(p.first.c_str(),L"smaaTemporalDependencyBenchmark")==0;
+        bool dependencySmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalDependencySmoke")==0;
+        bool dependency=dependencyCapture||dependencyBench||dependencySmoke;
+        capture=capture||dependencyCapture;bench=bench||dependencyBench;smoke=smoke||dependencySmoke;
         if(!capture && !bench && !smoke && !quality)continue;
         std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality,execution));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality,execution,dependency));
         return true;
     }
     return false;

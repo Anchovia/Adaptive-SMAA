@@ -88,7 +88,7 @@ namespace VertexAsylum
 
         // Default-off native temporal ablation: no edge/metadata texture binding.
         void SetTemporalContrast(int kind, float threshold) {
-            kind = vaMath::Clamp(kind, 0, 10);
+            kind = vaMath::Clamp(kind, 0, 13);
             // 4 is reserved for the supersample capture driver, never a resolve kind.
             assert(kind != 4);
             if(kind == 4) kind = 0;

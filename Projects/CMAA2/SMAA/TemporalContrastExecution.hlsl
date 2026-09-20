@@ -69,3 +69,46 @@ float4 DX10_SMAAPrefetchVelocityResolvePS(float4 position : SV_POSITION, float2 
     }
     return current;
 }
+
+// Load has no sampler clamp. Clamp helper-lane coordinates as well, especially
+// the extra derivative row at odd viewport heights. The bound is a shader macro.
+float4 ContrastLoadCurrent(float4 position) {
+    int2 pixel = clamp(int2(position.xy), int2(0, 0), int2(SMAA_RT_METRICS.zw) - 1);
+    return colorTex.Load(int3(pixel, 0));
+}
+
+float4 DX10_SMAALoadCurrentResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = ContrastLoadCurrent(position);
+    float contrast = SMAATemporalContrast(current.rgb);
+    [branch]
+    if (contrast >= g_SMAA.padding0) {
+        float2 velocity = ContrastExecutionVelocity(uv);
+        float4 previous = colorTexPrev.SampleLevel(PointSampler, uv + velocity, 0);
+        current = ContrastExecutionBlend(current, previous);
+    }
+    return current;
+}
+
+float4 DX10_SMAALoadContrastMaskPS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float selected = SMAATemporalContrast(ContrastLoadCurrent(position).rgb) >= g_SMAA.padding0 ? 1.0 : 0.0;
+    return float4(selected.xxx, 1.0);
+}
+
+
+float4 DX10_SMAALoadCurrentVelocityResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    int2 pixel = clamp(int2(position.xy), int2(0, 0), int2(SMAA_RT_METRICS.zw) - 1);
+    float4 current = colorTex.Load(int3(pixel, 0));
+    float contrast = SMAATemporalContrast(current.rgb);
+    [branch]
+    if (contrast >= g_SMAA.padding0) {
+#if SMAA_REPROJECTION
+        float2 velocity = -SMAA_DECODE_VELOCITY(velocityTex.Load(int3(pixel, 0)).rg);
+#else
+        float2 velocity = float2(0, 0);
+#endif
+        // Retain the original point/clamp sampler for fractional history UVs.
+        float4 previous = colorTexPrev.SampleLevel(PointSampler, uv + velocity, 0);
+        current = ContrastExecutionBlend(current, previous);
+    }
+    return current;
+}
