@@ -30,6 +30,7 @@
 #include <inttypes.h>
 
 #include "vaShaderDX11.h"
+#include "vaNvWarpDX11.h"
 
 #include "Rendering/DirectX/vaRenderDeviceDX11.h"
 
@@ -638,7 +639,16 @@ namespace VertexAsylum
 
         ID3D11PixelShader * shader = nullptr;
 
-        hr = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice()->CreatePixelShader( shaderBlob->GetBufferPointer( ), shaderBlob->GetBufferSize( ), nullptr, &shader );
+        bool nvWarp=false;
+        for(const auto& macro:m_macros) if(macro.first=="VA_NV_WARP_EXTENSION" && macro.second=="1") nvWarp=true;
+        auto device=GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice();
+        hr = nvWarp ? TemporalNvWarp::CreatePixelShader(device,shaderBlob->GetBufferPointer(),shaderBlob->GetBufferSize(),&shader)
+                    : device->CreatePixelShader(shaderBlob->GetBufferPointer(),shaderBlob->GetBufferSize(),nullptr,&shader);
+        if(nvWarp && FAILED(hr)) {
+            VA_LOG_ERROR("NVAPI experimental pixel shader creation failed: 0x%08x",hr);
+            // Do not render an unsupported/fallback shader as a successful experiment.
+            ExitProcess(1);
+        }
         assert( SUCCEEDED( hr ) );
         if( SUCCEEDED( hr ) )
         {

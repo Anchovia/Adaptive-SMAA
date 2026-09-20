@@ -38,6 +38,7 @@
 #include "vaSMAAWrapper.h"
 
 #include "SMAA.h"
+#include "Rendering/DirectX/vaNvWarpDX11.h"
 
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
 
@@ -49,6 +50,7 @@ namespace VertexAsylum
         // TechniqueThingieDX11( ) { }
         // virtual ~TechniqueThingieDX11( ) { }
 
+        bool                            NvWarp = false;
         FLOAT                           BlendFactor[ 4 ];
         FLOAT *                         BlendFactorAltSource = nullptr;     // when BlendFactorAltSource is non-null, update BlendFactor values from it each time! warning - it's a ptr to single float, not an array
         UINT                            SampleMask;
@@ -71,6 +73,8 @@ namespace VertexAsylum
     class vaSMAAWrapperDX11 : public vaSMAAWrapper, public SMAAShaderConstantsInterface, public SMAATexturesInterface, public SMAATechniqueManagerInterface
     {
         VA_RENDERING_MODULE_MAKE_FRIENDS( );
+    public:
+        virtual bool SupportsTemporalWarp() override { return TemporalNvWarp::Supported(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()); }
     private:
 
         // States used by the effect passes
@@ -640,11 +644,12 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "LoadCurrentVelocityResolve" || name == "LoadContrastMask" ||
         name == "StripeBranchResolve" || name == "StripeFlattenResolve" || name == "ScalarWeightResolve" ||
         name == "ScalarReassociatedResolve" || name == "BranchReassociatedResolve" || name == "HistoryLoadResolve" || name == "SelectorAnyResolve" ||
-        name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" )
+        name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        const char * entry = name == "FixedThresholdResolve" ? "DX10_SMAAFixedThresholdResolvePS" :
+        const char * entry = name == "NvWarpResolve" ? "DX10_SMAANvWarpResolvePS" :
+            name == "NvWarpMask" ? "DX10_SMAANvWarpMaskPS" : name == "FixedThresholdResolve" ? "DX10_SMAAFixedThresholdResolvePS" :
             name == "ScalarFixedThresholdResolve" ? "DX10_SMAAScalarFixedThresholdResolvePS" :
             name == "ScalarWeightResolve" ? "DX10_SMAAScalarWeightResolvePS" :
             name == "ScalarReassociatedResolve" ? "DX10_SMAAScalarReassociatedResolvePS" :
@@ -664,6 +669,10 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
             name == "LoadCurrentVelocityResolve" ? "DX10_SMAALoadCurrentVelocityResolvePS" :
             name == "LoadContrastMask" ? "DX10_SMAALoadContrastMaskPS" :
             name == "PrefetchVelocityResolve" ? "DX10_SMAAPrefetchVelocityResolvePS" : "DX10_SMAAResolvePS";
+        if(name=="NvWarpResolve" || name=="NvWarpMask") {
+            if(SupportsTemporalWarp()) { shaderMacros.push_back({"VA_NV_WARP_EXTENSION","1"});tech->NvWarp=true; }
+            else entry="DX10_SMAAScalarWeightResolvePS"; // Driver rejects unsupported warp experiments before rendering.
+        }
         tech->PS->CreateShaderFromFile( shaderFileName, name == "Resolve" ? psVersion : "ps_5_0", entry, shaderMacros, true );
         tech->DSS = m_DisableDepthStencil;
         tech->BS  = m_NoBlending;
@@ -735,6 +744,11 @@ void vaSMAAWrapperDX11::DestroyAllTechniques( )
 // SMAATechniqueInterface impl
 void TechniqueThingieDX11::ApplyStates( ID3D11DeviceContext * context )
 {
+    if(NvWarp) {
+        ID3D11UnorderedAccessView* empty=nullptr;
+        context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL,
+            nullptr,nullptr,7,1,&empty,nullptr);
+    }
     if( BlendFactorAltSource != nullptr )
     {
         // when BlendFactorAltSource is non-null, update BlendFactor values from it each time!

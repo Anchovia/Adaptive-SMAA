@@ -1,0 +1,45 @@
+[
+  {
+    "entry": "NvWarpResolvePS",
+    "reprojection": 0,
+    "sha256": "627fb79b01b313efa85a46c4687403c4a6df498e6716da35236a5693ebdbf66c",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "nvapi_encoding": true,
+    "note": "Pre-driver DXBC encoding; not SASS or actual buffer access"
+  },
+  {
+    "entry": "NvWarpMaskPS",
+    "reprojection": 0,
+    "sha256": "2585f1c8ce8f6ca208c41262aa51a1d8174e7dc3941bcaaa06a5532ab8170d61",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.yzw, v1.xyxx, t2.wxyz, s1"
+    ],
+    "nvapi_encoding": true,
+    "note": "Pre-driver DXBC encoding; not SASS or actual buffer access"
+  },
+  {
+    "entry": "NvWarpResolvePS",
+    "reprojection": 1,
+    "sha256": "c618078f950017df92e660736d53f7841bdd151b176fb9227f4704ed405a90e9",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.yz, v1.xyxx, t7.zxyw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, r1.yzyy, t4.xyzw, s1, l(0.000000)"
+    ],
+    "nvapi_encoding": true,
+    "note": "Pre-driver DXBC encoding; not SASS or actual buffer access"
+  },
+  {
+    "entry": "NvWarpMaskPS",
+    "reprojection": 1,
+    "sha256": "2585f1c8ce8f6ca208c41262aa51a1d8174e7dc3941bcaaa06a5532ab8170d61",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.yzw, v1.xyxx, t2.wxyz, s1"
+    ],
+    "nvapi_encoding": true,
+    "note": "Pre-driver DXBC encoding; not SASS or actual buffer access"
+  }
+]
