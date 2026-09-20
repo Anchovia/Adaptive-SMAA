@@ -1,0 +1,56 @@
+[
+  {
+    "entry": "DX10_SMAAStripeBranchResolvePS",
+    "reprojection": 0,
+    "sha256": "a5a70e720217f5db214893076a80493f1a0ea590aab0ef452044d603bea4ba08",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [
+      "if_z r1.x"
+    ],
+    "slots": 13,
+    "temps": 2
+  },
+  {
+    "entry": "DX10_SMAAStripeFlattenResolvePS",
+    "reprojection": 0,
+    "sha256": "c260027389ffee40f06ebb32f98faf7568de785664fb83697479840cf5082a24",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 10,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAAStripeBranchResolvePS",
+    "reprojection": 1,
+    "sha256": "c9a6dcf41783619a5799f463a319fabad9f309ed65ce0c7fa5aadee1f439570a",
+    "samples": [
+      "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r1.xyxx, t4.xyzw, s1, l(0.000000)"
+    ],
+    "branches": [
+      "if_z r1.x"
+    ],
+    "slots": 22,
+    "temps": 3
+  },
+  {
+    "entry": "DX10_SMAAStripeFlattenResolvePS",
+    "reprojection": 1,
+    "sha256": "7af6ac06a278d8c26b8618a31bc35ae2957660fd2cddf1374d464b8ed52b562f",
+    "samples": [
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+      "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+      "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+    ],
+    "branches": [],
+    "slots": 19,
+    "temps": 3
+  }
+]

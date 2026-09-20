@@ -637,11 +637,14 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     else if( name == "Resolve" || name == "ContrastResolve" || name == "ContrastMask" || name == "CurrentSpatial" ||
         name == "NativeSM5" || name == "LodResolve" || name == "CurrentFirstResolve" ||
         name == "StructuredResolve" || name == "FlattenResolve" || name == "PrefetchVelocityResolve" || name == "LoadCurrentResolve" ||
-        name == "LoadCurrentVelocityResolve" || name == "LoadContrastMask" )
+        name == "LoadCurrentVelocityResolve" || name == "LoadContrastMask" ||
+        name == "StripeBranchResolve" || name == "StripeFlattenResolve" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        const char * entry = name == "ContrastResolve" ? "DX10_SMAAContrastResolvePS" :
+        const char * entry = name == "StripeBranchResolve" ? "DX10_SMAAStripeBranchResolvePS" :
+            name == "StripeFlattenResolve" ? "DX10_SMAAStripeFlattenResolvePS" :
+            name == "ContrastResolve" ? "DX10_SMAAContrastResolvePS" :
             name == "ContrastMask" ? "DX10_SMAAContrastMaskPS" :
             name == "CurrentSpatial" ? "DX10_SMAACurrentSpatialPS" :
             name == "LodResolve" ? "DX10_SMAALodResolvePS" :

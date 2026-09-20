@@ -112,3 +112,32 @@ float4 DX10_SMAALoadCurrentVelocityResolvePS(float4 position : SV_POSITION, floa
     }
     return current;
 }
+
+// Synthetic locality diagnostic, NOT an AA selection policy. padding0 is an
+// integer stripe-width exponent; all tested widths divide half the viewport.
+// Both widths use identical DXBC. No assumed screen-to-warp mapping.
+bool TemporalStripeSelected(float4 position) {
+    return (((uint(position.x) >> uint(g_SMAA.padding0)) & 1u) == 0u);
+}
+
+float4 DX10_SMAAStripeBranchResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    [branch]
+    if (TemporalStripeSelected(position)) {
+        float2 velocity = ContrastExecutionVelocity(uv);
+        float4 previous = colorTexPrev.SampleLevel(PointSampler, uv + velocity, 0);
+        current = ContrastExecutionBlend(current, previous);
+    }
+    return current;
+}
+
+float4 DX10_SMAAStripeFlattenResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    [flatten]
+    if (TemporalStripeSelected(position)) {
+        float2 velocity = ContrastExecutionVelocity(uv);
+        float4 previous = colorTexPrev.SampleLevel(PointSampler, uv + velocity, 0);
+        current = ContrastExecutionBlend(current, previous);
+    }
+    return current;
+}
