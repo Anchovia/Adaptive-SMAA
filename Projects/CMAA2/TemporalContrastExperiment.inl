@@ -1,4 +1,5 @@
 // Engineering ablation on the original T2X baseline. No final eight-case claim.
+#include "../../External/RenderDoc/renderdoc_app.h"
 class BenchItemTemporalContrast : public AutoBenchToolWorkItem
 {
     struct Config { const char* name; int kind; float threshold; };
@@ -6,6 +7,8 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
     bool m_warp = false;
     int m_pairOrder = -1;
+    bool m_counterCapture = false, m_counterCaptureActive = false;
+    RENDERDOC_API_1_6_0* m_renderdoc = nullptr;
     bool m_costFocused = false, m_preconditionReady = false;
     double m_preconditionUntil = 0;
     int m_frames, m_warmup, m_repeats, m_run = 0, m_slot = 0, m_frame = 0;
@@ -56,7 +59,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp||pairOrder>=0),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
@@ -131,6 +134,10 @@ public:
             if(pairOrder==1)std::reverse(m_configs.begin(),m_configs.end());
             m_repeats=1;
         }
+        if(counterCapture) {
+            m_counterCapture=true;m_capture=true;m_warmup=300;m_repeats=1;
+            m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-001-R",1,0.01f},{"ABL-ScalarWeight-001-R",16,0.01f}};
+        }
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -150,6 +157,15 @@ public:
             vaUIManager::GetInstance().SetVisible(false);
             vaUIManager::GetInstance().SetConsoleVisible(false);
             tool.ReportStart();
+            if(m_counterCapture) {
+                HMODULE module=GetModuleHandleA("renderdoc.dll");
+                auto getAPI=module?reinterpret_cast<pRENDERDOC_GetAPI>(GetProcAddress(module,"RENDERDOC_GetAPI")):nullptr;
+                if(!getAPI || getAPI(eRENDERDOC_API_Version_1_6_0,reinterpret_cast<void**>(&m_renderdoc))!=1) {
+                    tool.ReportAddText("RenderDoc API unavailable\r\nAggregate: FAIL\r\n");
+                    tool.ReportFinish();m_done=true;smaa->GetSettings().Preset=vaSMAAWrapper::Preset(m_savedPreset);return;
+                }
+                tool.ReportAddText("Purpose: RenderDoc frame 90 capture for replay counters; no live timing claim or PNG.\r\n");
+            }
             if(m_warp) {
                 bool supported=smaa->SupportsTemporalWarp();
                 tool.ReportAddText(supported?"NVAPI VOTE_ANY supported: 1\r\n":"NVAPI VOTE_ANY supported: 0\r\nAggregate: FAIL\r\n");
@@ -218,11 +234,25 @@ public:
         const int phase=m_frame<0?0:m_frame%240;
         const float t=2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f;
         m_parent.GetFlythroughCameraController()->SetPlayTime(t);
+        if(m_counterCapture && m_frame==90) {
+            const auto path=tool.ReportGetDir()+vaStringTools::SimpleWiden(Current().name);
+            m_renderdoc->SetCaptureFilePathTemplate(vaStringTools::SimpleNarrow(path).c_str());
+            m_renderdoc->StartFrameCapture(nullptr,nullptr);
+            m_counterCaptureActive=true;
+        }
     }
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& context,
         const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(!m_capture || m_frame<0 || m_done)return;
+        if(m_counterCapture) {
+            if(m_counterCaptureActive) {
+                const bool ok=m_renderdoc->EndFrameCapture(nullptr,nullptr)!=0;
+                m_failed=m_failed||!ok;m_counterCaptureActive=false;
+                tool.ReportAddRowValues({"renderdoc_capture",Current().name,std::to_string(m_frame),ok?"PASS":"FAIL"});
+            }
+            return;
+        }
         const auto c=Current();
         const auto dir=tool.ReportGetDir()+vaStringTools::SimpleWiden(c.name)+L"\\";
         vaFileTools::EnsureDirectoryExists(dir);
@@ -284,6 +314,8 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool pairSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalPairSmoke")==0;
         bool pair=pairBench||pairSmoke;
         bench=bench||pairBench;smoke=smoke||pairSmoke;
+        bool counterCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalCounterCapture")==0;
+        capture=capture||counterCapture;
         if(!capture && !bench && !smoke && !quality)continue;
         std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
@@ -295,7 +327,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture));
         return true;
     }
     return false;
