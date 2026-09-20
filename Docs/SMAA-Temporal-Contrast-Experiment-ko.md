@@ -116,3 +116,13 @@ python Tools/SMAA/analyze_temporal_contrast.py --performance <results.csv> --out
 GPU 작업은 순차 실행한다. 캡처·CPU 영상 분석과 성능 측정도 분리한다. 실행 receipt는
 `tmp/temporal-contrast-runs.json`에 바이너리 해시와 함께 저장된다. PNG/GIF, raw CSV,
 실행 파일은 Git에 포함하지 않는다.
+
+## 동일 선택 기준의 실행 비용 분리 (2026-09-20)
+
+[실행 비용 결과](Temporal-Contrast-Execution/report.md)와
+[공식 근거 및 대조군](Temporal-Contrast-Execution/method.md)을 추가했다.
+SM5/LOD/읽기 순서/structured branch/flatten을 분리하고 두 장면의 240-frame 출력 동일성,
+9개 성능 대조군 ×4,800 frame ×3회 측정을 완료했다. 기본 선택 기준과 기존 shader는 보존했다.
+Minecraft의 flatten은 기존 선택 대비 resolve를 5.25% 줄였지만 native보다 전체 AA가
+1.26% 느렸고 Bistro에는 손해였으므로 기본 구현으로 채택하지 않았다.
+화면 tile 혼합률을 실제 warp counter로 표현하지 않으며, 정지 후 flicker의 품질 문제는 남아 있다.

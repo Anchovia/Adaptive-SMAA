@@ -62,3 +62,33 @@ FXC /O3에서 CurrentFirst와 Lod가 동일 DXBC이고 PrefetchVelocity와 Struc
 - 출력 동일성을 먼저 통과한 control만 같은 품질의 비용 비교로 판단한다.
   세 반복 및 한 GPU의 결과로 일반 GPU 성능이나 통계적 유의성을 단정하지 않는다.
   기존 선택 방식의 정지 후 2-frame flicker와 미확정 ghosting 우위는 해결한 것으로 보지 않는다.
+
+## 빌드 이력
+
+Bistro capture 실행파일 SHA-256은 `67806bb4477cf6f6a444fee9e1fad978034b85b31bf737ba329649431e97e318`이다.
+이후 WholeFrame/wall interval과 분포 통계를 driver에 추가하고,
+`ba96723206738d53c679f0b3d1d32396daeedcfd148b26c5a05844b92ba41ad3`로 다시 빌드했다.
+이 최종 실행파일로 Minecraft smoke/capture와 두 장면 성능을 측정한다.
+두 빌드 사이 shader 연산/선택/history는 불변이며 HLSL 주석만 명확히 했다.
+각 실행 전후 executable hash 및 정상 종료는 results.json의 receipt에 기록한다.
+
+## 재현 명령
+
+저장소 루트에서 Release x64 빌드 후 순차 실행한다.
+
+```powershell
+python Tools/SMAA/validate_temporal_execution_shaders.py
+Tools/SMAA/run_temporal_execution.ps1 -Phase Smoke -Scene bistro
+Tools/SMAA/run_temporal_execution.ps1 -Phase Smoke -Scene minecraft
+Tools/SMAA/run_temporal_execution.ps1 -Phase Capture -Scene bistro
+Tools/SMAA/run_temporal_execution.ps1 -Phase Capture -Scene minecraft
+python Tools/SMAA/analyze_temporal_execution.py --capture <new-capture> --prior <prior-contrast-capture> --output tmp/execution-<scene>-capture.json
+Tools/SMAA/run_temporal_execution.ps1 -Phase Benchmark -Scene bistro
+Tools/SMAA/run_temporal_execution.ps1 -Phase Benchmark -Scene minecraft
+python Tools/SMAA/analyze_temporal_execution.py --performance <results.csv> --output tmp/execution-<scene>-performance.json
+python Tools/SMAA/summarize_temporal_execution.py
+```
+
+원본 캡처는 Bistro `20260917_133851`, Minecraft `20260917_134852`다.
+receipt 경로는 재실행 시 `-Receipt`로 분리하여 기존 이력을 덮어쓰지 않는다.
+요약 publisher는 이번 완료된 두 장면 자료와 receipt를 사용하며 중복 benchmark 기록이 있으면 거부한다.
