@@ -243,8 +243,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     const char* executionNames[] = {"NativeSM5", "LodResolve", "CurrentFirstResolve",
         "StructuredResolve", "FlattenResolve", "PrefetchVelocityResolve",
         "LoadCurrentResolve", "LoadCurrentVelocityResolve", "LoadContrastMask",
-        "StripeBranchResolve", "StripeFlattenResolve"};
-    for(int i=0;i<11;++i) executionTechniques[i] = techniqueManagerInterface->CreateTechnique(executionNames[i], defines);
+        "StripeBranchResolve", "StripeFlattenResolve", "ScalarWeightResolve", "ScalarReassociatedResolve",
+        "BranchReassociatedResolve", "HistoryLoadResolve", "SelectorAnyResolve", "FixedThresholdResolve", "ScalarFixedThresholdResolve"};
+    for(int i=0;i<18;++i) executionTechniques[i] = techniqueManagerInterface->CreateTechnique(executionNames[i], defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
@@ -388,7 +389,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexPrev(context, previousSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
-    assert(resolveKind >= 0 && resolveKind <= 15 && resolveKind != 4);
+    assert(resolveKind >= 0 && resolveKind <= 22 && resolveKind != 4);
     (resolveKind == 0 ? resolveTechnique : resolveKind >= 5 ? executionTechniques[resolveKind-5] : contrastTechniques[resolveKind-1])->ApplyStates( context );
 
     // Do it!

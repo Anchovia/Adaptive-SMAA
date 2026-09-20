@@ -233,6 +233,7 @@ float4 DX10_SMAAContrastResolvePS(float4 position : SV_POSITION,
 }
 
 #include "TemporalContrastExecution.hlsl"
+#include "TemporalContrastCost.hlsl"
 
 float4 DX10_SMAAContrastMaskPS(float4 position : SV_POSITION,
                              float2 texcoord : TEXCOORD0) : SV_TARGET {

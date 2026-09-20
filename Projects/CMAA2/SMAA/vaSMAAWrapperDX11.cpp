@@ -638,11 +638,20 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "NativeSM5" || name == "LodResolve" || name == "CurrentFirstResolve" ||
         name == "StructuredResolve" || name == "FlattenResolve" || name == "PrefetchVelocityResolve" || name == "LoadCurrentResolve" ||
         name == "LoadCurrentVelocityResolve" || name == "LoadContrastMask" ||
-        name == "StripeBranchResolve" || name == "StripeFlattenResolve" )
+        name == "StripeBranchResolve" || name == "StripeFlattenResolve" || name == "ScalarWeightResolve" ||
+        name == "ScalarReassociatedResolve" || name == "BranchReassociatedResolve" || name == "HistoryLoadResolve" || name == "SelectorAnyResolve" ||
+        name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        const char * entry = name == "StripeBranchResolve" ? "DX10_SMAAStripeBranchResolvePS" :
+        const char * entry = name == "FixedThresholdResolve" ? "DX10_SMAAFixedThresholdResolvePS" :
+            name == "ScalarFixedThresholdResolve" ? "DX10_SMAAScalarFixedThresholdResolvePS" :
+            name == "ScalarWeightResolve" ? "DX10_SMAAScalarWeightResolvePS" :
+            name == "ScalarReassociatedResolve" ? "DX10_SMAAScalarReassociatedResolvePS" :
+            name == "BranchReassociatedResolve" ? "DX10_SMAABranchReassociatedResolvePS" :
+            name == "HistoryLoadResolve" ? "DX10_SMAAHistoryLoadResolvePS" :
+            name == "SelectorAnyResolve" ? "DX10_SMAASelectorAnyResolvePS" :
+            name == "StripeBranchResolve" ? "DX10_SMAAStripeBranchResolvePS" :
             name == "StripeFlattenResolve" ? "DX10_SMAAStripeFlattenResolvePS" :
             name == "ContrastResolve" ? "DX10_SMAAContrastResolvePS" :
             name == "ContrastMask" ? "DX10_SMAAContrastMaskPS" :

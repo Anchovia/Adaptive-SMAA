@@ -88,12 +88,15 @@ namespace VertexAsylum
 
         // Default-off native temporal ablation: no edge/metadata texture binding.
         void SetTemporalContrast(int kind, float threshold) {
-            kind = vaMath::Clamp(kind, 0, 15);
+            kind = vaMath::Clamp(kind, 0, 22);
             // 4 is reserved for the supersample capture driver, never a resolve kind.
             assert(kind != 4);
             if(kind == 4) kind = 0;
             // Synthetic stripe controls use this slot as a bounded shift, not contrast.
-            threshold = kind >= 14 ? float(int(vaMath::Clamp(threshold, 0.0f, 10.0f))) : vaMath::Clamp(threshold, 0.0f, 2.0f);
+            threshold = (kind == 14 || kind == 15) ? float(int(vaMath::Clamp(threshold, 0.0f, 10.0f))) : vaMath::Clamp(threshold, 0.0f, 2.0f);
+            // Specialization must never silently replace a different threshold.
+            if(threshold != 0.01f && kind == 21) kind = 1;
+            if(threshold != 0.01f && kind == 22) kind = 16;
             if(m_contrastResolveKind != kind || m_constants.padding0 != threshold) {
                 m_contrastResolveKind = kind;
                 m_constants.padding0 = threshold;

@@ -52,8 +52,8 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false)
-        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality),m_frames(frames),
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false)
+        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
@@ -98,6 +98,14 @@ public:
                 m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
                 m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
             }
+        }
+        if(cost) {
+            m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-001-R",1,0.01f},{"ABL-Flatten-001-R",9,0.01f},
+                {"ABL-ScalarWeight-001-R",16,0.01f},{"ABL-ScalarReassociated-001-R",17,0.01f},
+                {"ABL-BranchReassociated-001-R",18,0.01f},{"ABL-HistoryLoad-001-R",19,0.01f},
+                {"ABL-SelectorAny-001-R",20,0.01f},{"ABL-FixedThreshold-001-R",21,0.01f},
+                {"ABL-ScalarFixedThreshold-001-R",22,0.01f}};
+            if(capture) m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
         }
     }
     void Tick(AutoBenchTool& tool,float) override {
@@ -210,12 +218,17 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool localitySmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalLocalitySmoke")==0;
         bool locality=localityCapture||localityBench||localitySmoke;
         capture=capture||localityCapture;bench=bench||localityBench;smoke=smoke||localitySmoke;
+        bool costCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalCostCapture")==0;
+        bool costBench=_wcsicmp(p.first.c_str(),L"smaaTemporalCostBenchmark")==0;
+        bool costSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalCostSmoke")==0;
+        bool cost=costCapture||costBench||costSmoke;
+        capture=capture||costCapture;bench=bench||costBench;smoke=smoke||costSmoke;
         if(!capture && !bench && !smoke && !quality)continue;
         std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality,execution,dependency,locality));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality,execution,dependency,locality,cost));
         return true;
     }
     return false;
