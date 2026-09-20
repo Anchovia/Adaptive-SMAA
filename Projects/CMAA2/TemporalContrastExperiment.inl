@@ -5,6 +5,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     std::vector<Config> m_configs;
     bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
     bool m_warp = false;
+    int m_pairOrder = -1;
     bool m_costFocused = false, m_preconditionReady = false;
     double m_preconditionUntil = 0;
     int m_frames, m_warmup, m_repeats, m_run = 0, m_slot = 0, m_frame = 0;
@@ -55,13 +56,14 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false)
-        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp),m_frames(frames),
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1)
+        :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp||pairOrder>=0),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
         m_warp=warp;
-        m_costFocused=costFocused||(warp&&!capture);
+        m_pairOrder=pairOrder;
+        m_costFocused=costFocused||(warp&&!capture)||pairOrder>=0;
         m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-All-R",1,0},
             {"ABL-Contrast-0005-R",1,0.005f},{"ABL-Contrast-001-R",1,0.01f},
             {"ABL-Contrast-002-R",1,0.02f},{"ABL-Contrast-None-R",1,2.0f}};
@@ -124,6 +126,11 @@ public:
                 m_configs.push_back({"DBG-NvWarpMask-001-R",24,0.01f});
             }
         }
+        if(pairOrder>=0) {
+            m_configs={{"O-T2X-R",0,0},{"ABL-ScalarWeight-001-R",16,0.01f}};
+            if(pairOrder==1)std::reverse(m_configs.begin(),m_configs.end());
+            m_repeats=1;
+        }
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -159,10 +166,17 @@ public:
             if(!m_capture)tool.ReportAddRowValues({"kind","mode","run","metric","samples","mean_ms","p95_ms","threshold"});
             if(m_execution)tool.ReportAddText("distribution columns: mode, run, metric, samples, median_ms, sample_std_ms, p99_ms, wall_fps, wall_1pct_low_fps (slowest ceil(N/100) intervals). Non-wall FPS fields are 0/not applicable.\r\n");
             tool.ReportAddText("DIAG-Stripe modes if present: threshold column is log2(stripe width), not luma threshold. Synthetic 50% coverage diagnostic, not a quality algorithm or measured hardware branch efficiency.\r\n");
-            if(m_costFocused) {
+            if(m_pairOrder>=0) {
+                tool.ReportAddText(m_pairOrder==0?"Independent process pair order: AB\r\n":"Independent process pair order: BA\r\n");
+                tool.ReportAddText("Common preconditioning: O-T2X-R, 30 seconds, static t=2; then 300-frame per-mode warmup. A=O-T2X-R; B=ABL-ScalarWeight-001-R.\r\n");
+            } else if(m_costFocused) {
                 tool.ReportAddText("Focused same-selector confirmation: 30 seconds unmeasured rendering before the ordinary 300-frame per-mode warmup; alternating forward/reverse mode order (3-mode cost gate keeps native in the middle). No capture or algorithm change.\r\n");
             }
             Configure();
+            if(m_pairOrder>=0) {
+                smaa->SetTemporalContrast(0,0);
+                smaa->ResetTemporalHistory();
+            }
         } else {
             if(m_costFocused && !m_preconditionReady) {
                 m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f);
@@ -266,12 +280,22 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool warpSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalWarpSmoke")==0;
         bool warp=warpCapture||warpBench||warpSmoke;
         capture=capture||warpCapture;bench=bench||warpBench;smoke=smoke||warpSmoke;
+        bool pairBench=_wcsicmp(p.first.c_str(),L"smaaTemporalPairBenchmark")==0;
+        bool pairSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalPairSmoke")==0;
+        bool pair=pairBench||pairSmoke;
+        bench=bench||pairBench;smoke=smoke||pairSmoke;
         if(!capture && !bench && !smoke && !quality)continue;
         std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
+        int pairOrder=-1;
+        if(pair) {
+            std::wstring order,extra;input>>order;
+            if((order!=L"AB" && order!=L"BA") || (input>>extra)) {VA_LOG_ERROR("Expected pair order AB or BA and no extra arguments");return true;}
+            pairOrder=order==L"AB"?0:1;
+        }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder));
         return true;
     }
     return false;
