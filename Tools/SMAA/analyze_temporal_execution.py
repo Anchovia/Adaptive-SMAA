@@ -51,7 +51,7 @@ def capture(folder, old):
         locality=summaries,locality_note='Screen-space tile proxy, NOT measured warp divergence or memory transactions; partial bottom tiles excluded.',
         frame_hashes=manifests,per_frame_locality=locality)
 
-def performance(path, modes=None):
+def performance(path, modes=None, repeats=3):
     modes=MODES if modes is None else modes
     text=path.read_text(encoding='utf-8-sig');assert 'Aggregate: PASS' in text
     assert '1920 x 1061' in text and 'Vsync:        OFF' in text
@@ -60,18 +60,18 @@ def performance(path, modes=None):
         v=[s.strip() for s in next(csv.reader([line]))]
         if v and v[0]=='timing': rows.append(dict(mode=v[1],run=int(v[2]),metric=v[3],samples=int(v[4]),mean_ms=float(v[5]),p95_ms=float(v[6])))
         if v and v[0]=='distribution': distributions.append(dict(mode=v[1],run=int(v[2]),metric=v[3],samples=int(v[4]),median_ms=float(v[5]),sample_std_ms=float(v[6]),p99_ms=float(v[7]),wall_fps=float(v[8]),wall_1pct_low_fps=float(v[9])))
-    assert len(rows)==len(modes)*15 and len(distributions)==len(modes)*15 and set(x['mode'] for x in rows)==set(modes)
+    assert len(rows)==len(modes)*repeats*5 and len(distributions)==len(modes)*repeats*5 and set(x['mode'] for x in rows)==set(modes)
     metrics=['SMAA','Spatial','Resolve','WholeFrame','WallFrame']
     result={}
     for n in modes:
         result[n]={}
         for m in metrics:
             cells=sorted([r for r in rows if r['mode']==n and r['metric']==m],key=lambda x:x['run'])
-            assert [x['run'] for x in cells]==[0,1,2] and all(x['samples']==4800 for x in cells)
+            assert [x['run'] for x in cells]==list(range(repeats)) and all(x['samples']==4800 for x in cells)
             a=np.array([x['mean_ms'] for x in cells]);assert np.all(np.isfinite(a)&(a>0))
             result[n][m]=dict(mean_ms=float(a.mean()),run_std_ms=float(a.std(ddof=1)),runs_ms=a.tolist())
             d=sorted([r for r in distributions if r['mode']==n and r['metric']==m],key=lambda x:x['run'])
-            assert [x['run'] for x in d]==[0,1,2] and all(x['samples']==4800 for x in d)
+            assert [x['run'] for x in d]==list(range(repeats)) and all(x['samples']==4800 for x in d)
             assert all(np.isfinite(x[k]) and x[k]>=0 for x in d for k in ['median_ms','sample_std_ms','p99_ms','wall_fps','wall_1pct_low_fps'])
             result[n][m]['run_distributions']=d
     for n in modes:

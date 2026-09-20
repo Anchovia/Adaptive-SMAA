@@ -2,7 +2,8 @@
 import argparse,hashlib,json,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[2]
-p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True)
+p.add_argument('--implementation-commit',required=True);a=p.parse_args()
 receipts=json.loads(a.receipt.read_text(encoding='utf-8-sig'))
 assert len(receipts)==6 and len({r['executable_sha256'] for r in receipts})==1
 assert {(r['scene'],r['phase']) for r in receipts}=={(s,p) for s in ('bistro','minecraft') for p in ('Smoke','Capture','Benchmark')}
@@ -58,7 +59,7 @@ for d in data.values(): d['performance'].pop('distributions',None) # Already sto
 out=root/'Docs/Temporal-Contrast-Cost'
 result=dict(classification='Same-selector temporal PS optimization gate; not final eight-case data',
     implementation_commit=subprocess.check_output(['git','-c',f'safe.directory={root.as_posix()}',
-        'log','-1','--format=%H','--','Projects/CMAA2/TemporalContrastExperiment.inl'],cwd=root,text=True).strip(),
+        'rev-parse',a.implementation_commit+'^{commit}'],cwd=root,text=True).strip(),
     receipts=receipts,byte_exact_variants_in_both_scenes=eligible,scenes=data)
 (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
 (out/'report.md').write_text('\n'.join(lines),encoding='utf-8')

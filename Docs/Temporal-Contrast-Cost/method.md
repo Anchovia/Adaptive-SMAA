@@ -57,3 +57,17 @@ paired jitter, spatial-frame history 및 기존 0.01 선택 threshold를 유지�
 -Scene bistro|minecraft -Receipt tmp/temporal-cost-final-runs.json`, `analyze_temporal_cost.py`.
 초기 smoke `20260921_003723`은 specialization 추가 전 예비 빌드이며 최종 paired 결과와 분리한다.
 기본값은 gate 통과 전 변경하지 않는다.
+
+## 소폭 차이의 후속 확인
+
+10-mode 비교에서 ScalarWeight가 Minecraft의 기존 선택보다 빨랐지만 원본 대비 차이는
+작았고, 첫 mode의 불변 spatial 시간도 흔들렸다. 따라서 셰이더와 binding을 바꾸지 않고
+별도 3-mode 확인을 수행한다. 선택/원본/ScalarWeight 순서를 정방향·역방향으로 교차하며
+원본은 가운데에 둔다. 장면 로드 후 30초의 미측정 렌더링을 거치고 history와 표본을
+초기화한 다음 각 mode 300-frame warmup, 4,800-frame 측정을 5회 반복한다.
+
+`run_temporal_cost_focused.ps1 -Phase Smoke|Benchmark -Scene bistro|minecraft`는
+각 명령을 독립 프로세스로 실행한다. `analyze_temporal_cost_focused.py`는 두 장면의
+smoke/benchmark 네 receipt, 동일 EXE, 실제 예열 시간, 표본 수 및 출력 검증 commit과의
+셰이더/binding 불변을 확인한다. 한 프로세스의 5회 반복을 서로 독립적인 GPU 표본으로
+취급하지 않으며, 평균뿐 아니라 반복별 원본과의 차이를 함께 공개한다.

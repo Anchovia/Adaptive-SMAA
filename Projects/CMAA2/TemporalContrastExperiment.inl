@@ -4,6 +4,8 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     struct Config { const char* name; int kind; float threshold; };
     std::vector<Config> m_configs;
     bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
+    bool m_costFocused = false, m_preconditionReady = false;
+    double m_preconditionUntil = 0;
     int m_frames, m_warmup, m_repeats, m_run = 0, m_slot = 0, m_frame = 0;
     int m_savedKind = 0, m_savedPreset = 0;
     float m_savedThreshold = 0;
@@ -52,11 +54,12 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
+        m_costFocused=costFocused;
         m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-All-R",1,0},
             {"ABL-Contrast-0005-R",1,0.005f},{"ABL-Contrast-001-R",1,0.01f},
             {"ABL-Contrast-002-R",1,0.02f},{"ABL-Contrast-None-R",1,2.0f}};
@@ -107,6 +110,10 @@ public:
                 {"ABL-ScalarFixedThreshold-001-R",22,0.01f}};
             if(capture) m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
         }
+        if(costFocused) {
+            // Native is in the middle in both forward/reverse order. No shader change.
+            m_configs={{"ABL-Contrast-001-R",1,0.01f},{"O-T2X-R",0,0},{"ABL-ScalarWeight-001-R",16,0.01f}};
+        }
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -136,8 +143,20 @@ public:
             if(!m_capture)tool.ReportAddRowValues({"kind","mode","run","metric","samples","mean_ms","p95_ms","threshold"});
             if(m_execution)tool.ReportAddText("distribution columns: mode, run, metric, samples, median_ms, sample_std_ms, p99_ms, wall_fps, wall_1pct_low_fps (slowest ceil(N/100) intervals). Non-wall FPS fields are 0/not applicable.\r\n");
             tool.ReportAddText("DIAG-Stripe modes if present: threshold column is log2(stripe width), not luma threshold. Synthetic 50% coverage diagnostic, not a quality algorithm or measured hardware branch efficiency.\r\n");
+            if(m_costFocused) {
+                tool.ReportAddText("Focused same-selector confirmation: 30 seconds unmeasured rendering before the ordinary 300-frame per-mode warmup; native stays in the middle of forward/reverse order. No capture or algorithm change.\r\n");
+            }
             Configure();
         } else {
+            if(m_costFocused && !m_preconditionReady) {
+                m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f);
+                if(m_preconditionUntil==0)m_preconditionUntil=now+30.0;
+                if(now<m_preconditionUntil)return;
+                m_preconditionReady=true;
+                tool.ReportAddText(vaStringTools::Format("Focused preconditioning elapsed seconds: %.6f\r\n",now-m_preconditionUntil+30.0));
+                Configure(); // Discard preconditioning samples/history before ordinary warmup.
+                return;
+            }
             if(!m_capture && m_frame>=0) {
                 const double t=Time("SMAA"),s=Time("SMAASpatial"),r=Time("SMAATemporalResolve");
                 if(t>0 && s>0 && r>0) {m_total.push_back(t);m_spatial.push_back(s);m_resolve.push_back(r);}
@@ -219,8 +238,11 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool locality=localityCapture||localityBench||localitySmoke;
         capture=capture||localityCapture;bench=bench||localityBench;smoke=smoke||localitySmoke;
         bool costCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalCostCapture")==0;
-        bool costBench=_wcsicmp(p.first.c_str(),L"smaaTemporalCostBenchmark")==0;
-        bool costSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalCostSmoke")==0;
+        bool costFocusedBench=_wcsicmp(p.first.c_str(),L"smaaTemporalCostFocusedBenchmark")==0;
+        bool costFocusedSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalCostFocusedSmoke")==0;
+        bool costFocused=costFocusedBench||costFocusedSmoke;
+        bool costBench=_wcsicmp(p.first.c_str(),L"smaaTemporalCostBenchmark")==0||costFocusedBench;
+        bool costSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalCostSmoke")==0||costFocusedSmoke;
         bool cost=costCapture||costBench||costSmoke;
         capture=capture||costCapture;bench=bench||costBench;smoke=smoke||costSmoke;
         if(!capture && !bench && !smoke && !quality)continue;
@@ -228,7 +250,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         if(scene!=L"bistro" && scene!=L"minecraft") {VA_LOG_ERROR("Expected bistro or minecraft");return true;}
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:3,quality,execution,dependency,locality,cost));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",quality?qualityFrames:capture?240:smoke?240:4800,smoke?1:costFocused?5:3,quality,execution,dependency,locality,cost,costFocused));
         return true;
     }
     return false;
