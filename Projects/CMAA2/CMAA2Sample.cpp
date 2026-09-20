@@ -33,6 +33,7 @@
 
 using namespace VertexAsylum;
 
+#include "ShaderLifetimeTest.inl"
 #include "TemporalContrastExperiment.inl"
 
 void CMAA2StartStopCallback(vaApplicationBase& application, bool starting)

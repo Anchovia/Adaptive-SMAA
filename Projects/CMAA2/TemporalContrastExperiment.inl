@@ -168,6 +168,10 @@ public:
 
 static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& tool) {
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
+        if(_wcsicmp(p.first.c_str(),L"smaaShaderLifetimeTest")==0) {
+            tool.AddTask(std::make_shared<BenchItemShaderLifetime>(parent));
+            return true;
+        }
         bool capture=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastCapture")==0;
         bool bench=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastBenchmark")==0;
         bool smoke=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastSmoke")==0;

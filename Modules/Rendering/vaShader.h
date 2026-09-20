@@ -97,6 +97,7 @@ namespace VertexAsylum
                                         vaShader( const vaRenderingModuleParams & params );
     public:
         virtual                         ~vaShader( );
+        void                            PrepareForDestruction( ) override final { WaitFinishIfBackgroundCreateActive(); }
 
         virtual void                    CreateShaderFromFile( const wstring & filePath, const string & shaderModel, const string & entryPoint, const vaShaderMacroContaner & macros, bool forceImmediateCompile );
         void                            CreateShaderFromFile( const string & filePath, const string & shaderModel, const string & entryPoint, const vaShaderMacroContaner & macros, bool forceImmediateCompile )    { CreateShaderFromFile( vaStringTools::SimpleWiden(filePath), shaderModel, entryPoint, macros, forceImmediateCompile ); }
