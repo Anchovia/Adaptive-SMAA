@@ -1,0 +1,141 @@
+{
+  "native_variants_unchanged": 8,
+  "scalar_variants_unchanged": 2,
+  "shader_variants": [
+    {
+      "entry": "DX10_SMAAScalarCurrentLinearResolvePS",
+      "reprojection": 0,
+      "sha256": "02fa446048182fb926096a96c595164657a512fa3f5dc9a46d92756c435d24ab",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s0, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+      ],
+      "derivative_instructions": 2,
+      "executable_instruction_count": 11
+    },
+    {
+      "entry": "DX10_SMAACurrentDeJitterResolvePS",
+      "reprojection": 0,
+      "sha256": "12d185b1ad1542b71b8858e0b6d9654a3e08bb046846c4e8e2ce67f61890a687",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t2.xyzw, s0, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+      ],
+      "derivative_instructions": 0,
+      "executable_instruction_count": 9
+    },
+    {
+      "entry": "DX10_SMAAScalarDeJitterResolvePS",
+      "reprojection": 0,
+      "sha256": "acd0b87c6ca4a87428f167bc0f59069293a467a6c5c6a6775bac109d318e4fd7",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t2.xyzw, s0, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+      ],
+      "derivative_instructions": 2,
+      "executable_instruction_count": 15
+    },
+    {
+      "entry": "DX10_SMAADeJitterMaskPS",
+      "reprojection": 0,
+      "sha256": "fdb2f406f95329cc1f6c67aa933cf107ca9bcce1bca13ecdd4d7a98afd4da2a1",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyz, r0.xyxx, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 2,
+      "executable_instruction_count": 13
+    },
+    {
+      "entry": "DX10_SMAADeJitterSpatialPS",
+      "reprojection": 0,
+      "sha256": "37cca598dd8487d82339a9c1b506ecdcb1efe451e6a24649a1a8ce8f422eae47",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) o0.xyzw, r0.xyxx, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 0,
+      "executable_instruction_count": 6
+    },
+    {
+      "entry": "DX10_SMAAScalarCurrentLinearResolvePS",
+      "reprojection": 1,
+      "sha256": "320dec3e42d0f16902f1e5190d9bd67557d9dc9338e769b49501ccc0c59420a2",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 2,
+      "executable_instruction_count": 20
+    },
+    {
+      "entry": "DX10_SMAACurrentDeJitterResolvePS",
+      "reprojection": 1,
+      "sha256": "8cf8e860c759a93e7df570f879cf63227da906b3d70223224167c741440077d7",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, r1.yzyy, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 0,
+      "executable_instruction_count": 18
+    },
+    {
+      "entry": "DX10_SMAAScalarDeJitterResolvePS",
+      "reprojection": 1,
+      "sha256": "329774cff88b511d6e8e192245efdb60dec30f34551168a1d424f2941c525457",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, r1.yzyy, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 2,
+      "executable_instruction_count": 24
+    },
+    {
+      "entry": "DX10_SMAADeJitterMaskPS",
+      "reprojection": 1,
+      "sha256": "fdb2f406f95329cc1f6c67aa933cf107ca9bcce1bca13ecdd4d7a98afd4da2a1",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyz, r0.xyxx, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 2,
+      "executable_instruction_count": 13
+    },
+    {
+      "entry": "DX10_SMAADeJitterSpatialPS",
+      "reprojection": 1,
+      "sha256": "37cca598dd8487d82339a9c1b506ecdcb1efe451e6a24649a1a8ce8f422eae47",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) o0.xyzw, r0.xyxx, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 0,
+      "executable_instruction_count": 6
+    }
+  ],
+  "cpu_sign_probes": [
+    {
+      "subsample_index": 0,
+      "screen_jitter": [
+        0,
+        0
+      ],
+      "interior_ramp_error": 0.0
+    },
+    {
+      "subsample_index": 1,
+      "screen_jitter": [
+        0.25,
+        0.25
+      ],
+      "interior_ramp_error": 1.1102230246251565e-16
+    },
+    {
+      "subsample_index": 2,
+      "screen_jitter": [
+        -0.25,
+        -0.25
+      ],
+      "interior_ramp_error": 1.1102230246251565e-16
+    }
+  ]
+}

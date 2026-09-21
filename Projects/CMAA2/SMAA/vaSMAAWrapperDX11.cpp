@@ -445,7 +445,12 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
             {
                 VA_SCOPE_CPUGPU_TIMER(SMAATemporalResolve, deviceContext);
-                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), GetTemporalContrastKind() );
+                int resolveKind = GetTemporalContrastKind();
+                // New current-de-jitter modes seed with their own current value,
+                // avoiding a blend with uncorrected self-history on first frame.
+                // Same fullscreen draw; no extra pass or resource.
+                if(!m_temporalHistoryValid && (resolveKind == 28 || resolveKind == 29)) resolveKind = 31;
+                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), resolveKind );
             }
 
             m_temporalHistoryValid = true;
@@ -648,11 +653,18 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "StripeBranchResolve" || name == "StripeFlattenResolve" || name == "ScalarWeightResolve" ||
         name == "ScalarReassociatedResolve" || name == "BranchReassociatedResolve" || name == "HistoryLoadResolve" || name == "SelectorAnyResolve" ||
         name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" ||
-        name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" )
+        name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" ||
+        name == "ScalarCurrentLinearResolve" || name == "CurrentDeJitterResolve" ||
+        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        const char * entry = name == "HistoryLinearResolve" ? "DX10_SMAAHistoryLinearResolvePS" :
+        const char * entry = name == "ScalarCurrentLinearResolve" ? "DX10_SMAAScalarCurrentLinearResolvePS" :
+            name == "CurrentDeJitterResolve" ? "DX10_SMAACurrentDeJitterResolvePS" :
+            name == "ScalarDeJitterResolve" ? "DX10_SMAAScalarDeJitterResolvePS" :
+            name == "DeJitterMask" ? "DX10_SMAADeJitterMaskPS" :
+            name == "DeJitterSpatial" ? "DX10_SMAADeJitterSpatialPS" :
+            name == "HistoryLinearResolve" ? "DX10_SMAAHistoryLinearResolvePS" :
             name == "ScalarHistoryLinearResolve" ? "DX10_SMAAScalarHistoryLinearResolvePS" :
             name == "NvWarpResolve" ? "DX10_SMAANvWarpResolvePS" :
             name == "NvWarpMask" ? "DX10_SMAANvWarpMaskPS" : name == "FixedThresholdResolve" ? "DX10_SMAAFixedThresholdResolvePS" :

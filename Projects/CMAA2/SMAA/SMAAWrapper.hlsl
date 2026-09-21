@@ -234,6 +234,7 @@ float4 DX10_SMAAContrastResolvePS(float4 position : SV_POSITION,
 
 #include "TemporalContrastExecution.hlsl"
 #include "TemporalContrastCost.hlsl"
+#include "TemporalDeJitter.hlsl"
 #if VA_NV_WARP_EXTENSION
 #include "TemporalContrastWarp.hlsl"
 #endif
