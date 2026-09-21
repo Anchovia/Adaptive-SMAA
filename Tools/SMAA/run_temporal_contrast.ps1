@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Capture','Smoke','Benchmark','QualityCapture')][string] $Phase = 'Capture',
+    [ValidateSet('Capture','Smoke','Benchmark','QualityCapture','JitterCapture')][string] $Phase = 'Capture',
     [ValidateSet('bistro','minecraft')][string] $Scene = 'bistro',
     [string] $Receipt = 'tmp/temporal-contrast-runs.json',
     [ValidateRange(1,240)][int] $QualityFrames = 240

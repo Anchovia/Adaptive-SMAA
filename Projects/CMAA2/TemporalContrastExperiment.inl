@@ -2,10 +2,11 @@
 #include "../../External/RenderDoc/renderdoc_app.h"
 class BenchItemTemporalContrast : public AutoBenchToolWorkItem
 {
-    struct Config { const char* name; int kind; float threshold; };
+    struct Config { const char* name; int kind; float threshold; bool pattern = true; };
     std::vector<Config> m_configs;
     bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
     bool m_warp = false;
+    bool m_jitterAblation = false, m_savedPattern = true;
     int m_pairOrder = -1;
     bool m_counterCapture = false, m_counterCaptureActive = false;
     RENDERDOC_API_1_6_0* m_renderdoc = nullptr;
@@ -27,6 +28,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         m_parent.Settings().CurrentAAOption = c.kind==4 ?
             CMAA2Sample::AAType::SuperSampleReference : CMAA2Sample::AAType::SMAA_T2x_Reprojected;
         smaa->SetTemporalContrast(c.kind==4?0:c.kind,c.threshold);
+        smaa->SetTemporalSamplePatternEnabled(c.pattern);
         smaa->ResetTemporalHistory();
         m_frame = -m_warmup;
         m_total.clear();m_spatial.clear();m_resolve.clear();m_whole.clear();m_wall.clear();
@@ -59,7 +61,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp||pairOrder>=0),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
@@ -138,6 +140,14 @@ public:
             m_counterCapture=true;m_capture=true;m_warmup=300;m_repeats=1;
             m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-001-R",1,0.01f},{"ABL-ScalarWeight-001-R",16,0.01f}};
         }
+        if(jitterAblation) {
+            m_jitterAblation=true;
+            m_configs={{"O-T2X-R",0,0,true},{"ABL-ScalarWeight-001-R",16,0.01f,true},
+                {"ABL-Standard-PatternOff-R",0,0,false},{"ABL-ScalarWeight-001-PatternOff-R",16,0.01f,false},
+                {"DBG-ContrastMask-001-R",2,0.01f,true},{"DBG-ContrastMask-001-PatternOff-R",2,0.01f,false},
+                {"DBG-CurrentSpatial-R",3,0,true},{"DBG-CurrentSpatial-PatternOff-R",3,0,false},
+                {"ABL-Standard-PatternOff-R-Repeat",0,0,false},{"ABL-ScalarWeight-001-PatternOff-R-Repeat",16,0.01f,false}};
+        }
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -146,6 +156,7 @@ public:
             m_started=true;
             auto smaa=m_parent.GetSMAA();
             m_savedKind=smaa->GetTemporalContrastKind();
+            m_savedPattern=smaa->GetTemporalSamplePatternEnabled();
             m_savedThreshold=smaa->GetTemporalContrastThreshold();
             m_savedPreset=int(smaa->GetSettings().Preset);
             smaa->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
@@ -173,6 +184,7 @@ public:
                 tool.ReportAddText("Same pixel selector; warp-uniform history execution; per-pixel weight masking. NVIDIA-only diagnostic.\r\n");
             }
             tool.ReportAddText("Native Standard temporal contrast engineering gate\r\n");
+            if(m_jitterAblation)tool.ReportAddText("Pattern ablation: On=paired projection jitter/subsample indices; Off=zero jitter/1X indices. Spatial-frame history and camera reprojection preserved. Diagnostic Off modes are not official T2X.\r\n");
             tool.ReportAddText(m_capture?"Purpose: quality/correctness capture; no GPU performance claim\r\n":"Purpose: paired GPU performance; no PNG or candidate readback\r\n");
             tool.ReportAddText(vaStringTools::Format("Scene: %s\r\nFrames: %d\r\nWarmup: %d\r\nRepeats: %d\r\n",
                 m_scene==CMAA2Sample::SceneSelectionType::MinecraftLostEmpire?"minecraft":"bistro",m_frames,m_warmup,m_repeats));
@@ -222,6 +234,7 @@ public:
                     tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");
                     tool.ReportFinish();m_done=true;
                     m_parent.GetSMAA()->SetTemporalContrast(m_savedKind,m_savedThreshold);
+                    m_parent.GetSMAA()->SetTemporalSamplePatternEnabled(m_savedPattern);
                     m_parent.GetSMAA()->GetSettings().Preset=vaSMAAWrapper::Preset(m_savedPreset);
                     return;
                 }
@@ -254,6 +267,18 @@ public:
             return;
         }
         const auto c=Current();
+        if(m_jitterAblation) {
+            auto smaa=m_parent.GetSMAA();
+            bool ok=smaa->GetTemporalSamplePatternEnabled()==c.pattern;
+            for(int k=0;k<4;k++) {
+                const float expected=c.pattern && k<3 ? float(m_frame%2+1) : 0.0f;
+                ok=ok && smaa->GetTemporalSubsampleIndexForDiagnostics(k)==expected;
+            }
+            const auto jitter=smaa->GetTemporalJitterOffset();
+            ok=ok && (c.pattern ? (fabs(jitter.x)==0.25f && fabs(jitter.y)==0.25f) : (jitter.x==0 && jitter.y==0));
+            m_failed=m_failed||!ok;
+            tool.ReportAddRowValues({"pattern_check",c.name,std::to_string(m_frame),c.pattern?"On":"Off",ok?"PASS":"FAIL"});
+        }
         const auto dir=tool.ReportGetDir()+vaStringTools::SimpleWiden(c.name)+L"\\";
         vaFileTools::EnsureDirectoryExists(dir);
         const auto path=dir+vaStringTools::Format(L"frame_%05d.png",m_frame);
@@ -282,6 +307,8 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool bench=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastBenchmark")==0;
         bool smoke=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastSmoke")==0;
         bool quality=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastQualityCapture")==0;
+        bool jitterAblation=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastJitterCapture")==0;
+        capture=capture||jitterAblation;
         bool executionCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionCapture")==0;
         bool executionBench=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionBenchmark")==0;
         bool executionSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionSmoke")==0;
@@ -327,7 +354,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation));
         return true;
     }
     return false;

@@ -58,6 +58,7 @@ namespace VertexAsylum
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
         int                         m_contrastResolveKind               = 0;
+        bool                        m_temporalSamplePatternEnabled      = true;
 
         //bool                        m_debugShowEdges;
 
@@ -106,6 +107,14 @@ namespace VertexAsylum
         virtual bool SupportsTemporalWarp() { return false; }
         Settings & GetSettings() { return m_settings; }
         int GetTemporalContrastKind() const { return m_contrastResolveKind; }
+        bool GetTemporalSamplePatternEnabled() const { return m_temporalSamplePatternEnabled; }
+        void SetTemporalSamplePatternEnabled(bool enabled) {
+            if(m_temporalSamplePatternEnabled != enabled) {
+                m_temporalSamplePatternEnabled = enabled;
+                ResetTemporalHistory();
+            }
+        }
+        float GetTemporalSubsampleIndexForDiagnostics(int index) const { return m_constants.subsampleIndices[index]; }
         float GetTemporalContrastThreshold() const { return m_constants.padding0; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
@@ -113,6 +122,7 @@ namespace VertexAsylum
         // Y while applying it to the projection matrix.
         vaVector2                   GetTemporalJitterOffset( ) const
         {
+            if(!m_temporalSamplePatternEnabled) return vaVector2(0,0);
             return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
         }
 

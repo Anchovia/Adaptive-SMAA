@@ -435,7 +435,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
             {
                 VA_SCOPE_CPUGPU_TIMER(SMAASpatial, deviceContext);
-                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+                // Disable the paired pattern as a unit: zero projection jitter and
+                // ordinary 1X area-table indices. Keep temporal history/resolve active.
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode,
+                    GetTemporalSamplePatternEnabled() ? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X );
             }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
