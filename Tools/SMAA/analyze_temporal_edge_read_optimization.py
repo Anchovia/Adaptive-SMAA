@@ -63,7 +63,13 @@ def timing(scene,phase):
  result=dict(scene=scene,phase=phase,validation='PASS',receipt=r,means=means,timing_rows=rows,distribution_rows=dist)
  (OUT/f'{scene}-{phase}.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(means,indent=2))
 def summary():
- lines=['# Output-preserving edgesRT read: measured tables','','Times are ms. Binding is not a CPU-to-GPU texture copy.',''];stats={};hashes=set()
+ probe=json.loads((ROOT/'Docs/Temporal-Edge-Read-Optimization/raster-probe.json').read_text())
+ assert probe['validation']=='PASS' and len(probe['fixtures'])==20
+ assert all(x['rg_bit_mismatches']==x['border_mismatches']==x['cpu_value_mismatches']==0 for x in probe['fixtures'])
+ shader=json.loads((ROOT/'Docs/Temporal-Edge-Read-Optimization/shader-validation.json').read_text())
+ assert shader['native_unchanged']==8 and shader['old_load_instructions_unchanged']
+ assert shader['duplicate_of']==dict(One=None,Point=None,EarlyLoad='One',EarlyPoint='Point')
+ lines=['# Identical first-pass edge RG: Load vs Point','','Times are ms. No texture copy or candidate selection.',''];stats={};hashes=set()
  for scene in ('bistro','minecraft'):
   data={p:json.loads((OUT/f'{scene}-{p}.json').read_text()) for p in ('capture','Smoke','Benchmark')}
   for d in data.values():assert d['validation']=='PASS';hashes.add(d['receipt']['executable_sha256'])
