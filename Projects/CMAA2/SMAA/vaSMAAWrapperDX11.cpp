@@ -669,7 +669,7 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" ||
         name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" ||
         name == "ScalarCurrentLinearResolve" || name == "CurrentDeJitterResolve" ||
-        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" || name == "ScalarPairedDeJitterResolve" || name == "SpeedBranch" || name == "SpeedUniformScalar" || name == "SpeedUniformBranch" || name == "SpeedUniformPrefetch" || name == "SpeedUniformWarp" || name == "SpeedPhasePositive" || name == "SpeedPhaseNegative" || name == "SpeedGroup4" || name == "SpeedGroup8" || name == "SpeedGroup16" || name == "SpeedDensity8" || name == "SpeedDensity16" || name == "ContributionNative" || name == "ContributionPaired" || name == "ContributionNativeMask" || name == "ContributionPairedMask" || name == "ContributionZeroMask" )
+        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" || name == "ScalarPairedDeJitterResolve" || name == "SpeedBranch" || name == "SpeedUniformScalar" || name == "SpeedUniformBranch" || name == "SpeedUniformPrefetch" || name == "SpeedUniformWarp" || name == "SpeedPhasePositive" || name == "SpeedPhaseNegative" || name == "SpeedGroup4" || name == "SpeedGroup8" || name == "SpeedGroup16" || name == "SpeedDensity8" || name == "SpeedDensity16" || name == "ContributionNative" || name == "ContributionPaired" || name == "ContributionNativeMask" || name == "ContributionPairedMask" || name == "ContributionZeroMask" || name == "BlendReadControl" || name == "BlendReadOne" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
@@ -679,6 +679,8 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
             name == "DeJitterMask" ? "DX10_SMAADeJitterMaskPS" :
             name == "DeJitterSpatial" ? "DX10_SMAADeJitterSpatialPS" :
             name == "PairedDeJitterResolve" ? "DX10_SMAAPairedDeJitterResolvePS" :
+            name == "BlendReadControl" ? "DX10_SMAABlendReadControlPS" :
+            name == "BlendReadOne" ? "DX10_SMAABlendReadOnePS" :
             name == "ContributionNative" ? "DX10_SMAAContributionNativePS" :
             name == "ContributionPaired" ? "DX10_SMAAContributionPairedPS" :
             name == "ContributionNativeMask" ? "DX10_SMAAContributionNativeMaskPS" :

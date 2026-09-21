@@ -262,6 +262,8 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
     #endif
 }
 
+#include "TemporalBlendRead.hlsl"
+
 float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
                                          float2 texcoord : TEXCOORD0) : SV_TARGET {
     float depth = depthTex.Load(int3(int2(position.xy), 0)).r;
