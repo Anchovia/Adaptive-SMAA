@@ -24,7 +24,7 @@ Original 공간 SMAA / 원본 O-T2X-R / camera-depth R On / paired jitter / spat
 Control과 One은 같은 마지막 vector 산술을 갖도록 bytecode를 확인한다.
 One−Control은 texture 좌표/읽기/그에 따른 의존성과 자원 압력의 증분 대용값이고,
 One−Native는 연결·측정용 산술까지 포함한 관측 비용이다. 둘 다 순수 DRAM 전달 지연으로 부르지 않는다.
-네 방식의 캡처는 원본 RGBA와 byte/hash 일치를 검사한다. 별도 observable 진단에서는
+네 방식의 캡처는 원본 PNG RGB와 byte/hash 일치를 검사한다. PNG에는 alpha가 저장되지 않는다. 별도 observable 진단에서는
 동일 One shader의 scale을 1로 바꿔 실제 blend 값이 출력에 영향을 주는지 확인하고 timing에서 제외한다.
 기존 shader 불변, first-frame seed와 jitter pairing도 확인한다.
 

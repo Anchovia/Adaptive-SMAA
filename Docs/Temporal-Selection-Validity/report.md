@@ -63,8 +63,10 @@ history 접근 생략으로 해석하지 않는다. 미분을 제거한 선택�
 - 신규 10개 R Off/On shader variant 컴파일 통과. 새 선택 경로에 미분·동적 분기 없음.
   R Off는 compile 검증만 했고 품질·성능 실행은 R On이다.
 - 두 장면의 기존 대조군 490 PNG hash 비교에서 불일치 0.
-- 신규 두 방식의 총 196 frame에서 selected=full, unselected=current RGBA 불일치 0.
+- 신규 두 방식의 총 196 frame에서 selected=full, unselected=current RGB 불일치 0.
   별도 진단 실행의 실제 mask를 사용했으며 mask는 이진값이고 first frame은 0이다.
+  후속 blend-read 검사에서 PNG가 RGB 형식임을 명시적으로 확인했다. 분석기의 RGBA 변환은
+  alpha=255를 붙이므로 이전 RGBA 표현을 RGB로 정정한다. 기존 RGB 지표와 결론은 불변이다.
 - 전체 렌더 구간 4,320개 jitter/subsample pattern 검사 통과. 첫 frame은 history를 결합하지 않는다.
 
 RTX 3060 Ti, DX11, SMAA Ultra, 1920×1061, hidden, VSync Off다.

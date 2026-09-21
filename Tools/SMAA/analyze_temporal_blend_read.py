@@ -16,9 +16,11 @@ def read(scene,phase):
  for token in ('Aggregate: PASS','Blend texture read gate:','1920 x 1061','API:  DirectX11',f'Scene: {scene}'):assert token in text
  assert 'Aggregate: FAIL' not in text
  return r,p.parent,text
-def rgba(p):
- with Image.open(p) as im:a=np.asarray(im.convert('RGBA'))
- assert a.shape==(1061,1920,4)
+def rgb(p):
+ with Image.open(p) as im:
+  assert im.mode=='RGB',im.mode
+  a=np.asarray(im)
+ assert a.shape==(1061,1920,3)
  return a
 def capture(scene):
  r,cap,text=read(scene,'Capture')
@@ -34,12 +36,12 @@ def capture(scene):
   for mode in MODES[1:]:
    assert sha(cap/mode/f)==sha(native),(scene,mode,f,'output mismatch')
    checks.append(dict(frame=f,mode=mode,sha256=sha(native)))
-  a,b=rgba(native),rgba(cap/DEBUG/f)
+  a,b=rgb(native),rgb(cap/DEBUG/f)
   diff=np.abs(a.astype(np.int16)-b.astype(np.int16))
-  observable.append(dict(frame=f,changed_rgba_pixels=int(np.any(diff>0,axis=2).sum()),max_channel_delta=int(diff.max())))
- assert all(x['changed_rgba_pixels']>0 for x in observable),'probe never read meaningful data'
+  observable.append(dict(frame=f,changed_rgb_pixels=int(np.any(diff>0,axis=2).sum()),max_channel_delta=int(diff.max())))
+ assert all(x['changed_rgb_pixels']>0 for x in observable),'probe never read meaningful data'
  result=dict(scene=scene,validation='PASS',classification='Output-preserving engineering gate; no quality ranking',receipt=r,
-   baseline_bridge=10,exact_output_comparisons=len(checks),pattern_checks=len(patterns),mismatches=0,checks=checks,observable_scale_one=observable)
+   capture_channels='RGB only; alpha is not stored in PNG',baseline_bridge=10,exact_output_comparisons=len(checks),pattern_checks=len(patterns),mismatches=0,checks=checks,observable_scale_one=observable)
  (OUT/f'{scene}-capture.json').write_text(json.dumps(result,indent=2)+'\n')
  print(json.dumps({k:v for k,v in result.items() if k not in ('checks','observable_scale_one')},indent=2))
 def timing(scene,phase):
