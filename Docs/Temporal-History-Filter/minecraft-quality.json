@@ -1,0 +1,266 @@
+{
+  "scene": "minecraft",
+  "classification": "Same-pass history filtering engineering gate; spatial proxy, not absolute ghosting or temporal ground truth",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Capture",
+    "window": "hidden",
+    "executable_sha256": "493327353A245621914955A794C532F1F88FA8B05E7FC7096A8F5C10C83646AA",
+    "started_utc": "2026-09-21T06:17:47.8297661Z",
+    "completed_utc": "2026-09-21T06:21:08.7577211Z",
+    "arguments": [
+      "-smaaTemporalHistoryFilterCapture",
+      "minecraft"
+    ],
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_151748\\20260921_151748_results.csv",
+    "report_sha256": "BADE49B29854387CF87FBB83A63EB6C423D1B2C2057D5AEB440A5A481227C193"
+  },
+  "reference_analysis_sha256": "2021c678d5e521d26ec8267a494d5740d9d30dfa4be2fdb68e19414fb3d30992",
+  "reference": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_141121\\SS-Reference",
+  "pattern_checks": 2160,
+  "bridge_and_repeat_comparisons": 1680,
+  "mismatches": 0,
+  "selection_semantics_frames": 480,
+  "first_frame_differing_channels": {
+    "O-T2X-R": 0,
+    "ABL-HistoryLinear-R": 0,
+    "ABL-ScalarWeight-001-R": 0,
+    "ABL-ScalarHistoryLinear-001-R": 0
+  },
+  "pixel_stream_sha256": {
+    "O-T2X-R": "1c24be8dcfba45fc9c24658aed21cc8913f6f03687d9477f7a02c99a74619245",
+    "ABL-HistoryLinear-R": "8677e4b4b118d5fd91862c049f82293da01bc5802371a0e7984db50a248cfe40",
+    "ABL-ScalarWeight-001-R": "fda1a87ac46397663f2747243a3f2fd9ee2f7f45674e0a8b2d7bcf86bceee4fa",
+    "ABL-ScalarHistoryLinear-001-R": "1543728fcce0628fc5756dc06fc26654dac55dafadd8286fafb731bcea0c9939"
+  },
+  "windows": {
+    "initial_still": {
+      "O-T2X-R": {
+        "rgb_mae": 0.7136159545502146,
+        "psnr_db": 38.73958428582381,
+        "edge_reference_ratio": 0.9282174568087158,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 0.7136159545502146,
+        "psnr_db": 38.73958428582381,
+        "edge_reference_ratio": 0.9282174568087158,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 0.7503821571630538,
+        "psnr_db": 38.31645758903875,
+        "edge_reference_ratio": 0.9310684325368279,
+        "rgb_step": 0.31057915095821553,
+        "reference_delta_residual": 0.2851671385289437
+      },
+      "ABL-ScalarHistoryLinear-001-R": {
+        "rgb_mae": 0.7503821571630538,
+        "psnr_db": 38.31645758903875,
+        "edge_reference_ratio": 0.9310684325368279,
+        "rgb_step": 0.31057915095821553,
+        "reference_delta_residual": 0.2851671385289437
+      }
+    },
+    "moving": {
+      "O-T2X-R": {
+        "rgb_mae": 1.987355429069798,
+        "psnr_db": 34.42394139114516,
+        "edge_reference_ratio": 0.924703338663742,
+        "rgb_step": 5.294194291450675,
+        "reference_delta_residual": 2.0428289009352816
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 1.8363506799904876,
+        "psnr_db": 35.05146338976323,
+        "edge_reference_ratio": 0.8936089403109508,
+        "rgb_step": 5.097521659117883,
+        "reference_delta_residual": 1.8305269775476476
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 2.0508494685852794,
+        "psnr_db": 34.25459308904229,
+        "edge_reference_ratio": 0.9301112782483141,
+        "rgb_step": 5.455393129897982,
+        "reference_delta_residual": 2.2456263295314107
+      },
+      "ABL-ScalarHistoryLinear-001-R": {
+        "rgb_mae": 1.9231087270263902,
+        "psnr_db": 34.80173650272074,
+        "edge_reference_ratio": 0.9027201660061214,
+        "rgb_step": 5.286985744580584,
+        "reference_delta_residual": 2.069963234339063
+      }
+    },
+    "transition": {
+      "O-T2X-R": {
+        "rgb_mae": 1.7332032586309212,
+        "psnr_db": 35.512550653504576,
+        "edge_reference_ratio": 0.9290683509012037,
+        "rgb_step": 1.7729427956025063,
+        "reference_delta_residual": 0.8339423350366245
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 1.6687930155208224,
+        "psnr_db": 35.75466959586744,
+        "edge_reference_ratio": 0.9181466855660588,
+        "rgb_step": 1.6953325255480505,
+        "reference_delta_residual": 0.7449775742885423
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 1.8561601509320347,
+        "psnr_db": 35.1096736867747,
+        "edge_reference_ratio": 0.9345704301702096,
+        "rgb_step": 2.2076390007025166,
+        "reference_delta_residual": 1.2746556045806527
+      },
+      "ABL-ScalarHistoryLinear-001-R": {
+        "rgb_mae": 1.802625490343666,
+        "psnr_db": 35.31772842991937,
+        "edge_reference_ratio": 0.9250832208597437,
+        "rgb_step": 2.1421368184277587,
+        "reference_delta_residual": 1.2020239534826007
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "rgb_mae": 1.4717071159283694,
+        "psnr_db": 36.38471844375224,
+        "edge_reference_ratio": 0.9312103257398091,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 1.4717071159283694,
+        "psnr_db": 36.38471844375224,
+        "edge_reference_ratio": 0.9312103257398091,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 1.6213477851083882,
+        "psnr_db": 35.84881159113311,
+        "edge_reference_ratio": 0.9365503588080786,
+        "rgb_step": 0.580354945544036,
+        "reference_delta_residual": 0.5561212233148054
+      },
+      "ABL-ScalarHistoryLinear-001-R": {
+        "rgb_mae": 1.6213477851083882,
+        "psnr_db": 35.84881159113311,
+        "edge_reference_ratio": 0.9365503588080786,
+        "rgb_step": 0.580354945544036,
+        "reference_delta_residual": 0.5561212233148054
+      }
+    }
+  },
+  "coverage": {
+    "initial_still": {
+      "selected_pixels": 395103,
+      "selected_percent": 19.39517554194157,
+      "mask_switch_percent": 5.203718975808985
+    },
+    "moving": {
+      "selected_pixels": 1212646.8833333333,
+      "selected_percent": 59.527513515813176,
+      "mask_switch_percent": 20.77530083320243
+    },
+    "transition": {
+      "selected_pixels": 1316922.5666666667,
+      "selected_percent": 64.64629313278877,
+      "mask_switch_percent": 20.998980586972458
+    },
+    "late_still": {
+      "selected_pixels": 1290433.5,
+      "selected_percent": 63.34597372761546,
+      "mask_switch_percent": 19.243392632736413
+    }
+  },
+  "static_hashes": {
+    "initial_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-HistoryLinear-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarHistoryLinear-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-HistoryLinear-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarHistoryLinear-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    }
+  },
+  "roi": [
+    720,
+    240,
+    1200,
+    560
+  ],
+  "video": {
+    "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\HistoryFilterAnalysis\\minecraft\\four-way-60fps.mp4",
+    "frames": 240,
+    "fps": 60,
+    "size": [
+      1920,
+      350
+    ],
+    "pts_verified": true
+  },
+  "gifs": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\HistoryFilterAnalysis\\minecraft\\moving.gif",
+      "source_frames": [
+        90,
+        149
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\HistoryFilterAnalysis\\minecraft\\transition.gif",
+      "source_frames": [
+        160,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\HistoryFilterAnalysis\\minecraft\\still.gif",
+      "source_frames": [
+        200,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 660,
+      "fixed_palette": true
+    }
+  ]
+}
