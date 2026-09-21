@@ -1,0 +1,322 @@
+{
+  "scene": "minecraft",
+  "classification": "Paired current/history de-jitter engineering gate; changed selector and current alpha, Linear corrected history; unchanged raw spatial history storage; spatial proxy, not temporal ground truth",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Capture",
+    "window": "hidden",
+    "executable_sha256": "01FBDFEA94FDAF48A5166F161A76DA0B3E4F7AB2CB4EEE9343655E04083C4F45",
+    "started_utc": "2026-09-21T07:51:20.6044047Z",
+    "completed_utc": "2026-09-21T07:55:17.1513920Z",
+    "arguments": [
+      "-smaaTemporalPairedDeJitterCapture",
+      "minecraft"
+    ],
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_165121\\20260921_165121_results.csv",
+    "report_sha256": "8488C807DD724A13683ADA8C1F99413FC10253781A522C1126EC41EA0BB115A9"
+  },
+  "reference_analysis_sha256": "2021c678d5e521d26ec8267a494d5740d9d30dfa4be2fdb68e19414fb3d30992",
+  "reference": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_141121\\SS-Reference",
+  "pattern_checks": 2640,
+  "bridge_and_repeat_comparisons": 1680,
+  "mismatches": 0,
+  "selection_semantics_frames": 480,
+  "first_frame_differing_channels": {
+    "O-T2X-R": 0,
+    "ABL-ScalarWeight-001-R": 0,
+    "ABL-HistoryLinear-R": 0,
+    "ABL-PairedDeJitter-R": 0,
+    "ABL-ScalarPairedDeJitter-001-R": 0
+  },
+  "corrected_input_hash_comparisons": 480,
+  "full_static_hash_bridge": 40,
+  "pixel_stream_sha256": {
+    "O-T2X-R": "1c24be8dcfba45fc9c24658aed21cc8913f6f03687d9477f7a02c99a74619245",
+    "ABL-ScalarWeight-001-R": "fda1a87ac46397663f2747243a3f2fd9ee2f7f45674e0a8b2d7bcf86bceee4fa",
+    "ABL-HistoryLinear-R": "8677e4b4b118d5fd91862c049f82293da01bc5802371a0e7984db50a248cfe40",
+    "ABL-PairedDeJitter-R": "92a925ab8deb74d7ef909eab344ea283380450b4ea5468812aa19c99417c93c6",
+    "ABL-ScalarPairedDeJitter-001-R": "7b326428aaa5b0cecd8f4007e6e6914f603db325c068d36d46eed73955629921"
+  },
+  "windows": {
+    "initial_still": {
+      "O-T2X-R": {
+        "rgb_mae": 0.7136159545502146,
+        "psnr_db": 38.73958428582381,
+        "edge_reference_ratio": 0.9282174568087158,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 0.7503821571630538,
+        "psnr_db": 38.31645758903875,
+        "edge_reference_ratio": 0.9310684325368279,
+        "rgb_step": 0.31057915095821553,
+        "reference_delta_residual": 0.2851671385289437
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 0.7136159545502146,
+        "psnr_db": 38.73958428582381,
+        "edge_reference_ratio": 0.9282174568087158,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 0.8103598871609593,
+        "psnr_db": 37.97259271350336,
+        "edge_reference_ratio": 0.8678570226855883,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 0.8203435078280448,
+        "psnr_db": 37.91376585158817,
+        "edge_reference_ratio": 0.8690555324042573,
+        "rgb_step": 0.18008512016965128,
+        "reference_delta_residual": 0.16568559795065643
+      }
+    },
+    "moving": {
+      "O-T2X-R": {
+        "rgb_mae": 1.987355429069798,
+        "psnr_db": 34.42394139114516,
+        "edge_reference_ratio": 0.924703338663742,
+        "rgb_step": 5.294194291450675,
+        "reference_delta_residual": 2.0428289009352816
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 2.0508494685852794,
+        "psnr_db": 34.25459308904229,
+        "edge_reference_ratio": 0.9301112782483141,
+        "rgb_step": 5.455393129897982,
+        "reference_delta_residual": 2.2456263295314107
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 1.8363506799904876,
+        "psnr_db": 35.05146338976323,
+        "edge_reference_ratio": 0.8936089403109508,
+        "rgb_step": 5.097521659117883,
+        "reference_delta_residual": 1.8305269775476476
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 1.8954802749851642,
+        "psnr_db": 35.182392701354594,
+        "edge_reference_ratio": 0.8694220189155031,
+        "rgb_step": 4.895953089819614,
+        "reference_delta_residual": 1.7748869225581962
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 1.9133658533725173,
+        "psnr_db": 35.13639945814246,
+        "edge_reference_ratio": 0.8693625471177022,
+        "rgb_step": 4.934906741979963,
+        "reference_delta_residual": 1.8127926077671386
+      }
+    },
+    "transition": {
+      "O-T2X-R": {
+        "rgb_mae": 1.7332032586309212,
+        "psnr_db": 35.512550653504576,
+        "edge_reference_ratio": 0.9290683509012037,
+        "rgb_step": 1.7729427956025063,
+        "reference_delta_residual": 0.8339423350366245
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 1.8561601509320347,
+        "psnr_db": 35.1096736867747,
+        "edge_reference_ratio": 0.9345704301702096,
+        "rgb_step": 2.2076390007025166,
+        "reference_delta_residual": 1.2746556045806527
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 1.6687930155208224,
+        "psnr_db": 35.75466959586744,
+        "edge_reference_ratio": 0.9181466855660588,
+        "rgb_step": 1.6953325255480505,
+        "reference_delta_residual": 0.7449775742885423
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 1.973800327041226,
+        "psnr_db": 35.11441904586554,
+        "edge_reference_ratio": 0.8657022922852563,
+        "rgb_step": 1.5918058037272664,
+        "reference_delta_residual": 0.6952313144398247
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 2.0010911591964256,
+        "psnr_db": 35.051196418999986,
+        "edge_reference_ratio": 0.8659189454484986,
+        "rgb_step": 1.7520807452569205,
+        "reference_delta_residual": 0.8464801848939486
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "rgb_mae": 1.4717071159283694,
+        "psnr_db": 36.38471844375224,
+        "edge_reference_ratio": 0.9312103257398091,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "rgb_mae": 1.6213477851083882,
+        "psnr_db": 35.84881159113311,
+        "edge_reference_ratio": 0.9365503588080786,
+        "rgb_step": 0.580354945544036,
+        "reference_delta_residual": 0.5561212233148054
+      },
+      "ABL-HistoryLinear-R": {
+        "rgb_mae": 1.4717071159283694,
+        "psnr_db": 36.38471844375224,
+        "edge_reference_ratio": 0.9312103257398091,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 1.9140623363703007,
+        "psnr_db": 35.303625478585715,
+        "edge_reference_ratio": 0.8631097808820277,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 1.941873249162216,
+        "psnr_db": 35.23223772632514,
+        "edge_reference_ratio": 0.863583416853779,
+        "rgb_step": 0.22909712404440255,
+        "reference_delta_residual": 0.2125149795310961
+      }
+    }
+  },
+  "coverage": {
+    "initial_still": {
+      "selected_pixels": 391968.5,
+      "selected_percent": 19.241306354068488,
+      "original_selected_percent": 19.39517554194157,
+      "selection_change_percent": 2.891557689286836,
+      "removed_percent": 1.5227134385799561,
+      "added_percent": 1.3688442507068803,
+      "mask_switch_percent": 3.169130929940308
+    },
+    "moving": {
+      "selected_pixels": 1201868.3916666666,
+      "selected_percent": 58.998409110247145,
+      "original_selected_percent": 59.527513515813176,
+      "selection_change_percent": 10.308502117368311,
+      "removed_percent": 5.418803261467169,
+      "added_percent": 4.889698855901141,
+      "mask_switch_percent": 16.655479713189862
+    },
+    "transition": {
+      "selected_pixels": 1311849.1,
+      "selected_percent": 64.39724218504556,
+      "original_selected_percent": 64.64629313278877,
+      "selection_change_percent": 11.420449785317835,
+      "removed_percent": 5.8347503665305265,
+      "added_percent": 5.585699418787308,
+      "mask_switch_percent": 13.26841079563305
+    },
+    "late_still": {
+      "selected_pixels": 1287528,
+      "selected_percent": 63.20334590009425,
+      "original_selected_percent": 63.34597372761546,
+      "selection_change_percent": 11.143992499214578,
+      "removed_percent": 5.643310163367891,
+      "added_percent": 5.500682335846685,
+      "mask_switch_percent": 10.125962142632737
+    }
+  },
+  "static_hashes": {
+    "initial_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "ABL-HistoryLinear-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-PairedDeJitter-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarWeight-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "ABL-HistoryLinear-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-PairedDeJitter-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    }
+  },
+  "roi": [
+    720,
+    240,
+    1200,
+    560
+  ],
+  "video": {
+    "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\PairedDeJitterAnalysis\\minecraft\\four-way-60fps.mp4",
+    "frames": 240,
+    "fps": 60,
+    "size": [
+      1920,
+      350
+    ],
+    "pts_verified": true
+  },
+  "gifs": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\PairedDeJitterAnalysis\\minecraft\\moving.gif",
+      "source_frames": [
+        90,
+        149
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\PairedDeJitterAnalysis\\minecraft\\transition.gif",
+      "source_frames": [
+        160,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\PairedDeJitterAnalysis\\minecraft\\still.gif",
+      "source_frames": [
+        200,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 660,
+      "fixed_palette": true
+    }
+  ]
+}
