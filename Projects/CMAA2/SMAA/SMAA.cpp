@@ -246,8 +246,8 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
         "StripeBranchResolve", "StripeFlattenResolve", "ScalarWeightResolve", "ScalarReassociatedResolve",
         "BranchReassociatedResolve", "HistoryLoadResolve", "SelectorAnyResolve", "FixedThresholdResolve", "ScalarFixedThresholdResolve", "NvWarpResolve", "NvWarpMask",
         "HistoryLinearResolve", "ScalarHistoryLinearResolve",
-        "ScalarCurrentLinearResolve", "CurrentDeJitterResolve", "ScalarDeJitterResolve", "DeJitterMask", "DeJitterSpatial", "PairedDeJitterResolve", "ScalarPairedDeJitterResolve", "SpeedBranch", "SpeedUniformScalar", "SpeedUniformBranch", "SpeedUniformPrefetch", "SpeedUniformWarp", "SpeedPhasePositive", "SpeedPhaseNegative", "SpeedGroup4", "SpeedGroup8", "SpeedGroup16", "SpeedDensity8", "SpeedDensity16", "ContributionNative", "ContributionPaired", "ContributionNativeMask", "ContributionPairedMask", "ContributionZeroMask", "Resolve", "BlendReadControl", "BlendReadOne"};
-    for(int i=0;i<49;++i) executionTechniques[i] = techniqueManagerInterface->CreateTechnique(executionNames[i], defines);
+        "ScalarCurrentLinearResolve", "CurrentDeJitterResolve", "ScalarDeJitterResolve", "DeJitterMask", "DeJitterSpatial", "PairedDeJitterResolve", "ScalarPairedDeJitterResolve", "SpeedBranch", "SpeedUniformScalar", "SpeedUniformBranch", "SpeedUniformPrefetch", "SpeedUniformWarp", "SpeedPhasePositive", "SpeedPhaseNegative", "SpeedGroup4", "SpeedGroup8", "SpeedGroup16", "SpeedDensity8", "SpeedDensity16", "ContributionNative", "ContributionPaired", "ContributionNativeMask", "ContributionPairedMask", "ContributionZeroMask", "Resolve", "BlendReadControl", "BlendReadOne", "Resolve", "EdgeReadControl", "EdgeReadOne"};
+    for(int i=0;i<52;++i) executionTechniques[i] = techniqueManagerInterface->CreateTechnique(executionNames[i], defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
@@ -393,8 +393,10 @@ void SMAA::reproject(ID3D11DeviceContext * context,
 
     const bool blendRead = resolveKind>=51 && resolveKind<=53;
     if(blendRead) texturesInterface->SetResource_blendTex(context, *blendRT);
+    const bool edgeRead = resolveKind>=54 && resolveKind<=56;
+    if(edgeRead) texturesInterface->SetResource_edgesTex(context, *edgesRT);
 
-    assert(resolveKind >= 0 && resolveKind <= 53 && resolveKind != 4);
+    assert(resolveKind >= 0 && resolveKind <= 56 && resolveKind != 4);
     (resolveKind == 0 ? resolveTechnique : resolveKind >= 5 ? executionTechniques[resolveKind-5] : contrastTechniques[resolveKind-1])->ApplyStates( context );
 
     // Do it!
@@ -406,6 +408,7 @@ void SMAA::reproject(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTex(context, nullptr);
     texturesInterface->SetResource_colorTexPrev(context, nullptr);
     if(blendRead) texturesInterface->SetResource_blendTex(context, nullptr);
+    if(edgeRead) texturesInterface->SetResource_edgesTex(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
 }
 

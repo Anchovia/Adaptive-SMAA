@@ -29,8 +29,9 @@ edge 저장 버퍼에 쓰지 않는다. shader의 Native BA 보존과 PNG의 RGB
 
 ## 리소스와 측정
 
-SMAA.cpp는 NVIDIA에서 기본 edgeRT를 R8G8B8A8_UNORM으로 할당하고 RG에 edge를 저장한다.
-실제 wrapper의 외부 storage 지정 여부도 확인한다. 물리 리소스 형식과 사용 채널을 혼동하지 않는다.
+실제 wrapper는 adapterDesc와 외부 storage를 전달하지 않는다. 기본 nullptr 경로이므로
+SMAA.cpp의 edgeRT 할당은 R8G8_UNORM이다. NVIDIA 감지 시 RGBA8을 쓰는 분기가
+소스에 있으나 이 호출에서는 실행되지 않는다. 물리 형식은 RG8이며 RG 모두를 읽는다.
 1920×1061 hidden, Bistro/Minecraft, 동일 결정론적 이동→정지 경로를 사용한다.
 capture는 240프레임을 진행하되 0/1/60/61/140/179/180/200/201/239만 저장한다.
 기존 Native capture와 hash bridge 및 zero-scale의 원본 출력 동일성을 확인한다.
