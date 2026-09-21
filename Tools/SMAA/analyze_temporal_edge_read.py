@@ -4,12 +4,13 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'Docs/Temporal-Edge-Read-Cost'
+RECEIPT=ROOT/'tmp/temporal-edge-read-runs.json'
 MODES=['O-T2X-R','ABL-EdgeBindOnly-R','ABL-EdgeReadControl-R','ABL-EdgeReadOne-R']
 DEBUG='DBG-EdgeRead-Observable-R'
 INDICES=[0,1,60,61,140,179,180,200,201,239]
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 def read(scene,phase):
- rs=json.loads((ROOT/'tmp/temporal-edge-read-runs.json').read_text(encoding='utf-8-sig'))
+ rs=json.loads(RECEIPT.read_text(encoding='utf-8-sig'))
  matches=[x for x in rs if x['scene']==scene and x['phase']==phase];assert len(matches)==1
  r=matches[0];p=Path(r['report']);assert sha(p)==r['report_sha256'].lower()
  text=p.read_text(encoding='utf-8-sig')
@@ -85,7 +86,9 @@ def summary():
                'ReadOne−Native includes the artificial sink arithmetic. No quality or candidate policy changes.',''])
  (OUT/'tables.md').write_text('\n'.join(lines),encoding='utf-8');(OUT/'comparisons.json').write_text(json.dumps(stats,indent=2)+'\n');print(json.dumps(stats,indent=2))
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--scene',choices=['bistro','minecraft']);p.add_argument('--phase',choices=['Capture','Smoke','Benchmark','Summary'],required=True);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--scene',choices=['bistro','minecraft']);p.add_argument('--phase',choices=['Capture','Smoke','Benchmark','Summary'],required=True)
+ p.add_argument('--receipt',type=Path,default=RECEIPT);p.add_argument('--output',type=Path,default=OUT);a=p.parse_args()
+ RECEIPT=a.receipt;OUT=a.output;OUT.mkdir(parents=True,exist_ok=True)
  if a.phase=='Summary':summary()
  else:
   assert a.scene
