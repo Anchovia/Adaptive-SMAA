@@ -11,11 +11,13 @@
 
 ## 제한된 후보
 
-- 기존 Load (56), Point SampleLevel(57), 앞에 배치한 Load(58), 앞에 배치한 Point(59).
+- 기존 Load (56), Point SampleLevel(57), 앞에 배치한 Load/Point를 검토한다.
 - 기존 Native(0)와 matched sink Control(55)을 함께 비교한다.
 - Source 순서만 바뀌고 R-On DXBC executable instructions가 동일하면 중복 timing은 생략한다.
 - DXBC 순서는 native GPU instruction scheduling 또는 실제 stall 원인의 증명이 아니다.
 - Read scheduling은 독립 접근의 latency hiding과 register 수 증가의 trade-off다.
+- 컴파일 검사 결과 EarlyLoad=Load, EarlyPoint=Point(R On)이므로 early variant에는
+  runtime ID를 추가하지 않는다. ID 58은 정확한 RG 비교를 위한 capture-only 진단이다.
 
 ## 정확성 선행 조건
 
