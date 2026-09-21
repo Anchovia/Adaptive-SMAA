@@ -59,6 +59,20 @@ float4 DX10_SMAAPairedDeJitterResolvePS(float4 position : SV_POSITION, float2 uv
     return ContrastExecutionBlend(current, previous);
 }
 
+float4 DX10_SMAAScalarPairedDeJitterResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float index = g_SMAA.subsampleIndices.x;
+    float2 jitter = (index == 1.0 ? 0.25 : (index == 2.0 ? -0.25 : 0.0)) * SMAA_RT_METRICS.xy;
+    float2 currentUV = uv + jitter;
+    float4 current = TemporalCurrentLinear(currentUV);
+    float contrast = SMAATemporalContrast(current.rgb);
+    float2 velocity = ContrastExecutionVelocity(uv);
+    float2 previousUV = uv + velocity - jitter;
+    float4 previous = colorTexPrev.SampleLevel(LinearSampler, previousUV, 0);
+    float weight = TemporalOriginalWeight(current, previous);
+    weight = contrast >= g_SMAA.padding0 ? weight : 0.0;
+    return lerp(current, previous, weight);
+}
+
 float4 DX10_SMAADeJitterMaskPS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
     float contrast = SMAATemporalContrast(TemporalCurrentLinear(TemporalDeJitterUV(uv)).rgb);
     float selected = contrast >= g_SMAA.padding0 ? 1.0 : 0.0;

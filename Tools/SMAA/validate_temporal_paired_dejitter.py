@@ -1,5 +1,5 @@
 """Compile native regressions and inspect paired reconstruction sample cost."""
-import hashlib,json
+import hashlib,json,re
 import validate_temporal_contrast_shaders as base
 rows=[]
 prior=json.loads((base.root/'Docs/Temporal-DeJitter/shader-validation.json').read_text())
@@ -8,13 +8,16 @@ for reproj in (0,1):
   if old['reprojection']!=reproj:continue
   blob,_=base.compile(base.shader/'SMAAWrapper.hlsl',old['entry'],reproj,'ps_5_0','paired_prior')
   assert hashlib.sha256(blob).hexdigest()==old['sha256']
- for stem in ('PairedDeJitterResolve',):
+ for stem in ('PairedDeJitterResolve','ScalarPairedDeJitterResolve'):
   entry='DX10_SMAA'+stem+'PS'
   blob,asm=base.compile(base.shader/'SMAAWrapper.hlsl',entry,reproj,'ps_5_0','paired')
   code=[s.strip() for s in asm.splitlines() if s.strip() and not s.strip().startswith('//')]
   samples=[s for s in code if s.startswith('sample')]
   assert len(samples)==(3 if reproj else 2)
   assert not any(s.startswith('if_') for s in code)
+  assert sum(s.startswith('deriv_') for s in code)==(2 if stem.startswith('Scalar') else 0)
+  resources={int(re.search(r' t(\d+)',s).group(1)) for s in code if s.startswith('dcl_resource_texture2d')}
+  assert resources==({2,4,7} if reproj else {2,4})
   rows.append(dict(entry=entry,reprojection=reproj,sha256=hashlib.sha256(blob).hexdigest(),sample_instructions=samples,
    derivative_instructions=sum(s.startswith('deriv_') for s in code)))
 out=base.root/'Docs/Temporal-Paired-DeJitter/shader-validation.json'

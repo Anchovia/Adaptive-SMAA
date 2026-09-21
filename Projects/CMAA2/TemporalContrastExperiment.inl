@@ -169,6 +169,19 @@ public:
                 m_configs.push_back({"DBG-DeJitterSpatial-R",31,0});
             }
         }
+        if(pairedDeJitter==2) {
+            m_configs={{"O-T2X-R",0,0},{"ABL-ScalarWeight-001-R",16,0.01f},
+                {"ABL-HistoryLinear-R",25,0},{"ABL-PairedDeJitter-R",32,0},
+                {"ABL-ScalarPairedDeJitter-001-R",33,0.01f}};
+            if(capture) {
+                m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
+                m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
+                m_configs.push_back({"DBG-DeJitterMask-001-R",30,0.01f});
+                m_configs.push_back({"DBG-DeJitterSpatial-R",31,0});
+                m_configs.push_back({"ABL-PairedDeJitter-R-Repeat",32,0});
+                m_configs.push_back({"ABL-ScalarPairedDeJitter-001-R-Repeat",33,0.01f});
+            }
+        }
         if(deJitter) {
             m_deJitter=true;m_execution=true;
             m_configs={{"O-T2X-R",0,0},{"ABL-ScalarWeight-001-R",16,0.01f},
@@ -348,8 +361,11 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool jitterAblation=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastJitterCapture")==0;
         capture=capture||jitterAblation;
         bool pairedStatic=_wcsicmp(p.first.c_str(),L"smaaTemporalPairedDeJitterStaticCapture")==0;
-        int pairedDeJitter=pairedStatic?1:0;
-        capture=capture||pairedStatic;
+        bool pairedCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalPairedDeJitterCapture")==0;
+        bool pairedSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalPairedDeJitterSmoke")==0;
+        bool pairedBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalPairedDeJitterBenchmark")==0;
+        int pairedDeJitter=pairedStatic?1:(pairedCapture||pairedSmoke||pairedBenchmark)?2:0;
+        capture=capture||pairedStatic||pairedCapture;smoke=smoke||pairedSmoke;bench=bench||pairedBenchmark;
         bool deJitterCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalDeJitterCapture")==0;
         bool deJitterSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalDeJitterSmoke")==0;
         bool deJitterBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalDeJitterBenchmark")==0;
@@ -405,7 +421,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",pairedStatic?40:counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(historyFilter||deJitter)?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter,deJitter,pairedDeJitter));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",pairedStatic?40:counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(historyFilter||deJitter||pairedDeJitter)?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter,deJitter,pairedDeJitter));
         return true;
     }
     return false;

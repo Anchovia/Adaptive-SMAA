@@ -13,6 +13,16 @@
       "derivative_instructions": 0
     },
     {
+      "entry": "DX10_SMAAScalarPairedDeJitterResolvePS",
+      "reprojection": 0,
+      "sha256": "59d5e3a6c2514c67b885ff029faa67ec3215ef808f97b0cb6ddfa14780d6fa18",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r0.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.zwzz, t2.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 2
+    },
+    {
       "entry": "DX10_SMAAPairedDeJitterResolvePS",
       "reprojection": 1,
       "sha256": "a71c9d28dab6bedff7b8ed2eeb088c68199d3fde25d22116e960b2ec485fd144",
@@ -22,6 +32,17 @@
         "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s0, l(0.000000)"
       ],
       "derivative_instructions": 0
+    },
+    {
+      "entry": "DX10_SMAAScalarPairedDeJitterResolvePS",
+      "reprojection": 1,
+      "sha256": "1004178e0af9fae4a55611be34ae2a40c33e006523cddfdc8aa9ab4c79b01d97",
+      "sample_instructions": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r1.xyzw, r0.zwzz, t2.xyzw, s0, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s0, l(0.000000)"
+      ],
+      "derivative_instructions": 2
     }
   ]
 }
