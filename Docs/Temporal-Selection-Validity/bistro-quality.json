@@ -1,0 +1,3688 @@
+{
+  "scene": "bistro",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Capture",
+    "window": "hidden",
+    "executable_sha256": "C979B1E7EAC33D3A7D4E008BF8715930D8EE94FC69A956E1154BBE9F3DB34175",
+    "started_utc": "2026-09-21T13:10:07.6619899Z",
+    "completed_utc": "2026-09-21T13:10:53.3421206Z",
+    "arguments": [
+      "-smaaTemporalSelectionCapture",
+      "bistro"
+    ],
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\20260921_221008_results.csv",
+    "report_sha256": "7C0359478D1D4EA4A14A659CEBDAE50677C3DA9E18676D3EA7C0AC443FA7E7FF"
+  },
+  "reference": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+  "classification": "Engineering quality windows; SS spatial proxy, not absolute temporal ground truth",
+  "indices": [
+    0,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215
+  ],
+  "pattern_checks": 2160,
+  "baseline_hash_comparisons": 245,
+  "selection_semantics_frames": 98,
+  "selection_mismatches": 0,
+  "windows": {
+    "moving": {
+      "O-T2X-R": {
+        "rgb_mae": 0.7491998411715031,
+        "psnr_db": 40.11525904873656,
+        "gradient_reference_ratio": 0.9681336997902127,
+        "rgb_step": 1.5657435655593872,
+        "reference_delta_residual": 0.8389898339907328
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 0.6681318953633308,
+        "psnr_db": 41.27488335058538,
+        "gradient_reference_ratio": 0.8591395880353221,
+        "rgb_step": 1.4305495500564576,
+        "reference_delta_residual": 0.7022169709205628
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 0.7551289647817612,
+        "psnr_db": 40.63249329689332,
+        "gradient_reference_ratio": 0.8799820210905726,
+        "rgb_step": 1.5805737972259521,
+        "reference_delta_residual": 0.8875851273536682
+      },
+      "ABL-ContributionNative-00005-R": {
+        "rgb_mae": 0.7937719933688641,
+        "psnr_db": 40.05334082119052,
+        "gradient_reference_ratio": 0.9960994991094754,
+        "rgb_step": 1.6386598666508994,
+        "reference_delta_residual": 0.9222597042719524
+      },
+      "ABL-ContributionPaired-00005-R": {
+        "rgb_mae": 0.7013891041278839,
+        "psnr_db": 41.22068799016094,
+        "gradient_reference_ratio": 0.8714328819398229,
+        "rgb_step": 1.4755612373352052,
+        "reference_delta_residual": 0.7639669458071391
+      }
+    },
+    "transition": {
+      "O-T2X-R": {
+        "rgb_mae": 0.6532955355942249,
+        "psnr_db": 41.17448772641294,
+        "gradient_reference_ratio": 0.9733801481991896,
+        "rgb_step": 0.5506617546081543,
+        "reference_delta_residual": 0.32327432065776046
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 0.6454402320086956,
+        "psnr_db": 41.56616778057299,
+        "gradient_reference_ratio": 0.8467148582329662,
+        "rgb_step": 0.473448646068573,
+        "reference_delta_residual": 0.24904685645869432
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 0.7499344348907471,
+        "psnr_db": 40.78814100329637,
+        "gradient_reference_ratio": 0.8766921922394652,
+        "rgb_step": 0.9990362127621969,
+        "reference_delta_residual": 0.7547891696294149
+      },
+      "ABL-ContributionNative-00005-R": {
+        "rgb_mae": 0.7157580554485321,
+        "psnr_db": 41.07880221421836,
+        "gradient_reference_ratio": 0.9991170799166583,
+        "rgb_step": 0.8180171449979147,
+        "reference_delta_residual": 0.5834732115268707
+      },
+      "ABL-ContributionPaired-00005-R": {
+        "rgb_mae": 0.6843300238251686,
+        "psnr_db": 41.49568461923581,
+        "gradient_reference_ratio": 0.8649982641288384,
+        "rgb_step": 0.7043762544790904,
+        "reference_delta_residual": 0.4749042749404907
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "rgb_mae": 0.5828255005180836,
+        "psnr_db": 41.8641824046016,
+        "gradient_reference_ratio": 0.971726716480637,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 1.5650195308580806e-07
+      },
+      "ABL-PairedDeJitter-R": {
+        "rgb_mae": 0.6262588687241077,
+        "psnr_db": 41.843604845468406,
+        "gradient_reference_ratio": 0.8399343251511252,
+        "rgb_step": 0.0,
+        "reference_delta_residual": 1.5650195308580806e-07
+      },
+      "ABL-ScalarPairedDeJitter-001-R": {
+        "rgb_mae": 0.7452872693538666,
+        "psnr_db": 40.963770765714195,
+        "gradient_reference_ratio": 0.8762359059058947,
+        "rgb_step": 0.7333701252937317,
+        "reference_delta_residual": 0.687176767985026
+      },
+      "ABL-ContributionNative-00005-R": {
+        "rgb_mae": 0.6575348004698753,
+        "psnr_db": 41.749881603860594,
+        "gradient_reference_ratio": 0.9986862476138757,
+        "rgb_step": 0.3788340091705322,
+        "reference_delta_residual": 0.3626713196436564
+      },
+      "ABL-ContributionPaired-00005-R": {
+        "rgb_mae": 0.6697080507874489,
+        "psnr_db": 41.76377042030684,
+        "gradient_reference_ratio": 0.8622521696108953,
+        "rgb_step": 0.3305688202381134,
+        "reference_delta_residual": 0.3160591145356496
+      }
+    }
+  },
+  "coverage": {
+    "moving": {
+      "ABL-ContributionNative-00005-R": {
+        "selected_pixels": 356499.875,
+        "selected_percent": 17.500190219525606,
+        "switch_percent": 18.34948031207456
+      },
+      "ABL-ContributionPaired-00005-R": {
+        "selected_pixels": 170531.625,
+        "selected_percent": 8.3712115633836,
+        "switch_percent": 6.79317205990156
+      }
+    },
+    "transition": {
+      "ABL-ContributionNative-00005-R": {
+        "selected_pixels": 351887.1875,
+        "selected_percent": 17.273758418748034,
+        "switch_percent": 6.749109854435019
+      },
+      "ABL-ContributionPaired-00005-R": {
+        "selected_pixels": 191104,
+        "selected_percent": 9.381087024819353,
+        "switch_percent": 2.641582233741753
+      }
+    },
+    "late_still": {
+      "ABL-ContributionNative-00005-R": {
+        "selected_pixels": 372961,
+        "selected_percent": 18.30824890040842,
+        "switch_percent": 0.0
+      },
+      "ABL-ContributionPaired-00005-R": {
+        "selected_pixels": 212700,
+        "selected_percent": 10.441211121583411,
+        "switch_percent": 0.0
+      }
+    }
+  },
+  "static": {
+    "O-T2X-R": {
+      "unique_rgb_frames": 1,
+      "lag2_mismatches": 0
+    },
+    "ABL-PairedDeJitter-R": {
+      "unique_rgb_frames": 1,
+      "lag2_mismatches": 0
+    },
+    "ABL-ScalarPairedDeJitter-001-R": {
+      "unique_rgb_frames": 2,
+      "lag2_mismatches": 0
+    },
+    "ABL-ContributionNative-00005-R": {
+      "unique_rgb_frames": 2,
+      "lag2_mismatches": 0
+    },
+    "ABL-ContributionPaired-00005-R": {
+      "unique_rgb_frames": 2,
+      "lag2_mismatches": 0
+    },
+    "DBG-ContributionNative-00005-R": {
+      "unique_rgb_frames": 1,
+      "lag2_mismatches": 0
+    },
+    "DBG-ContributionPaired-00005-R": {
+      "unique_rgb_frames": 1,
+      "lag2_mismatches": 0
+    },
+    "DBG-CurrentSpatial-R": {
+      "unique_rgb_frames": 2,
+      "lag2_mismatches": 0
+    },
+    "DBG-DeJitterSpatial-R": {
+      "unique_rgb_frames": 2,
+      "lag2_mismatches": 0
+    }
+  },
+  "per_frame": [
+    {
+      "frame": 0,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.977876603603363,
+      "psnr_db": 37.34933852423898,
+      "gradient_reference_ratio": 1.0783301130909417,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 0,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.744843065738678,
+      "psnr_db": 39.98699418559827,
+      "gradient_reference_ratio": 0.8914111705978264,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 0,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.744843065738678,
+      "psnr_db": 39.98699418559827,
+      "gradient_reference_ratio": 0.8914111705978264,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 0,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.977876603603363,
+      "psnr_db": 37.34933852423898,
+      "gradient_reference_ratio": 1.0783301130909417,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 0,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.744843065738678,
+      "psnr_db": 39.98699418559827,
+      "gradient_reference_ratio": 0.8914111705978264,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 140,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7410239577293396,
+      "psnr_db": 40.17782799602183,
+      "gradient_reference_ratio": 0.9622367722587076,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 140,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.670449435710907,
+      "psnr_db": 41.315547125910356,
+      "gradient_reference_ratio": 0.8550574931315469,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 140,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.750056803226471,
+      "psnr_db": 40.71814879439885,
+      "gradient_reference_ratio": 0.8798571867709046,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 140,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7801217436790466,
+      "psnr_db": 40.12443459157467,
+      "gradient_reference_ratio": 0.9908712797169951,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 140,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6988806128501892,
+      "psnr_db": 41.2682143300689,
+      "gradient_reference_ratio": 0.8696862817106992,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 141,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7505083680152893,
+      "psnr_db": 40.21243265620108,
+      "gradient_reference_ratio": 0.9736732583793509,
+      "rgb_step": 1.558759093284607,
+      "reference_delta_residual": 0.8286292552947998
+    },
+    {
+      "frame": 141,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6688429713249207,
+      "psnr_db": 40.97744926582594,
+      "gradient_reference_ratio": 0.8632629442379895,
+      "rgb_step": 1.3897000551223755,
+      "reference_delta_residual": 0.7016516923904419
+    },
+    {
+      "frame": 141,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7631545066833496,
+      "psnr_db": 40.35544044005685,
+      "gradient_reference_ratio": 0.8795865626935404,
+      "rgb_step": 1.5667893886566162,
+      "reference_delta_residual": 0.8850923180580139
+    },
+    {
+      "frame": 141,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7991415858268738,
+      "psnr_db": 40.14321249229687,
+      "gradient_reference_ratio": 1.0013734968150376,
+      "rgb_step": 1.6445121765136719,
+      "reference_delta_residual": 0.914612352848053
+    },
+    {
+      "frame": 141,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7066873908042908,
+      "psnr_db": 40.920024417404505,
+      "gradient_reference_ratio": 0.8733771877589069,
+      "rgb_step": 1.4377714395523071,
+      "reference_delta_residual": 0.765545666217804
+    },
+    {
+      "frame": 142,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7573294639587402,
+      "psnr_db": 39.72508085671211,
+      "gradient_reference_ratio": 0.9605970001794626,
+      "rgb_step": 1.4939906597137451,
+      "reference_delta_residual": 0.8466331362724304
+    },
+    {
+      "frame": 142,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6788277626037598,
+      "psnr_db": 41.24322063660343,
+      "gradient_reference_ratio": 0.8540283238995464,
+      "rgb_step": 1.403147578239441,
+      "reference_delta_residual": 0.7079344987869263
+    },
+    {
+      "frame": 142,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7552235722541809,
+      "psnr_db": 40.647095508311025,
+      "gradient_reference_ratio": 0.8794873895792764,
+      "rgb_step": 1.5205423831939697,
+      "reference_delta_residual": 0.8907362818717957
+    },
+    {
+      "frame": 142,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7968103885650635,
+      "psnr_db": 39.6775044448965,
+      "gradient_reference_ratio": 0.9891472614677663,
+      "rgb_step": 1.5533180236816406,
+      "reference_delta_residual": 0.9256327748298645
+    },
+    {
+      "frame": 142,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.70757657289505,
+      "psnr_db": 41.196854191493095,
+      "gradient_reference_ratio": 0.8685655520387978,
+      "rgb_step": 1.4443552494049072,
+      "reference_delta_residual": 0.7671691179275513
+    },
+    {
+      "frame": 143,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7541306614875793,
+      "psnr_db": 40.04561389265678,
+      "gradient_reference_ratio": 0.9750335390292101,
+      "rgb_step": 1.5810236930847168,
+      "reference_delta_residual": 0.8315858840942383
+    },
+    {
+      "frame": 143,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6667293310165405,
+      "psnr_db": 41.163889875514485,
+      "gradient_reference_ratio": 0.8640936504776817,
+      "rgb_step": 1.4044867753982544,
+      "reference_delta_residual": 0.6916108131408691
+    },
+    {
+      "frame": 143,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7641441226005554,
+      "psnr_db": 40.429489381474895,
+      "gradient_reference_ratio": 0.8811295536578283,
+      "rgb_step": 1.5843584537506104,
+      "reference_delta_residual": 0.8792563080787659
+    },
+    {
+      "frame": 143,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.8027920126914978,
+      "psnr_db": 39.97746090578692,
+      "gradient_reference_ratio": 1.0029074785488767,
+      "rgb_step": 1.6661254167556763,
+      "reference_delta_residual": 0.9173074960708618
+    },
+    {
+      "frame": 143,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7040954828262329,
+      "psnr_db": 41.106501975092,
+      "gradient_reference_ratio": 0.8742620926303455,
+      "rgb_step": 1.4531105756759644,
+      "reference_delta_residual": 0.7554877996444702
+    },
+    {
+      "frame": 144,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7498226165771484,
+      "psnr_db": 40.09950010616932,
+      "gradient_reference_ratio": 0.9632835687787051,
+      "rgb_step": 1.5058666467666626,
+      "reference_delta_residual": 0.8477632999420166
+    },
+    {
+      "frame": 144,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6710485219955444,
+      "psnr_db": 41.53275496740062,
+      "gradient_reference_ratio": 0.8556815340912222,
+      "rgb_step": 1.4132168292999268,
+      "reference_delta_residual": 0.7008353471755981
+    },
+    {
+      "frame": 144,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7467784881591797,
+      "psnr_db": 40.92324975119012,
+      "gradient_reference_ratio": 0.8809513010879184,
+      "rgb_step": 1.5356171131134033,
+      "reference_delta_residual": 0.8887805342674255
+    },
+    {
+      "frame": 144,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7891138792037964,
+      "psnr_db": 40.04563577760068,
+      "gradient_reference_ratio": 0.9913560624254992,
+      "rgb_step": 1.5630947351455688,
+      "reference_delta_residual": 0.9264490008354187
+    },
+    {
+      "frame": 144,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6992231011390686,
+      "psnr_db": 41.48394515405775,
+      "gradient_reference_ratio": 0.8705265499453078,
+      "rgb_step": 1.4542664289474487,
+      "reference_delta_residual": 0.7606016993522644
+    },
+    {
+      "frame": 145,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7523888349533081,
+      "psnr_db": 40.09584750746154,
+      "gradient_reference_ratio": 0.9737250606380092,
+      "rgb_step": 1.600696086883545,
+      "reference_delta_residual": 0.8351449966430664
+    },
+    {
+      "frame": 145,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6652889251708984,
+      "psnr_db": 41.28119177314162,
+      "gradient_reference_ratio": 0.8635683216463477,
+      "rgb_step": 1.4294317960739136,
+      "reference_delta_residual": 0.6988175511360168
+    },
+    {
+      "frame": 145,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7615106701850891,
+      "psnr_db": 40.57637421555989,
+      "gradient_reference_ratio": 0.879875666624341,
+      "rgb_step": 1.60324227809906,
+      "reference_delta_residual": 0.8828169703483582
+    },
+    {
+      "frame": 145,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.8016456365585327,
+      "psnr_db": 40.0262375609865,
+      "gradient_reference_ratio": 1.0012629963616984,
+      "rgb_step": 1.6867382526397705,
+      "reference_delta_residual": 0.9212518334388733
+    },
+    {
+      "frame": 145,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7040871381759644,
+      "psnr_db": 41.21758414925429,
+      "gradient_reference_ratio": 0.8733921300550075,
+      "rgb_step": 1.478009581565857,
+      "reference_delta_residual": 0.7631604671478271
+    },
+    {
+      "frame": 146,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7478331923484802,
+      "psnr_db": 40.22893275536078,
+      "gradient_reference_ratio": 0.9634175154682562,
+      "rgb_step": 1.5163999795913696,
+      "reference_delta_residual": 0.8453319072723389
+    },
+    {
+      "frame": 146,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6765053868293762,
+      "psnr_db": 41.33959502800339,
+      "gradient_reference_ratio": 0.8562054279415044,
+      "rgb_step": 1.4263144731521606,
+      "reference_delta_residual": 0.709811270236969
+    },
+    {
+      "frame": 146,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7532528042793274,
+      "psnr_db": 40.73390625226028,
+      "gradient_reference_ratio": 0.8807397905995659,
+      "rgb_step": 1.542871356010437,
+      "reference_delta_residual": 0.8934561610221863
+    },
+    {
+      "frame": 146,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.787817120552063,
+      "psnr_db": 40.17305092853995,
+      "gradient_reference_ratio": 0.9917137570057644,
+      "rgb_step": 1.5740951299667358,
+      "reference_delta_residual": 0.9252957701683044
+    },
+    {
+      "frame": 146,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7049553394317627,
+      "psnr_db": 41.29285084994227,
+      "gradient_reference_ratio": 0.870574873057067,
+      "rgb_step": 1.4662632942199707,
+      "reference_delta_residual": 0.7695642113685608
+    },
+    {
+      "frame": 147,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7497092485427856,
+      "psnr_db": 40.18519555719399,
+      "gradient_reference_ratio": 0.9746877154261689,
+      "rgb_step": 1.6063438653945923,
+      "reference_delta_residual": 0.8317245244979858
+    },
+    {
+      "frame": 147,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6568838953971863,
+      "psnr_db": 41.432194438302076,
+      "gradient_reference_ratio": 0.8634321780471347,
+      "rgb_step": 1.4272743463516235,
+      "reference_delta_residual": 0.6948027014732361
+    },
+    {
+      "frame": 147,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7520280480384827,
+      "psnr_db": 40.76822853808427,
+      "gradient_reference_ratio": 0.8807258215942927,
+      "rgb_step": 1.6026878356933594,
+      "reference_delta_residual": 0.878588855266571
+    },
+    {
+      "frame": 147,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7992734909057617,
+      "psnr_db": 40.11033459395331,
+      "gradient_reference_ratio": 1.0023919263388144,
+      "rgb_step": 1.6928924322128296,
+      "reference_delta_residual": 0.9188032746315002
+    },
+    {
+      "frame": 147,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6955158710479736,
+      "psnr_db": 41.36477530559182,
+      "gradient_reference_ratio": 0.8735517391599958,
+      "rgb_step": 1.477224588394165,
+      "reference_delta_residual": 0.7594314813613892
+    },
+    {
+      "frame": 148,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7427117824554443,
+      "psnr_db": 40.26483681136433,
+      "gradient_reference_ratio": 0.9631061107000298,
+      "rgb_step": 1.5163463354110718,
+      "reference_delta_residual": 0.8472802042961121
+    },
+    {
+      "frame": 148,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6698629856109619,
+      "psnr_db": 41.320913519398665,
+      "gradient_reference_ratio": 0.8560028927835999,
+      "rgb_step": 1.4274439811706543,
+      "reference_delta_residual": 0.7054510712623596
+    },
+    {
+      "frame": 148,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7477245926856995,
+      "psnr_db": 40.70453412985032,
+      "gradient_reference_ratio": 0.8805134835070921,
+      "rgb_step": 1.5450390577316284,
+      "reference_delta_residual": 0.8909599184989929
+    },
+    {
+      "frame": 148,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7820577025413513,
+      "psnr_db": 40.2097379116358,
+      "gradient_reference_ratio": 0.9914896626961569,
+      "rgb_step": 1.5729998350143433,
+      "reference_delta_residual": 0.9264018535614014
+    },
+    {
+      "frame": 148,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6974246501922607,
+      "psnr_db": 41.275035637472726,
+      "gradient_reference_ratio": 0.870519564136862,
+      "rgb_step": 1.4682308435440063,
+      "reference_delta_residual": 0.76498943567276
+    },
+    {
+      "frame": 149,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7425119876861572,
+      "psnr_db": 40.43953717110547,
+      "gradient_reference_ratio": 0.9754759735882184,
+      "rgb_step": 1.6108016967773438,
+      "reference_delta_residual": 0.830476701259613
+    },
+    {
+      "frame": 149,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6597724556922913,
+      "psnr_db": 41.31678686012829,
+      "gradient_reference_ratio": 0.8640605455586442,
+      "rgb_step": 1.4341709613800049,
+      "reference_delta_residual": 0.699028491973877
+    },
+    {
+      "frame": 149,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7579163908958435,
+      "psnr_db": 40.63448789793338,
+      "gradient_reference_ratio": 0.8811835349474734,
+      "rgb_step": 1.611482858657837,
+      "reference_delta_residual": 0.884610116481781
+    },
+    {
+      "frame": 149,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7919875383377075,
+      "psnr_db": 40.365655944696535,
+      "gradient_reference_ratio": 1.003029957884883,
+      "rgb_step": 1.6968986988067627,
+      "reference_delta_residual": 0.9166165590286255
+    },
+    {
+      "frame": 149,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6975388526916504,
+      "psnr_db": 41.25415697163503,
+      "gradient_reference_ratio": 0.8739767096847129,
+      "rgb_step": 1.4822739362716675,
+      "reference_delta_residual": 0.761429488658905
+    },
+    {
+      "frame": 150,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7480143308639526,
+      "psnr_db": 40.03372608543461,
+      "gradient_reference_ratio": 0.9632304868443694,
+      "rgb_step": 1.5307106971740723,
+      "reference_delta_residual": 0.8447176814079285
+    },
+    {
+      "frame": 150,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.667414128780365,
+      "psnr_db": 41.53304234516699,
+      "gradient_reference_ratio": 0.8564627046313869,
+      "rgb_step": 1.4392478466033936,
+      "reference_delta_residual": 0.7060904502868652
+    },
+    {
+      "frame": 150,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7444270849227905,
+      "psnr_db": 40.859800553289425,
+      "gradient_reference_ratio": 0.8801828947416405,
+      "rgb_step": 1.5599298477172852,
+      "reference_delta_residual": 0.8935447335243225
+    },
+    {
+      "frame": 150,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7880638837814331,
+      "psnr_db": 39.98092962895512,
+      "gradient_reference_ratio": 0.9913906593381896,
+      "rgb_step": 1.5881686210632324,
+      "reference_delta_residual": 0.9244571924209595
+    },
+    {
+      "frame": 150,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.695327877998352,
+      "psnr_db": 41.48783410384982,
+      "gradient_reference_ratio": 0.8708109131311887,
+      "rgb_step": 1.4798190593719482,
+      "reference_delta_residual": 0.7641350030899048
+    },
+    {
+      "frame": 151,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7414089441299438,
+      "psnr_db": 40.51581870577081,
+      "gradient_reference_ratio": 0.972517129421752,
+      "rgb_step": 1.6175825595855713,
+      "reference_delta_residual": 0.8274416327476501
+    },
+    {
+      "frame": 151,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6633302569389343,
+      "psnr_db": 41.15130508303779,
+      "gradient_reference_ratio": 0.8617852606604005,
+      "rgb_step": 1.4401185512542725,
+      "reference_delta_residual": 0.6966614723205566
+    },
+    {
+      "frame": 151,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7584722638130188,
+      "psnr_db": 40.56481715722108,
+      "gradient_reference_ratio": 0.8794339469883502,
+      "rgb_step": 1.6153196096420288,
+      "reference_delta_residual": 0.8796370625495911
+    },
+    {
+      "frame": 151,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7914456129074097,
+      "psnr_db": 40.43994349969644,
+      "gradient_reference_ratio": 1.0005806210443287,
+      "rgb_step": 1.7038894891738892,
+      "reference_delta_residual": 0.9145503044128418
+    },
+    {
+      "frame": 151,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7019326090812683,
+      "psnr_db": 41.09034919800861,
+      "gradient_reference_ratio": 0.8722826367715708,
+      "rgb_step": 1.4879943132400513,
+      "reference_delta_residual": 0.7605718970298767
+    },
+    {
+      "frame": 152,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7517240047454834,
+      "psnr_db": 39.95136996606382,
+      "gradient_reference_ratio": 0.9621496890504546,
+      "rgb_step": 1.5318762063980103,
+      "reference_delta_residual": 0.8457292914390564
+    },
+    {
+      "frame": 152,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6723062992095947,
+      "psnr_db": 41.40111599013865,
+      "gradient_reference_ratio": 0.8556794657057261,
+      "rgb_step": 1.4432833194732666,
+      "reference_delta_residual": 0.7100406289100647
+    },
+    {
+      "frame": 152,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7501870393753052,
+      "psnr_db": 40.76314312936378,
+      "gradient_reference_ratio": 0.8799693964355724,
+      "rgb_step": 1.5628530979156494,
+      "reference_delta_residual": 0.8957371711730957
+    },
+    {
+      "frame": 152,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7918702363967896,
+      "psnr_db": 39.899686653830784,
+      "gradient_reference_ratio": 0.9900084011856768,
+      "rgb_step": 1.5903279781341553,
+      "reference_delta_residual": 0.9260087609291077
+    },
+    {
+      "frame": 152,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6999273300170898,
+      "psnr_db": 41.35572330785355,
+      "gradient_reference_ratio": 0.8696101744170687,
+      "rgb_step": 1.4844491481781006,
+      "reference_delta_residual": 0.769101083278656
+    },
+    {
+      "frame": 153,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.749784529209137,
+      "psnr_db": 40.1806709972903,
+      "gradient_reference_ratio": 0.9728935072198441,
+      "rgb_step": 1.6369569301605225,
+      "reference_delta_residual": 0.8317735195159912
+    },
+    {
+      "frame": 153,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.664604127407074,
+      "psnr_db": 41.0582325183324,
+      "gradient_reference_ratio": 0.8618058026987794,
+      "rgb_step": 1.461646318435669,
+      "reference_delta_residual": 0.699176549911499
+    },
+    {
+      "frame": 153,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.761282742023468,
+      "psnr_db": 40.388317663084266,
+      "gradient_reference_ratio": 0.8792563941774899,
+      "rgb_step": 1.6462479829788208,
+      "reference_delta_residual": 0.8867290616035461
+    },
+    {
+      "frame": 153,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7997031807899475,
+      "psnr_db": 40.110210461628014,
+      "gradient_reference_ratio": 1.0004870044495284,
+      "rgb_step": 1.7232497930526733,
+      "reference_delta_residual": 0.9187400937080383
+    },
+    {
+      "frame": 153,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7032768726348877,
+      "psnr_db": 40.99566900133962,
+      "gradient_reference_ratio": 0.8723042567585121,
+      "rgb_step": 1.5112829208374023,
+      "reference_delta_residual": 0.7632816433906555
+    },
+    {
+      "frame": 154,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7520977258682251,
+      "psnr_db": 39.88827400513451,
+      "gradient_reference_ratio": 0.9608526174756755,
+      "rgb_step": 1.5432201623916626,
+      "reference_delta_residual": 0.851963222026825
+    },
+    {
+      "frame": 154,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6708222031593323,
+      "psnr_db": 41.303701056741275,
+      "gradient_reference_ratio": 0.854165881569062,
+      "rgb_step": 1.4574241638183594,
+      "reference_delta_residual": 0.706032395362854
+    },
+    {
+      "frame": 154,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7512579560279846,
+      "psnr_db": 40.66739752727419,
+      "gradient_reference_ratio": 0.8780959097599916,
+      "rgb_step": 1.5696073770523071,
+      "reference_delta_residual": 0.8952520489692688
+    },
+    {
+      "frame": 154,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.792515754699707,
+      "psnr_db": 39.83652966578291,
+      "gradient_reference_ratio": 0.9888105181542911,
+      "rgb_step": 1.6004045009613037,
+      "reference_delta_residual": 0.9318801760673523
+    },
+    {
+      "frame": 154,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6997998952865601,
+      "psnr_db": 41.256544131474506,
+      "gradient_reference_ratio": 0.8681726417711144,
+      "rgb_step": 1.497421145439148,
+      "reference_delta_residual": 0.7662645578384399
+    },
+    {
+      "frame": 155,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7561978101730347,
+      "psnr_db": 39.79947970984368,
+      "gradient_reference_ratio": 0.9732592521851878,
+      "rgb_step": 1.6355788707733154,
+      "reference_delta_residual": 0.8386522531509399
+    },
+    {
+      "frame": 155,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6674216389656067,
+      "psnr_db": 41.027193125720004,
+      "gradient_reference_ratio": 0.8609409814845813,
+      "rgb_step": 1.4613362550735474,
+      "reference_delta_residual": 0.7053096294403076
+    },
+    {
+      "frame": 155,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7646463513374329,
+      "psnr_db": 40.38546181094057,
+      "gradient_reference_ratio": 0.8787235042838827,
+      "rgb_step": 1.6420183181762695,
+      "reference_delta_residual": 0.8885793685913086
+    },
+    {
+      "frame": 155,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.8059921264648438,
+      "psnr_db": 39.7328880771873,
+      "gradient_reference_ratio": 1.0007709023180986,
+      "rgb_step": 1.7231829166412354,
+      "reference_delta_residual": 0.9258881211280823
+    },
+    {
+      "frame": 155,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7059760689735413,
+      "psnr_db": 40.96494511803651,
+      "gradient_reference_ratio": 0.8713128080100101,
+      "rgb_step": 1.5109460353851318,
+      "reference_delta_residual": 0.7687706351280212
+    },
+    {
+      "frame": 176,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7540338039398193,
+      "psnr_db": 39.952669237685875,
+      "gradient_reference_ratio": 0.9623469960481346,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 176,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.675119936466217,
+      "psnr_db": 41.31511685916459,
+      "gradient_reference_ratio": 0.8547085006290802,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 176,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.756291389465332,
+      "psnr_db": 40.7022165641554,
+      "gradient_reference_ratio": 0.8772210626822199,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 176,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7964839339256287,
+      "psnr_db": 39.897958580468426,
+      "gradient_reference_ratio": 0.9893660807841896,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 176,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7056416273117065,
+      "psnr_db": 41.26670742229932,
+      "gradient_reference_ratio": 0.8677657641557204,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 177,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7451143264770508,
+      "psnr_db": 40.3603830711982,
+      "gradient_reference_ratio": 0.9690243119896533,
+      "rgb_step": 1.727500557899475,
+      "reference_delta_residual": 0.8476126790046692
+    },
+    {
+      "frame": 177,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6715531349182129,
+      "psnr_db": 40.84098461977873,
+      "gradient_reference_ratio": 0.8579144276058301,
+      "rgb_step": 1.5413388013839722,
+      "reference_delta_residual": 0.7218071222305298
+    },
+    {
+      "frame": 177,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7678509950637817,
+      "psnr_db": 40.212370450936575,
+      "gradient_reference_ratio": 0.8765265793635871,
+      "rgb_step": 1.7226183414459229,
+      "reference_delta_residual": 0.9069983959197998
+    },
+    {
+      "frame": 177,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7967755198478699,
+      "psnr_db": 40.2826944457517,
+      "gradient_reference_ratio": 0.9964025736220035,
+      "rgb_step": 1.814307451248169,
+      "reference_delta_residual": 0.9353890419006348
+    },
+    {
+      "frame": 177,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7097209095954895,
+      "psnr_db": 40.78583693012164,
+      "gradient_reference_ratio": 0.8688455259772164,
+      "rgb_step": 1.5898016691207886,
+      "reference_delta_residual": 0.7850163578987122
+    },
+    {
+      "frame": 178,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.748583972454071,
+      "psnr_db": 40.01098176214488,
+      "gradient_reference_ratio": 0.9606594008759035,
+      "rgb_step": 1.640629768371582,
+      "reference_delta_residual": 0.8549569845199585
+    },
+    {
+      "frame": 178,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.671207070350647,
+      "psnr_db": 41.247094177187705,
+      "gradient_reference_ratio": 0.8542077162241402,
+      "rgb_step": 1.556686282157898,
+      "reference_delta_residual": 0.7211203575134277
+    },
+    {
+      "frame": 178,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7506085634231567,
+      "psnr_db": 40.60675457937685,
+      "gradient_reference_ratio": 0.8763101877486975,
+      "rgb_step": 1.6643444299697876,
+      "reference_delta_residual": 0.906123697757721
+    },
+    {
+      "frame": 178,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.789815366268158,
+      "psnr_db": 39.958648375064506,
+      "gradient_reference_ratio": 0.9876734077839333,
+      "rgb_step": 1.6949819326400757,
+      "reference_delta_residual": 0.935901403427124
+    },
+    {
+      "frame": 178,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6993386149406433,
+      "psnr_db": 41.20599648109291,
+      "gradient_reference_ratio": 0.867599385919585,
+      "rgb_step": 1.5930626392364502,
+      "reference_delta_residual": 0.7794860601425171
+    },
+    {
+      "frame": 179,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7510995864868164,
+      "psnr_db": 39.926652469099665,
+      "gradient_reference_ratio": 0.969067539064827,
+      "rgb_step": 1.7267811298370361,
+      "reference_delta_residual": 0.8489440679550171
+    },
+    {
+      "frame": 179,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6673058271408081,
+      "psnr_db": 40.88391941860232,
+      "gradient_reference_ratio": 0.8586730394058072,
+      "rgb_step": 1.5463881492614746,
+      "reference_delta_residual": 0.7178601622581482
+    },
+    {
+      "frame": 179,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7625368237495422,
+      "psnr_db": 40.25251161875924,
+      "gradient_reference_ratio": 0.8773459205068419,
+      "rgb_step": 1.7223025560379028,
+      "reference_delta_residual": 0.9039393067359924
+    },
+    {
+      "frame": 179,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.8021785616874695,
+      "psnr_db": 39.85703674629094,
+      "gradient_reference_ratio": 0.9963031253111417,
+      "rgb_step": 1.8133883476257324,
+      "reference_delta_residual": 0.9361251592636108
+    },
+    {
+      "frame": 179,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7056604623794556,
+      "psnr_db": 40.82588634868077,
+      "gradient_reference_ratio": 0.8693254508665729,
+      "rgb_step": 1.5949991941452026,
+      "reference_delta_residual": 0.7809964418411255
+    },
+    {
+      "frame": 180,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.7455371618270874,
+      "psnr_db": 40.06077242967963,
+      "gradient_reference_ratio": 0.9601803832732575,
+      "rgb_step": 1.6312446594238281,
+      "reference_delta_residual": 0.8581026196479797
+    },
+    {
+      "frame": 180,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6699823141098022,
+      "psnr_db": 41.288630779397515,
+      "gradient_reference_ratio": 0.855589678406716,
+      "rgb_step": 1.5466713905334473,
+      "reference_delta_residual": 0.7208889126777649
+    },
+    {
+      "frame": 180,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7514451742172241,
+      "psnr_db": 40.60185796574422,
+      "gradient_reference_ratio": 0.8778433324180949,
+      "rgb_step": 1.6578476428985596,
+      "reference_delta_residual": 0.9038587808609009
+    },
+    {
+      "frame": 180,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.7878476977348328,
+      "psnr_db": 40.00597354555104,
+      "gradient_reference_ratio": 0.9870009220910084,
+      "rgb_step": 1.685520052909851,
+      "reference_delta_residual": 0.9386340975761414
+    },
+    {
+      "frame": 180,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6991114616394043,
+      "psnr_db": 41.24373162224998,
+      "gradient_reference_ratio": 0.8690220450412203,
+      "rgb_step": 1.5831897258758545,
+      "reference_delta_residual": 0.7781361937522888
+    },
+    {
+      "frame": 181,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.8801037669181824,
+      "psnr_db": 39.83852127944183,
+      "gradient_reference_ratio": 1.0355368228102229,
+      "rgb_step": 0.9333202242851257,
+      "reference_delta_residual": 0.8744862675666809
+    },
+    {
+      "frame": 181,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.7092857956886292,
+      "psnr_db": 41.046891154140994,
+      "gradient_reference_ratio": 0.8670013320336895,
+      "rgb_step": 0.590766191482544,
+      "reference_delta_residual": 0.5526121258735657
+    },
+    {
+      "frame": 181,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.757344663143158,
+      "psnr_db": 40.59683642026521,
+      "gradient_reference_ratio": 0.8794691573797658,
+      "rgb_step": 0.8368967175483704,
+      "reference_delta_residual": 0.7837260365486145
+    },
+    {
+      "frame": 181,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.9036791920661926,
+      "psnr_db": 39.759708289760496,
+      "gradient_reference_ratio": 1.0422649474891421,
+      "rgb_step": 1.0365321636199951,
+      "reference_delta_residual": 0.9726102352142334
+    },
+    {
+      "frame": 181,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.7327259182929993,
+      "psnr_db": 40.96509227392158,
+      "gradient_reference_ratio": 0.874892577760468,
+      "rgb_step": 0.6971752643585205,
+      "reference_delta_residual": 0.6531816720962524
+    },
+    {
+      "frame": 182,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.6004499793052673,
+      "reference_delta_residual": 0.5650063753128052
+    },
+    {
+      "frame": 182,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.31987887620925903,
+      "reference_delta_residual": 0.3014083504676819
+    },
+    {
+      "frame": 182,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7812023758888245,
+      "reference_delta_residual": 0.7325974702835083
+    },
+    {
+      "frame": 182,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.8160211443901062,
+      "reference_delta_residual": 0.7693930864334106
+    },
+    {
+      "frame": 182,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.5322959423065186,
+      "reference_delta_residual": 0.5022109150886536
+    },
+    {
+      "frame": 183,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.582825779914856,
+      "psnr_db": 41.86418121216072,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.0872674610927788e-07
+    },
+    {
+      "frame": 183,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262591481208801,
+      "psnr_db": 41.843603628233275,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.0872674610927788e-07
+    },
+    {
+      "frame": 183,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871764659881592
+    },
+    {
+      "frame": 183,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592549085617065,
+      "psnr_db": 41.74593112907093,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626713752746582
+    },
+    {
+      "frame": 183,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706507205963135,
+      "psnr_db": 41.76198801308657,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160592019557953
+    },
+    {
+      "frame": 184,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.0872674610927788e-07
+    },
+    {
+      "frame": 184,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.0872674610927788e-07
+    },
+    {
+      "frame": 184,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871764659881592
+    },
+    {
+      "frame": 184,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626713752746582
+    },
+    {
+      "frame": 184,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160592019557953
+    },
+    {
+      "frame": 185,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 185,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 185,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 185,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711666584015
+    },
+    {
+      "frame": 185,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589337348938
+    },
+    {
+      "frame": 186,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828260779380798,
+      "psnr_db": 41.8641821905737,
+      "gradient_reference_ratio": 0.9717263803416488,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.9995879938505823e-06
+    },
+    {
+      "frame": 186,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.626259446144104,
+      "psnr_db": 41.84360411512728,
+      "gradient_reference_ratio": 0.8399340346016637,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.9995879938505823e-06
+    },
+    {
+      "frame": 186,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7425479888916016,
+      "psnr_db": 40.938849462789086,
+      "gradient_reference_ratio": 0.8756521280287026,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.687178373336792
+    },
+    {
+      "frame": 186,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558158993721008,
+      "psnr_db": 41.753830530785564,
+      "gradient_reference_ratio": 0.9987109539864338,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267298460006714
+    },
+    {
+      "frame": 186,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.66876620054245,
+      "psnr_db": 41.76555121455862,
+      "gradient_reference_ratio": 0.8618950075018184,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160609304904938
+    },
+    {
+      "frame": 187,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.9995879938505823e-06
+    },
+    {
+      "frame": 187,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.9995879938505823e-06
+    },
+    {
+      "frame": 187,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.687178373336792
+    },
+    {
+      "frame": 187,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267298460006714
+    },
+    {
+      "frame": 187,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160609304904938
+    },
+    {
+      "frame": 188,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.582825779914856,
+      "psnr_db": 41.8641821905737,
+      "gradient_reference_ratio": 0.9717267847194052,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 4.5544652493845206e-07
+    },
+    {
+      "frame": 188,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262591481208801,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.8399343841348732,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 4.5544652493845206e-07
+    },
+    {
+      "frame": 188,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7425476312637329,
+      "psnr_db": 40.93884985811839,
+      "gradient_reference_ratio": 0.8756524924257696,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871771216392517
+    },
+    {
+      "frame": 188,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.998711369593649,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626714050769806
+    },
+    {
+      "frame": 188,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687658429145813,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.861895366173947,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160594403743744
+    },
+    {
+      "frame": 189,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.582825779914856,
+      "psnr_db": 41.86418170136719,
+      "gradient_reference_ratio": 0.9717267442816144,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.0872627715107228e-07
+    },
+    {
+      "frame": 189,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262591481208801,
+      "psnr_db": 41.84360411512728,
+      "gradient_reference_ratio": 0.8399343491815391,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.0872627715107228e-07
+    },
+    {
+      "frame": 189,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768194059424894,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 189,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592549085617065,
+      "psnr_db": 41.745931605136946,
+      "gradient_reference_ratio": 0.9986612243403239,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711964607239
+    },
+    {
+      "frame": 189,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706507205963135,
+      "psnr_db": 41.76198849091597,
+      "gradient_reference_ratio": 0.8626090582399247,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160591721534729
+    },
+    {
+      "frame": 190,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.9717267847194052,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 5.952520041319076e-07
+    },
+    {
+      "frame": 190,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.8399343841348732,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 5.952520041319076e-07
+    },
+    {
+      "frame": 190,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524924257696,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871770024299622
+    },
+    {
+      "frame": 190,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558145880699158,
+      "psnr_db": 41.75383148465106,
+      "gradient_reference_ratio": 0.998711369593649,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267155408859253
+    },
+    {
+      "frame": 190,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.861895366173947,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.31605955958366394
+    },
+    {
+      "frame": 191,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.3980501023524994e-07
+    },
+    {
+      "frame": 191,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.3980501023524994e-07
+    },
+    {
+      "frame": 191,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871767640113831
+    },
+    {
+      "frame": 191,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711070537567
+    },
+    {
+      "frame": 191,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160591125488281
+    },
+    {
+      "frame": 200,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828256011009216,
+      "psnr_db": 41.86418170136719,
+      "gradient_reference_ratio": 0.9717266229682622,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 200,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262589693069458,
+      "psnr_db": 41.84360411512728,
+      "gradient_reference_ratio": 0.8399342443215545,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 200,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7425475120544434,
+      "psnr_db": 40.93884906745981,
+      "gradient_reference_ratio": 0.8756523466669064,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 200,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.655815064907074,
+      "psnr_db": 41.753830530785564,
+      "gradient_reference_ratio": 0.9987112033507215,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 200,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687657237052917,
+      "psnr_db": 41.76555121455862,
+      "gradient_reference_ratio": 0.8618952227050597,
+      "rgb_step": null,
+      "reference_delta_residual": null
+    },
+    {
+      "frame": 201,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 4.908890787191922e-07
+    },
+    {
+      "frame": 201,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 4.908890787191922e-07
+    },
+    {
+      "frame": 201,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871771216392517
+    },
+    {
+      "frame": 201,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267170310020447
+    },
+    {
+      "frame": 201,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160594403743744
+    },
+    {
+      "frame": 202,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.865257269808353e-07
+    },
+    {
+      "frame": 202,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.865257269808353e-07
+    },
+    {
+      "frame": 202,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871770024299622
+    },
+    {
+      "frame": 202,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267155408859253
+    },
+    {
+      "frame": 202,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160593509674072
+    },
+    {
+      "frame": 203,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.582825779914856,
+      "psnr_db": 41.8641821905737,
+      "gradient_reference_ratio": 0.9717267847194052,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 4.5544652493845206e-07
+    },
+    {
+      "frame": 203,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262591481208801,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.8399343841348732,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 4.5544652493845206e-07
+    },
+    {
+      "frame": 203,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480274438858032,
+      "psnr_db": 40.98869087466592,
+      "gradient_reference_ratio": 0.8768194424307716,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871771216392517
+    },
+    {
+      "frame": 203,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592549085617065,
+      "psnr_db": 41.74593208120301,
+      "gradient_reference_ratio": 0.998661265898976,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626716136932373
+    },
+    {
+      "frame": 203,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706507205963135,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090941368524,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160594403743744
+    },
+    {
+      "frame": 204,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828256011009216,
+      "psnr_db": 41.8641821905737,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.0436290409643334e-07
+    },
+    {
+      "frame": 204,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262589693069458,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.0436290409643334e-07
+    },
+    {
+      "frame": 204,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7425475120544434,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871767640113831
+    },
+    {
+      "frame": 204,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.655815064907074,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267125606536865
+    },
+    {
+      "frame": 204,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687657237052917,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.31605908274650574
+    },
+    {
+      "frame": 205,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.510836279474461e-07
+    },
+    {
+      "frame": 205,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.510836279474461e-07
+    },
+    {
+      "frame": 205,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871770024299622
+    },
+    {
+      "frame": 205,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267149448394775
+    },
+    {
+      "frame": 205,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.31605932116508484
+    },
+    {
+      "frame": 206,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 206,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 206,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 206,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711666584015
+    },
+    {
+      "frame": 206,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589337348938
+    },
+    {
+      "frame": 207,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.582825243473053,
+      "psnr_db": 41.86418316898691,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.54421061388166e-08
+    },
+    {
+      "frame": 207,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262586116790771,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.54421061388166e-08
+    },
+    {
+      "frame": 207,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.748026967048645,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 207,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592544317245483,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711964607239
+    },
+    {
+      "frame": 207,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706502437591553,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589933395386
+    },
+    {
+      "frame": 208,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.54421061388166e-08
+    },
+    {
+      "frame": 208,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 3.54421061388166e-08
+    },
+    {
+      "frame": 208,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 208,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711964607239
+    },
+    {
+      "frame": 208,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589933395386
+    },
+    {
+      "frame": 209,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 209,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 209,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 209,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711666584015
+    },
+    {
+      "frame": 209,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589337348938
+    },
+    {
+      "frame": 210,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 210,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 210,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 210,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711666584015
+    },
+    {
+      "frame": 210,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589337348938
+    },
+    {
+      "frame": 211,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828256011009216,
+      "psnr_db": 41.86418170136719,
+      "gradient_reference_ratio": 0.9717267442816144,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.0436337305463894e-07
+    },
+    {
+      "frame": 211,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262589693069458,
+      "psnr_db": 41.84360411512728,
+      "gradient_reference_ratio": 0.8399343491815391,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.0436337305463894e-07
+    },
+    {
+      "frame": 211,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.748026967048645,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768194059424894,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.687176525592804
+    },
+    {
+      "frame": 211,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592547297477722,
+      "psnr_db": 41.74593208120301,
+      "gradient_reference_ratio": 0.9986612243403239,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267125606536865
+    },
+    {
+      "frame": 211,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706505417823792,
+      "psnr_db": 41.76198896874542,
+      "gradient_reference_ratio": 0.8626090582399247,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.31605908274650574
+    },
+    {
+      "frame": 212,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828256011009216,
+      "psnr_db": 41.86418170136719,
+      "gradient_reference_ratio": 0.9717267442816144,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 212,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262589693069458,
+      "psnr_db": 41.84360411512728,
+      "gradient_reference_ratio": 0.8399343491815391,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 212,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7425475120544434,
+      "psnr_db": 40.93884906745981,
+      "gradient_reference_ratio": 0.8756524559860492,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 212,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.655815064907074,
+      "psnr_db": 41.753830530785564,
+      "gradient_reference_ratio": 0.998711328032912,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711666584015
+    },
+    {
+      "frame": 212,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687657237052917,
+      "psnr_db": 41.76555121455862,
+      "gradient_reference_ratio": 0.8618953303067207,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589337348938
+    },
+    {
+      "frame": 213,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.0436337305463894e-07
+    },
+    {
+      "frame": 213,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 1.0436337305463894e-07
+    },
+    {
+      "frame": 213,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768193694542101,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871767640113831
+    },
+    {
+      "frame": 213,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592545509338379,
+      "psnr_db": 41.74593255726913,
+      "gradient_reference_ratio": 0.9986611827816754,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.36267125606536865
+    },
+    {
+      "frame": 213,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706504225730896,
+      "psnr_db": 41.76198944657492,
+      "gradient_reference_ratio": 0.8626090223430001,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.31605908274650574
+    },
+    {
+      "frame": 214,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.5828254222869873,
+      "psnr_db": 41.86418267978028,
+      "gradient_reference_ratio": 0.971726703843827,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 214,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262587904930115,
+      "psnr_db": 41.84360508891545,
+      "gradient_reference_ratio": 0.839934314228208,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 0.0
+    },
+    {
+      "frame": 214,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.742547333240509,
+      "psnr_db": 40.938850253447725,
+      "gradient_reference_ratio": 0.8756524195463319,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871766448020935
+    },
+    {
+      "frame": 214,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6558148860931396,
+      "psnr_db": 41.75383100771829,
+      "gradient_reference_ratio": 0.9987112864721783,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.3626711666584015
+    },
+    {
+      "frame": 214,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6687655448913574,
+      "psnr_db": 41.765551692780214,
+      "gradient_reference_ratio": 0.8618952944394974,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.3160589337348938
+    },
+    {
+      "frame": 215,
+      "mode": "O-T2X-R",
+      "rgb_mae": 0.582825779914856,
+      "psnr_db": 41.86418170136719,
+      "gradient_reference_ratio": 0.9717268251571993,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.7961047521785076e-07
+    },
+    {
+      "frame": 215,
+      "mode": "ABL-PairedDeJitter-R",
+      "rgb_mae": 0.6262591481208801,
+      "psnr_db": 41.84360411512728,
+      "gradient_reference_ratio": 0.8399344190882101,
+      "rgb_step": 0.0,
+      "reference_delta_residual": 2.7961047521785076e-07
+    },
+    {
+      "frame": 215,
+      "mode": "ABL-ScalarPairedDeJitter-001-R",
+      "rgb_mae": 0.7480271458625793,
+      "psnr_db": 40.98869167445075,
+      "gradient_reference_ratio": 0.8768194789190569,
+      "rgb_step": 0.7333701252937317,
+      "reference_delta_residual": 0.6871767044067383
+    },
+    {
+      "frame": 215,
+      "mode": "ABL-ContributionNative-00005-R",
+      "rgb_mae": 0.6592549085617065,
+      "psnr_db": 41.745931605136946,
+      "gradient_reference_ratio": 0.9986613074576315,
+      "rgb_step": 0.3788340091705322,
+      "reference_delta_residual": 0.362671434879303
+    },
+    {
+      "frame": 215,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "rgb_mae": 0.6706507205963135,
+      "psnr_db": 41.76198849091597,
+      "gradient_reference_ratio": 0.8626091300337829,
+      "rgb_step": 0.3305688202381134,
+      "reference_delta_residual": 0.31605926156044006
+    }
+  ],
+  "per_frame_coverage": [
+    {
+      "frame": 0,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 0,
+      "selected_percent": 0.0,
+      "switch_percent": null
+    },
+    {
+      "frame": 0,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 0,
+      "selected_percent": 0.0,
+      "switch_percent": null
+    },
+    {
+      "frame": 140,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 370639,
+      "selected_percent": 18.194264451775055,
+      "switch_percent": null
+    },
+    {
+      "frame": 140,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 167720,
+      "selected_percent": 8.233191957273013,
+      "switch_percent": null
+    },
+    {
+      "frame": 141,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 341441,
+      "selected_percent": 16.760966462456803,
+      "switch_percent": 18.254594721960416
+    },
+    {
+      "frame": 141,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 172899,
+      "selected_percent": 8.48742342130066,
+      "switch_percent": 6.589842522777254
+    },
+    {
+      "frame": 142,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 370668,
+      "selected_percent": 18.195688030160227,
+      "switch_percent": 18.351938030160227
+    },
+    {
+      "frame": 142,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 166677,
+      "selected_percent": 8.181992224316682,
+      "switch_percent": 6.93518300345586
+    },
+    {
+      "frame": 143,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 343420,
+      "selected_percent": 16.85811341501728,
+      "switch_percent": 18.45085218347471
+    },
+    {
+      "frame": 143,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 173923,
+      "selected_percent": 8.537690464970154,
+      "switch_percent": 6.622486647816525
+    },
+    {
+      "frame": 144,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 370979,
+      "selected_percent": 18.21095468111844,
+      "switch_percent": 18.435880065975493
+    },
+    {
+      "frame": 144,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 166565,
+      "selected_percent": 8.17649426641533,
+      "switch_percent": 6.918885485391141
+    },
+    {
+      "frame": 145,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 341316,
+      "selected_percent": 16.754830348727616,
+      "switch_percent": 18.341825714734526
+    },
+    {
+      "frame": 145,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 174033,
+      "selected_percent": 8.543090245051838,
+      "switch_percent": 6.668237511781339
+    },
+    {
+      "frame": 146,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 369572,
+      "selected_percent": 18.141886584982718,
+      "switch_percent": 18.33078071002199
+    },
+    {
+      "frame": 146,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 168057,
+      "selected_percent": 8.2497349198869,
+      "switch_percent": 6.969054351240968
+    },
+    {
+      "frame": 147,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 342515,
+      "selected_percent": 16.81368795161797,
+      "switch_percent": 18.344869227144205
+    },
+    {
+      "frame": 147,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 172899,
+      "selected_percent": 8.48742342130066,
+      "switch_percent": 6.672066446748351
+    },
+    {
+      "frame": 148,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 369918,
+      "selected_percent": 18.15887134778511,
+      "switch_percent": 18.376286129437638
+    },
+    {
+      "frame": 148,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 166905,
+      "selected_percent": 8.193184495758718,
+      "switch_percent": 7.002532987747408
+    },
+    {
+      "frame": 149,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 343263,
+      "selected_percent": 16.850406456173424,
+      "switch_percent": 18.431658419729814
+    },
+    {
+      "frame": 149,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 174068,
+      "selected_percent": 8.54480835689601,
+      "switch_percent": 6.70313972667295
+    },
+    {
+      "frame": 150,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 369364,
+      "selected_percent": 18.131676091737354,
+      "switch_percent": 18.360086789192586
+    },
+    {
+      "frame": 150,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 167094,
+      "selected_percent": 8.202462299717247,
+      "switch_percent": 7.014117970468112
+    },
+    {
+      "frame": 151,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 343120,
+      "selected_percent": 16.84338674206723,
+      "switch_percent": 18.26873232799246
+    },
+    {
+      "frame": 151,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 172761,
+      "selected_percent": 8.480649151743638,
+      "switch_percent": 6.53437205466541
+    },
+    {
+      "frame": 152,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 369158,
+      "selected_percent": 18.121563776311657,
+      "switch_percent": 18.30653078856425
+    },
+    {
+      "frame": 152,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 167043,
+      "selected_percent": 8.19995876531574,
+      "switch_percent": 6.899249921457744
+    },
+    {
+      "frame": 153,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 344003,
+      "selected_percent": 16.886732249450205,
+      "switch_percent": 18.372555372290293
+    },
+    {
+      "frame": 153,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 172973,
+      "selected_percent": 8.491056000628339,
+      "switch_percent": 6.610607131636821
+    },
+    {
+      "frame": 154,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 370301,
+      "selected_percent": 18.177672400251335,
+      "switch_percent": 18.338733113415017
+    },
+    {
+      "frame": 154,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 169523,
+      "selected_percent": 8.321699261702795,
+      "switch_percent": 6.982701068174678
+    },
+    {
+      "frame": 155,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 344321,
+      "selected_percent": 16.902342522777253,
+      "switch_percent": 18.27688108702482
+    },
+    {
+      "frame": 155,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 175366,
+      "selected_percent": 8.60852576185988,
+      "switch_percent": 6.775104068488846
+    },
+    {
+      "frame": 176,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 369437,
+      "selected_percent": 18.1352595821552,
+      "switch_percent": null
+    },
+    {
+      "frame": 176,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 168695,
+      "selected_percent": 8.281053644360666,
+      "switch_percent": null
+    },
+    {
+      "frame": 177,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 345798,
+      "selected_percent": 16.97484684260132,
+      "switch_percent": 18.38816564561734
+    },
+    {
+      "frame": 177,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 176888,
+      "selected_percent": 8.683239082626452,
+      "switch_percent": 6.6463929469054355
+    },
+    {
+      "frame": 178,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 366920,
+      "selected_percent": 18.011702796104302,
+      "switch_percent": 18.30024740810556
+    },
+    {
+      "frame": 178,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 167746,
+      "selected_percent": 8.234468268928683,
+      "switch_percent": 6.949320609487905
+    },
+    {
+      "frame": 179,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 347107,
+      "selected_percent": 17.03910422557336,
+      "switch_percent": 18.331615221489162
+    },
+    {
+      "frame": 179,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 175541,
+      "selected_percent": 8.61711632108074,
+      "switch_percent": 6.647374725102105
+    },
+    {
+      "frame": 180,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 370292,
+      "selected_percent": 18.17723060006283,
+      "switch_percent": 18.363424835061263
+    },
+    {
+      "frame": 180,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 169070,
+      "selected_percent": 8.299461985548225,
+      "switch_percent": 6.8489337888784165
+    },
+    {
+      "frame": 181,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 101031,
+      "selected_percent": 4.95950164938737,
+      "switch_percent": 14.504447455230915
+    },
+    {
+      "frame": 181,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 72724,
+      "selected_percent": 3.569941878730757,
+      "switch_percent": 5.66044219289978
+    },
+    {
+      "frame": 182,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 13.348747251021049
+    },
+    {
+      "frame": 182,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 6.871269242852655
+    },
+    {
+      "frame": 183,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 183,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 184,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 184,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 185,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 185,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 186,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 186,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 187,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 187,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 188,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 188,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 189,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 189,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 190,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 190,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 191,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 191,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 200,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": null
+    },
+    {
+      "frame": 200,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": null
+    },
+    {
+      "frame": 201,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 201,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 202,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 202,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 203,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 203,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 204,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 204,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 205,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 205,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 206,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 206,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 207,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 207,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 208,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 208,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 209,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 209,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 210,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 210,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 211,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 211,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 212,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 212,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 213,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 213,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 214,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 214,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 215,
+      "mode": "ABL-ContributionNative-00005-R",
+      "selected_pixels": 372961,
+      "selected_percent": 18.30824890040842,
+      "switch_percent": 0.0
+    },
+    {
+      "frame": 215,
+      "mode": "ABL-ContributionPaired-00005-R",
+      "selected_pixels": 212700,
+      "selected_percent": 10.441211121583411,
+      "switch_percent": 0.0
+    }
+  ],
+  "pixel_sha256": {
+    "O-T2X-R": [
+      "d65410358dd9f8e8cae5ab18b91c9e533b81d0ea7467bbd9cd15df9d8b2a71d2",
+      "e9044ab275bc4e64f76827f9f2798e1ee0c8831b7548b43face46bf494647e63",
+      "3958ee9c471803bdea7797539c962727db7e01458a44979d3539eb6c550c1011",
+      "8b1cbfa1190090a212fc96a5795196ec85552553401660e72439489e235b99d4",
+      "00d434ddc3e9271679b1f30ee5e0f8f6fcc4e549f67b15e78ea095a4026407f0",
+      "5d7c4d35fa6d37af84f671c44b7e4de25205b56b504245291529649c91e8d5a5",
+      "cd054b5cefa090ad4e43596703be39763dc867ea5c28827c3f40c2d31c1fd61f",
+      "e0c7771e524429c912a4b1e5c6e61873aaf0f752db7ef7a84814f37fcdde0da6",
+      "338693c3b30b85c7c6357b4fca40bc8cff672a3264426cab07da56a824818d1d",
+      "e6d78252006600b31573fc6537ae552331b57e576d3db6fbeedcf8a8ca734748",
+      "61bf1d17cb017a09a981656c6f345c56a84250e9c58d8d2973fcc4e519b68a6d",
+      "1dec7cc9e9d3779529d62f2f3147f0bd7ce7293aa253202ddf141c304436b43f",
+      "b903712c1a836b2cdd83a2dda5e0dba12245f5b860a82b7ca8640a6d2205d57c",
+      "2d013b7e93f0e8e7408821084a8eb89bf4ab671b02c23e19dcb3bcf0a9de4dc9",
+      "d2c517def3cb8e4ef4f519fec51f10ee0888399916db9c31ba4debcd7f4d6ccc",
+      "61523bfa7ded5e275db9b3eb3ca060a6728864d02ce54433c1a3f786b19bad39",
+      "8551210723e100e95e3acc3e3b427bf3e64a14b7a452699cfe532019fdb89f17",
+      "efbd08de17549c7edccc3395db5461da773ef84796797c01f971eb0bc818d460",
+      "caed472699db94afe55d15f08c999cebde35194aa08fd5bf39ccdc378438f9df",
+      "cccaa75934bac1402d3d1af5944d420521e2742ec78260e0dd7377a7ad55fc21",
+      "c10727fb686b67b1cd8139586bc522b2cfd9d438ccb0aba33b373981709f31fe",
+      "9c6915b4f9b10c064991a1e2cef3c38b6cbcda09952f5700a31eedda990f77b8",
+      "9cb291f704345e0937e7fdcece5033b07a0fc7207cbfe505431ffaad994a932c",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e",
+      "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+    ],
+    "ABL-PairedDeJitter-R": [
+      "781320dde8ddd6b3dcb4104d7afaa21a60cdf06eb1d99d9a0db73d6bcde05a82",
+      "003469d25f61c31e92872be506a0ffdf71c1887017a42ec785bb3f5a900f8bc5",
+      "6e71dabafe85908e0031b5130225dc29c40246773f70c19d887ffb2ee4d235ca",
+      "36a47815176470e5ca392d227566fb8f3dbaf4bfc9935d08af5910c52dcdf58d",
+      "3f8bdb9a3748f10165460378837378fcbef1585e34169b91c8b0b0471da5b615",
+      "142915f92fe8f8486b6af64cd19bf58a921bf33b115deb91a7300c143812c1ab",
+      "ec20b14552736a5dae9ba1c7ffa2c19ea3a973dfb8ce1158a25bf1e2f7e39102",
+      "05a065fb99a3f3df2ba402a1c7022d02c2ab15f34018632f754322adf2c6b845",
+      "796eb302cfcb84e9840b382f9c0b4b241cb29ec82433a5f99d9544173c4a4a47",
+      "b34931bc2c2edf8998803affd5812c73a66a958494634b233c243388b19bb977",
+      "92a03248c0a451de56fe4036c9bb03b795696e9ba3a2c258d37bb68c6336ec06",
+      "bd7f7ae2fcfe6507df0683a52e653ccf525a70662924425deaa30f4a6404d3c0",
+      "25e83968f721805edd8f8a671cc1d3d090b749c3618c88cacf450ec18f99ea9f",
+      "2ee7b744d930c0bc38cc2fcade12bd0425ebbf5012ce0af43cee1d1bdddae4be",
+      "80618546038a3b6aa2b8c35dca9fe75e4a439b870bc3826b75200fdeb484a399",
+      "2ed88359b483162760e0136ddbd044aa11edcc426fa436da3bc98f0305eb45a5",
+      "5fdbb7e24f932d4cadc4d1cec577caec71a1d5afaae00f70c8565c6a4ce61c62",
+      "db9c8eba0712adc41e41905c88e9ed7b2fc2d1acb02a6de30e2098a261e33dcf",
+      "5b00f949fda502d8b12765e20582624d34f05a1e437e0b1ccd179a7fe5d2a71e",
+      "306c1f485e847d44b61cf3114f2e9c2cd83652dbb6bf8a4774cfc5acdd7923a2",
+      "19ac33bb004e26ea688d0932b9a5e6bce33a7663ba51c94a185cc8b271f14f9b",
+      "9e1f74e3b95261ef9cb9f99e924d89a3701c559609ed14d9c9493dfab2c8adcf",
+      "62dfaf6799a21885560a56c7f88f50df6f9f53129a4df1bbd1cbd2aaf94d101a",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf",
+      "639e44529201df240eceefa26c6fbc0b7674fc8ed6956ba2b73acbe1f41483bf"
+    ],
+    "ABL-ScalarPairedDeJitter-001-R": [
+      "781320dde8ddd6b3dcb4104d7afaa21a60cdf06eb1d99d9a0db73d6bcde05a82",
+      "de6015af98155feafa0c9d001154a55bdd56252aa313b0f709b47817cf4df5ec",
+      "81757e152e5da3d121aecfe0c524cb6d0f094cb8a0422082ed463135a4dec7c8",
+      "edff734bedb3994028efa9d6b2b2058a664f4ce11e661e6838aeb32b94a341b0",
+      "c88049fbe20633a5878f490fb4964ae03105469b0ed3600fa33eb56fadfcc129",
+      "a8c23b7a99be7c157ef5597de2f7435f850ae86c02ae8d5289b385e84deb9f58",
+      "b04e939f15f113c1edd541c8169aa0e8bf02ce21b5177e2feb4b5f956daad137",
+      "95f27d77256b8dab137c1298fee2cdb22b503ef38ebf23d64af086f492cadac6",
+      "4cded6c7d1cc02202a4e7d5193eb5f1f7908a9e71458cc34e75ba05adfa9de90",
+      "22d175f05cd8826fbfb0f7a7ca3695e62843fab876d5206bf248a84e195be406",
+      "b4d99c55e3b4b8f73294dca5d2fdcebe1c2563799b7590069671f33764455c80",
+      "27ff8d88aa5e2e731e8cd2e2c53966deafa26379eb17bbb6b7ff2320c966c3d9",
+      "5e69d0dd782273af08bae3ade0493134f6af541aa52d3b03fb1971b1fedba1b9",
+      "be4e50beb21d8d08ab997b65175cad57bd3824c3599e53b8d7c3a37e2b198e01",
+      "f5916a282df840df57fcab99b1509c1518b24421a7cfff3478fe460b52f80036",
+      "982ab0eb77b5baf94f1e2afed90a7cd8fe6782c306d75c0a6afa20e589d830ef",
+      "97015fc5e1951846eab9e94ba361b93cc7b9280fe3a409dc3a8340cb351d7fff",
+      "5ad14f2688e1355a0e66dbb6782e1316834a788bd1b1cbda1b82e64f1effc084",
+      "78d93bc60615bfc58506b4fa4658bb8a6610ced5255d69fa5663ee97d1efa458",
+      "c39a242953f0d18f78d0d8db501fb1f058900549455ed065d6eeca42d6fe85d6",
+      "3efa984f7e62b2cca837a30df65b4974f5c7bdb4fa1631017247cdad51d14e18",
+      "189f9dc7b99d76c3dc31bc5bfb96a5e6fca21c8896d464ef598745e8aea6a330",
+      "bffdec897271268bdf0d136940c23e40c5589094fa2828127026a973a2f46fdb",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854",
+      "8bbcf9c53e1bb77551d7070aad1a5ddd2a56be518facdad8806ba17239f93264",
+      "e90bbef5038b423b7116816d764750306125cba96012df0dc35ed3408f6a8854"
+    ],
+    "ABL-ContributionNative-00005-R": [
+      "d65410358dd9f8e8cae5ab18b91c9e533b81d0ea7467bbd9cd15df9d8b2a71d2",
+      "7b1bb7b3169c5ce9ecda52c28cd6f25a1974d8060b60e8c450f0e2fb50b1579d",
+      "48a960d9eebc6e1fdb40ca66c4813f9f564dcbbbfbf8faa3375b04affd159240",
+      "d04f89b98ab45349054ff3a948449a75dd27bd57be9fb6a1ecae900e77e222ac",
+      "4d883ba0f214bac40e9fef793ab81b84cd0f7049ad0f42bd3b92aed84590f5e0",
+      "ebcda561dd5a2b24aa4208e46b5fa1737c7f970f9d1cbd7db503fffad48a90e1",
+      "0c0eeae4f69631412bb70e0e23c6c97640020174c1194b88b252c1a7c6d54dca",
+      "29b24927b49e14134b8264dfe30600aefd4c0a2ce9c2661e7aafbbb3966aea85",
+      "dcde21745f075027f5bbf8b7b7abfa112ee7bbeca0998db17cec5745942d200a",
+      "2e5f22a10b34efd256c9fc56033259d873a5a87769a6504d2b83b5d2ad65ebd9",
+      "7938599fb5816f729a9af4571cff647bafded17a946b67993df2353434959378",
+      "4d118d61af5d553162e6d5e4dc103f63939aa631cc86acc2a7a66ac6afc2a2c2",
+      "514a3cb60739a1c6a0018a7867b33ee74333dbae0e48dc856a4db3ea3d264119",
+      "858abeec698aad451adb5653ef72c6375d4ef6974d4cd95ed2ea558e82078c5a",
+      "9b3f07da5df8ac9f05980cc09db3bc2ed9eff430ef55772208d9b4fe4446b136",
+      "5b7023162fa27303c498b9b0aabfdf1ab0d8dfda7a808bedfdee53172e84391d",
+      "25cb2a926ba2599842627c7a0355821ef979d9b63c473407b0fe0bf3f26703b2",
+      "3fff00c1928633035ccb0d10b4c8c0f521064ab75cd3319bcc314f4e771c3b2b",
+      "e2e25a7bf58a7dc6b093d0ff39ebc5c9506272925829aa8bb0b7cd0d469786f9",
+      "ca68017d457bf3c0b0ef8c6426564a628ef5981196affd2035818e59628a5b19",
+      "965c94eb550ce44e26d6088b94e9bc3341e1548b4deb54c44ec911b609b2782f",
+      "d42b029c07dcfab61fa27e4c053d1f6dd7a69205a7b5ad4a232597c9a93522ff",
+      "f8bf96880a15e3a5cf4b89dc19e0a558d11f7541383cf86cb0e99c8ec763610d",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1",
+      "10409ed21923b607dda29b57dffb7ebc3b93665ca157cf39975b788ec4086e65",
+      "d8ef4643dae8bcc5a49647f9ea2edbfe0f429efaaa9fd0e457e209f94dff59e1"
+    ],
+    "ABL-ContributionPaired-00005-R": [
+      "781320dde8ddd6b3dcb4104d7afaa21a60cdf06eb1d99d9a0db73d6bcde05a82",
+      "298a7d5a6d3721f04599010f8933ad144e751d0fa98c497b3d0666250e476e42",
+      "13bbf2f4b23751a877af614a3ef42777a52a7ab2b4710625ddcd8dbf3706cafc",
+      "b687d54e987585952dc38c84daeccebf16d2c5ac1a2057da77dceee1f3e75d53",
+      "9eaf5f01cd5d5c4e3f97c103bf0d015ce33c059409deeb8562082b8c626b8e25",
+      "b5f2378cc7b6af1249a126749958e58e5e817a212e83200489af4205cb3070f4",
+      "1e37783f68e83727999eee79bfb2e2f204f08f6a29492e81b13efcb0a668e3d3",
+      "5e77e4ab324f56ed24f60961e620eae17200d941222f76dc738f6b2249d6644a",
+      "d219dc1301b439add2969e9e081d1d2deb35ad759516ba159e96b5164751d3c9",
+      "50db3e47547c66be3554df5a63ace8e89a0b10186d912d7ddaae1a42a21a8fba",
+      "cede8c4f07e3398415ed28c21ffec92f2d7429d3bbf425a548a56c33e7a8785a",
+      "64dfd725d628741367e089d68b1601021d0ff86757b9da1fb4f945ffa7a3eafa",
+      "a70d4bc2962c0e64ff7ed01cfdb1df1d7c8d95d48efcea37d0322adada433261",
+      "1183bbcad2d0188f1c40fbc6e1e19222ab487041b8f9642899aa5ed2d76dfd90",
+      "1f87ed950c33947ecf58aab10d4e634d02d35965e1e2388e0edc887b8abdcc63",
+      "6e3e9920f5da911077657bfe485ba3188ad022e109cf169b4e92a3b50667c2b6",
+      "effe892341174144a278826425efcd4e2120651ab4efefddf22e935d082dcdfd",
+      "c4b7df0e6489652a5b85d8150198df0ba686a932fd5110b9ee7b47a20653f0b2",
+      "cf5fa169c2e50f19d88f8b2077a8c56a7cf2d375d1083bf7fb2d44d4113a5f8b",
+      "4b8ba503e0434c6e01219d648bcdeb6181be7a525aaf08211c3430b51c7a83d7",
+      "63d8b57085bdc2f978ac523f2190fddc21cdf7629e778e58082b6e14b60602cf",
+      "33ca28e975e443cfb2e1a6715a731e796339220b5437967c9515992bf31933ae",
+      "c7ba27a9a7d2cfac0a1087ad483b3ec162aa0a0fd5cf68fce0092665e219ef64",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8",
+      "103d725bd3b31c6316f8db11d79f614561cee0f035d23b76e984466123d697d5",
+      "9d4e58f2bb401bc829f19b97991f392b82027e51a7a7e413a4d6fa4c65c73bb8"
+    ],
+    "DBG-ContributionNative-00005-R": [
+      "4c4cc86a57647ac57813ceb26ad6603ad441885d87329bf00e08b3ab4a883463",
+      "e20124a487daa88ce0a97d8cc1e232c0f86aa0e1407d664c59dacb0e27501bfe",
+      "66e8e9e3c5136ff58062d4ab5b92b49456dbf0d64e3f16bfb304c89cdfa0da99",
+      "290bda12bd1ef80364d0c8b7a5855894e9943e5d04e9b10dc27097d348451ef6",
+      "9dc4bccb43332fc54a011a03ce4e6175f94864423dd66250e1c424abd6e62978",
+      "1f025e82f16152c3bec5dacb072ac0b314eea6c3c60033cf293cfba11daf22f8",
+      "7531d0a76f883eb826d413d3d59fe939a71045ddf00dc29ac8e08a966f06de0f",
+      "8d57aec58026cd4d2598206ddfb0aeacdc693acbf9eaf49ba406211b212489b4",
+      "ae8e3a717441829600891131640948e290958594846e764634348207d7860646",
+      "bca77c4ddcf2ee966212fcd400b0438d3b369f83fd4eada3160003283c99a30f",
+      "df200a702a1fe368a8174d1f44fcc07dd8a547a7c25d83348a93bdc0608cf79a",
+      "d45ee11e101b7b2834c072099f8b9eb642940b696c4593d2c4160456c055715b",
+      "e61bd84019f78877d197c8b160c05f6a013912ec3fcfe07330335680fb9531d2",
+      "cac46020484e4e991fda79b64b606aad17d10c3c48438192b1b549806b3e56a2",
+      "0e1a3f415e673438f45328f775559e6a235f098d60e7902ce8efe26db85bb912",
+      "307a0c97d731e012b95ee56e5af300e384c014f3233ed6b304252c630df5ed19",
+      "24632637e5e2fcceb49a5efc5f83abfc129ce53a8adeab39499882dca7fb6269",
+      "5284f4706b143ee099997098c27b21d8178476b22a91d663e02d46211f782461",
+      "77aa3b80e936d79fa7d2a7a80da78802d8611984a00d77cb3bb5bf7ef1dd67c1",
+      "e60610ae6d8f1ef08ce13c9e983a29986a4659791773809348a27738f90d4d5a",
+      "c1258bc2c87dcda23e3b536c6b203ce60e7eecacdd6633aea55d01c6d906c42a",
+      "e251bf40430e392efd9a43fe6f01c32d959d1dce5d8d6dd1cd565eadc8123f53",
+      "fac07d4bd76484f23c88b0cd678f7ec5d155838d4aa413659456eb2739f04642",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878",
+      "dc9f9972269d9fc8f95709998ca4888812e6d36a0212696cf0c94a988bf7f878"
+    ],
+    "DBG-ContributionPaired-00005-R": [
+      "4c4cc86a57647ac57813ceb26ad6603ad441885d87329bf00e08b3ab4a883463",
+      "136669f8807d36bbcd629cdab80d9bc54470b6df8daf9183850a4f05246aa66d",
+      "b3383e0c459861e7505bcdd64bc99639aca3ba48e5b24057baff8e8f5557fe9c",
+      "bcca61603b3e5d266951026d30ffa75b6e596fd4b0b062a7c99c675f40ac6ddd",
+      "220000b104e02d3057385a0c9b8ec9458fb155f37d746cd643417c138c8060ef",
+      "884fe6c62a4f43b5d17f91df43698d43a9e070ae1d3db96273b7fc42b6aca83c",
+      "22a368e5f5223085c80379ab97ec2bfdb49d3513e203fc97c28aef6dc89caad2",
+      "9aafa164542de676dfc3c0ca4bb0cdb14019ead371e7f6ba8eae05af9d543764",
+      "560d6b1f276f3a10cd53fca1a7556b3f76a9ca8af0446aaaee44f1def534f547",
+      "e09155686a336d613c540fbacc2facdfb900ce5996b21e2893627e3a6cecace6",
+      "5eb311d813825e8998b7456e2a2ae53a8d814461c3d91759c6d9c0aa8fb126b4",
+      "b849bf7b71c510c347134bb8a555aeb5b02185223a2f3466192f48074f9de49e",
+      "77bf1aa16b301dad099472ed606176b971333e1bb63f0f60b91789939664caa2",
+      "01049d9a2fa2397519868125e2cc2da0894df4d74e9a12e24bc839b86b470cb0",
+      "8b21a4751be70b0408805752724752b02b3c8fe1409667abb852e1b95fb4ec18",
+      "7b3be3d39702cab8c86eab4c401d80456264ef85b3a47bb75df5198e76593f15",
+      "41c79dcc9464360ecd4d27a1e49d68bc9de7e2c8a8709fd2ef3e3c8c18d1cbc2",
+      "38d0498b5c6ada70b6984a9b655616ab58d4b68eaaf35ff0ede359a89485a547",
+      "b46570c8613037134e6c5792fe17d14575bb5a63324d2fb2878da4d95082d47b",
+      "8d044b183706eb0120c85889b3d1a2dcb7a5b82b9ccb37a167aed75726ae6969",
+      "0b3639d2225d6100686b7ecfd28179d5d3bbbdd42212523a53525eabc5478fde",
+      "0e6cdee4e92b3383259521a312010f4cdf3a2502a32098b0a839b8123e2d3e2b",
+      "d8b53aadb2655fbab57c0673c559b599b9c38ec5c1e0caaf724c0132ca9150c4",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5",
+      "eb5da903e6e7fec57edd158d91956164cad2d7de3f613ee6525e305c50fa1ed5"
+    ],
+    "DBG-CurrentSpatial-R": [
+      "d65410358dd9f8e8cae5ab18b91c9e533b81d0ea7467bbd9cd15df9d8b2a71d2",
+      "0c6de07382ae1976f77235308dab917efbd8617dc90ca4d0a70ad7495fd4a5b2",
+      "14d38f8b7b53ddcb3b12478f7b1c17c5a59b731d2a115372d90d6ca05b86cfce",
+      "606f71a18b213d6f777e67c86174e47d66077d082d142593fa20246397785f8e",
+      "eea69960aa47f668bf54c7addfaef949368aed82d40424d859508f8e0cf72807",
+      "923aebe6dc9d8bcd2bd04a909dbcb40fa16aa57c23e601d9fe6c31c8e29b21e8",
+      "8920848aff5a20f82718bfba9eabf110388faa72a9f0b6d6b977e9bf32a82169",
+      "3a93edfa5d286d310cbbfa73030c7b57b1dc7c3f26e8f8ffc1a30531ec99d087",
+      "31034f48ae83c79d260206832f7ff66db5b2dd8614cf22d5475210f78906b548",
+      "f3b482b62859216260faf74ef15ee6aff90cb5d336625f51bf87768d6401c56e",
+      "698fbb54f306b8b8e765a36aac6449495e7870105d3137096b04974b824902b4",
+      "47c19eea541e55cd754cad1c1159d885fb62f3d651f4dff9e34b91c3246f174d",
+      "b900f26e357b5d85ab0256f9ab12dd7348f1b00a9f7c402f68bfd39da69e26dc",
+      "880497a04de453fd79e8d1f0b19a6109f60de74d6ab374a31a4718c90133bdf7",
+      "e053e170b2ac0f28ad637ffd3c2710d685ed239f5a255f6c632974c1cb37dad4",
+      "c2cad3efca3955eefdb8187da1b4db3209ffd8cfc43e53723ee655a4f51b65df",
+      "86369ee23989c047712bd1b5ebda217479607e522291ec595a033b6a3e6250dc",
+      "b4bf328a2317899ed943a2b07bfac90ea177a1620af9c0f878642b676e720c21",
+      "cd7f6e9d0f50c98f8509310d5c4db5f997b4d1b7d94bd6af9aa99234f98a3e4a",
+      "ecf50acfe25e1ef1a3eabe6aa4c4f104d1b0968aae7bd36e2b120d56dfc87e65",
+      "3ac990301f70b23f47c2aa6dd48d5abfb3195158540cb5436b0a8951c561a842",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e",
+      "2fcd92381bfe9583a468bed47f49f8ce490c33b58b8af3f89f3db1138fec43b2",
+      "bd24362e084ffefb52b70e0f75127fd244b7da2c831ceff4993d01b3ff55653e"
+    ],
+    "DBG-DeJitterSpatial-R": [
+      "781320dde8ddd6b3dcb4104d7afaa21a60cdf06eb1d99d9a0db73d6bcde05a82",
+      "2e935e853776d256d87ae92b7b05e0c508a9dee133d7e63c389f863359b5ccbd",
+      "041501edb42a3b22a1d0c0a7ba67ad2ad21c670500779df18b646041f65fb945",
+      "f4f154bc6c0985af82b58a7ac5768c8521777e852983f9bf1c9f0426e99746d6",
+      "21dd1df6a8539d75fb3aead93e5440f32f6ee71e6a0209e26e4558e3d9bfa47c",
+      "290ca9bdd77b232c0f53057606eee48a56b7f101e1d8d12fdb01e789bdf585b0",
+      "b0e14463bbdda9a21edb97d2e6d035464afc9719ec65db1ed0ce7b117ca244f2",
+      "0e8477b80f6697705f5300bde422592c260473353dc36bc39be59b6a209d3fbc",
+      "26805ffb715b55108cae554eb2e49271c2b179f8ccc73b6b12bbb7eea702feb8",
+      "936d68f45906e1a0d6d3eeb07c69f504ecaf3a32415c9cb0b724b568b2b95cc8",
+      "4abebcd1d8b282265514254bedb3343b196fd610d6cb1fdf01b0a01f69c29b96",
+      "f098f59999922e1423f443b4d0ed5597fabcc2c90b0b3b5039474314377fd445",
+      "967d36df6f68c1d37d200ce9f3a6d9f8a436e0a5e7c4e7eaeaa77c5db728e845",
+      "c1b24557a86d2ed12828f61df3a72ca8912f898a523b21bd36588e77bff73ab1",
+      "91e8a8128bccc5b22f3b78db93affe560c46b5073cd03091187cd92784d25918",
+      "a5622ae4b426a05518bc93634122f3febb58e6abc0af5d397a46e846d60fbf6d",
+      "1dc67c622f8d2cf3ec3a11004c176d8dec8a464643c9ec454a64916927336d23",
+      "63d4e5c0ab7d9d3ec8a73a099bf63e0e51a73da1e163d01ef103cd44d6df184e",
+      "bbddc8059fdb0942408350524040dd1459a526a85aaca02a95f43f132eafce7d",
+      "29cf4850b18052f18272e4d235a53158b5240d8a1a2a42f8b5b22fd0800a1ac9",
+      "776177b698eea7acb273e406acbc87bc2910b9472b3f4f19aa793b5f601d5269",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39",
+      "2762993381ed38a6781e36bc5f62ae87631f6c006f08edbdb25fcd1db6a78f3b",
+      "e76ce08441908cc8e32910962a6d610f8e8108ba9cf81a7e8dfec4350d0f2f39"
+    ]
+  },
+  "media": {
+    "moving": {
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\moving.mp4",
+        "frames": 16,
+        "fps": 60,
+        "size": [
+          1920,
+          350
+        ],
+        "pts_verified": true
+      },
+      "gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\moving.gif",
+        "source_frames": [
+          140,
+          155
+        ],
+        "playback_speed": 0.5,
+        "duration_ms": 530,
+        "fixed_palette": true
+      }
+    },
+    "transition": {
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\transition.mp4",
+        "frames": 16,
+        "fps": 60,
+        "size": [
+          1920,
+          350
+        ],
+        "pts_verified": true
+      },
+      "gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\transition.gif",
+        "source_frames": [
+          176,
+          191
+        ],
+        "playback_speed": 0.5,
+        "duration_ms": 530,
+        "fixed_palette": true
+      }
+    },
+    "late_still": {
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\late_still.mp4",
+        "frames": 16,
+        "fps": 60,
+        "size": [
+          1920,
+          350
+        ],
+        "pts_verified": true
+      },
+      "gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\late_still.gif",
+        "source_frames": [
+          200,
+          215
+        ],
+        "playback_speed": 0.5,
+        "duration_ms": 530,
+        "fixed_palette": true
+      }
+    }
+  },
+  "still_sequence": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_221008\\SelectionAnalysis\\still-sequence.png"
+}
