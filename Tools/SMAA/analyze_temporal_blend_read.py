@@ -83,7 +83,7 @@ def summary():
  lines.extend(['Four alternating-order repeats within one process; no cross-device or independent-day claim.',
                'ReadOne−ReadControl includes Load, coordinates, dependency, register/cache effects and different probe source; it is not isolated DRAM transfer time.',
                'ReadOne−Native includes the artificial sink arithmetic. No quality or candidate policy changes.',''])
- (OUT/'tables.md').write_text('\n'.join(lines));(OUT/'comparisons.json').write_text(json.dumps(stats,indent=2)+'\n');print(json.dumps(stats,indent=2))
+ (OUT/'tables.md').write_text('\n'.join(lines),encoding='utf-8');(OUT/'comparisons.json').write_text(json.dumps(stats,indent=2)+'\n');print(json.dumps(stats,indent=2))
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--scene',choices=['bistro','minecraft']);p.add_argument('--phase',choices=['Capture','Smoke','Benchmark','Summary'],required=True);a=p.parse_args()
  if a.phase=='Summary':summary()

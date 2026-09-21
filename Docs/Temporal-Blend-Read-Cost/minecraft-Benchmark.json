@@ -1,0 +1,1653 @@
+{
+  "scene": "minecraft",
+  "phase": "Benchmark",
+  "validation": "PASS",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Benchmark",
+    "window": "hidden",
+    "executable_sha256": "3CE3BD51E2C2A69487AAB2999EBF193A391F834F6D036EF9FDADDCF3D963837C",
+    "started_utc": "2026-09-21T14:13:52.4553171Z",
+    "completed_utc": "2026-09-21T14:16:10.2229365Z",
+    "arguments": [
+      "-smaaTemporalBlendReadBenchmark",
+      "minecraft"
+    ],
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260921_231353\\20260921_231353_results.csv",
+    "report_sha256": "84842A8DA8C03DCAFF85ECA0BC7D330779981D17DF8EACC2C8080357EE1AB837"
+  },
+  "means": {
+    "O-T2X-R": {
+      "SMAA": 0.28279936,
+      "Spatial": 0.22431984,
+      "Resolve": 0.034870079750000005,
+      "WholeFrame": 1.24364206675,
+      "WallFrame": 1.2835652135
+    },
+    "ABL-BlendBindOnly-R": {
+      "SMAA": 0.28319514675,
+      "Spatial": 0.22469856,
+      "Resolve": 0.03487045325,
+      "WholeFrame": 1.24599345,
+      "WallFrame": 1.2846902552500001
+    },
+    "ABL-BlendReadControl-R": {
+      "SMAA": 0.2835878935,
+      "Spatial": 0.22496842675,
+      "Resolve": 0.03496464,
+      "WholeFrame": 1.2518337499999999,
+      "WallFrame": 1.2855830209999999
+    },
+    "ABL-BlendReadOne-R": {
+      "SMAA": 0.286847147,
+      "Spatial": 0.2250501865,
+      "Resolve": 0.038158239999999996,
+      "WholeFrame": 1.24985051,
+      "WallFrame": 1.2884576617499999
+    }
+  },
+  "timing_rows": [
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.279483093,
+      "p95_ms": 0.315392,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.221266347,
+      "p95_ms": 0.25088,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034731733,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.23738618,
+      "p95_ms": 1.447936,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.275662875,
+      "p95_ms": 1.5708,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.282672,
+      "p95_ms": 0.315392,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.224317867,
+      "p95_ms": 0.25088,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03479872,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.241536047,
+      "p95_ms": 1.4592,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.276099292,
+      "p95_ms": 1.569,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.282797867,
+      "p95_ms": 0.316416,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.22421568,
+      "p95_ms": 0.251904,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034923733,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.243591133,
+      "p95_ms": 1.447936,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.283003542,
+      "p95_ms": 1.5773,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.287030827,
+      "p95_ms": 0.320512,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225277013,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03814336,
+      "p95_ms": 0.045056,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.253456453,
+      "p95_ms": 1.473536,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.285636271,
+      "p95_ms": 1.5786,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.286015147,
+      "p95_ms": 0.320512,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.2242816,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.038107307,
+      "p95_ms": 0.045056,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.244561007,
+      "p95_ms": 1.458176,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.284064563,
+      "p95_ms": 1.5707,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.283826773,
+      "p95_ms": 0.316416,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225225173,
+      "p95_ms": 0.251904,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03497408,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.253508727,
+      "p95_ms": 1.47856,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.283784917,
+      "p95_ms": 1.5763,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.282801067,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.224323413,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03485888,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.247970553,
+      "p95_ms": 1.4592,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.283735104,
+      "p95_ms": 1.5744,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.284055893,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225516587,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.0349024,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.242852667,
+      "p95_ms": 1.44896,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.285505875,
+      "p95_ms": 1.5797,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.283035307,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.224503893,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034891733,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.247272147,
+      "p95_ms": 1.45408,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.285545875,
+      "p95_ms": 1.579,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.284046293,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225462613,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034921173,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.24701968,
+      "p95_ms": 1.453056,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.286004292,
+      "p95_ms": 1.5768,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.283296427,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.224690987,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03494016,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.260476413,
+      "p95_ms": 1.477568,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.287944333,
+      "p95_ms": 1.5871,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.287699627,
+      "p95_ms": 0.320512,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225845333,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.038199893,
+      "p95_ms": 0.045056,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.252879447,
+      "p95_ms": 1.457152,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.291823625,
+      "p95_ms": 1.5809,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.286642987,
+      "p95_ms": 0.320512,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.2247968,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.0381824,
+      "p95_ms": 0.045056,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.248505133,
+      "p95_ms": 1.432512,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.292306188,
+      "p95_ms": 1.5907,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.284430507,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225741867,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.035020587,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.249758727,
+      "p95_ms": 1.472512,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.287599292,
+      "p95_ms": 1.5814,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.283261227,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.224690347,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03490304,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.24744752,
+      "p95_ms": 1.44896,
+      "scale": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.292922333,
+      "p95_ms": 1.5899,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.284623147,
+      "p95_ms": 0.31744,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "mean_ms": 0.225992533,
+      "p95_ms": 0.252928,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034954453,
+      "p95_ms": 0.04096,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.247057273,
+      "p95_ms": 1.452032,
+      "scale": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.287546229,
+      "p95_ms": 1.5742,
+      "scale": 0.0
+    }
+  ],
+  "distribution_rows": [
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.288768,
+      "sample_sd_ms": 0.030365415,
+      "p99_ms": 0.31744,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.233472,
+      "sample_sd_ms": 0.026998013,
+      "p99_ms": 0.252928,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004953846,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.211392,
+      "sample_sd_ms": 0.07810926,
+      "p99_ms": 1.478656,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2266,
+      "sample_sd_ms": 0.119259623,
+      "p99_ms": 1.6298,
+      "wall_fps": 783.906171135,
+      "wall_1pct_low_fps": 602.082452683
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.289792,
+      "sample_sd_ms": 0.026525691,
+      "p99_ms": 0.318464,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.234496,
+      "sample_sd_ms": 0.023204532,
+      "p99_ms": 0.253952,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004803751,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.21344,
+      "sample_sd_ms": 0.080204278,
+      "p99_ms": 1.487872,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2264,
+      "sample_sd_ms": 0.118246904,
+      "p99_ms": 1.6275,
+      "wall_fps": 783.638080932,
+      "wall_1pct_low_fps": 602.148163574
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.0272006,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.234496,
+      "sample_sd_ms": 0.023548894,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004907078,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.21856,
+      "sample_sd_ms": 0.075165875,
+      "p99_ms": 1.4848,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2316,
+      "sample_sd_ms": 0.120466012,
+      "p99_ms": 1.637,
+      "wall_fps": 779.421075254,
+      "wall_1pct_low_fps": 599.664937216
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.294912,
+      "sample_sd_ms": 0.027132227,
+      "p99_ms": 0.323584,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023370182,
+      "p99_ms": 0.256,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.037376,
+      "sample_sd_ms": 0.00500981,
+      "p99_ms": 0.045056,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.222656,
+      "sample_sd_ms": 0.084555898,
+      "p99_ms": 1.49504,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2353,
+      "sample_sd_ms": 0.119366355,
+      "p99_ms": 1.6412,
+      "wall_fps": 777.824974829,
+      "wall_1pct_low_fps": 597.144900942
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.293888,
+      "sample_sd_ms": 0.027639324,
+      "p99_ms": 0.32256,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.234496,
+      "sample_sd_ms": 0.023583707,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.037376,
+      "sample_sd_ms": 0.005132251,
+      "p99_ms": 0.045056,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.220608,
+      "sample_sd_ms": 0.075769896,
+      "p99_ms": 1.494016,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.235,
+      "sample_sd_ms": 0.117287797,
+      "p99_ms": 1.628,
+      "wall_fps": 778.77704066,
+      "wall_1pct_low_fps": 599.829798295
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.026789093,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023493212,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004786731,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.219584,
+      "sample_sd_ms": 0.088338135,
+      "p99_ms": 1.499136,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2345,
+      "sample_sd_ms": 0.119309504,
+      "p99_ms": 1.6257,
+      "wall_fps": 778.946681035,
+      "wall_1pct_low_fps": 601.618353371
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.289792,
+      "sample_sd_ms": 0.027170532,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.234496,
+      "sample_sd_ms": 0.023578769,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004917947,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.219584,
+      "sample_sd_ms": 0.079778418,
+      "p99_ms": 1.492992,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.23405,
+      "sample_sd_ms": 0.117829767,
+      "p99_ms": 1.6354,
+      "wall_fps": 778.976906337,
+      "wall_1pct_low_fps": 599.182116412
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.026604134,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023286977,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004869912,
+      "p99_ms": 0.041984,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.220608,
+      "sample_sd_ms": 0.071620883,
+      "p99_ms": 1.48992,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2345,
+      "sample_sd_ms": 0.119230349,
+      "p99_ms": 1.6374,
+      "wall_fps": 777.903873835,
+      "wall_1pct_low_fps": 598.820323961
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.02720915,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023670229,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004934318,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.221632,
+      "sample_sd_ms": 0.076320715,
+      "p99_ms": 1.492992,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2352,
+      "sample_sd_ms": 0.119618137,
+      "p99_ms": 1.6412,
+      "wall_fps": 777.879669211,
+      "wall_1pct_low_fps": 596.131849462
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.026629099,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023315627,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004824781,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.222592,
+      "sample_sd_ms": 0.074878486,
+      "p99_ms": 1.490944,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.237,
+      "sample_sd_ms": 0.117313158,
+      "p99_ms": 1.6353,
+      "wall_fps": 777.602381641,
+      "wall_1pct_low_fps": 598.046630194
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.027313851,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023776286,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004892978,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.223648,
+      "sample_sd_ms": 0.088557599,
+      "p99_ms": 1.504256,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2354,
+      "sample_sd_ms": 0.121966669,
+      "p99_ms": 1.636,
+      "wall_fps": 776.431072461,
+      "wall_1pct_low_fps": 596.976314965
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.295936,
+      "sample_sd_ms": 0.027095135,
+      "p99_ms": 0.323584,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.236544,
+      "sample_sd_ms": 0.023353932,
+      "p99_ms": 0.256,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.037376,
+      "sample_sd_ms": 0.004987084,
+      "p99_ms": 0.045056,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.227776,
+      "sample_sd_ms": 0.077410475,
+      "p99_ms": 1.500064,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2422,
+      "sample_sd_ms": 0.11785685,
+      "p99_ms": 1.6395,
+      "wall_fps": 774.099482814,
+      "wall_1pct_low_fps": 598.24266218
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.294912,
+      "sample_sd_ms": 0.027703536,
+      "p99_ms": 0.323584,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.023684982,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.037376,
+      "sample_sd_ms": 0.005136494,
+      "p99_ms": 0.045056,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.227776,
+      "sample_sd_ms": 0.071789384,
+      "p99_ms": 1.503232,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadOne-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2409,
+      "sample_sd_ms": 0.121845552,
+      "p99_ms": 1.6403,
+      "wall_fps": 773.810424861,
+      "wall_1pct_low_fps": 594.691633804
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.29184,
+      "sample_sd_ms": 0.026976712,
+      "p99_ms": 0.320512,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.236032,
+      "sample_sd_ms": 0.023689679,
+      "p99_ms": 0.256,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004784832,
+      "p99_ms": 0.04096,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.22368,
+      "sample_sd_ms": 0.080106383,
+      "p99_ms": 1.496064,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendReadControl-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.23755,
+      "sample_sd_ms": 0.119884496,
+      "p99_ms": 1.6422,
+      "wall_fps": 776.639134917,
+      "wall_1pct_low_fps": 594.539157836
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.290816,
+      "sample_sd_ms": 0.027282114,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.23552,
+      "sample_sd_ms": 0.02370256,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004936632,
+      "p99_ms": 0.041984,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.224704,
+      "sample_sd_ms": 0.075588917,
+      "p99_ms": 1.506304,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "ABL-BlendBindOnly-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2392,
+      "sample_sd_ms": 0.125095566,
+      "p99_ms": 1.6578,
+      "wall_fps": 773.441663291,
+      "wall_1pct_low_fps": 590.83176804
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "median_ms": 0.29184,
+      "sample_sd_ms": 0.026917184,
+      "p99_ms": 0.319488,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "Spatial",
+      "samples": 4800,
+      "median_ms": 0.236544,
+      "sample_sd_ms": 0.023579773,
+      "p99_ms": 0.254976,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "Resolve",
+      "samples": 4800,
+      "median_ms": 0.034304,
+      "sample_sd_ms": 0.004826838,
+      "p99_ms": 0.041984,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "median_ms": 1.225728,
+      "sample_sd_ms": 0.073767053,
+      "p99_ms": 1.488896,
+      "wall_fps": 0.0,
+      "wall_1pct_low_fps": 0.0
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "median_ms": 1.2396,
+      "sample_sd_ms": 0.116110788,
+      "p99_ms": 1.6282,
+      "wall_fps": 776.671141857,
+      "wall_1pct_low_fps": 600.687035798
+    }
+  ]
+}
