@@ -7,6 +7,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
     bool m_warp = false;
     bool m_jitterAblation = false, m_savedPattern = true;
+    bool m_historyFilter = false;
     int m_pairOrder = -1;
     bool m_counterCapture = false, m_counterCaptureActive = false;
     RENDERDOC_API_1_6_0* m_renderdoc = nullptr;
@@ -61,14 +62,14 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false,bool historyFilter=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp||pairOrder>=0),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
         m_warp=warp;
         m_pairOrder=pairOrder;
-        m_costFocused=costFocused||(warp&&!capture)||pairOrder>=0;
+        m_costFocused=costFocused||(warp&&!capture)||pairOrder>=0||(historyFilter&&!capture);
         m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-All-R",1,0},
             {"ABL-Contrast-0005-R",1,0.005f},{"ABL-Contrast-001-R",1,0.01f},
             {"ABL-Contrast-002-R",1,0.02f},{"ABL-Contrast-None-R",1,2.0f}};
@@ -148,6 +149,17 @@ public:
                 {"DBG-CurrentSpatial-R",3,0,true},{"DBG-CurrentSpatial-PatternOff-R",3,0,false},
                 {"ABL-Standard-PatternOff-R-Repeat",0,0,false},{"ABL-ScalarWeight-001-PatternOff-R-Repeat",16,0.01f,false}};
         }
+        if(historyFilter) {
+            m_historyFilter=true;m_execution=true;
+            m_configs={{"O-T2X-R",0,0},{"ABL-HistoryPoint-Control-R",6,0},{"ABL-HistoryLinear-R",25,0},
+                {"ABL-ScalarWeight-001-R",16,0.01f},{"ABL-ScalarHistoryLinear-001-R",26,0.01f}};
+            if(capture) {
+                m_configs.push_back({"DBG-ContrastMask-001-R",2,0.01f});
+                m_configs.push_back({"DBG-CurrentSpatial-R",3,0});
+                m_configs.push_back({"ABL-HistoryLinear-R-Repeat",25,0});
+                m_configs.push_back({"ABL-ScalarHistoryLinear-001-R-Repeat",26,0.01f});
+            }
+        }
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -184,6 +196,7 @@ public:
                 tool.ReportAddText("Same pixel selector; warp-uniform history execution; per-pixel weight masking. NVIDIA-only diagnostic.\r\n");
             }
             tool.ReportAddText("Native Standard temporal contrast engineering gate\r\n");
+            if(m_historyFilter)tool.ReportAddText("History filter gate: paired pattern On, same spatial-frame history and adaptive weight formula. Linear filters history RGBA including velocity alpha. No new pass/resource/sample instruction.\r\n");
             if(m_jitterAblation)tool.ReportAddText("Pattern ablation: On=paired projection jitter/subsample indices; Off=zero jitter/1X indices. Spatial-frame history and camera reprojection preserved. Diagnostic Off modes are not official T2X.\r\n");
             tool.ReportAddText(m_capture?"Purpose: quality/correctness capture; no GPU performance claim\r\n":"Purpose: paired GPU performance; no PNG or candidate readback\r\n");
             tool.ReportAddText(vaStringTools::Format("Scene: %s\r\nFrames: %d\r\nWarmup: %d\r\nRepeats: %d\r\n",
@@ -267,7 +280,7 @@ public:
             return;
         }
         const auto c=Current();
-        if(m_jitterAblation) {
+        if(m_jitterAblation || m_historyFilter) {
             auto smaa=m_parent.GetSMAA();
             bool ok=smaa->GetTemporalSamplePatternEnabled()==c.pattern;
             for(int k=0;k<4;k++) {
@@ -309,6 +322,11 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool quality=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastQualityCapture")==0;
         bool jitterAblation=_wcsicmp(p.first.c_str(),L"smaaTemporalContrastJitterCapture")==0;
         capture=capture||jitterAblation;
+        bool historyCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalHistoryFilterCapture")==0;
+        bool historySmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalHistoryFilterSmoke")==0;
+        bool historyBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalHistoryFilterBenchmark")==0;
+        bool historyFilter=historyCapture||historySmoke||historyBenchmark;
+        capture=capture||historyCapture;smoke=smoke||historySmoke;bench=bench||historyBenchmark;
         bool executionCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionCapture")==0;
         bool executionBench=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionBenchmark")==0;
         bool executionSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalExecutionSmoke")==0;
@@ -354,7 +372,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",counterCapture?121:quality?qualityFrames:capture?240:smoke?240:4800,(smoke||pair)?1:historyFilter?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter));
         return true;
     }
     return false;

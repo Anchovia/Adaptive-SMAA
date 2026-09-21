@@ -1,0 +1,82 @@
+[
+  {
+    "reprojection": 0,
+    "scalar": false,
+    "point_entry": "DX10_SMAALodResolvePS",
+    "linear_entry": "DX10_SMAAHistoryLinearResolvePS",
+    "point_sha256": "1a5ed27cbbdaa6015eba749ee4e5cd62773704a6e618b00ca23faf76fbc44e99",
+    "linear_sha256": "df22a57b5a1aad5ceed1687b561dcfa1f39e17afa743e29a202ab39915f5e2d9",
+    "sample_instructions": [
+      [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ]
+    ],
+    "instruction_difference": "history sampler operand/declaration only"
+  },
+  {
+    "reprojection": 0,
+    "scalar": true,
+    "point_entry": "DX10_SMAAScalarWeightResolvePS",
+    "linear_entry": "DX10_SMAAScalarHistoryLinearResolvePS",
+    "point_sha256": "678c62a1874872792b58f225166b14e27566163cbe33b6a984ea1b2f7358f526",
+    "linear_sha256": "b01b6bc02abf533908f84945a423876731d1ed957273032e293881540c135e79",
+    "sample_instructions": [
+      [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t4.xyzw, s1, l(0.000000)"
+      ],
+      [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t2.xyzw, s1",
+        "sample_l_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t4.xyzw, s0, l(0.000000)"
+      ]
+    ],
+    "instruction_difference": "history sampler operand/declaration only"
+  },
+  {
+    "reprojection": 1,
+    "scalar": false,
+    "point_entry": "DX10_SMAALodResolvePS",
+    "linear_entry": "DX10_SMAAHistoryLinearResolvePS",
+    "point_sha256": "b1d03747cd2ae074d8fa185fdc4471224437bc573203e70fc5f0869594858e2a",
+    "linear_sha256": "f0eca2a470fe824fdd5e61daeb61384875048c89104d7db37d09e7107eceaea5",
+    "sample_instructions": [
+      [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ]
+    ],
+    "instruction_difference": "history sampler operand/declaration only"
+  },
+  {
+    "reprojection": 1,
+    "scalar": true,
+    "point_entry": "DX10_SMAAScalarWeightResolvePS",
+    "linear_entry": "DX10_SMAAScalarHistoryLinearResolvePS",
+    "point_sha256": "3efa5b05aeaa1114aaf4e799c5c90dfeb18976258707bd4a008e73a9bd6c0c01",
+    "linear_sha256": "75025606c58e931ad876fb5b8d8b7d1546f54a699352a241849ecf1c01676c06",
+    "sample_instructions": [
+      [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1, l(0.000000)",
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ]
+    ],
+    "instruction_difference": "history sampler operand/declaration only"
+  }
+]

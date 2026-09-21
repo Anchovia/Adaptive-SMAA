@@ -647,11 +647,14 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "LoadCurrentVelocityResolve" || name == "LoadContrastMask" ||
         name == "StripeBranchResolve" || name == "StripeFlattenResolve" || name == "ScalarWeightResolve" ||
         name == "ScalarReassociatedResolve" || name == "BranchReassociatedResolve" || name == "HistoryLoadResolve" || name == "SelectorAnyResolve" ||
-        name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" )
+        name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" ||
+        name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
-        const char * entry = name == "NvWarpResolve" ? "DX10_SMAANvWarpResolvePS" :
+        const char * entry = name == "HistoryLinearResolve" ? "DX10_SMAAHistoryLinearResolvePS" :
+            name == "ScalarHistoryLinearResolve" ? "DX10_SMAAScalarHistoryLinearResolvePS" :
+            name == "NvWarpResolve" ? "DX10_SMAANvWarpResolvePS" :
             name == "NvWarpMask" ? "DX10_SMAANvWarpMaskPS" : name == "FixedThresholdResolve" ? "DX10_SMAAFixedThresholdResolvePS" :
             name == "ScalarFixedThresholdResolve" ? "DX10_SMAAScalarFixedThresholdResolvePS" :
             name == "ScalarWeightResolve" ? "DX10_SMAAScalarWeightResolvePS" :

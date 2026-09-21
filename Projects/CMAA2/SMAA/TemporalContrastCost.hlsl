@@ -28,6 +28,26 @@ float4 DX10_SMAAScalarWeightResolvePS(float4 position : SV_POSITION, float2 uv :
     return lerp(current, previous, weight);
 }
 
+// Reuse the already-bound linear sampler. One history sampling instruction;
+// hardware texel/filter cost is measured, not assumed equal to point sampling.
+// RGBA is filtered together, including the velocity-alpha used by the weight.
+float4 DX10_SMAAHistoryLinearResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float2 velocity = ContrastExecutionVelocity(uv);
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float4 previous = colorTexPrev.SampleLevel(LinearSampler, uv + velocity, 0);
+    return ContrastExecutionBlend(current, previous);
+}
+
+float4 DX10_SMAAScalarHistoryLinearResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float contrast = SMAATemporalContrast(current.rgb);
+    float2 velocity = ContrastExecutionVelocity(uv);
+    float4 previous = colorTexPrev.SampleLevel(LinearSampler, uv + velocity, 0);
+    float weight = TemporalOriginalWeight(current, previous);
+    weight = contrast >= g_SMAA.padding0 ? weight : 0.0;
+    return lerp(current, previous, weight);
+}
+
 float4 DX10_SMAAScalarReassociatedResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
     float4 current = SMAASamplePoint(colorTex, uv);
     float contrast = SMAATemporalContrast(current.rgb);
