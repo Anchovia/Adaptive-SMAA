@@ -238,6 +238,7 @@ float4 DX10_SMAAContrastResolvePS(float4 position : SV_POSITION,
 #if VA_NV_WARP_EXTENSION
 #include "TemporalContrastWarp.hlsl"
 #endif
+#include "TemporalSpeedLimits.hlsl"
 
 float4 DX10_SMAAContrastMaskPS(float4 position : SV_POSITION,
                              float2 texcoord : TEXCOORD0) : SV_TARGET {

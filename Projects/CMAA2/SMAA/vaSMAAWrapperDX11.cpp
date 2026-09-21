@@ -75,6 +75,7 @@ namespace VertexAsylum
         VA_RENDERING_MODULE_MAKE_FRIENDS( );
     public:
         virtual bool SupportsTemporalWarp() override { return TemporalNvWarp::Supported(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()); }
+        virtual bool SupportsTemporalWarpGroups() override { return TemporalNvWarp::GroupsSupported(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()); }
     private:
 
         // States used by the effect passes
@@ -449,7 +450,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 // New current-de-jitter modes seed with their own current value,
                 // avoiding a blend with uncorrected self-history on first frame.
                 // Same fullscreen draw; no extra pass or resource.
-                if(!m_temporalHistoryValid && (resolveKind == 28 || resolveKind == 29 || resolveKind == 32 || resolveKind == 33)) resolveKind = 31;
+                if(resolveKind==39 || resolveKind==40)
+                    resolveKind=m_constants.subsampleIndices[0]==1.0f?39:(m_constants.subsampleIndices[0]==2.0f?40:35);
+                if(!m_temporalHistoryValid && (resolveKind == 28 || resolveKind == 29 || (resolveKind >= 32 && resolveKind <= 45))) resolveKind = 31;
                 m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), resolveKind );
             }
 
@@ -514,6 +517,12 @@ void vaSMAAWrapperDX11::SetVariablesA( ID3D11DeviceContext * context, float thre
 void vaSMAAWrapperDX11::SetVariablesB( ID3D11DeviceContext * context, float subsampleIndicesVariable[4] )
 {
     memcpy( m_constants.subsampleIndices, subsampleIndicesVariable, sizeof(float)*4 );
+    // Reuse padding in the existing 48-byte buffer and its existing update.
+    // Quarter-pixel scaling is exact binary scaling of the float reciprocal.
+    const bool speedUniform = (GetTemporalContrastKind()>=35 && GetTemporalContrastKind()<=38) || (GetTemporalContrastKind()>=41 && GetTemporalContrastKind()<=45);
+    const float phase = subsampleIndicesVariable[0]==1.0f ? 0.25f : (subsampleIndicesVariable[0]==2.0f ? -0.25f : 0.0f);
+    m_constants.padding1 = speedUniform ? phase*(1.0f/float(m_externalInputColor->GetSizeX())) : 0.0f;
+    m_constants.padding2 = speedUniform ? phase*(1.0f/float(m_externalInputColor->GetSizeY())) : 0.0f;
     m_constantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->Update( context, &m_constants, sizeof(m_constants) );
 }
 
@@ -655,7 +664,7 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" ||
         name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" ||
         name == "ScalarCurrentLinearResolve" || name == "CurrentDeJitterResolve" ||
-        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" || name == "ScalarPairedDeJitterResolve" )
+        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" || name == "ScalarPairedDeJitterResolve" || name == "SpeedBranch" || name == "SpeedUniformScalar" || name == "SpeedUniformBranch" || name == "SpeedUniformPrefetch" || name == "SpeedUniformWarp" || name == "SpeedPhasePositive" || name == "SpeedPhaseNegative" || name == "SpeedGroup4" || name == "SpeedGroup8" || name == "SpeedGroup16" || name == "SpeedDensity8" || name == "SpeedDensity16" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
@@ -665,6 +674,18 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
             name == "DeJitterMask" ? "DX10_SMAADeJitterMaskPS" :
             name == "DeJitterSpatial" ? "DX10_SMAADeJitterSpatialPS" :
             name == "PairedDeJitterResolve" ? "DX10_SMAAPairedDeJitterResolvePS" :
+            name == "SpeedPhasePositive" ? "DX10_SMAASpeedPhasePositivePS" :
+            name == "SpeedPhaseNegative" ? "DX10_SMAASpeedPhaseNegativePS" :
+            name == "SpeedGroup4" ? "DX10_SMAASpeedGroup4PS" :
+            name == "SpeedGroup8" ? "DX10_SMAASpeedGroup8PS" :
+            name == "SpeedGroup16" ? "DX10_SMAASpeedGroup16PS" :
+            name == "SpeedDensity8" ? "DX10_SMAASpeedDensity8PS" :
+            name == "SpeedDensity16" ? "DX10_SMAASpeedDensity16PS" :
+            name == "SpeedBranch" ? "DX10_SMAASpeedBranchPS" :
+            name == "SpeedUniformScalar" ? "DX10_SMAASpeedUniformScalarPS" :
+            name == "SpeedUniformBranch" ? "DX10_SMAASpeedUniformBranchPS" :
+            name == "SpeedUniformPrefetch" ? "DX10_SMAASpeedUniformPrefetchPS" :
+            name == "SpeedUniformWarp" ? "DX10_SMAASpeedUniformWarpPS" :
             name == "ScalarPairedDeJitterResolve" ? "DX10_SMAAScalarPairedDeJitterResolvePS" :
             name == "HistoryLinearResolve" ? "DX10_SMAAHistoryLinearResolvePS" :
             name == "ScalarHistoryLinearResolve" ? "DX10_SMAAScalarHistoryLinearResolvePS" :
@@ -689,9 +710,10 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
             name == "LoadCurrentVelocityResolve" ? "DX10_SMAALoadCurrentVelocityResolvePS" :
             name == "LoadContrastMask" ? "DX10_SMAALoadContrastMaskPS" :
             name == "PrefetchVelocityResolve" ? "DX10_SMAAPrefetchVelocityResolvePS" : "DX10_SMAAResolvePS";
-        if(name=="NvWarpResolve" || name=="NvWarpMask") {
-            if(SupportsTemporalWarp()) { shaderMacros.push_back({"VA_NV_WARP_EXTENSION","1"});tech->NvWarp=true; }
-            else entry="DX10_SMAAScalarWeightResolvePS"; // Driver rejects unsupported warp experiments before rendering.
+        if(name=="NvWarpResolve" || name=="NvWarpMask" || name=="SpeedUniformWarp" || name=="SpeedGroup4" || name=="SpeedGroup8" || name=="SpeedGroup16" || name=="SpeedDensity8" || name=="SpeedDensity16") {
+            const bool groups = name.find("SpeedGroup")==0 || name.find("SpeedDensity")==0;
+            if(groups ? SupportsTemporalWarpGroups() : SupportsTemporalWarp()) { shaderMacros.push_back({"VA_NV_WARP_EXTENSION","1"});tech->NvWarp=true; }
+            else entry=name.substr(0,5)=="Speed" ? "DX10_SMAAScalarPairedDeJitterResolvePS" : "DX10_SMAAScalarWeightResolvePS"; // Driver rejects unsupported warp experiments before rendering.
         }
         tech->PS->CreateShaderFromFile( shaderFileName, name == "Resolve" ? psVersion : "ps_5_0", entry, shaderMacros, true );
         tech->DSS = m_DisableDepthStencil;

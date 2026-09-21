@@ -12,6 +12,12 @@ inline bool Supported(ID3D11Device* device) {
     return initialized == NVAPI_OK &&
         NvAPI_D3D11_IsNvShaderExtnOpCodeSupported(device, NV_EXTN_OP_VOTE_ANY, &supported) == NVAPI_OK && supported;
 }
+inline bool GroupsSupported(ID3D11Device* device) {
+    bool ballot = false, lane = false;
+    return Supported(device) &&
+        NvAPI_D3D11_IsNvShaderExtnOpCodeSupported(device, NV_EXTN_OP_VOTE_BALLOT, &ballot) == NVAPI_OK && ballot &&
+        NvAPI_D3D11_IsNvShaderExtnOpCodeSupported(device, NV_EXTN_OP_GET_LANE_ID, &lane) == NVAPI_OK && lane;
+}
 inline HRESULT CreatePixelShader(ID3D11Device* device, const void* bytes, SIZE_T length,
                                  ID3D11PixelShader** shader) {
     *shader = nullptr;
