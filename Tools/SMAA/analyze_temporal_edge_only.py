@@ -67,7 +67,7 @@ def timing(scene,phase):
  result=dict(scene=scene,phase=phase,validation='PASS',receipt=r,means=means,timing_rows=rows,distribution_rows=dist)
  (OUT/f'{scene}-{phase}.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(means,indent=2))
 def summary():
- shader=json.loads((OUT/'shader-validation.json').read_text())
+ shader=json.loads((ROOT/'Docs/Temporal-Edge-Only-Cost/shader-validation.json').read_text())
  assert shader['native_unchanged']==8 and shader['combined_instructions_unchanged']
  lines=['# Edge-only temporal microbenchmark','','Times are ms. Edge-only/output-only output black; not a quality comparison.',''];stats={};hashes=set()
  for scene in ('bistro','minecraft'):
