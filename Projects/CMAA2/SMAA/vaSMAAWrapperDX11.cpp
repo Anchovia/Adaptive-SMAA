@@ -453,6 +453,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 if(resolveKind==39 || resolveKind==40)
                     resolveKind=m_constants.subsampleIndices[0]==1.0f?39:(m_constants.subsampleIndices[0]==2.0f?40:35);
                 if(!m_temporalHistoryValid && (resolveKind == 28 || resolveKind == 29 || (resolveKind >= 32 && resolveKind <= 45))) resolveKind = 31;
+                if(!m_temporalHistoryValid) {
+                    if(resolveKind==46) resolveKind=3;
+                    if(resolveKind==47) resolveKind=31;
+                    if(resolveKind==48 || resolveKind==49) resolveKind=50;
+                }
                 m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), resolveKind );
             }
 
@@ -664,7 +669,7 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" ||
         name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" ||
         name == "ScalarCurrentLinearResolve" || name == "CurrentDeJitterResolve" ||
-        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" || name == "ScalarPairedDeJitterResolve" || name == "SpeedBranch" || name == "SpeedUniformScalar" || name == "SpeedUniformBranch" || name == "SpeedUniformPrefetch" || name == "SpeedUniformWarp" || name == "SpeedPhasePositive" || name == "SpeedPhaseNegative" || name == "SpeedGroup4" || name == "SpeedGroup8" || name == "SpeedGroup16" || name == "SpeedDensity8" || name == "SpeedDensity16" )
+        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" || name == "ScalarPairedDeJitterResolve" || name == "SpeedBranch" || name == "SpeedUniformScalar" || name == "SpeedUniformBranch" || name == "SpeedUniformPrefetch" || name == "SpeedUniformWarp" || name == "SpeedPhasePositive" || name == "SpeedPhaseNegative" || name == "SpeedGroup4" || name == "SpeedGroup8" || name == "SpeedGroup16" || name == "SpeedDensity8" || name == "SpeedDensity16" || name == "ContributionNative" || name == "ContributionPaired" || name == "ContributionNativeMask" || name == "ContributionPairedMask" || name == "ContributionZeroMask" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
@@ -674,6 +679,11 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
             name == "DeJitterMask" ? "DX10_SMAADeJitterMaskPS" :
             name == "DeJitterSpatial" ? "DX10_SMAADeJitterSpatialPS" :
             name == "PairedDeJitterResolve" ? "DX10_SMAAPairedDeJitterResolvePS" :
+            name == "ContributionNative" ? "DX10_SMAAContributionNativePS" :
+            name == "ContributionPaired" ? "DX10_SMAAContributionPairedPS" :
+            name == "ContributionNativeMask" ? "DX10_SMAAContributionNativeMaskPS" :
+            name == "ContributionPairedMask" ? "DX10_SMAAContributionPairedMaskPS" :
+            name == "ContributionZeroMask" ? "DX10_SMAAContributionZeroMaskPS" :
             name == "SpeedPhasePositive" ? "DX10_SMAASpeedPhasePositivePS" :
             name == "SpeedPhaseNegative" ? "DX10_SMAASpeedPhaseNegativePS" :
             name == "SpeedGroup4" ? "DX10_SMAASpeedGroup4PS" :
