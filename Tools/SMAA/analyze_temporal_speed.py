@@ -9,8 +9,8 @@ MODES=[NATIVE,BASE,'ABL-SpeedBranch-R','ABL-SpeedUniformScalar-R','ABL-SpeedUnif
 GROUP_MODES=[NATIVE,BASE,'ABL-SpeedPhaseScalar-R','ABL-SpeedGroup4-R','ABL-SpeedGroup8-R','ABL-SpeedGroup16-R','ABL-SpeedDensity8-R','ABL-SpeedDensity16-R']
 METRICS=['SMAA','Spatial','Resolve','WholeFrame','WallFrame']
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-def read(scene,phase):
- records=json.loads((ROOT/'tmp/temporal-speed-runs.json').read_text(encoding='utf-8-sig'))
+def read(scene,phase,receipt):
+ records=json.loads(receipt.read_text(encoding='utf-8-sig'))
  rs=[r for r in records if r['scene']==scene and r['phase']==phase];assert len(rs)==1
  r=rs[0];report=Path(r['report']);assert sha(report)==r['report_sha256'].lower()
  text=report.read_text(encoding='utf-8-sig')
@@ -18,8 +18,8 @@ def read(scene,phase):
   assert token in text,token
  assert 'Aggregate: FAIL' not in text
  return r,report.parent,text
-def capture(scene,phase):
- r,path,text=read(scene,phase)
+def capture(scene,phase,receipt):
+ r,path,text=read(scene,phase,receipt)
  modes=GROUP_MODES if phase=='GroupCapture' else MODES
  indices=sorted(set(range(0,240,5))|{1,61,179,181,201});assert len(indices)==53
  files=[f'frame_{i:05d}.png' for i in indices]
@@ -43,8 +43,8 @@ def capture(scene,phase):
   scope='53 sampled RGBA PNGs per mode out of 240 rendered frames; not a quality evaluation or universal equivalence proof')
  assert results[NATIVE]['match'] and results[BASE]['match'],'Baseline regression'
  return result
-def timing(scene,phase):
- r,path,text=read(scene,phase);rows=[];dist=[]
+def timing(scene,phase,receipt):
+ r,path,text=read(scene,phase,receipt);rows=[];dist=[]
  for row in csv.reader(text.splitlines()):
   v=[x.strip() for x in row]
   if v and v[0]=='timing':rows.append(dict(mode=v[1],run=int(v[2]),metric=v[3],samples=int(v[4]),mean_ms=float(v[5]),p95_ms=float(v[6]),threshold=float(v[7])))
@@ -73,8 +73,11 @@ def timing(scene,phase):
  return dict(scene=scene,phase=phase,validation='PASS',receipt=r,means=means,comparisons=comparisons,timing_rows=rows,distribution_rows=dist,
   scope='Alternating repetitions within one process; not independent process pairs or equivalence proof')
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--scene',required=True);p.add_argument('--phase',choices=['Capture','Smoke','ScreenBenchmark','GroupCapture','GroupSmoke','GroupScreenBenchmark','Benchmark'],required=True);a=p.parse_args()
- result=capture(a.scene,a.phase) if a.phase.endswith('Capture') else timing(a.scene,a.phase)
- dest=ROOT/f'Docs/Temporal-Speed-Limits/{a.scene}-{a.phase}.json';dest.write_text(json.dumps(result,indent=2)+'\n')
+ p=argparse.ArgumentParser();p.add_argument('--scene',required=True);p.add_argument('--phase',choices=['Capture','Smoke','ScreenBenchmark','GroupCapture','GroupSmoke','GroupScreenBenchmark','Benchmark'],required=True)
+ p.add_argument('--receipt',type=Path,default=ROOT/'tmp/temporal-speed-runs.json')
+ p.add_argument('--output-dir',type=Path,default=ROOT/'Docs/Temporal-Speed-Limits');a=p.parse_args()
+ result=capture(a.scene,a.phase,a.receipt) if a.phase.endswith('Capture') else timing(a.scene,a.phase,a.receipt)
+ a.output_dir.mkdir(parents=True,exist_ok=True)
+ dest=a.output_dir/f'{a.scene}-{a.phase}.json';dest.write_text(json.dumps(result,indent=2)+'\n')
  if a.phase.endswith('Capture'):print(json.dumps({k:{x:v[x] for x in ['match','mismatching_frames','max_channel_error','differing_channels']} for k,v in result['modes'].items()},indent=2))
  else:print(json.dumps({m:{t:v[t]['mean_ms'] for t in ['SMAA','Resolve']} for m,v in result['means'].items()},indent=2))

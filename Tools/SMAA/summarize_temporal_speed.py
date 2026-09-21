@@ -1,11 +1,14 @@
 """Summarize completed speed gates without recomputing image quality."""
+import argparse
 import hashlib
 import json
 import statistics as st
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'Docs/Temporal-Speed-Limits'
+parser = argparse.ArgumentParser()
+parser.add_argument('--results-dir', type=Path, default=ROOT / 'Docs/Temporal-Speed-Limits')
+OUT = parser.parse_args().results_dir
 BASE = 'ABL-ScalarPairedDeJitter-001-R'
 NATIVE = 'O-T2X-R'
 PHASES = ['Capture', 'Smoke', 'ScreenBenchmark', 'GroupCapture',
