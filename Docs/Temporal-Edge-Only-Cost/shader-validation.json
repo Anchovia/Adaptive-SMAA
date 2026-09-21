@@ -1,0 +1,161 @@
+{
+  "native_unchanged": 8,
+  "combined_instructions_unchanged": true,
+  "variants": [
+    {
+      "entry": "DX10_SMAAEdgeReadOnePS",
+      "reprojection": 0,
+      "sha256": "a2b22bec847bb15b74698be6a7ec2aa95b6efc931185a64c8b70744de996001a",
+      "sample_count": 2,
+      "loads": [
+        "ld_indexable(texture2d)(float,float,float,float) r0.xy, r0.xyzw, t8.xyzw"
+      ],
+      "instructions": [
+        "ps_5_0",
+        "dcl_globalFlags refactoringAllowed",
+        "dcl_constantbuffer CB0[3], immediateIndexed",
+        "dcl_sampler s1, mode_default",
+        "dcl_resource_texture2d (float,float,float,float) t2",
+        "dcl_resource_texture2d (float,float,float,float) t4",
+        "dcl_resource_texture2d (float,float,float,float) t8",
+        "dcl_input_ps_siv linear noperspective v0.xy, position",
+        "dcl_input_ps linear v1.xy",
+        "dcl_output o0.xyzw",
+        "dcl_temps 3",
+        "ftoi r0.xy, v0.xyxx",
+        "mov r0.zw, l(0,0,0,0)",
+        "ld_indexable(texture2d)(float,float,float,float) r0.xy, r0.xyzw, t8.xyzw",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1",
+        "add r1.xyzw, r1.xyzw, -r2.xyzw",
+        "mad r1.xyzw, r1.xyzw, l(0.500000, 0.500000, 0.500000, 0.500000), r2.xyzw",
+        "mad o0.xy, cb0[2].yyyy, r0.xyxx, r1.xyxx",
+        "mov o0.zw, r1.zzzw",
+        "ret"
+      ]
+    },
+    {
+      "entry": "DX10_SMAAEdgeOnlyOutputPS",
+      "reprojection": 0,
+      "sha256": "4e92a7349eafd4f46b3904760e253bf6da45fa9189c87cd489e9137acaad246b",
+      "sample_count": 0,
+      "loads": [],
+      "instructions": [
+        "ps_5_0",
+        "dcl_globalFlags refactoringAllowed",
+        "dcl_constantbuffer CB0[3], immediateIndexed",
+        "dcl_output o0.xyzw",
+        "mul o0.xy, cb0[0].xyxx, cb0[2].yyyy",
+        "mov o0.zw, l(0,0,0,1.000000)",
+        "ret"
+      ]
+    },
+    {
+      "entry": "DX10_SMAAEdgeOnlyReadPS",
+      "reprojection": 0,
+      "sha256": "60a31ebd3d17f69a3ca9ca28d4f1a3b69417c0806dedb161275eef67097b42f5",
+      "sample_count": 0,
+      "loads": [
+        "ld_indexable(texture2d)(float,float,float,float) r0.xy, r0.xyzw, t8.xyzw"
+      ],
+      "instructions": [
+        "ps_5_0",
+        "dcl_globalFlags refactoringAllowed",
+        "dcl_constantbuffer CB0[3], immediateIndexed",
+        "dcl_resource_texture2d (float,float,float,float) t8",
+        "dcl_input_ps_siv linear noperspective v0.xy, position",
+        "dcl_output o0.xyzw",
+        "dcl_temps 1",
+        "ftoi r0.xy, v0.xyxx",
+        "mov r0.zw, l(0,0,0,0)",
+        "ld_indexable(texture2d)(float,float,float,float) r0.xy, r0.xyzw, t8.xyzw",
+        "mul o0.xy, r0.xyxx, cb0[2].yyyy",
+        "mov o0.zw, l(0,0,0,1.000000)",
+        "ret"
+      ]
+    },
+    {
+      "entry": "DX10_SMAAEdgeReadOnePS",
+      "reprojection": 1,
+      "sha256": "da827914853429d075a35cc0bc63b9e53898d1e85b4d1b6622ef90ce8c27fea3",
+      "sample_count": 3,
+      "loads": [
+        "ld_indexable(texture2d)(float,float,float,float) r1.xy, r1.xyzw, t8.xyzw"
+      ],
+      "instructions": [
+        "ps_5_0",
+        "dcl_globalFlags refactoringAllowed",
+        "dcl_constantbuffer CB0[3], immediateIndexed",
+        "dcl_sampler s1, mode_default",
+        "dcl_resource_texture2d (float,float,float,float) t2",
+        "dcl_resource_texture2d (float,float,float,float) t4",
+        "dcl_resource_texture2d (float,float,float,float) t7",
+        "dcl_resource_texture2d (float,float,float,float) t8",
+        "dcl_input_ps_siv linear noperspective v0.xy, position",
+        "dcl_input_ps linear v1.xy",
+        "dcl_output o0.xyzw",
+        "dcl_temps 3",
+        "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+        "add r0.xy, -r0.xyxx, v1.xyxx",
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1",
+        "mul r1.x, r0.w, r0.w",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1",
+        "mad r1.x, r2.w, r2.w, -r1.x",
+        "mul r1.x, |r1.x|, l(0.200000)",
+        "sqrt r1.x, r1.x",
+        "mad r1.x, -r1.x, l(30.000000), l(1.000000)",
+        "max r1.x, r1.x, l(0.000000)",
+        "mul r1.x, r1.x, l(0.500000)",
+        "add r0.xyzw, r0.xyzw, -r2.xyzw",
+        "mad r0.xyzw, r1.xxxx, r0.xyzw, r2.xyzw",
+        "ftoi r1.xy, v0.xyxx",
+        "mov r1.zw, l(0,0,0,0)",
+        "ld_indexable(texture2d)(float,float,float,float) r1.xy, r1.xyzw, t8.xyzw",
+        "mad o0.xy, cb0[2].yyyy, r1.xyxx, r0.xyxx",
+        "mov o0.zw, r0.zzzw",
+        "ret"
+      ]
+    },
+    {
+      "entry": "DX10_SMAAEdgeOnlyOutputPS",
+      "reprojection": 1,
+      "sha256": "4e92a7349eafd4f46b3904760e253bf6da45fa9189c87cd489e9137acaad246b",
+      "sample_count": 0,
+      "loads": [],
+      "instructions": [
+        "ps_5_0",
+        "dcl_globalFlags refactoringAllowed",
+        "dcl_constantbuffer CB0[3], immediateIndexed",
+        "dcl_output o0.xyzw",
+        "mul o0.xy, cb0[0].xyxx, cb0[2].yyyy",
+        "mov o0.zw, l(0,0,0,1.000000)",
+        "ret"
+      ]
+    },
+    {
+      "entry": "DX10_SMAAEdgeOnlyReadPS",
+      "reprojection": 1,
+      "sha256": "60a31ebd3d17f69a3ca9ca28d4f1a3b69417c0806dedb161275eef67097b42f5",
+      "sample_count": 0,
+      "loads": [
+        "ld_indexable(texture2d)(float,float,float,float) r0.xy, r0.xyzw, t8.xyzw"
+      ],
+      "instructions": [
+        "ps_5_0",
+        "dcl_globalFlags refactoringAllowed",
+        "dcl_constantbuffer CB0[3], immediateIndexed",
+        "dcl_resource_texture2d (float,float,float,float) t8",
+        "dcl_input_ps_siv linear noperspective v0.xy, position",
+        "dcl_output o0.xyzw",
+        "dcl_temps 1",
+        "ftoi r0.xy, v0.xyxx",
+        "mov r0.zw, l(0,0,0,0)",
+        "ld_indexable(texture2d)(float,float,float,float) r0.xy, r0.xyzw, t8.xyzw",
+        "mul o0.xy, r0.xyxx, cb0[2].yyyy",
+        "mov o0.zw, l(0,0,0,1.000000)",
+        "ret"
+      ]
+    }
+  ],
+  "scope": "DXBC; native GPU ISA/DRAM transactions not measured"
+}

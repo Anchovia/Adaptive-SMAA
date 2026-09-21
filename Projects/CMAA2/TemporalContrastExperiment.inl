@@ -8,7 +8,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     bool m_warp = false;
     bool m_jitterAblation = false, m_savedPattern = true;
     int m_speed = 0;
-    bool m_selection = false, m_blendRead = false, m_edgeRead = false, m_edgeOptimize = false;
+    bool m_selection = false, m_blendRead = false, m_edgeRead = false, m_edgeOptimize = false, m_edgeOnly = false;
     bool m_historyFilter = false, m_deJitter = false, m_pairedDeJitter = false;
     int m_pairOrder = -1;
     bool m_counterCapture = false, m_counterCaptureActive = false;
@@ -64,14 +64,14 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false,bool historyFilter=false,bool deJitter=false,int pairedDeJitter=0,int speed=0,bool selection=false,bool blendRead=false,bool edgeRead=false,bool edgeOptimize=false)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false,bool historyFilter=false,bool deJitter=false,int pairedDeJitter=0,int speed=0,bool selection=false,bool blendRead=false,bool edgeRead=false,bool edgeOptimize=false,bool edgeOnly=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp||pairOrder>=0),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
     {
         m_warp=warp;
         m_pairOrder=pairOrder;
-        m_costFocused=costFocused||(warp&&!capture)||pairOrder>=0||((historyFilter||deJitter||pairedDeJitter||speed||selection||blendRead||edgeRead||edgeOptimize)&&!capture);
+        m_costFocused=costFocused||(warp&&!capture)||pairOrder>=0||((historyFilter||deJitter||pairedDeJitter||speed||selection||blendRead||edgeRead||edgeOptimize||edgeOnly)&&!capture);
         m_configs={{"O-T2X-R",0,0},{"ABL-Contrast-All-R",1,0},
             {"ABL-Contrast-0005-R",1,0.005f},{"ABL-Contrast-001-R",1,0.01f},
             {"ABL-Contrast-002-R",1,0.02f},{"ABL-Contrast-None-R",1,2.0f}};
@@ -224,6 +224,12 @@ public:
                 {"ABL-EdgeReadOne-R",56,0},{"ABL-EdgeReadPoint-R",57,0}};
             if(capture)m_configs.push_back({"DBG-EdgeRead-Verify-R",58,0});
         }
+        if(edgeOnly) {
+            m_edgeRead=true;m_edgeOnly=true;m_execution=true;
+            m_configs={{"O-T2X-R",0,0},{"ABL-EdgeReadOne-R",56,0},
+                {"DIAG-OutputOnly",59,0},{"DIAG-EdgeOnly",60,0}};
+            if(capture)m_configs.push_back({"DBG-EdgeOnly-Observable",60,1});
+        }
         if(selection) {
             m_selection=true;m_execution=true;
             m_configs={{"O-T2X-R",0,0},{"ABL-PairedDeJitter-R",32,0},
@@ -290,8 +296,9 @@ public:
                 tool.ReportAddText("Same pixel selector; warp-uniform history execution; per-pixel weight masking. NVIDIA-only diagnostic.\r\n");
             }
             tool.ReportAddText("Native Standard temporal contrast engineering gate\r\n");
+            if(m_edgeOnly)tool.ReportAddText("Edge-only microbenchmark gate: Native, combined edge+T2X-R, matched black output-only and edge-only. Native samples removed only in the last two shaders. Raw edge scale 1 is capture-only.\r\n");
             if(m_edgeOptimize)tool.ReportAddText("Edge read optimization gate: Native, RG sink control, identical first-pass RG Load vs Point SampleLevel. Direct RG mismatch diagnostic is capture-only.\r\n");
-            if(m_edgeRead && !m_edgeOptimize)tool.ReportAddText("Edge texture read gate: native resolve, t8 bind-only, runtime-zero RG control and one first-pass RG Load; output unchanged. Observable scale 1 is capture-only.\r\n");
+            if(m_edgeRead && !m_edgeOptimize && !m_edgeOnly)tool.ReportAddText("Edge texture read gate: native resolve, t8 bind-only, runtime-zero RG control and one first-pass RG Load; output unchanged. Observable scale 1 is capture-only.\r\n");
             if(m_blendRead)tool.ReportAddText("Blend texture read gate: native resolve, t9 bind-only, runtime-zero control and one RGBA Load; output unchanged. Observable scale 1 is capture-only.\r\n");
             if(m_selection)tool.ReportAddText("Contribution gate: weight times max RGB current/history difference >= 0.0005; same pass and history; selected Native/Paired inputs; sparse quality windows.\r\n");
             if(m_speed)tool.ReportAddText("Speed-only paired resolve gate: same selector and output; no new pass or texture; uniform jitter reuses existing cbuffer upload. Sparse correctness PNGs only.\r\n");
@@ -455,6 +462,11 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool edgeOptimizeBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalEdgeReadOptimizationBenchmark")==0;
         bool edgeOptimize=edgeOptimizeCapture||edgeOptimizeSmoke||edgeOptimizeBenchmark;
         capture=capture||edgeOptimizeCapture;smoke=smoke||edgeOptimizeSmoke;bench=bench||edgeOptimizeBenchmark;
+        bool edgeOnlyCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalEdgeOnlyCapture")==0;
+        bool edgeOnlySmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalEdgeOnlySmoke")==0;
+        bool edgeOnlyBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalEdgeOnlyBenchmark")==0;
+        bool edgeOnly=edgeOnlyCapture||edgeOnlySmoke||edgeOnlyBenchmark;
+        capture=capture||edgeOnlyCapture;smoke=smoke||edgeOnlySmoke;bench=bench||edgeOnlyBenchmark;
         bool selectionCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalSelectionCapture")==0;
         bool selectionSmoke=_wcsicmp(p.first.c_str(),L"smaaTemporalSelectionSmoke")==0;
         bool selectionBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalSelectionBenchmark")==0;
@@ -521,7 +533,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",pairedStatic?40:counterCapture?121:quality?qualityFrames:capture?240:smoke?240:speedScreen?2400:4800,(smoke||pair)?1:speedScreen?3:(historyFilter||deJitter||pairedDeJitter||speedFinal||selection||blendRead||edgeRead||edgeOptimize)?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter,deJitter,pairedDeJitter,speed,selection,blendRead,edgeRead,edgeOptimize));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",pairedStatic?40:counterCapture?121:quality?qualityFrames:capture?240:smoke?240:speedScreen?2400:4800,(smoke||pair)?1:speedScreen?3:(historyFilter||deJitter||pairedDeJitter||speedFinal||selection||blendRead||edgeRead||edgeOptimize||edgeOnly)?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter,deJitter,pairedDeJitter,speed,selection,blendRead,edgeRead,edgeOptimize,edgeOnly));
         return true;
     }
     return false;
