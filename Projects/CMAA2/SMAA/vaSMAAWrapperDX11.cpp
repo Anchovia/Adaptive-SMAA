@@ -449,7 +449,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 // New current-de-jitter modes seed with their own current value,
                 // avoiding a blend with uncorrected self-history on first frame.
                 // Same fullscreen draw; no extra pass or resource.
-                if(!m_temporalHistoryValid && (resolveKind == 28 || resolveKind == 29)) resolveKind = 31;
+                if(!m_temporalHistoryValid && (resolveKind == 28 || resolveKind == 29 || resolveKind == 32)) resolveKind = 31;
                 m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), resolveKind );
             }
 
@@ -655,7 +655,7 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         name == "FixedThresholdResolve" || name == "ScalarFixedThresholdResolve" || name == "NvWarpResolve" || name == "NvWarpMask" ||
         name == "HistoryLinearResolve" || name == "ScalarHistoryLinearResolve" ||
         name == "ScalarCurrentLinearResolve" || name == "CurrentDeJitterResolve" ||
-        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" )
+        name == "ScalarDeJitterResolve" || name == "DeJitterMask" || name == "DeJitterSpatial" || name == "PairedDeJitterResolve" )
     {
         //technique10 Resolve {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
@@ -664,6 +664,7 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
             name == "ScalarDeJitterResolve" ? "DX10_SMAAScalarDeJitterResolvePS" :
             name == "DeJitterMask" ? "DX10_SMAADeJitterMaskPS" :
             name == "DeJitterSpatial" ? "DX10_SMAADeJitterSpatialPS" :
+            name == "PairedDeJitterResolve" ? "DX10_SMAAPairedDeJitterResolvePS" :
             name == "HistoryLinearResolve" ? "DX10_SMAAHistoryLinearResolvePS" :
             name == "ScalarHistoryLinearResolve" ? "DX10_SMAAScalarHistoryLinearResolvePS" :
             name == "NvWarpResolve" ? "DX10_SMAANvWarpResolvePS" :

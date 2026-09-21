@@ -44,6 +44,21 @@ float4 DX10_SMAAScalarDeJitterResolvePS(float4 position : SV_POSITION, float2 uv
     return lerp(current, previous, weight);
 }
 
+// Valid history is the opposite member of the paired T2X pattern. The wrapper
+// seeds invalid history with DeJitterSpatial instead of assuming an old phase.
+// Velocity remains at the original UV; this is an explicit motion-boundary
+// approximation, not per-object motion or disocclusion reconstruction.
+float4 DX10_SMAAPairedDeJitterResolvePS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float index = g_SMAA.subsampleIndices.x;
+    float2 jitter = (index == 1.0 ? 0.25 : (index == 2.0 ? -0.25 : 0.0)) * SMAA_RT_METRICS.xy;
+    float2 currentUV = uv + jitter;
+    float4 current = TemporalCurrentLinear(currentUV);
+    float2 velocity = ContrastExecutionVelocity(uv);
+    float2 previousUV = uv + velocity - jitter;
+    float4 previous = colorTexPrev.SampleLevel(LinearSampler, previousUV, 0);
+    return ContrastExecutionBlend(current, previous);
+}
+
 float4 DX10_SMAADeJitterMaskPS(float4 position : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
     float contrast = SMAATemporalContrast(TemporalCurrentLinear(TemporalDeJitterUV(uv)).rgb);
     float selected = contrast >= g_SMAA.padding0 ? 1.0 : 0.0;
