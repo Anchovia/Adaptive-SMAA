@@ -1,0 +1,213 @@
+{
+  "scene": "bistro",
+  "validation": "PASS",
+  "classification": "engineering",
+  "mode": "DBG-CurrentSpatial-R",
+  "definition": "Current spatial SMAA output only; paired projection jitter/subsample pattern retained; no temporal blend. Not unjittered O-1X.",
+  "quality_report_sha256": "8fabb4c52cf8aa7e601ba8bdc3637ec6aaadbf4a00b5b1ce1bb3a9ccbc447910",
+  "prior_cgvqm_report_sha256": "eb92387f917e6ed09bf540b3627c95b11358a831fe6c1ee20c8f6dcf7e0eca40",
+  "results": {
+    "moving": {
+      "first_index": 60,
+      "last_index": 179,
+      "native_score": 96.19123840332031,
+      "selective_score": 93.54640197753906,
+      "no_taa_score": 92.9184341430664,
+      "selective_minus_no_taa": 0.6279678344726562,
+      "native_minus_no_taa": 3.2728042602539062,
+      "selective_minus_native": -2.64483642578125,
+      "reference_pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51",
+      "no_taa_result": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\moving\\DBG-CurrentSpatial-R\\CGVQM-Results.json",
+      "no_taa_result_sha256": "9d55923608b99c4296fab437d48de9ac7d0ea5463f1a43209e0741b649f33320",
+      "no_taa_record": {
+        "classification": "engineering",
+        "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+        "provenance": {
+          "scene": "bistro",
+          "camera_profile": "original-flythrough-t2-still60-move120-still60",
+          "test_mode": "DBG-CurrentSpatial-R",
+          "reference_id": "SS-Reference"
+        },
+        "official_cgvqm": {
+          "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+          "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+        },
+        "runtime": {
+          "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "torch": "2.8.0+cu128",
+          "cuda_available": true,
+          "cuda_runtime": "12.8",
+          "device": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3060 Ti"
+        },
+        "configuration": {
+          "fps": 60,
+          "patch_scale": 4,
+          "patch_pool": "mean",
+          "models": [
+            "2"
+          ],
+          "reference_index_offset": 0
+        },
+        "test_sequence": {
+          "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_155432\\DBG-CurrentSpatial-R",
+          "frame_count": 120,
+          "first_index": 60,
+          "last_index": 179,
+          "width": 1920,
+          "height": 1061,
+          "pixel_sha256": "b9a7d78b133adf7cfcd3be6a628574f987c35e4d4ce4b4377ced0402b59971f3"
+        },
+        "reference_sequence": {
+          "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+          "frame_count": 120,
+          "first_index": 60,
+          "last_index": 179,
+          "width": 1920,
+          "height": 1061,
+          "pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51"
+        },
+        "test_round_trip": {
+          "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\moving\\DBG-CurrentSpatial-R\\LosslessInputs\\test_ffv1.mkv",
+          "codec": "ffv1",
+          "pixel_format": "bgr0",
+          "decoded_frames": 120,
+          "mismatched_values": 0,
+          "max_absolute_difference": 0,
+          "verification_attempts": 1,
+          "transient_mismatched_values": 0,
+          "transient_max_absolute_difference": 0
+        },
+        "reference_round_trip": {
+          "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\moving\\DBG-CurrentSpatial-R\\LosslessInputs\\reference_ffv1.mkv",
+          "codec": "ffv1",
+          "pixel_format": "bgr0",
+          "decoded_frames": 120,
+          "mismatched_values": 0,
+          "max_absolute_difference": 0,
+          "verification_attempts": 1,
+          "transient_mismatched_values": 0,
+          "transient_max_absolute_difference": 0
+        },
+        "results": {
+          "CGVQM-2": {
+            "score_higher_is_better": 92.9184341430664,
+            "error_map": {
+              "mean": 8.315229415893555,
+              "p95": 31.069490432739258,
+              "p99": 70.92366790771484,
+              "maximum": 824.084228515625
+            },
+            "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\moving\\DBG-CurrentSpatial-R\\CGVQM-2-PerFrame.csv",
+            "visualized_error_map": null
+          }
+        }
+      },
+      "native_result": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\ContrastReferenceAnalysis\\bistro\\CGVQM2\\moving\\O-T2X-R\\CGVQM-Results.json",
+      "native_result_sha256": "3d4cced8c8db3ce6cc5dabfa1fa8d9d7b8b56735c0f21102db9f2d912183fb00",
+      "selective_result": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\moving\\ABL-FirstEdge-Reuse-R\\CGVQM-Results.json",
+      "selective_result_sha256": "c5a19080d7eed0c8bc3d6c8e02d3ac9aade518995d0789a2b8a4846981824fbb"
+    },
+    "transition": {
+      "first_index": 160,
+      "last_index": 219,
+      "native_score": 96.71925354003906,
+      "selective_score": 90.61289978027344,
+      "no_taa_score": 89.23882293701172,
+      "selective_minus_no_taa": 1.3740768432617188,
+      "native_minus_no_taa": 7.480430603027344,
+      "selective_minus_native": -6.106353759765625,
+      "reference_pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8",
+      "no_taa_result": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\transition\\DBG-CurrentSpatial-R\\CGVQM-Results.json",
+      "no_taa_result_sha256": "a992fb1cc4fb51776e80bbd002059effc2e413c232ac2694786604d866232c8b",
+      "no_taa_record": {
+        "classification": "engineering",
+        "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+        "provenance": {
+          "scene": "bistro",
+          "camera_profile": "original-flythrough-t2-still60-move120-still60",
+          "test_mode": "DBG-CurrentSpatial-R",
+          "reference_id": "SS-Reference"
+        },
+        "official_cgvqm": {
+          "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+          "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+        },
+        "runtime": {
+          "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "torch": "2.8.0+cu128",
+          "cuda_available": true,
+          "cuda_runtime": "12.8",
+          "device": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3060 Ti"
+        },
+        "configuration": {
+          "fps": 60,
+          "patch_scale": 4,
+          "patch_pool": "mean",
+          "models": [
+            "2"
+          ],
+          "reference_index_offset": 0
+        },
+        "test_sequence": {
+          "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_155432\\DBG-CurrentSpatial-R",
+          "frame_count": 60,
+          "first_index": 160,
+          "last_index": 219,
+          "width": 1920,
+          "height": 1061,
+          "pixel_sha256": "6d90873c72182cd87d0d96848118f534e976d63ae207885eb2bae874e6f0b60a"
+        },
+        "reference_sequence": {
+          "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+          "frame_count": 60,
+          "first_index": 160,
+          "last_index": 219,
+          "width": 1920,
+          "height": 1061,
+          "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+        },
+        "test_round_trip": {
+          "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\transition\\DBG-CurrentSpatial-R\\LosslessInputs\\test_ffv1.mkv",
+          "codec": "ffv1",
+          "pixel_format": "bgr0",
+          "decoded_frames": 60,
+          "mismatched_values": 0,
+          "max_absolute_difference": 0,
+          "verification_attempts": 1,
+          "transient_mismatched_values": 0,
+          "transient_max_absolute_difference": 0
+        },
+        "reference_round_trip": {
+          "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\transition\\DBG-CurrentSpatial-R\\LosslessInputs\\reference_ffv1.mkv",
+          "codec": "ffv1",
+          "pixel_format": "bgr0",
+          "decoded_frames": 60,
+          "mismatched_values": 0,
+          "max_absolute_difference": 0,
+          "verification_attempts": 1,
+          "transient_mismatched_values": 0,
+          "transient_max_absolute_difference": 0
+        },
+        "results": {
+          "CGVQM-2": {
+            "score_higher_is_better": 89.23882293701172,
+            "error_map": {
+              "mean": 11.758635520935059,
+              "p95": 45.9401741027832,
+              "p99": 93.08211517333984,
+              "maximum": 695.680908203125
+            },
+            "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\transition\\DBG-CurrentSpatial-R\\CGVQM-2-PerFrame.csv",
+            "visualized_error_map": null
+          }
+        }
+      },
+      "native_result": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\ContrastReferenceAnalysis\\bistro\\CGVQM2\\transition\\O-T2X-R\\CGVQM-Results.json",
+      "native_result_sha256": "e8e4e62233601bff9d1b92183b65848e15eb9f005c0f6d6582e0b874acc69051",
+      "selective_result": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\CGVQM2\\transition\\ABL-FirstEdge-Reuse-R\\CGVQM-Results.json",
+      "selective_result_sha256": "3e8c32d138bb0f39c90c277f30e25886603d392f2a52b7fbd439aae42d361a88"
+    }
+  }
+}

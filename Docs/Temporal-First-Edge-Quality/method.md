@@ -34,3 +34,16 @@ Original 공간 SMAA, camera/depth reprojection On, 기존 paired jitter와 spat
 - MP4 frame 수/FPS/PTS를 검사한다. 압축/축소/GIF palette 한계를 명시하고 PNG 지표로 보완한다.
 - 품질 개선을 구현 중에 섞지 않는다. 단독 회전, 독립 물체 운동, disocclusion ground truth 및
   다양한 장면에 대한 보편적 품질 결론은 이 gate로 내리지 않는다.
+
+## No-TAA 추가 대조군
+
+- 기존 동일 실행의 `DBG-CurrentSpatial-R` 240-frame capture를 재사용한다. 현재 spatial
+  SMAA 색상만 출력하며 temporal 결합은 하지 않는다. Paired projection jitter/subsample
+  pattern은 유지하므로, 지터를 끈 일반 SMAA 1X 또는 AA Off 결과와 구분한다.
+- 동일 moving 60~179 / transition 160~219, 동일 SS spatial reference, 공식 CGVQM-2 설정으로
+  두 장면 총 네 clip을 추가 측정한다. 기존 native/selected 결과 파일 hash와 현재 PNG의
+  indexed pixel stream hash를 재검증한 뒤 세 방식의 점수를 비교한다.
+- No-TAA의 lossless RGB round-trip, frame/해상도/참조 hash, 공식 commit와 Torch/CUDA
+  일치를 검증한다. 셰이더·캡처·기존 성능 결과는 변경하지 않는다.
+- 이 대조군은 기존 지터 조건에서 temporal 결합의 영향을 분리한다. 지터를 제거한
+  spatial-only 방식의 품질이나 순수 고스팅 감소를 이 결과로 대신 판단하지 않는다.

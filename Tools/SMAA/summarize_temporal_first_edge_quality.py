@@ -79,4 +79,7 @@ lines+=['','정지 frame 200/201의 8배 차이 이미지에서는 원본의 변
 '`run_temporal_first_edge_quality.ps1`로 장면별 capture 후 `analyze_temporal_first_edge_quality.py`,',
 '`run_temporal_first_edge_cgvqm.py`, 이 요약 도구를 순서대로 실행한다.',
 'PNG/MP4/GIF/AutoBench 원본과 lossless 중간 영상은 로컬에 보존하고 Git에는 코드와 정량 결과를 넣는다.','']
+if (D/'no-taa-report.md').exists():
+ lines+=['## No-TAA 추가 비교','',
+ '지터를 유지한 current-spatial 대조군의 CGVQM-2와 정지 변동은 [No-TAA 비교 보고서](no-taa-report.md)에 정리했다.','']
 (D/'report.md').write_text('\n'.join(lines),encoding='utf-8');print('PASS: first-edge quality report written')

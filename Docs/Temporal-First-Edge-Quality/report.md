@@ -105,3 +105,7 @@ Bistro ROI는 의자 다리·메뉴판·바닥, Minecraft는 벽면·전경 구�
 `run_temporal_first_edge_quality.ps1`로 장면별 capture 후 `analyze_temporal_first_edge_quality.py`,
 `run_temporal_first_edge_cgvqm.py`, 이 요약 도구를 순서대로 실행한다.
 PNG/MP4/GIF/AutoBench 원본과 lossless 중간 영상은 로컬에 보존하고 Git에는 코드와 정량 결과를 넣는다.
+
+## No-TAA 추가 비교
+
+지터를 유지한 current-spatial 대조군의 CGVQM-2와 정지 변동은 [No-TAA 비교 보고서](no-taa-report.md)에 정리했다.
