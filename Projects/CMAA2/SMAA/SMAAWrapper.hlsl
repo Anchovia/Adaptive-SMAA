@@ -266,6 +266,7 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
 #include "TemporalEdgeRead.hlsl"
 #include "TemporalEdgeOnly.hlsl"
 #include "TemporalCurrentEdge.hlsl"
+#include "TemporalFirstEdge.hlsl"
 
 float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
                                          float2 texcoord : TEXCOORD0) : SV_TARGET {
