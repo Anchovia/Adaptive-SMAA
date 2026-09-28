@@ -237,6 +237,7 @@ namespace VertexAsylum
     public:
         shared_ptr<vaCameraBase> &              Camera( )                           { return m_camera; }
         CMAA2SampleSettings &                   Settings( )                         { return m_settings; }
+        shared_ptr<vaSMAAWrapper> &              GetSMAA( )                          { return m_SMAA; }
         shared_ptr<vaPostProcessTonemap>  &     PostProcessTonemap( )               { return m_postProcessTonemap; }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }

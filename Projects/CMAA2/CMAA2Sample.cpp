@@ -1839,8 +1839,12 @@ protected:
     virtual float   GetProgress() const override { return (float)m_currentFrame / (c_totalFrameCount - 1); }
 };
 
+#include "BaselineVerification.inl"
+
 void AutoBenchTool::Tick(float deltaTime)
 {
+    static bool baselineCommandParsed=false;
+    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)

@@ -66,6 +66,8 @@ namespace VertexAsylum
         ~vaSMAAWrapper( );
 
     public:
+        // Harness access to the same preset edited by the existing UI.
+        Settings &                  GetSettings( ) { return m_settings; }
         void                        SetTemporalModeEnabled( bool enabled )
         {
             if( m_temporalModeEnabled != enabled )
