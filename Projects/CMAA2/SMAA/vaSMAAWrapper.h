@@ -58,6 +58,8 @@ namespace VertexAsylum
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
 
+        bool                        m_spatialFirstEdgeEnabled = false;
+
         //bool                        m_debugShowEdges;
 
     protected:
@@ -86,6 +88,12 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
+
+        void SetSpatialFirstEdgeEnabled(bool enabled) {
+            if(m_spatialFirstEdgeEnabled!=enabled){m_spatialFirstEdgeEnabled=enabled;ResetTemporalHistory();}
+        }
+        bool GetSpatialFirstEdgeEnabled() const {return m_spatialFirstEdgeEnabled;}
+        virtual bool SaveSpatialEdgeSnapshot(vaRenderDeviceContext &,const wstring &,bool,bool){return false;}
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
