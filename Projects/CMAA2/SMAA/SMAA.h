@@ -208,6 +208,9 @@ class SMAA {
         /**
          * These two are just for debugging purposes.
          */
+        void reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+            ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output);
+
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
         RenderTarget *getBlendRenderTarget() { return blendRT; }
 
@@ -308,6 +311,7 @@ class SMAA {
         SMAATechniqueInterface *        edgeDetectionTechniques[3];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
+        SMAATechniqueInterface *        spatialFirstEdgeTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 

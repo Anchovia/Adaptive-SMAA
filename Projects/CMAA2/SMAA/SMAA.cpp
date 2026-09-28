@@ -236,6 +236,7 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     edgeDetectionTechniques[SMAA::INPUT_DEPTH]      = techniqueManagerInterface->CreateTechnique("DepthEdgeDetection", defines);
     blendingWeightCalculationTechnique = techniqueManagerInterface->CreateTechnique("BlendingWeightCalculation", defines);
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
+    spatialFirstEdgeTechnique = techniqueManagerInterface->CreateTechnique("SpatialFirstEdge", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -359,6 +360,30 @@ void SMAA::go(ID3D11DeviceContext * context,
     resolveTechnique->ApplyStates(context);
 }
 
+
+void SMAA::reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+                             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
+                             ID3D11RenderTargetView *output) {
+    SaveViewportsScope saveViewport(context);
+    SaveRenderTargetsScope saveRenderTargets(context);
+    SaveInputLayoutScope saveInputLayout(context);
+    SaveBlendStateScope saveBlendState(context);
+    SaveDepthStencilScope saveDepthStencil(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    edgesRT->setViewport(context);
+    texturesInterface->SetResource_colorTex(context, current);
+    texturesInterface->SetResource_colorTexPrev(context, previous);
+    texturesInterface->SetResource_velocityTex(context, velocity);
+    texturesInterface->SetResource_edgesTex(context, *edgesRT);
+    spatialFirstEdgeTechnique->ApplyStates(context);
+    context->OMSetRenderTargets(1, &output, nullptr);
+    triangle->draw(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    texturesInterface->SetResource_colorTex(context, nullptr);
+    texturesInterface->SetResource_colorTexPrev(context, nullptr);
+    texturesInterface->SetResource_velocityTex(context, nullptr);
+    texturesInterface->SetResource_edgesTex(context, nullptr);
+}
 
 void SMAA::reproject(ID3D11DeviceContext * context,
                      ID3D11ShaderResourceView *currentSRV,

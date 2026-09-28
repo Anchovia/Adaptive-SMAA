@@ -38,6 +38,8 @@
 #include "vaSMAAWrapper.h"
 
 #include "SMAA.h"
+#include "Core/Misc/vaProfiler.h"
+#include <fstream>
 
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
 
@@ -124,6 +126,32 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool SaveSpatialEdgeSnapshot(vaRenderDeviceContext &ctx, const wstring &path, bool saveEdge, bool probe) override
+        {
+            if(m_smaa==nullptr || !m_temporalHistoryValid) return false;
+            bool ok=true;
+            if(saveEdge) {
+            auto dc=ctx.SafeCast<vaRenderDeviceContextDX11*>()->GetDXContext();
+            ID3D11Texture2D *edge=*m_smaa->getEdgesRenderTarget();
+            D3D11_TEXTURE2D_DESC desc;edge->GetDesc(&desc);
+            if(desc.Format!=DXGI_FORMAT_R8G8_UNORM && desc.Format!=DXGI_FORMAT_R8G8_TYPELESS) return false;
+            desc.Usage=D3D11_USAGE_STAGING;desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;desc.MiscFlags=0;
+            ID3D11Texture2D *stage=nullptr;
+            if(FAILED(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()->CreateTexture2D(&desc,nullptr,&stage))) return false;
+            dc->CopyResource(stage,edge);
+            D3D11_MAPPED_SUBRESOURCE mapped;
+            if(FAILED(dc->Map(stage,0,D3D11_MAP_READ,0,&mapped))) {stage->Release();return false;}
+            std::ofstream out((path+L"-edge.rg8").c_str(),std::ios::binary);
+            out.write("EDG1",4);out.write(reinterpret_cast<const char*>(&desc.Width),4);out.write(reinterpret_cast<const char*>(&desc.Height),4);
+            for(UINT y=0;y<desc.Height;++y) out.write(static_cast<const char*>(mapped.pData)+y*mapped.RowPitch,desc.Width*2);
+            ok=out.good();out.close();dc->Unmap(stage,0);stage->Release();
+            }
+            ok=ok && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToPNGFile(ctx,path+L"-current.png");
+            if(probe) ok=ok && m_externalInputColor->SaveToDDSFile(ctx,path+L"-input.dds")
+                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,path+L"-spatial.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx,path+L"-velocity.dds");
+            return ok;
+        }
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
@@ -376,6 +404,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     if( GetTemporalReprojectionEnabled( ) )
     {
+        vaScopeTimer cameraTimer("SF_CameraVelocity", &deviceContext);
         if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
             return vaDrawResultFlags::ShadersStillCompiling;
 
@@ -429,11 +458,20 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
-            m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+            {
+                vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+            }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
-            m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            {
+                vaScopeTimer resolveTimer("SF_Resolve", &deviceContext);
+                if(GetSpatialFirstEdgeEnabled())
+                    m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
+                else
+                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            }
 
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
@@ -627,6 +665,14 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->BlendFactorAltSource = &m_constants.blendFactor;
         tech->SampleMask = 0xFFFFFFFF;
         tech->StencilRef = 0;
+    }
+    else if( name == "SpatialFirstEdge" )
+    {
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/SpatialFirstEdge.hlsl",psVersion,"SpatialFirstEdgePS",shaderMacros,true);
+        tech->DSS=m_DisableDepthStencil;tech->BS=m_NoBlending;
+        tech->BlendFactor[0]=tech->BlendFactor[1]=tech->BlendFactor[2]=tech->BlendFactor[3]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=0;
     }
     else if( name == "Resolve" )
     {
