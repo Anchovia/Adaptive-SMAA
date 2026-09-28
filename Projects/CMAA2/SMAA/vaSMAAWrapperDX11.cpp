@@ -458,7 +458,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     if(resolveKind==47) resolveKind=31;
                     if(resolveKind==48 || resolveKind==49) resolveKind=50;
                 }
-                m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), resolveKind );
+                // Capture-only spatial audit: same jitter/rendering, expose the AA input
+                // through the existing current-only shader. Never a performance mode.
+                const bool preSpatialAudit = resolveKind == 65;
+                m_smaa->reproject( dx11Context, preSpatialAudit ? spatialColorSRV : currentHistorySRV, previousHistorySRV, velocitySRV,
+                    dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), preSpatialAudit ? 3 : resolveKind );
             }
 
             m_temporalHistoryValid = true;

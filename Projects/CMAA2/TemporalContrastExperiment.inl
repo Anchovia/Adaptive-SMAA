@@ -2,7 +2,7 @@
 #include "../../External/RenderDoc/renderdoc_app.h"
 class BenchItemTemporalContrast : public AutoBenchToolWorkItem
 {
-    struct Config { const char* name; int kind; float threshold; bool pattern = true; };
+    struct Config { const char* name; int kind; float threshold; bool pattern = true; bool spatialOnly = false; bool noAA = false; };
     std::vector<Config> m_configs;
     bool m_capture, m_execution, m_done = false, m_started = false, m_failed = false;
     bool m_warp = false;
@@ -10,6 +10,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
     int m_speed = 0;
     bool m_selection = false, m_blendRead = false, m_edgeRead = false, m_edgeOptimize = false, m_edgeOnly = false, m_currentEdge = false, m_firstEdge = false, m_firstEdgeQuality = false;
     bool m_historyFilter = false, m_deJitter = false, m_pairedDeJitter = false;
+    bool m_firstEdgePattern = false;
     int m_pairOrder = -1;
     bool m_counterCapture = false, m_counterCaptureActive = false;
     RENDERDOC_API_1_6_0* m_renderdoc = nullptr;
@@ -30,6 +31,8 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         const auto c = Current();
         m_parent.Settings().CurrentAAOption = c.kind==4 ?
             CMAA2Sample::AAType::SuperSampleReference : CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+        if(c.spatialOnly)m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA;
+        if(c.noAA)m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::None;
         smaa->SetTemporalContrast(c.kind==4?0:c.kind,c.threshold);
         smaa->SetTemporalSamplePatternEnabled(c.pattern);
         smaa->ResetTemporalHistory();
@@ -64,7 +67,7 @@ class BenchItemTemporalContrast : public AutoBenchToolWorkItem
         }
     }
 public:
-    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false,bool historyFilter=false,bool deJitter=false,int pairedDeJitter=0,int speed=0,bool selection=false,bool blendRead=false,bool edgeRead=false,bool edgeOptimize=false,bool edgeOnly=false,bool currentEdge=false,bool firstEdge=false,bool firstEdgeQuality=false)
+    BenchItemTemporalContrast(CMAA2Sample& parent,bool capture,bool minecraft,int frames,int repeats,bool quality=false,bool execution=false,bool dependency=false,bool locality=false,bool cost=false,bool costFocused=false,bool warp=false,int pairOrder=-1,bool counterCapture=false,bool jitterAblation=false,bool historyFilter=false,bool deJitter=false,int pairedDeJitter=0,int speed=0,bool selection=false,bool blendRead=false,bool edgeRead=false,bool edgeOptimize=false,bool edgeOnly=false,bool currentEdge=false,bool firstEdge=false,bool firstEdgeQuality=false,bool firstEdgePattern=false)
         :AutoBenchToolWorkItem(parent),m_capture(capture),m_execution(execution||dependency||locality||cost||warp||pairOrder>=0),m_frames(frames),
          m_warmup(capture?60:300),m_repeats(capture?1:repeats),
          m_scene(minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro)
@@ -255,6 +258,14 @@ public:
             m_configs={{"O-T2X-R",0,0},{"ABL-FirstEdge-Reuse-R",63,0},
                 {"DBG-CurrentSpatial-R",3,0},{"DBG-RawEdge",60,1},{"ABL-FirstEdge-Reuse-R-Repeat",63,0}};
         }
+        if(firstEdgePattern) {
+            m_firstEdgePattern=true;m_firstEdgeQuality=true;m_edgeRead=true;
+            m_configs={{"O-1X",0,0,false,true},{"AA-Off",0,0,false,false,true},
+                {"O-T2X-R",0,0},{"ABL-FirstEdge-Reuse-R",63,0},{"DBG-CurrentSpatial-R",3,0},
+                {"DBG-PreSpatial-PatternOn",65,0},{"ABL-FirstEdge-PatternOff-R",63,0,false},
+                {"DBG-CurrentSpatial-PatternOff",3,0,false},{"ABL-FullScreen-PatternOff-R",0,0,false},
+                {"DBG-RawEdge-PatternOff",60,1,false},{"ABL-FirstEdge-PatternOff-R-Repeat",63,0,false}};
+        }
         if(selection) {
             m_selection=true;m_execution=true;
             m_configs={{"O-T2X-R",0,0},{"ABL-PairedDeJitter-R",32,0},
@@ -321,7 +332,8 @@ public:
                 tool.ReportAddText("Same pixel selector; warp-uniform history execution; per-pixel weight masking. NVIDIA-only diagnostic.\r\n");
             }
             tool.ReportAddText("Native Standard temporal contrast engineering gate\r\n");
-            if(m_firstEdgeQuality)tool.ReportAddText("First-edge continuous quality gate: 240 frames; native, selected, current, raw edge and selected repeat. Shader semantics unchanged.\r\n");
+            if(m_firstEdgePattern)tool.ReportAddText("First-edge spatial audit and pattern stability: actual SMAA 1X, AA Off, unchanged On controls, pre-spatial input and Pattern-Off controls. No new selection shader.\r\n");
+            if(m_firstEdgeQuality && !m_firstEdgePattern)tool.ReportAddText("First-edge continuous quality gate: 240 frames; native, selected, current, raw edge and selected repeat. Shader semantics unchanged.\r\n");
             if(m_firstEdge)tool.ReportAddText("First-pass edge selective gate: exact any(RG>0), current sample reuse and previous edge-first control. Native and live edge-read controls preserved. No new pass.\r\n");
             if(m_currentEdge)tool.ReportAddText("Current-color edge read gate: Native, combined edge+T2X-R, current-color output control and current-color+edge read. Zero scale preserves current RGB; scale 1 is capture-only. No selection.\r\n");
             if(m_edgeOnly)tool.ReportAddText("Edge-only microbenchmark gate: Native, combined edge+T2X-R, matched black output-only and edge-only. Native samples removed only in the last two shaders. Raw edge scale 1 is capture-only.\r\n");
@@ -419,12 +431,18 @@ public:
         if(m_jitterAblation || m_historyFilter || m_deJitter || m_pairedDeJitter || m_speed || m_selection || m_blendRead || m_edgeRead) {
             auto smaa=m_parent.GetSMAA();
             bool ok=smaa->GetTemporalSamplePatternEnabled()==c.pattern;
-            for(int k=0;k<4;k++) {
+            for(int k=0;k<4 && !c.noAA;k++) {
                 const float expected=c.pattern && k<3 ? float(m_frame%2+1) : 0.0f;
                 ok=ok && smaa->GetTemporalSubsampleIndexForDiagnostics(k)==expected;
             }
             const auto jitter=smaa->GetTemporalJitterOffset();
             ok=ok && (c.pattern ? (fabs(jitter.x)==0.25f && fabs(jitter.y)==0.25f) : (jitter.x==0 && jitter.y==0));
+            if(m_firstEdgePattern) {
+                const bool temporal=!(c.spatialOnly || c.noAA);
+                ok=ok && smaa->GetTemporalModeEnabled()==temporal && smaa->GetTemporalReprojectionEnabled()==temporal;
+                ok=ok && (!c.spatialOnly || m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA);
+                ok=ok && (!c.noAA || m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::None);
+            }
             m_failed=m_failed||!ok;
             tool.ReportAddRowValues({"pattern_check",c.name,std::to_string(m_frame),c.pattern?"On":"Off",ok?"PASS":"FAIL"});
         }
@@ -490,6 +508,8 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         bool edgeOptimizeBenchmark=_wcsicmp(p.first.c_str(),L"smaaTemporalEdgeReadOptimizationBenchmark")==0;
         bool edgeOptimize=edgeOptimizeCapture||edgeOptimizeSmoke||edgeOptimizeBenchmark;
         capture=capture||edgeOptimizeCapture;smoke=smoke||edgeOptimizeSmoke;bench=bench||edgeOptimizeBenchmark;
+        bool firstEdgePattern=_wcsicmp(p.first.c_str(),L"smaaTemporalFirstEdgePatternCapture")==0;
+        capture=capture||firstEdgePattern;
         bool firstEdgeQuality=_wcsicmp(p.first.c_str(),L"smaaTemporalFirstEdgeQualityCapture")==0;
         capture=capture||firstEdgeQuality;
         bool firstEdgeCapture=_wcsicmp(p.first.c_str(),L"smaaTemporalFirstEdgeCapture")==0;
@@ -573,7 +593,7 @@ static bool QueueTemporalContrastExperiment(CMAA2Sample& parent,AutoBenchTool& t
         }
         int qualityFrames=240;
         if(quality) {input>>qualityFrames;qualityFrames=vaMath::Clamp(qualityFrames,1,240);}
-        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",pairedStatic?40:counterCapture?121:quality?qualityFrames:capture?240:smoke?240:speedScreen?2400:4800,(smoke||pair)?1:speedScreen?3:(historyFilter||deJitter||pairedDeJitter||speedFinal||selection||blendRead||edgeRead||edgeOptimize||edgeOnly||currentEdge||firstEdge)?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter,deJitter,pairedDeJitter,speed,selection,blendRead,edgeRead,edgeOptimize,edgeOnly,currentEdge,firstEdge,firstEdgeQuality));
+        tool.AddTask(std::make_shared<BenchItemTemporalContrast>(parent,capture||quality,scene==L"minecraft",pairedStatic?40:counterCapture?121:quality?qualityFrames:capture?240:smoke?240:speedScreen?2400:4800,(smoke||pair)?1:speedScreen?3:(historyFilter||deJitter||pairedDeJitter||speedFinal||selection||blendRead||edgeRead||edgeOptimize||edgeOnly||currentEdge||firstEdge)?4:(costFocused||warp)?5:3,quality,execution,dependency,locality,cost,costFocused,warp,pairOrder,counterCapture,jitterAblation,historyFilter,deJitter,pairedDeJitter,speed,selection,blendRead,edgeRead,edgeOptimize,edgeOnly,currentEdge,firstEdge,firstEdgeQuality,firstEdgePattern));
         return true;
     }
     return false;

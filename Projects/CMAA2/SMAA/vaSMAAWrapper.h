@@ -89,7 +89,7 @@ namespace VertexAsylum
 
         // Default-off native temporal ablations; read diagnostics bind existing textures.
         void SetTemporalContrast(int kind, float threshold) {
-            kind = vaMath::Clamp(kind, 0, 64);
+            kind = vaMath::Clamp(kind, 0, 65);
             // 4 is reserved for the supersample capture driver, never a resolve kind.
             assert(kind != 4);
             if(kind == 4) kind = 0;
