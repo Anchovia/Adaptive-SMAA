@@ -1,0 +1,278 @@
+{
+  "scene": "minecraft",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Capture",
+    "window": "hidden",
+    "executable_sha256": "3464B4983CB1D37F5666877BF59D9118343F516E8F1F68DEBA6AB75F9B84AAF6",
+    "started_utc": "2026-09-28T06:52:13.8661516Z",
+    "completed_utc": "2026-09-28T06:54:05.4746679Z",
+    "arguments": [
+      "-smaaTemporalFirstEdgeQualityCapture",
+      "minecraft"
+    ],
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_155215\\20260928_155215_results.csv",
+    "report_sha256": "7F8E09BD1D63BB5C44385445576B29CE63BBFF78FF395B6A49B163BE7AFF6E6E"
+  },
+  "validation": "PASS",
+  "shader_fixed_at": "be93be3",
+  "capture": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_155215",
+  "reference": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_141121\\SS-Reference",
+  "reference_analysis_sha256": "2021c678d5e521d26ec8267a494d5740d9d30dfa4be2fdb68e19414fb3d30992",
+  "reference_report_sha256": "030a1ae7697df1bdfadb2e72bb0c3ddd443422c8f05dd751cb9f23f0b1ba012b",
+  "reference_pixel_stream_sha256": "85e7a480c42efae7ce756e9ef645bcf5234a461731fb46abf30e92596058e689",
+  "classification": "Camera-path engineering quality; supersampling spatial proxy, not temporal ground truth",
+  "full_bridge_comparisons": 960,
+  "sparse_bridge_comparisons": 20,
+  "selection_semantics_frames": 240,
+  "selection_mismatches": 0,
+  "pattern_checks": 1200,
+  "windows": {
+    "initial_still": {
+      "O-T2X-R": {
+        "rgb_mae": 0.7136159545502146,
+        "psnr_db": 38.73958428582381,
+        "edge_reference_ratio": 0.9282174568087158,
+        "luma_ssim": 0.9926686183176134,
+        "rgb_step": 0.0,
+        "changed_pixels_percent": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 0.961773893208713,
+        "psnr_db": 36.319696268170446,
+        "edge_reference_ratio": 0.9518421216321578,
+        "luma_ssim": 0.985585480398146,
+        "rgb_step": 1.0392091122107028,
+        "changed_pixels_percent": 49.97614278982092,
+        "reference_delta_residual": 0.987610683679356
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 1.2289479755733583,
+        "psnr_db": 34.02426679394769,
+        "edge_reference_ratio": 0.9935869608435501,
+        "luma_ssim": 0.9805956883733763,
+        "rgb_step": 1.9467226607498167,
+        "changed_pixels_percent": 53.8216698083569,
+        "reference_delta_residual": 1.9061715681430045
+      }
+    },
+    "moving": {
+      "O-T2X-R": {
+        "rgb_mae": 1.987355429069798,
+        "psnr_db": 34.42394139114516,
+        "edge_reference_ratio": 0.924703338663742,
+        "luma_ssim": 0.9730063993175324,
+        "rgb_step": 5.294194291450675,
+        "changed_pixels_percent": 87.33792151010577,
+        "reference_delta_residual": 2.0428289009352816
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 2.5169853300520124,
+        "psnr_db": 32.861369744702394,
+        "edge_reference_ratio": 0.9541268877552507,
+        "luma_ssim": 0.9564204450828158,
+        "rgb_step": 6.421809998101896,
+        "changed_pixels_percent": 89.4173923643837,
+        "reference_delta_residual": 3.4839306811633106
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 2.99786798410392,
+        "psnr_db": 31.370565095132736,
+        "edge_reference_ratio": 0.9932995418789975,
+        "luma_ssim": 0.9471207864820211,
+        "rgb_step": 7.56833828040458,
+        "changed_pixels_percent": 89.5320317408891,
+        "reference_delta_residual": 4.919475592652653
+      }
+    },
+    "transition": {
+      "O-T2X-R": {
+        "rgb_mae": 1.7332032586309212,
+        "psnr_db": 35.512550653504576,
+        "edge_reference_ratio": 0.9290683509012037,
+        "luma_ssim": 0.9764331112747223,
+        "rgb_step": 1.7729427956025063,
+        "changed_pixels_percent": 32.5752058461619,
+        "reference_delta_residual": 0.8339423350366245
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 2.519302972933466,
+        "psnr_db": 33.00929105991632,
+        "edge_reference_ratio": 0.9558347378856052,
+        "luma_ssim": 0.9541873013333902,
+        "rgb_step": 4.118970117398855,
+        "changed_pixels_percent": 74.8604361386009,
+        "reference_delta_residual": 3.2496368658812327
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 3.1897707575182395,
+        "psnr_db": 31.030930862496337,
+        "edge_reference_ratio": 0.9915556253636156,
+        "luma_ssim": 0.9420401347071953,
+        "rgb_step": 6.093265135201767,
+        "changed_pixels_percent": 82.15967722405487,
+        "reference_delta_residual": 5.361209560083611
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "rgb_mae": 1.4717071159283694,
+        "psnr_db": 36.38471844375224,
+        "edge_reference_ratio": 0.9312103257398091,
+        "luma_ssim": 0.9843851179103835,
+        "rgb_step": 0.0,
+        "changed_pixels_percent": 0.0,
+        "reference_delta_residual": 0.0
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 2.3702893463975285,
+        "psnr_db": 33.35135384430927,
+        "edge_reference_ratio": 0.9562490987909958,
+        "luma_ssim": 0.9577573613217873,
+        "rgb_step": 2.9547604788459525,
+        "changed_pixels_percent": 67.32843426013196,
+        "reference_delta_residual": 2.8595901359543276
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 3.126475039925647,
+        "psnr_db": 31.097341115817237,
+        "edge_reference_ratio": 0.9914828672080827,
+        "luma_ssim": 0.9437428569155443,
+        "rgb_step": 5.3501199405696935,
+        "changed_pixels_percent": 79.10771088595664,
+        "reference_delta_residual": 5.294130338156819
+      }
+    }
+  },
+  "coverage": {
+    "initial_still": {
+      "selected_pixels": 132512.5,
+      "selected_percent": 6.504894164310398,
+      "mask_switch_percent": 5.51656259817782
+    },
+    "moving": {
+      "selected_pixels": 421745.51666666666,
+      "selected_percent": 20.70302764032883,
+      "mask_switch_percent": 20.461001315582784
+    },
+    "transition": {
+      "selected_pixels": 450544.9,
+      "selected_percent": 22.116757972038958,
+      "mask_switch_percent": 21.454788295894858
+    },
+    "late_still": {
+      "selected_pixels": 439255,
+      "selected_percent": 21.562549088909833,
+      "mask_switch_percent": 20.59790292177191
+    }
+  },
+  "static_hashes": {
+    "initial_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "DBG-CurrentSpatial-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "DBG-CurrentSpatial-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    }
+  },
+  "late_still_groups": {
+    "always_selected": {
+      "area_percent": 11.263597628023877,
+      "mean_rgb_step": 0.0,
+      "whole_frame_step_contribution": 0.0
+    },
+    "always_unselected": {
+      "area_percent": 68.13849945020421,
+      "mean_rgb_step": 2.6194783666159247,
+      "whole_frame_step_contribution": 1.7848732524348099
+    },
+    "selection_switches": {
+      "area_percent": 20.59790292177191,
+      "mean_rgb_step": 5.679642392986403,
+      "whole_frame_step_contribution": 1.1698872264111426
+    }
+  },
+  "roi": [
+    720,
+    240,
+    1200,
+    560
+  ],
+  "videos": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\minecraft\\overview-60fps.mp4",
+      "frames": 240,
+      "fps": 60,
+      "size": [
+        1920,
+        384
+      ],
+      "pts_verified": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\minecraft\\detail-60fps.mp4",
+      "frames": 240,
+      "fps": 60,
+      "size": [
+        1440,
+        350
+      ],
+      "pts_verified": true
+    }
+  ],
+  "gifs": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\minecraft\\moving.gif",
+      "source_frames": [
+        90,
+        149
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\minecraft\\transition.gif",
+      "source_frames": [
+        160,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\minecraft\\late-still.gif",
+      "source_frames": [
+        200,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 660,
+      "fixed_palette": true
+    }
+  ],
+  "media_scope": "MP4 CRF12/YUV420 and fixed-palette GIF are viewing aids; PNG metrics use original RGB. Fixed ROI is not object-tracked."
+}

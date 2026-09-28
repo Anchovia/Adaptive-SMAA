@@ -1,0 +1,278 @@
+{
+  "scene": "bistro",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Capture",
+    "window": "hidden",
+    "executable_sha256": "3464B4983CB1D37F5666877BF59D9118343F516E8F1F68DEBA6AB75F9B84AAF6",
+    "started_utc": "2026-09-28T06:54:31.2377587Z",
+    "completed_utc": "2026-09-28T06:56:33.5807189Z",
+    "arguments": [
+      "-smaaTemporalFirstEdgeQualityCapture",
+      "bistro"
+    ],
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_155432\\20260928_155432_results.csv",
+    "report_sha256": "799DBD9943EA6B4337F0A97FF3E70C7B22D731A7079804C3FB5F240701A2D5D1"
+  },
+  "validation": "PASS",
+  "shader_fixed_at": "be93be3",
+  "capture": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_155432",
+  "reference": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+  "reference_analysis_sha256": "289de84e58401e9368d49b9f5a8cefe511058ba1368ea26e7a18f58c2dfdc044",
+  "reference_report_sha256": "4078d6a6239006b8bdcfe0413245bbc076e27cca4b40bffe845d33335a2407f9",
+  "reference_pixel_stream_sha256": "9ab430f05e940f6e905bc7b6f53d5e473a0f4113eb5d0fc0ea4635938a153388",
+  "classification": "Camera-path engineering quality; supersampling spatial proxy, not temporal ground truth",
+  "full_bridge_comparisons": 960,
+  "sparse_bridge_comparisons": 20,
+  "selection_semantics_frames": 240,
+  "selection_mismatches": 0,
+  "pattern_checks": 1200,
+  "windows": {
+    "initial_still": {
+      "O-T2X-R": {
+        "rgb_mae": 0.5562146518941774,
+        "psnr_db": 42.444482875366305,
+        "edge_reference_ratio": 0.9670817947832512,
+        "luma_ssim": 0.9910381763943763,
+        "rgb_step": 0.0,
+        "changed_pixels_percent": 0.0,
+        "reference_delta_residual": 8.72311775990713e-08
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 0.8874623201709604,
+        "psnr_db": 39.308803952608116,
+        "edge_reference_ratio": 1.0067920229724934,
+        "luma_ssim": 0.9769884952480349,
+        "rgb_step": 1.1850520996963032,
+        "changed_pixels_percent": 65.53963438579956,
+        "reference_delta_residual": 1.116897590433663
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 0.97963812064745,
+        "psnr_db": 37.478482119670716,
+        "edge_reference_ratio": 1.0211390396683626,
+        "luma_ssim": 0.9746072322493932,
+        "rgb_step": 1.4918176968792545,
+        "changed_pixels_percent": 66.77962024819352,
+        "reference_delta_residual": 1.4129367514010174
+      }
+    },
+    "moving": {
+      "O-T2X-R": {
+        "rgb_mae": 0.7349747028484658,
+        "psnr_db": 40.390661559003185,
+        "edge_reference_ratio": 0.9588654930586626,
+        "luma_ssim": 0.9859583634716351,
+        "rgb_step": 1.41775477825994,
+        "changed_pixels_percent": 66.94622841724264,
+        "reference_delta_residual": 0.8027249599081903
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 0.9392862349787936,
+        "psnr_db": 38.71199682551376,
+        "edge_reference_ratio": 1.0053724805624102,
+        "luma_ssim": 0.9759855899909524,
+        "rgb_step": 1.8020316290754703,
+        "changed_pixels_percent": 69.52044307650016,
+        "reference_delta_residual": 1.2826099353831224
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 1.011124802826212,
+        "psnr_db": 37.32403858404415,
+        "edge_reference_ratio": 1.0201924033138616,
+        "luma_ssim": 0.9739712017795165,
+        "rgb_step": 1.9697554635956644,
+        "changed_pixels_percent": 69.50579371858309,
+        "reference_delta_residual": 1.4807247824896048
+      }
+    },
+    "transition": {
+      "O-T2X-R": {
+        "rgb_mae": 0.6460809596118268,
+        "psnr_db": 41.21842350699587,
+        "edge_reference_ratio": 0.9625041455879773,
+        "luma_ssim": 0.9880830627556221,
+        "rgb_step": 0.6027585021991831,
+        "changed_pixels_percent": 26.063008070216778,
+        "reference_delta_residual": 0.3209198503805851
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 0.9458090452316124,
+        "psnr_db": 38.68849171211862,
+        "edge_reference_ratio": 1.0019948414213804,
+        "luma_ssim": 0.9755321399628658,
+        "rgb_step": 1.52160526462195,
+        "changed_pixels_percent": 67.21264170331972,
+        "reference_delta_residual": 1.2329419065194032
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 1.0419513632535693,
+        "psnr_db": 37.05063073093712,
+        "edge_reference_ratio": 1.0182005166717556,
+        "luma_ssim": 0.9730967438265785,
+        "rgb_step": 1.8090064404649702,
+        "changed_pixels_percent": 68.05457132291339,
+        "reference_delta_residual": 1.521319365290759
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "rgb_mae": 0.5828255085611058,
+        "psnr_db": 41.86418255633977,
+        "edge_reference_ratio": 0.9643443703570833,
+        "luma_ssim": 0.9907690208940478,
+        "rgb_step": 0.0,
+        "changed_pixels_percent": 0.0,
+        "reference_delta_residual": 1.5412931580083608e-07
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "rgb_mae": 0.9354603067075087,
+        "psnr_db": 38.85198602436846,
+        "edge_reference_ratio": 1.0012698074183755,
+        "luma_ssim": 0.97577172487207,
+        "rgb_step": 1.2555861543093518,
+        "changed_pixels_percent": 65.47125353440151,
+        "reference_delta_residual": 1.1766462444238999
+      },
+      "DBG-CurrentSpatial-R": {
+        "rgb_mae": 1.0427737361242015,
+        "psnr_db": 37.03771915711811,
+        "edge_reference_ratio": 1.0180091055022773,
+        "luma_ssim": 0.9730337953245254,
+        "rgb_step": 1.6176440268614514,
+        "changed_pixels_percent": 66.85025918944392,
+        "reference_delta_residual": 1.5203768328930791
+      }
+    }
+  },
+  "coverage": {
+    "initial_still": {
+      "selected_pixels": 50652.5,
+      "selected_percent": 2.486476005340873,
+      "mask_switch_percent": 2.506430647188187
+    },
+    "moving": {
+      "selected_pixels": 52308.875,
+      "selected_percent": 2.5677856483663213,
+      "mask_switch_percent": 2.711918869122421
+    },
+    "transition": {
+      "selected_pixels": 55835.71666666667,
+      "selected_percent": 2.7409144609383183,
+      "mask_switch_percent": 2.856231673473662
+    },
+    "late_still": {
+      "selected_pixels": 56065,
+      "selected_percent": 2.75216972981464,
+      "mask_switch_percent": 2.828306628966384
+    }
+  },
+  "static_hashes": {
+    "initial_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "DBG-CurrentSpatial-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    },
+    "late_still": {
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "lag2_mismatches": 0
+      },
+      "ABL-FirstEdge-Reuse-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      },
+      "DBG-CurrentSpatial-R": {
+        "unique_rgb_frames": 2,
+        "lag2_mismatches": 0
+      }
+    }
+  },
+  "late_still_groups": {
+    "always_selected": {
+      "area_percent": 1.3380164153314482,
+      "mean_rgb_step": 0.0,
+      "whole_frame_step_contribution": 0.0
+    },
+    "always_unselected": {
+      "area_percent": 95.83367695570217,
+      "mean_rgb_step": 1.085837840532815,
+      "whole_frame_step_contribution": 1.0405983283589906
+    },
+    "selection_switches": {
+      "area_percent": 2.828306628966384,
+      "mean_rgb_step": 7.601291307970008,
+      "whole_frame_step_contribution": 0.21498782595036128
+    }
+  },
+  "roi": [
+    420,
+    590,
+    900,
+    910
+  ],
+  "videos": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\overview-60fps.mp4",
+      "frames": 240,
+      "fps": 60,
+      "size": [
+        1920,
+        384
+      ],
+      "pts_verified": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\detail-60fps.mp4",
+      "frames": 240,
+      "fps": 60,
+      "size": [
+        1440,
+        350
+      ],
+      "pts_verified": true
+    }
+  ],
+  "gifs": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\moving.gif",
+      "source_frames": [
+        90,
+        149
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\transition.gif",
+      "source_frames": [
+        160,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 2000,
+      "fixed_palette": true
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\FirstEdgeQuality\\bistro\\late-still.gif",
+      "source_frames": [
+        200,
+        219
+      ],
+      "playback_speed": 0.5,
+      "duration_ms": 660,
+      "fixed_palette": true
+    }
+  ],
+  "media_scope": "MP4 CRF12/YUV420 and fixed-palette GIF are viewing aids; PNG metrics use original RGB. Fixed ROI is not object-tracked."
+}
