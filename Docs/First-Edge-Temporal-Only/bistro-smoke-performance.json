@@ -1,0 +1,312 @@
+{
+  "validation": "PASS",
+  "scene": "bistro",
+  "phase": "Smoke",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Smoke",
+    "window": "hidden",
+    "source_baseline": "e14f122",
+    "research_branch": "experiment/first-edge-temporal-only",
+    "arguments": [
+      "-smaaFirstEdgeOnlySmoke",
+      "bistro"
+    ],
+    "started_utc": "2026-09-28T23:06:40.4447092Z",
+    "completed_utc": "2026-09-28T23:07:17.9239423Z",
+    "executable_sha256": "76CE836C002D21FE3B83BB13BCD3BCDE6126BFD8DB360028F8A76CE2E6DE8A62",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_080641\\20260929_080641_results.csv",
+    "report_sha256": "8A44F38C3B72555683926995847B9F24286C9657DD6158A1B075691FF2D6EF76"
+  },
+  "repeats": 1,
+  "frames_per_repeat": 240,
+  "metrics": {
+    "ABL-TemporalOnly-R": {
+      "SMAA": {
+        "mean_ms": 0.078698667,
+        "run_means_ms": [
+          0.078698667
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.084992,
+        "mean_run_p95_ms": 0.086016,
+        "mean_run_p99_ms": 0.088064
+      },
+      "FE_CameraVelocity": {
+        "mean_ms": 0.023364267,
+        "run_means_ms": [
+          0.023364267
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.023552,
+        "mean_run_p99_ms": 0.023552
+      },
+      "FE_Prepare": {
+        "mean_ms": 0.021883733,
+        "run_means_ms": [
+          0.021883733
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.0256
+      },
+      "FE_Resolve": {
+        "mean_ms": 0.0334464,
+        "run_means_ms": [
+          0.0334464
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.036864,
+        "mean_run_p95_ms": 0.037888,
+        "mean_run_p99_ms": 0.038912
+      }
+    },
+    "DIAG-TemporalOnly-EdgeDetect-R": {
+      "SMAA": {
+        "mean_ms": 0.108676267,
+        "run_means_ms": [
+          0.108676267
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.114688,
+        "mean_run_p95_ms": 0.115712,
+        "mean_run_p99_ms": 0.115712
+      },
+      "FE_CameraVelocity": {
+        "mean_ms": 0.0235136,
+        "run_means_ms": [
+          0.0235136
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576
+      },
+      "FE_Prepare": {
+        "mean_ms": 0.022225067,
+        "run_means_ms": [
+          0.022225067
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576
+      },
+      "FE_Resolve": {
+        "mean_ms": 0.033386667,
+        "run_means_ms": [
+          0.033386667
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.036864,
+        "mean_run_p95_ms": 0.037888,
+        "mean_run_p99_ms": 0.037888
+      },
+      "FE_EdgeDetection": {
+        "mean_ms": 0.0295808,
+        "run_means_ms": [
+          0.0295808
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.029696,
+        "mean_run_p95_ms": 0.029696,
+        "mean_run_p99_ms": 0.03072
+      }
+    },
+    "ABL-FirstEdge-TemporalOnly-R": {
+      "SMAA": {
+        "mean_ms": 0.102528,
+        "run_means_ms": [
+          0.102528
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.105472,
+        "mean_run_p95_ms": 0.10752,
+        "mean_run_p99_ms": 0.10752
+      },
+      "FE_CameraVelocity": {
+        "mean_ms": 0.023453867,
+        "run_means_ms": [
+          0.023453867
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576
+      },
+      "FE_Prepare": {
+        "mean_ms": 0.022062933,
+        "run_means_ms": [
+          0.022062933
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576
+      },
+      "FE_Resolve": {
+        "mean_ms": 0.027515733,
+        "run_means_ms": [
+          0.027515733
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.028672,
+        "mean_run_p95_ms": 0.029696,
+        "mean_run_p99_ms": 0.029696
+      },
+      "FE_EdgeDetection": {
+        "mean_ms": 0.0294528,
+        "run_means_ms": [
+          0.0294528
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.029696,
+        "mean_run_p95_ms": 0.029696,
+        "mean_run_p99_ms": 0.03072
+      }
+    }
+  },
+  "contrasts": {
+    "detect_minus_full": {
+      "SMAA": {
+        "delta_ms": 0.029977599999999993,
+        "percent": 38.091623584933146,
+        "paired_run_delta_ms": [
+          0.029977599999999993
+        ],
+        "paired_run_percent": [
+          38.091623584933146
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_CameraVelocity": {
+        "delta_ms": 0.00014933299999999802,
+        "percent": 0.6391512303809854,
+        "paired_run_delta_ms": [
+          0.00014933299999999802
+        ],
+        "paired_run_percent": [
+          0.6391512303809854
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_Prepare": {
+        "delta_ms": 0.00034133400000000216,
+        "percent": 1.5597613076343109,
+        "paired_run_delta_ms": [
+          0.00034133400000000216
+        ],
+        "paired_run_percent": [
+          1.5597613076343109
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_Resolve": {
+        "delta_ms": -5.9732999999999314e-05,
+        "percent": -0.17859321182548404,
+        "paired_run_delta_ms": [
+          -5.9732999999999314e-05
+        ],
+        "paired_run_percent": [
+          -0.17859321182548404
+        ],
+        "paired_delta_std_ms": null
+      }
+    },
+    "selective_minus_detect": {
+      "SMAA": {
+        "delta_ms": -0.006148266999999999,
+        "percent": -5.6574146036871165,
+        "paired_run_delta_ms": [
+          -0.006148266999999999
+        ],
+        "paired_run_percent": [
+          -5.6574146036871165
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_CameraVelocity": {
+        "delta_ms": -5.9732999999999314e-05,
+        "percent": -0.25403596216657665,
+        "paired_run_delta_ms": [
+          -5.9732999999999314e-05
+        ],
+        "paired_run_percent": [
+          -0.25403596216657665
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_Prepare": {
+        "delta_ms": -0.00016213400000000128,
+        "percent": -0.7295096118270505,
+        "paired_run_delta_ms": [
+          -0.00016213400000000128
+        ],
+        "paired_run_percent": [
+          -0.7295096118270505
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_Resolve": {
+        "delta_ms": -0.005870934000000001,
+        "percent": -17.584666357980574,
+        "paired_run_delta_ms": [
+          -0.005870934000000001
+        ],
+        "paired_run_percent": [
+          -17.584666357980574
+        ],
+        "paired_delta_std_ms": null
+      }
+    },
+    "selective_minus_full": {
+      "SMAA": {
+        "delta_ms": 0.023829332999999994,
+        "percent": 30.279207905770498,
+        "paired_run_delta_ms": [
+          0.023829332999999994
+        ],
+        "paired_run_percent": [
+          30.279207905770498
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_CameraVelocity": {
+        "delta_ms": 8.959999999999871e-05,
+        "percent": 0.38349159423660684,
+        "paired_run_delta_ms": [
+          8.959999999999871e-05
+        ],
+        "paired_run_percent": [
+          0.38349159423660684
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_Prepare": {
+        "delta_ms": 0.00017920000000000089,
+        "percent": 0.8188730871465211,
+        "paired_run_delta_ms": [
+          0.00017920000000000089
+        ],
+        "paired_run_percent": [
+          0.8188730871465211
+        ],
+        "paired_delta_std_ms": null
+      },
+      "FE_Resolve": {
+        "delta_ms": -0.005930667000000001,
+        "percent": -17.731854549368542,
+        "paired_run_delta_ms": [
+          -0.005930667000000001
+        ],
+        "paired_run_percent": [
+          -17.731854549368542
+        ],
+        "paired_delta_std_ms": null
+      }
+    }
+  },
+  "note": "Hidden-window engineering scope timing; no image/mask snapshots or readback. GPU timestamp queries included. Not WholeFrame/FPS, not a matched-quality speedup, not formal six-case performance. Selective-minus-detect combines edge Load, branch, skipped sampling, and GPU scheduling effects."
+}
