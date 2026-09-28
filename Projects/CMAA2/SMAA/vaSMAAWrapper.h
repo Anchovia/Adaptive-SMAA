@@ -58,6 +58,10 @@ namespace VertexAsylum
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
 
+        // Diagnostic control: no spatial filtering, native temporal resolve.
+        bool                        m_temporalOnlyEnabled = false;
+        bool                        m_temporalOnlyReference = false;
+
         //bool                        m_debugShowEdges;
 
     protected:
@@ -86,6 +90,15 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
+
+        void SetTemporalOnlyControl( bool enabled, bool reference = false )
+        {
+            if( m_temporalOnlyEnabled != enabled || m_temporalOnlyReference != reference )
+            { m_temporalOnlyEnabled = enabled; m_temporalOnlyReference = reference; ResetTemporalHistory(); }
+        }
+        bool GetTemporalOnlyControl() const { return m_temporalOnlyEnabled; }
+        bool GetTemporalOnlyReference() const { return m_temporalOnlyReference; }
+        virtual bool SaveTemporalOnlyInputs( vaRenderDeviceContext &, const wstring & ) { return false; }
 
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips

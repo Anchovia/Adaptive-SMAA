@@ -124,6 +124,14 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool SaveTemporalOnlyInputs( vaRenderDeviceContext &ctx, const wstring &path ) override
+        {
+            if(!GetTemporalOnlyControl() || !m_temporalHistoryValid) return false;
+            // AdvanceTemporalFrame has run: the just-written slot is opposite the next phase.
+            return m_externalInputColor->SaveToDDSFile(ctx, path + L"-input.dds")
+                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx, path + L"-prepared.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx, path + L"-velocity.dds");
+        }
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
@@ -429,7 +437,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
-            m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+            if( GetTemporalOnlyControl() )
+                m_smaa->prepareTemporalOnly( dx11Context, spatialColorSRV, velocitySRV, currentHistoryRTV, GetTemporalOnlyReference() );
+            else
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
@@ -625,6 +636,16 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->BS  = m_Blend;
         tech->BlendFactor[0] = 0.0f; tech->BlendFactor[1] = 0.0f; tech->BlendFactor[2] = 0.0f; tech->BlendFactor[3] = 0.0f;
         tech->BlendFactorAltSource = &m_constants.blendFactor;
+        tech->SampleMask = 0xFFFFFFFF;
+        tech->StencilRef = 0;
+    }
+    else if( name == "TemporalOnlyPrepare" )
+    {
+        tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAResolveVS", inputElements, shaderMacros, true );
+        tech->PS->CreateShaderFromFile( L"SMAA/TemporalOnlyControl.hlsl", psVersion, "TemporalOnlyPreparePS", shaderMacros, true );
+        tech->DSS = m_DisableDepthStencil;
+        tech->BS = m_NoBlending;
+        tech->BlendFactor[0] = tech->BlendFactor[1] = tech->BlendFactor[2] = tech->BlendFactor[3] = 0;
         tech->SampleMask = 0xFFFFFFFF;
         tech->StencilRef = 0;
     }

@@ -208,6 +208,10 @@ class SMAA {
         /**
          * These two are just for debugging purposes.
          */
+        // No edge/weight passes. Reference uses native neighborhood shader with zero weights.
+        void prepareTemporalOnly(ID3D11DeviceContext *context, ID3D11ShaderResourceView *color,
+            ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output, bool reference);
+
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
         RenderTarget *getBlendRenderTarget() { return blendRT; }
 
@@ -308,6 +312,7 @@ class SMAA {
         SMAATechniqueInterface *        edgeDetectionTechniques[3];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
+        SMAATechniqueInterface *        temporalOnlyPrepareTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 
