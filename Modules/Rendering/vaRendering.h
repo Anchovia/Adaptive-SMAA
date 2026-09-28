@@ -396,6 +396,10 @@ namespace VertexAsylum
     public:
         virtual                             ~vaRenderingModule( )                                                       { }
 
+        // Shared owners call this while the complete derived object is still alive.
+        // Async modules must join work here, before delete changes the virtual dispatch target.
+        virtual void                        PrepareForDestruction( )                                                  { }
+
     private:
         // called only by vaRenderingModuleRegistrar::CreateModule
         void                                InternalRenderingModuleSetTypeName( const string & name )                   { m_renderingModuleTypeName = name; }
@@ -452,7 +456,17 @@ namespace VertexAsylum
     //      vaTextureConstructorParams params( vaCore::GUIDCreate( ) );
     //      vaTexture * texture = VA_RENDERING_MODULE_CREATE( vaTexture, &params );
 #define VA_RENDERING_MODULE_CREATE( ModuleType, Param )         vaRenderingModuleRegistrar::CreateModuleTyped<ModuleType>( typeid(ModuleType).name(), Param )
-#define VA_RENDERING_MODULE_CREATE_SHARED( ModuleType, Param )  std::shared_ptr< ModuleType >( vaRenderingModuleRegistrar::CreateModuleTyped<ModuleType>( typeid(ModuleType).name(), Param ) )
+#define VA_RENDERING_MODULE_CREATE_SHARED( ModuleType, Param )  std::shared_ptr< ModuleType >( vaRenderingModuleRegistrar::CreateModuleTyped<ModuleType>( typeid(ModuleType).name(), Param ), vaRenderingModuleDeleter() )
+
+    struct vaRenderingModuleDeleter
+    {
+        void operator()( vaRenderingModule * module ) const
+        {
+            if( module != nullptr )
+                module->PrepareForDestruction();
+            delete module;
+        }
+    };
 
     template< typename ModuleType >
     inline ModuleType * vaRenderingModuleRegistrar::CreateModuleTyped( const std::string & name, const vaRenderingModuleParams & params )
@@ -498,8 +512,8 @@ namespace VertexAsylum
         shared_ptr<T> const   m_instance;
 
     public:
-        vaAutoRenderingModuleInstance( const vaRenderingModuleParams & params ) : m_instance( shared_ptr<T>( vaRenderingModuleRegistrar::CreateModuleTyped<T>( typeid(T).name(), params ) ) ) { }
-        vaAutoRenderingModuleInstance( vaRenderDevice & device )                : m_instance( shared_ptr<T>( vaRenderingModuleRegistrar::CreateModuleTyped<T>( typeid(T).name(), device ) ) ) { }
+        vaAutoRenderingModuleInstance( const vaRenderingModuleParams & params ) : m_instance( shared_ptr<T>( vaRenderingModuleRegistrar::CreateModuleTyped<T>( typeid(T).name(), params ), vaRenderingModuleDeleter() ) ) { }
+        vaAutoRenderingModuleInstance( vaRenderDevice & device )                : m_instance( shared_ptr<T>( vaRenderingModuleRegistrar::CreateModuleTyped<T>( typeid(T).name(), device ), vaRenderingModuleDeleter() ) ) { }
         ~vaAutoRenderingModuleInstance()    { }
 
         T & operator*( ) const
