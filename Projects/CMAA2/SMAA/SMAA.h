@@ -310,7 +310,7 @@ class SMAA {
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        contrastTechniques[3];
-        SMAATechniqueInterface *        executionTechniques[56];
+        SMAATechniqueInterface *        executionTechniques[58];
         SMAATechniqueInterface *        separateTechnique;
 
         SMAATechniqueInterface * msaaOrderRenderTechnique;
