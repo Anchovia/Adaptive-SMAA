@@ -61,6 +61,8 @@ namespace VertexAsylum
         // Diagnostic control: no spatial filtering, native temporal resolve.
         bool                        m_temporalOnlyEnabled = false;
         bool                        m_temporalOnlyReference = false;
+        int                         m_firstEdgeOnlyMode = 0; // 0=none, 1=detect-only control, 2=selective
+
 
         //bool                        m_debugShowEdges;
 
@@ -96,6 +98,13 @@ namespace VertexAsylum
             if( m_temporalOnlyEnabled != enabled || m_temporalOnlyReference != reference )
             { m_temporalOnlyEnabled = enabled; m_temporalOnlyReference = reference; ResetTemporalHistory(); }
         }
+        void SetFirstEdgeOnlyMode(int mode)
+        {
+            assert(mode>=0 && mode<=2);
+            if(m_firstEdgeOnlyMode!=mode) { m_firstEdgeOnlyMode=mode; ResetTemporalHistory(); }
+        }
+        int GetFirstEdgeOnlyMode() const { return m_firstEdgeOnlyMode; }
+        virtual bool SaveFirstEdgeSnapshot(vaRenderDeviceContext &, const wstring &, bool) { return false; }
         bool GetTemporalOnlyControl() const { return m_temporalOnlyEnabled; }
         bool GetTemporalOnlyReference() const { return m_temporalOnlyReference; }
         virtual bool SaveTemporalOnlyInputs( vaRenderDeviceContext &, const wstring & ) { return false; }

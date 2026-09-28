@@ -208,6 +208,12 @@ class SMAA {
         /**
          * These two are just for debugging purposes.
          */
+        // Use original first-pass implementation, without weight or neighborhood passes.
+        void detectFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *colorGamma,
+            ID3D11DepthStencilView *dsv, Input input);
+        void reprojectFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+            ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output);
+
         // No edge/weight passes. Reference uses native neighborhood shader with zero weights.
         void prepareTemporalOnly(ID3D11DeviceContext *context, ID3D11ShaderResourceView *color,
             ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output, bool reference);
@@ -312,6 +318,7 @@ class SMAA {
         SMAATechniqueInterface *        edgeDetectionTechniques[3];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
+        SMAATechniqueInterface *        firstEdgeOnlyResolveTechnique;
         SMAATechniqueInterface *        temporalOnlyPrepareTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
