@@ -1,0 +1,951 @@
+{
+  "validation": "PASS",
+  "scene": "minecraft",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Capture",
+    "window": "hidden",
+    "source_baseline": "e14f122",
+    "research_branch": "experiment/temporal-only-control",
+    "arguments": [
+      "-smaaTemporalOnlyCapture",
+      "minecraft"
+    ],
+    "started_utc": "2026-09-28T08:46:28.1963564Z",
+    "completed_utc": "2026-09-28T08:49:06.2881474Z",
+    "executable_sha256": "BBFB3F1F9DE4719461ACCA04FA331C8010E20BA692A11F459D362E54AA520AD6",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_174629\\20260928_174629_results.csv",
+    "report_sha256": "4993F6FCBBC2AFE884E0160376CF597D570C6F6687596FD04D849AF5917E1020"
+  },
+  "capture": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_174629",
+  "baseline_capture": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_165939",
+  "baseline_mismatches": {
+    "AA-Off": 0,
+    "O-1X": 0,
+    "O-T2X-R": 0
+  },
+  "repeat_mismatches": 0,
+  "native_zero_weight_reference_mismatches": 0,
+  "frames_per_comparison": 240,
+  "static": {
+    "initial_still": {
+      "AA-Off": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      },
+      "O-1X": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      },
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      },
+      "ABL-TemporalOnly-R": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      }
+    },
+    "late_still": {
+      "AA-Off": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      },
+      "O-1X": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      },
+      "O-T2X-R": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      },
+      "ABL-TemporalOnly-R": {
+        "unique_rgb_frames": 1,
+        "mean_rgb_step": 0.0
+      }
+    }
+  },
+  "probes": [
+    {
+      "frame": 0,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 0.0,
+      "alpha_max": 0,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "a52a49a1f9aaa4230d6929c3b9bd10f749b3553ccee55a879f17edef3342505c"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fd73327d170c0baded4a50f5a2a186f678dca2bc89d5c167ffdd667d2a0b4b4f"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "a52a49a1f9aaa4230d6929c3b9bd10f749b3553ccee55a879f17edef3342505c"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fd73327d170c0baded4a50f5a2a186f678dca2bc89d5c167ffdd667d2a0b4b4f"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "a52a49a1f9aaa4230d6929c3b9bd10f749b3553ccee55a879f17edef3342505c"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fd73327d170c0baded4a50f5a2a186f678dca2bc89d5c167ffdd667d2a0b4b4f"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        }
+      }
+    },
+    {
+      "frame": 1,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 0.0,
+      "alpha_max": 0,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048640ecb02466cc1a50ce24d1ceffe5df7e296922af2ffd65dbdc2f1df3bcd1"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dabe654a6f09155dbb4159709b8e343eab247e04841dc321139ab04259a4f03e"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048640ecb02466cc1a50ce24d1ceffe5df7e296922af2ffd65dbdc2f1df3bcd1"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dabe654a6f09155dbb4159709b8e343eab247e04841dc321139ab04259a4f03e"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048640ecb02466cc1a50ce24d1ceffe5df7e296922af2ffd65dbdc2f1df3bcd1"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dabe654a6f09155dbb4159709b8e343eab247e04841dc321139ab04259a4f03e"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        }
+      }
+    },
+    {
+      "frame": 59,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 0.0,
+      "alpha_max": 0,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048640ecb02466cc1a50ce24d1ceffe5df7e296922af2ffd65dbdc2f1df3bcd1"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dabe654a6f09155dbb4159709b8e343eab247e04841dc321139ab04259a4f03e"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048640ecb02466cc1a50ce24d1ceffe5df7e296922af2ffd65dbdc2f1df3bcd1"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dabe654a6f09155dbb4159709b8e343eab247e04841dc321139ab04259a4f03e"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048640ecb02466cc1a50ce24d1ceffe5df7e296922af2ffd65dbdc2f1df3bcd1"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dabe654a6f09155dbb4159709b8e343eab247e04841dc321139ab04259a4f03e"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        }
+      }
+    },
+    {
+      "frame": 60,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 0.0,
+      "alpha_max": 0,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "a52a49a1f9aaa4230d6929c3b9bd10f749b3553ccee55a879f17edef3342505c"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fd73327d170c0baded4a50f5a2a186f678dca2bc89d5c167ffdd667d2a0b4b4f"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "a52a49a1f9aaa4230d6929c3b9bd10f749b3553ccee55a879f17edef3342505c"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fd73327d170c0baded4a50f5a2a186f678dca2bc89d5c167ffdd667d2a0b4b4f"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "a52a49a1f9aaa4230d6929c3b9bd10f749b3553ccee55a879f17edef3342505c"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fd73327d170c0baded4a50f5a2a186f678dca2bc89d5c167ffdd667d2a0b4b4f"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        }
+      }
+    },
+    {
+      "frame": 61,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 1.0,
+      "alpha_max": 143,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "ffd88cff56973c116a70cb545829213d9a31e4381c865ec7b726e2066e2cb287"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "cad482e4e73cbf9cfc9733d947a8d8de763a3dbee2cb6ea210951477e11a212a"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fcabacf5de23a87b755f6a9a5a358242463c428d0b8a17525d9c9eaecc08b14a"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "ffd88cff56973c116a70cb545829213d9a31e4381c865ec7b726e2066e2cb287"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "cad482e4e73cbf9cfc9733d947a8d8de763a3dbee2cb6ea210951477e11a212a"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fcabacf5de23a87b755f6a9a5a358242463c428d0b8a17525d9c9eaecc08b14a"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "ffd88cff56973c116a70cb545829213d9a31e4381c865ec7b726e2066e2cb287"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "cad482e4e73cbf9cfc9733d947a8d8de763a3dbee2cb6ea210951477e11a212a"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "fcabacf5de23a87b755f6a9a5a358242463c428d0b8a17525d9c9eaecc08b14a"
+          }
+        }
+      }
+    },
+    {
+      "frame": 100,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 1.0,
+      "alpha_max": 69,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "1d19d77e6473c7ef6d49e27a06a83cc7d0f8d989d5cbc4d482b2b673d9183898"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "e73b173aa0dcb7150ed8d0c566f6842c0f0f430578b63b3b0318630fafc0ebe1"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "1e738be136420ec41ba961b39f8e38f4625dc50dd3f0a59617bd7340a6c0d1d6"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "1d19d77e6473c7ef6d49e27a06a83cc7d0f8d989d5cbc4d482b2b673d9183898"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "e73b173aa0dcb7150ed8d0c566f6842c0f0f430578b63b3b0318630fafc0ebe1"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "1e738be136420ec41ba961b39f8e38f4625dc50dd3f0a59617bd7340a6c0d1d6"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "1d19d77e6473c7ef6d49e27a06a83cc7d0f8d989d5cbc4d482b2b673d9183898"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "e73b173aa0dcb7150ed8d0c566f6842c0f0f430578b63b3b0318630fafc0ebe1"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "1e738be136420ec41ba961b39f8e38f4625dc50dd3f0a59617bd7340a6c0d1d6"
+          }
+        }
+      }
+    },
+    {
+      "frame": 179,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 1.0,
+      "alpha_max": 75,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "ba701aae2fdba369cee605fd6a492657e4c0781c151e0298972eb1dcec7d518e"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "4d4652c815c4d71fe8ca6be6c0a0a8e647edbfa3326e2c6b9235079737ec6688"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048e24c6b6788b9124ff82b1bb1e2c4505bdf2b5c47bac053fae599a8875b844"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "ba701aae2fdba369cee605fd6a492657e4c0781c151e0298972eb1dcec7d518e"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "4d4652c815c4d71fe8ca6be6c0a0a8e647edbfa3326e2c6b9235079737ec6688"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048e24c6b6788b9124ff82b1bb1e2c4505bdf2b5c47bac053fae599a8875b844"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "ba701aae2fdba369cee605fd6a492657e4c0781c151e0298972eb1dcec7d518e"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "4d4652c815c4d71fe8ca6be6c0a0a8e647edbfa3326e2c6b9235079737ec6688"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "048e24c6b6788b9124ff82b1bb1e2c4505bdf2b5c47bac053fae599a8875b844"
+          }
+        }
+      }
+    },
+    {
+      "frame": 180,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 1.0,
+      "alpha_max": 76,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dbf15e5550c1ce69e2044765509dcfdbc07ca73d3fe3f5e2b2ddcf25ff803c18"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "186112a0118a0e02c6c6920bbab4f098df4218c165dc064598b536fdc0b5f942"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "57cfe02f19fa2d81673a31322a218352531bfce4e6dd9209010cbdc48760f0a8"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dbf15e5550c1ce69e2044765509dcfdbc07ca73d3fe3f5e2b2ddcf25ff803c18"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "186112a0118a0e02c6c6920bbab4f098df4218c165dc064598b536fdc0b5f942"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "57cfe02f19fa2d81673a31322a218352531bfce4e6dd9209010cbdc48760f0a8"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "dbf15e5550c1ce69e2044765509dcfdbc07ca73d3fe3f5e2b2ddcf25ff803c18"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "186112a0118a0e02c6c6920bbab4f098df4218c165dc064598b536fdc0b5f942"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "57cfe02f19fa2d81673a31322a218352531bfce4e6dd9209010cbdc48760f0a8"
+          }
+        }
+      }
+    },
+    {
+      "frame": 181,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 0.0,
+      "alpha_max": 0,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "8e72d9ccd50830e1f83444907b9a44dd4b572ec93d2a8c1cd1a19e6755634e29"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "83005e1aa90b1fb3363bdec566f21029f151730a608d21fd13a421585fda87d4"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "8e72d9ccd50830e1f83444907b9a44dd4b572ec93d2a8c1cd1a19e6755634e29"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "83005e1aa90b1fb3363bdec566f21029f151730a608d21fd13a421585fda87d4"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "8e72d9ccd50830e1f83444907b9a44dd4b572ec93d2a8c1cd1a19e6755634e29"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "83005e1aa90b1fb3363bdec566f21029f151730a608d21fd13a421585fda87d4"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        }
+      }
+    },
+    {
+      "frame": 239,
+      "rgb_input_mismatch_pixels": 0,
+      "rgba_native_reference_mismatch_pixels": 0,
+      "rgba_repeat_mismatch_pixels": 0,
+      "velocity_alpha_cpu_max_lsb": 0.0,
+      "alpha_max": 0,
+      "files": {
+        "ABL-TemporalOnly-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "8e72d9ccd50830e1f83444907b9a44dd4b572ec93d2a8c1cd1a19e6755634e29"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "83005e1aa90b1fb3363bdec566f21029f151730a608d21fd13a421585fda87d4"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "ABL-TemporalOnly-R-Repeat": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "8e72d9ccd50830e1f83444907b9a44dd4b572ec93d2a8c1cd1a19e6755634e29"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "83005e1aa90b1fb3363bdec566f21029f151730a608d21fd13a421585fda87d4"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        },
+        "REF-Native-ZeroWeights-R": {
+          "input": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "8e72d9ccd50830e1f83444907b9a44dd4b572ec93d2a8c1cd1a19e6755634e29"
+          },
+          "prepared": {
+            "format": 27,
+            "fourcc": "DX10",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "83005e1aa90b1fb3363bdec566f21029f151730a608d21fd13a421585fda87d4"
+          },
+          "velocity": {
+            "format": null,
+            "fourcc": "p\u0000\u0000\u0000",
+            "width": 1920,
+            "height": 1061,
+            "pitch": 7680,
+            "sha256": "428f69b5cbe1d685906db51ef74081b3f6929c0fa9f49810ab16d4aa060a5228"
+          }
+        }
+      }
+    }
+  ],
+  "note": "Source/CPU state and image/DDS validation; not a GPU debugger draw capture. Temporal-only is not SMAA 1X or a quality improvement claim."
+}

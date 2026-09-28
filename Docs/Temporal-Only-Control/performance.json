@@ -1,0 +1,379 @@
+{
+  "validation": "PASS",
+  "scenes": {
+    "bistro": {
+      "receipt": {
+        "scene": "bistro",
+        "phase": "Benchmark",
+        "window": "hidden",
+        "source_baseline": "e14f122",
+        "research_branch": "experiment/temporal-only-control",
+        "arguments": [
+          "-smaaTemporalOnlyBenchmark",
+          "bistro"
+        ],
+        "started_utc": "2026-09-28T08:53:14.9452114Z",
+        "completed_utc": "2026-09-28T08:56:47.9782149Z",
+        "executable_sha256": "BBFB3F1F9DE4719461ACCA04FA331C8010E20BA692A11F459D362E54AA520AD6",
+        "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_175316\\20260928_175316_results.csv",
+        "report_sha256": "00048C0A624B9527E15C8316F9B4DABED17A3A0E691B3C2922DC1EF757B09D92"
+      },
+      "smoke": {
+        "scene": "bistro",
+        "phase": "Smoke",
+        "window": "hidden",
+        "source_baseline": "e14f122",
+        "research_branch": "experiment/temporal-only-control",
+        "arguments": [
+          "-smaaTemporalOnlySmoke",
+          "bistro"
+        ],
+        "started_utc": "2026-09-28T08:51:32.9417394Z",
+        "completed_utc": "2026-09-28T08:52:10.5373815Z",
+        "executable_sha256": "BBFB3F1F9DE4719461ACCA04FA331C8010E20BA692A11F459D362E54AA520AD6",
+        "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_175134\\20260928_175134_results.csv",
+        "report_sha256": "78034101F107E6B334623C3D2053FA31454A019E99FCCFB06C952C78B2AA862C"
+      },
+      "modes": {
+        "O-1X": {
+          "mean_ms": 0.1438086935,
+          "run_mean_std_ms": 0.0009379400068250688,
+          "runs": [
+            [
+              "timing",
+              "O-1X",
+              "0",
+              "SMAA",
+              "4800",
+              "0.142405547",
+              "0.147456000",
+              "0.150528000",
+              ""
+            ],
+            [
+              "timing",
+              "O-1X",
+              "1",
+              "SMAA",
+              "4800",
+              "0.144209280",
+              "0.149504000",
+              "0.151552000",
+              ""
+            ],
+            [
+              "timing",
+              "O-1X",
+              "2",
+              "SMAA",
+              "4800",
+              "0.144249387",
+              "0.148480000",
+              "0.150528000",
+              ""
+            ],
+            [
+              "timing",
+              "O-1X",
+              "3",
+              "SMAA",
+              "4800",
+              "0.144370560",
+              "0.148480000",
+              "0.150528000",
+              ""
+            ]
+          ]
+        },
+        "O-T2X-R": {
+          "mean_ms": 0.20824586675,
+          "run_mean_std_ms": 0.0010391203317108712,
+          "runs": [
+            [
+              "timing",
+              "O-T2X-R",
+              "0",
+              "SMAA",
+              "4800",
+              "0.206772907",
+              "0.216064000",
+              "0.218112000",
+              ""
+            ],
+            [
+              "timing",
+              "O-T2X-R",
+              "1",
+              "SMAA",
+              "4800",
+              "0.208330667",
+              "0.215040000",
+              "0.217088000",
+              ""
+            ],
+            [
+              "timing",
+              "O-T2X-R",
+              "2",
+              "SMAA",
+              "4800",
+              "0.209162453",
+              "0.217088000",
+              "0.220160000",
+              ""
+            ],
+            [
+              "timing",
+              "O-T2X-R",
+              "3",
+              "SMAA",
+              "4800",
+              "0.208717440",
+              "0.216064000",
+              "0.218112000",
+              ""
+            ]
+          ]
+        },
+        "ABL-TemporalOnly-R": {
+          "mean_ms": 0.0797018665,
+          "run_mean_std_ms": 0.0005436996097874266,
+          "runs": [
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "0",
+              "SMAA",
+              "4800",
+              "0.079142613",
+              "0.086016000",
+              "0.087040000",
+              ""
+            ],
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "1",
+              "SMAA",
+              "4800",
+              "0.079328640",
+              "0.087040000",
+              "0.088064000",
+              ""
+            ],
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "2",
+              "SMAA",
+              "4800",
+              "0.080166400",
+              "0.087040000",
+              "0.088064000",
+              ""
+            ],
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "3",
+              "SMAA",
+              "4800",
+              "0.080169813",
+              "0.087040000",
+              "0.088064000",
+              ""
+            ]
+          ]
+        }
+      },
+      "temporal_only_vs_spatial_t2xr_percent": -61.72703557392454
+    },
+    "minecraft": {
+      "receipt": {
+        "scene": "minecraft",
+        "phase": "Benchmark",
+        "window": "hidden",
+        "source_baseline": "e14f122",
+        "research_branch": "experiment/temporal-only-control",
+        "arguments": [
+          "-smaaTemporalOnlyBenchmark",
+          "minecraft"
+        ],
+        "started_utc": "2026-09-28T08:56:59.1251982Z",
+        "completed_utc": "2026-09-28T08:58:46.9099637Z",
+        "executable_sha256": "BBFB3F1F9DE4719461ACCA04FA331C8010E20BA692A11F459D362E54AA520AD6",
+        "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_175700\\20260928_175700_results.csv",
+        "report_sha256": "E0E0B42DC8D6D412F9E4BAEB838F67491270CB2EE758054B96E5C692CD2D178F"
+      },
+      "smoke": {
+        "scene": "minecraft",
+        "phase": "Smoke",
+        "window": "hidden",
+        "source_baseline": "e14f122",
+        "research_branch": "experiment/temporal-only-control",
+        "arguments": [
+          "-smaaTemporalOnlySmoke",
+          "minecraft"
+        ],
+        "started_utc": "2026-09-28T08:52:29.1075379Z",
+        "completed_utc": "2026-09-28T08:53:05.442623Z",
+        "executable_sha256": "BBFB3F1F9DE4719461ACCA04FA331C8010E20BA692A11F459D362E54AA520AD6",
+        "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_175230\\20260928_175230_results.csv",
+        "report_sha256": "5910BD0535B41DEF8CDB8442AF5CC087495F98890C32F88840D17D69CF91DC5D"
+      },
+      "modes": {
+        "O-1X": {
+          "mean_ms": 0.21919589350000002,
+          "run_mean_std_ms": 0.0010425679219966107,
+          "runs": [
+            [
+              "timing",
+              "O-1X",
+              "0",
+              "SMAA",
+              "4800",
+              "0.217648427",
+              "0.246784000",
+              "0.250880000",
+              ""
+            ],
+            [
+              "timing",
+              "O-1X",
+              "1",
+              "SMAA",
+              "4800",
+              "0.219621120",
+              "0.246784000",
+              "0.249856000",
+              ""
+            ],
+            [
+              "timing",
+              "O-1X",
+              "2",
+              "SMAA",
+              "4800",
+              "0.219923840",
+              "0.247808000",
+              "0.251904000",
+              ""
+            ],
+            [
+              "timing",
+              "O-1X",
+              "3",
+              "SMAA",
+              "4800",
+              "0.219590187",
+              "0.246784000",
+              "0.250880000",
+              ""
+            ]
+          ]
+        },
+        "O-T2X-R": {
+          "mean_ms": 0.28582698675,
+          "run_mean_std_ms": 0.0014370734951612175,
+          "runs": [
+            [
+              "timing",
+              "O-T2X-R",
+              "0",
+              "SMAA",
+              "4800",
+              "0.283698133",
+              "0.319488000",
+              "0.323584000",
+              ""
+            ],
+            [
+              "timing",
+              "O-T2X-R",
+              "1",
+              "SMAA",
+              "4800",
+              "0.286713387",
+              "0.322560000",
+              "0.326656000",
+              ""
+            ],
+            [
+              "timing",
+              "O-T2X-R",
+              "2",
+              "SMAA",
+              "4800",
+              "0.286218027",
+              "0.321536000",
+              "0.325632000",
+              ""
+            ],
+            [
+              "timing",
+              "O-T2X-R",
+              "3",
+              "SMAA",
+              "4800",
+              "0.286678400",
+              "0.323584000",
+              "0.326656000",
+              ""
+            ]
+          ]
+        },
+        "ABL-TemporalOnly-R": {
+          "mean_ms": 0.0822722135,
+          "run_mean_std_ms": 8.56899326817289e-05,
+          "runs": [
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "0",
+              "SMAA",
+              "4800",
+              "0.082184320",
+              "0.093184000",
+              "0.094208000",
+              ""
+            ],
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "1",
+              "SMAA",
+              "4800",
+              "0.082328747",
+              "0.093184000",
+              "0.094208000",
+              ""
+            ],
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "2",
+              "SMAA",
+              "4800",
+              "0.082215040",
+              "0.093184000",
+              "0.095232000",
+              ""
+            ],
+            [
+              "timing",
+              "ABL-TemporalOnly-R",
+              "3",
+              "SMAA",
+              "4800",
+              "0.082360747",
+              "0.093184000",
+              "0.094208000",
+              ""
+            ]
+          ]
+        }
+      },
+      "temporal_only_vs_spatial_t2xr_percent": -71.2160791969025
+    }
+  }
+}

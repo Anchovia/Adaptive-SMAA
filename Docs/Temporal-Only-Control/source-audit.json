@@ -1,0 +1,24 @@
+{
+  "validation": "PASS",
+  "baseline_commit": "e14f122d841f432b9c633fdd480740e85fc8edff",
+  "implementation_commit": "7c2feeb9140a0e25b61be5b6c6eacc962fcdefe7",
+  "branch": "experiment/temporal-only-control",
+  "original_unchanged": {
+    "Projects/CMAA2/SMAA/SMAA.hlsl": "71cfdc93b4e6151dea8b80dcc3540a7614abbd76d1a19ed70359848c84dcf9cc",
+    "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "1bed3d30d086645cc748dbc99d10eb93810967e923558384702a8dce867dcd02",
+    "Projects/CMAA2/BaselineVerification.inl": "2df6b9151e97e7c14de34c6bf90fc27d35256d39e1acae29c099a2c25cf2d8e6",
+    "void SMAA::reproject(": "d3954482e970016df933846cff61ad4d6d220c94c125e97f4eb5b8920e8b1e1b",
+    "void SMAA::go(": "e47f2270248bbed278765c358cc497019189fe55480552b5ae100ff4a395841c"
+  },
+  "source_sha256_lf_normalized": {
+    "Projects/CMAA2/CMAA2Sample.cpp": "7af5442902d70f946fa1edc39cf302f438a013f3d94caeff1b0db90dc9cc3916",
+    "Projects/CMAA2/SMAA/SMAA.cpp": "c0b60f10f4f134f55395bf75cf31c90357f05e8497292669612a1eb677f5ddb1",
+    "Projects/CMAA2/SMAA/SMAA.h": "ca29b9757e682232cb110a20cb635c92e3bfe69bc5daf9342133923e0421c3d0",
+    "Projects/CMAA2/SMAA/vaSMAAWrapper.h": "8942864bd3a0468adf1d3d31c866e9638766127c1ff6e12831e58dcfa7af7f85",
+    "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "ec474584022dbf2d9f18a9f40598ae2a2d9628faa6e4ed18e52a9f1213cceed3",
+    "Projects/CMAA2/SMAA/TemporalOnlyControl.hlsl": "8270e7f5581aacbcefa0733165cc42d4895fcc86e5f94e6d7f33484e8a8530af",
+    "Projects/CMAA2/TemporalOnlyVerification.inl": "4e47462330896d58863cfb4041640cf620a949e21ab0a62dec805a46584578e3"
+  },
+  "executable_sha256": "bbfb3f1f9de4719461acca04fa331c8010e20ba692a11f459d362e54aa520ad6",
+  "note": "Source audit plus capture proof; native spatial and resolve math retained. New preparation matches native zero-weight behavior. No selective algorithm in this branch."
+}
