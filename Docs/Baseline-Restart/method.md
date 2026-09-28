@@ -32,7 +32,9 @@ O-T2X-R을 구분한다. O-1X와 O-T2X-R은 별도 mode 실행으로 반복 캡�
 - AA-Off와 O-1X 차이, 정지 hash, O-1X/R 반복 hash, 과거 T2X-R와 pixel bridge를 검사한다.
 - 원본 SMAA 코드가 같아도 전체 실행 출력이 같다는 주장은 독립 capture bridge 후에만 한다.
 - 성능은 별도 clean process에서 30초 precondition, 300 warmup, 4800 frame×4회 교차 순서.
-  기존 SMAA/WholeFrame scope를 사용한다. 숨김 실행은 engineering GPU timing이다.
+  기존 SMAA scope를 사용한다. 원본에 WholeFrame scope가 없으므로 해당 시간을 추정하지 않는다.
+  최초 도구 오류 실행은 제외하고 240-frame smoke로 계측을 확인한 뒤 본 측정한다.
+  숨김 실행은 engineering GPU timing이다.
 - 원본 소스 유지가 우선이며, 출력 bridge가 실패하면 장면·preset·render 설정과 초기화 차이를
   조사한다. 실패를 가리고 기준선 shader를 바꾸지 않는다.
 

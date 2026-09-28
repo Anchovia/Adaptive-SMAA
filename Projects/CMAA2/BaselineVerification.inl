@@ -3,19 +3,20 @@ class BenchItemBaselineVerification : public AutoBenchToolWorkItem {
     struct Mode { const char* name; CMAA2Sample::AAType type; };
     std::vector<Mode> m_modes;
     bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false;
-    int m_slot=0,m_frame=-60,m_run=0;
+    int m_slot=0,m_frame=-60,m_run=0,m_measureFrames=4800,m_repeats=4;
     double m_until=0;
     vaSMAAWrapper::Preset m_savedPreset=vaSMAAWrapper::PRESET_HIGH;
-    std::vector<double> m_smaa,m_whole;
+    std::vector<double> m_smaa;
     Mode Current() const {return m_modes[m_run%2?m_modes.size()-1-m_slot:m_slot];}
-    void Configure(){m_parent.Settings().CurrentAAOption=Current().type;m_parent.GetSMAA()->ResetTemporalHistory();m_frame=m_capture?-60:-300;m_smaa.clear();m_whole.clear();}
+    void Configure(){m_parent.Settings().CurrentAAOption=Current().type;m_parent.GetSMAA()->ResetTemporalHistory();m_frame=m_capture?-60:-300;m_smaa.clear();}
     static double Time(const char* name){auto p=vaProfiler::GetInstancePtr();auto n=p?p->FindNode(name):nullptr;return n?n->GetFrameLastTotalTimeGPU()*1000.0:0;}
     void Summarize(AutoBenchTool& tool,const char* metric,std::vector<double> v){
-        if(v.size()!=4800){m_failed=true;return;}double mean=0;for(double x:v)mean+=x;mean/=v.size();std::sort(v.begin(),v.end());
+        if(v.size()!=size_t(m_measureFrames)){m_failed=true;return;}double mean=0;for(double x:v)mean+=x;mean/=v.size();std::sort(v.begin(),v.end());
         tool.ReportAddRowValues({"timing",Current().name,std::to_string(m_run),metric,std::to_string(v.size()),vaStringTools::Format("%.9f",mean),vaStringTools::Format("%.9f",v[size_t((v.size()-1)*.95)]),vaStringTools::Format("%.9f",v[size_t((v.size()-1)*.99)])});
     }
 public:
-    BenchItemBaselineVerification(CMAA2Sample& parent,bool capture,bool minecraft):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft){
+    BenchItemBaselineVerification(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke=false):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft){
+        m_measureFrames=smoke?240:4800;m_repeats=smoke?1:4;
         m_modes={{"O-1X",CMAA2Sample::AAType::SMAA},{"O-T2X",CMAA2Sample::AAType::SMAA_T2x},{"O-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected}};
         if(capture){m_modes.insert(m_modes.begin(),{"AA-Off",CMAA2Sample::AAType::None});m_modes.push_back({"O-1X-Repeat",CMAA2Sample::AAType::SMAA});m_modes.push_back({"O-T2X-R-Repeat",CMAA2Sample::AAType::SMAA_T2x_Reprojected});}
     }
@@ -27,17 +28,17 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();tool.ReportAddText("Independent original SMAA baseline verification; source 88893da. Original SMAA algorithm unchanged; preset accessor only.\r\n");
-            tool.ReportAddText(m_capture?"Purpose: 240-frame quality capture; no timing claim. AA-Off is unjittered no-AA; O-1X is actual spatial-only SMAA.\r\n":"Purpose: separate performance capture, 30s precondition; 300 warmup, 4800 frames x 4 alternating repeats; no PNG.\r\n");
+            tool.ReportAddText(m_capture?"Purpose: 240-frame quality capture; no timing claim. AA-Off is unjittered no-AA; O-1X is actual spatial-only SMAA.\r\n":"Purpose: separate performance capture, 30s precondition; 300 warmup; 4800 frames x 4 repeats (Smoke 240 x 1); no PNG. SMAA scope only.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed 60 Hz; flythrough t=2 + clamp(frame-60,0,120)/60; still60/move120/still60. Camera-only reprojection.\r\n");
             Configure();if(!m_capture)m_until=app.GetTimeFromStart()+30;
         }else{
             if(m_until!=0){if(m_parent.GetApplication().GetTimeFromStart()<m_until){m_parent.GetFlythroughCameraController()->SetPlayTime(2);return;}m_until=0;Configure();}
             else{
-                if(!m_capture&&m_frame>=0){double s=Time("SMAA"),w=Time("WholeFrame");if(s>0&&w>0){m_smaa.push_back(s);m_whole.push_back(w);}else m_failed=true;}
-                ++m_frame;if(m_frame>=(m_capture?240:4800)){
-                    if(!m_capture){Summarize(tool,"SMAA",m_smaa);Summarize(tool,"WholeFrame",m_whole);}
+                if(!m_capture&&m_frame>=0){double s=Time("SMAA");if(s>0){m_smaa.push_back(s);}else m_failed=true;}
+                ++m_frame;if(m_frame>=(m_capture?240:m_measureFrames)){
+                    if(!m_capture){Summarize(tool,"SMAA",m_smaa);}
                     if(++m_slot==int(m_modes.size())){m_slot=0;++m_run;}
-                    if(m_run==(m_capture?1:4)){tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");tool.ReportFinish();m_parent.GetSMAA()->GetSettings().Preset=m_savedPreset;m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();return;}Configure();
+                    if(m_run==(m_capture?1:m_repeats)){tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");tool.ReportFinish();m_parent.GetSMAA()->GetSettings().Preset=m_savedPreset;m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();return;}Configure();
                 }
             }
         }
@@ -61,8 +62,9 @@ static void QueueBaselineVerification(CMAA2Sample& parent,AutoBenchTool& tool){
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()){
         const bool capture=_wcsicmp(p.first.c_str(),L"smaaBaselineRestartCapture")==0;
         const bool performance=_wcsicmp(p.first.c_str(),L"smaaBaselineRestartBenchmark")==0;
-        if(!capture&&!performance)continue;std::wistringstream input(p.second);std::wstring scene;input>>scene;
+        const bool smoke=_wcsicmp(p.first.c_str(),L"smaaBaselineRestartSmoke")==0;
+        if(!capture&&!performance&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro"&&scene!=L"minecraft"){VA_LOG_ERROR("Expected bistro or minecraft");return;}
-        tool.AddTask(std::make_shared<BenchItemBaselineVerification>(parent,capture,scene==L"minecraft"));return;
+        tool.AddTask(std::make_shared<BenchItemBaselineVerification>(parent,capture,scene==L"minecraft",smoke));return;
     }
 }

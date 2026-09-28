@@ -26,7 +26,7 @@ def main():
         assert all(r[3:6]==['TemporalOn' if temporal else 'TemporalOff','CameraR' if reprojection else 'NoR','PASS'] and not any(r[6:]) for r in rows)
     capture=report.parent;expected=[f'frame_{i:05d}.png' for i in range(240)]
     for mode in MODES:assert [p.name for p in sorted((capture/mode).glob('*.png'))]==expected
-    old_qp=ROOT/f'tmp/restart-reference/{a.scene}-quality.json';old=json.loads(old_qp.read_text());oldcap=Path(old['capture'])
+    old=json.loads((DOC/'reused-reference-provenance.json').read_text())[a.scene];oldcap=Path(old['capture'])
     repeat_mismatches=0;old_native_mismatches=[];hashes={m:[] for m in MODES[:4]};prev={};rows=[]
     for i,f in enumerate(expected):
         images={m:rgb(capture/m/f) for m in MODES[:4]}
@@ -49,7 +49,7 @@ def main():
     changed=[r['spatial_changed_pixels'] for r in rows if r['mode']=='O-1X'];assert min(changed)>0,'SMAA 1X identical to AA-Off'
     result=dict(scene=a.scene,validation='PASS',receipt=receipt,capture=str(capture),mode_checks=1440,repeat_comparisons=480,repeat_mismatches=repeat_mismatches,
         old_native_comparisons=240,old_native_mismatch_count=len(old_native_mismatches),old_native_mismatch_frames=old_native_mismatches,
-        old_quality_report_sha256=sha(old_qp),old_capture=str(oldcap),reference=old['reference'],reference_reuse_allowed=len(old_native_mismatches)==0,
+        old_quality_report_sha256=old['source_sha256'],old_capture=str(oldcap),reference=old['reference'],reference_reuse_allowed=len(old_native_mismatches)==0,
         static=static,spatial_aa_changed_pixels=dict(min=min(changed),mean=statistics.mean(changed),max=max(changed)),
         scope='Independent original branch capture; original algorithms with preset accessor. Source/CPU flags plus RGB output validation; not GPU capture of each draw.')
     DOC.mkdir(parents=True,exist_ok=True)
