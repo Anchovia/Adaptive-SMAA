@@ -67,7 +67,7 @@ def main():
         m=p['modes'];lines.append(f"| {s} | {m['O-1X']['mean_ms']:.6f} ms | {m['O-T2X-R']['mean_ms']:.6f} ms | {m['ABL-TemporalOnly-R']['mean_ms']:.6f} ms | {p['temporal_only_vs_spatial_t2xr_percent']:+.2f}% |")
     lines+=['','**Temporal-only는 공간 AA를 제거했으므로 낮은 시간 자체를 알고리즘 개선으로 해석하지 않는다.**',
         '정식 6개 구성 품질·속도 결론과 CGVQM 비교는 아직 아니다. 이 단계는 기준 구성의 기능 검증 및 공통 비용 확인이다.',
-        '원본 수학을 바꾸지 않기 위해 단계별 timestamp를 이번 기준 구성에는 추가하지 않았다. 후속 6개 구성 비교에서',
+        '이번 단계에서는 기준선의 기존 전체 timer를 재사용했고 단계별 timestamp는 추가하지 않았다. 후속 6개 구성 비교에서',
         '동일한 별도 계측을 사용해야 resolve/입력 준비/edge 접근 비용을 분리할 수 있다.','',
         '## 검증 도중 도구 수정','',
         '첫 offline 분석은 DDS velocity가 legacy D3DFMT_G16R16F 형식이라 parser가 중단됐다.',
