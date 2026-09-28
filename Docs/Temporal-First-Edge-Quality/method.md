@@ -26,6 +26,8 @@ Original 공간 SMAA, camera/depth reprojection On, 기존 paired jitter와 spat
 - CGVQM-2는 기존 공식 runner로 moving 120 frame, transition 60 frame에서 native/selected를
   동일 supersampling spatial reference와 비교한다. Lossless FFV1 RGB round-trip 검증을 유지한다.
   이 점수도 순수 ghosting 계측이나 temporal ground truth로 표현하지 않는다.
+  Native는 기존 점수를 재사용하되 index를 포함한 test/reference pixel stream hash,
+  공식 commit, frame 범위와 설정, Torch/CUDA 버전 일치를 확인한다. Selected만 새 실행한다.
 - Full-frame와 기존 screen-fixed ROI(사전 지정 Bistro 420,590,900,910;
   Minecraft 720,240,1200,560)의 reference/native/selected 비교 MP4 및 반속 GIF,
   원본 PNG sequence sheet와 정지 차이 증폭 이미지를 만든다.
