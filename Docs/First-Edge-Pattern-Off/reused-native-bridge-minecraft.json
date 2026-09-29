@@ -1,0 +1,267 @@
+{
+  "validation": "PASS",
+  "source_branch": "experiment/spatial-first-edge-pattern-off",
+  "source_report_sha256": "0a2f93a291e860d4e807ff5a68c7f944429d314367459c33c1690eefcc0827b0",
+  "results": {
+    "moving": {
+      "native_chunk_bridge": {
+        "classification": "engineering",
+        "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+        "provenance": {
+          "scene": "minecraft",
+          "camera_profile": "original-flythrough-t2-still60-move120-still60",
+          "test_mode": "O-T2X-R",
+          "reference_id": "SS-Reference"
+        },
+        "official_cgvqm": {
+          "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+          "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+        },
+        "runtime": {
+          "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+          "torch": "2.8.0+cu128",
+          "cuda_available": true,
+          "cuda_runtime": "12.8",
+          "device": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3060 Ti"
+        },
+        "configuration": {
+          "fps": 60,
+          "patch_scale": 4,
+          "patch_pool": "mean",
+          "models": [
+            "2"
+          ],
+          "reference_index_offset": 0
+        },
+        "test_sequence": {
+          "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-pattern-native-minecraft\\O-T2X-R",
+          "frame_count": 120,
+          "first_index": 60,
+          "last_index": 179,
+          "width": 1920,
+          "height": 1061,
+          "pixel_sha256": "bc012017de6497aefa9db5c80465d1c209e9d674c043023d0e9b6c4673d66f5b"
+        },
+        "reference_sequence": {
+          "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_141121\\SS-Reference",
+          "frame_count": 120,
+          "first_index": 60,
+          "last_index": 179,
+          "width": 1920,
+          "height": 1061,
+          "pixel_sha256": "82f7e73af959cf42c95bae9e84c0bc4de3023d987187b81ae508f8282a118dbd"
+        },
+        "test_round_trip": {
+          "video": null,
+          "videos": [
+            "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+            "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv"
+          ],
+          "codec": "ffv1",
+          "pixel_format": "bgr0",
+          "decoded_frames": 120,
+          "mismatched_values": 0,
+          "max_absolute_difference": 0,
+          "verification_attempts": 2,
+          "transient_mismatched_values": 0,
+          "transient_max_absolute_difference": 0
+        },
+        "reference_round_trip": {
+          "video": null,
+          "videos": [
+            "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+            "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv"
+          ],
+          "codec": "ffv1",
+          "pixel_format": "bgr0",
+          "decoded_frames": 120,
+          "mismatched_values": 0,
+          "max_absolute_difference": 0,
+          "verification_attempts": 2,
+          "transient_mismatched_values": 0,
+          "transient_max_absolute_difference": 0
+        },
+        "results": {
+          "CGVQM-2": {
+            "score_higher_is_better": 93.91136169433594
+          }
+        },
+        "evaluation_method": "Official <=60-frame invocations aligned to original 30-frame inference boundaries; equal-patch mean aggregation; no source or sampling change.",
+        "official_chunk_results": [
+          {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "minecraft",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "O-T2X-R",
+              "reference_id": "SS-Reference"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-pattern-native-minecraft\\O-T2X-R",
+              "frame_count": 60,
+              "first_index": 60,
+              "last_index": 119,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "9eb9b660a481e176ed688683e1ee72a1676e5aef0bf047832a9cb7f3ac04e9d8"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_141121\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 60,
+              "last_index": 119,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "a013b10df382cf4094b759201607f8aa699bec70aea3b7a708a75218e361fb01"
+            },
+            "test_round_trip": {
+              "video": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+              "codec": "ffv1",
+              "pixel_format": "bgr0",
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0,
+              "verification_attempts": 1,
+              "transient_mismatched_values": 0,
+              "transient_max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "video": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+              "codec": "ffv1",
+              "pixel_format": "bgr0",
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0,
+              "verification_attempts": 1,
+              "transient_mismatched_values": 0,
+              "transient_max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 94.81244659423828,
+                "error_map": {
+                  "mean": 5.3670973777771,
+                  "p95": 21.907262802124023,
+                  "p99": 48.344120025634766,
+                  "maximum": 667.3245849609375
+                },
+                "per_frame_csv": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00060-00119\\CGVQM-2-PerFrame.csv",
+                "visualized_error_map": null
+              }
+            }
+          },
+          {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "minecraft",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "O-T2X-R",
+              "reference_id": "SS-Reference"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-pattern-native-minecraft\\O-T2X-R",
+              "frame_count": 60,
+              "first_index": 120,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "4e46cf9965517097469f83285b7391dbf1105364892093d48bafeb92c8c4886d"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_141121\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 120,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "db178f554f3218e4f4350a1abe2c5641e519d9af8e22398cd34dade40cbf8912"
+            },
+            "test_round_trip": {
+              "video": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv",
+              "codec": "ffv1",
+              "pixel_format": "bgr0",
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0,
+              "verification_attempts": 1,
+              "transient_mismatched_values": 0,
+              "transient_max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "video": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv",
+              "codec": "ffv1",
+              "pixel_format": "bgr0",
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0,
+              "verification_attempts": 1,
+              "transient_mismatched_values": 0,
+              "transient_max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 93.0102767944336,
+                "error_map": {
+                  "mean": 7.443888187408447,
+                  "p95": 24.920103073120117,
+                  "p99": 51.01166915893555,
+                  "maximum": 781.825927734375
+                },
+                "per_frame_csv": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256\\CGVQM2\\moving\\Native-Bridge\\part-00120-00179\\CGVQM-2-PerFrame.csv",
+                "visualized_error_map": null
+              }
+            }
+          }
+        ],
+        "aggregate_requires_native_bridge_tolerance": 2e-05
+      },
+      "native_bridge_score_difference": 0.0
+    }
+  },
+  "source_commit": "556f226"
+}
