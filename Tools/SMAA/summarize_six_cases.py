@@ -14,6 +14,11 @@ DIRS = {'B': 'Docs/Baseline-Restart', 'T': 'Docs/Temporal-Only-Control',
         'P5': 'Docs/First-Edge-Pattern-Off', 'P6': 'Docs/Spatial-First-Edge-Pattern-Off',
         'F5': 'Docs/First-Edge-Temporal-Only'}
 SOURCES = []
+WITHDRAWAL = ('**2026-09-29 정정 — ⑤·⑥ 채택 철회:** 아래 ⑤·⑥은 전체 화면 pixel shader에서 '
+              'current와 edge를 읽고 분기한 구현의 보존 기록이다. 선택된 edge만 temporal 실행 대상으로 '
+              '삼으라는 요구를 충족한 구현으로 사용하지 않는다. 출력 선택 검증 PASS는 실행 범위 검증이 '
+              '아니다. 원시 측정은 보존하며 ①~④ 기준선 검증은 철회하지 않는다. '
+              '새 ⑤·⑥은 별도 독립 브랜치에서 실행 범위부터 검증해야 한다.')
 
 
 def read(group, name):
@@ -135,8 +140,11 @@ def extract():
             for key, metric in [('aa_delta_percent', 'aa_ms'), ('resolve_delta_percent', 'resolve_ms')]:
                 ratio = next(r for r in relative if r['id'] == 6 and r['scene'] == row['scene'] and r['metric'] == metric)
                 assert abs(ratio['delta_percent'] - row[key]) < 1e-10
-    return dict(classification='existing-results-summary-not-unified-six-case-benchmark',
-                validation='PASS', cases=cases, jitter_on_diagnostics=diagnostics,
+    for case in cases:
+        case['acceptance_status'] = 'withdrawn-fullscreen-mask-execution' if case['id'] in [5, 6] else 'baseline-preserved'
+    return dict(classification='historical-summary-cases-5-and-6-withdrawn',
+                validation='PASS', validation_scope='source-consistency-only-not-implementation-acceptance',
+                withdrawal=WITHDRAWAL, cases=cases, jitter_on_diagnostics=diagnostics,
                 paired_comparisons=comparisons, baseline_relative=relative, sources=SOURCES)
 
 
@@ -146,7 +154,7 @@ def fmt(value, precision=4):
 
 def write_relative_report(data):
     cases = data['cases']
-    lines = ['# 원본 SMAA T2X-R 대비: 전체 AA와 temporal resolve', '',
+    lines = ['# 원본 SMAA T2X-R 대비: 전체 AA와 temporal resolve', '', WITHDRAWAL, '',
         '기준선은 ④ 원본 SMAA T2X-R이다. 기존 6구성 표의 전체 AA 시간을 유지하고, P6 실행의 원본 시간을 고정 분모로 사용한다. ⑤·⑥은 지터 Off, ③·④는 On이다. 새 GPU 실행 없이 기존 자료를 정규화했다.', '',
         '**†는 서로 다른 실행의 시간으로 계산한 산술 참고값이다.** 동일 조건에서 입증한 속도 개선율로 쓰지 않는다. ④↔⑥은 같은 P6 실행의 짝 비교다. ②·③·⑤는 공간/temporal 처리 구성 자체도 원본과 다르다.', '',
         '계산: 기준선 비율 = 해당 시간 ÷ 원본 시간 × 100. 변화율 = 기준선 비율 − 100. 100%보다 작으면 측정된 시간이 작고, 변화율의 음수는 감소다. FPS 증가율은 아니다.', '']
@@ -192,8 +200,8 @@ def write_report(data):
     cases = data['cases']
     number = {i: chr(0x2460 + i - 1) for i in range(1, 7)}
     label = lambda c: number[c['id']] + ' ' + c['name']
-    lines = ['# AA 6개 구성: 시간·품질 비교 정리', '',
-        '2026-09-29까지 완료한 독립 실험의 결과를 모았다. 주 표의 ⑤·⑥은 최근 검증을 마친 **지터 Off** 버전이며, 초기 지터 On 버전은 뒤의 별도 표에 보존했다. 기존 결과를 정리한 문서로, 6개를 새로 한 실행에 넣어 측정한 최종 비교 행렬은 아니다.', '',
+    lines = ['# AA 6개 구성: 시간·품질 비교 정리', '', WITHDRAWAL, '',
+        '기존 실험의 측정 기록을 보존한다. 주 표의 ⑤·⑥은 채택을 철회한 **지터 Off 전체 화면 마스크 분기** 버전이다. 초기 지터 On 버전은 뒤의 별도 표에 보존했다. 6개를 새로 한 실행에 넣어 측정한 최종 비교 행렬은 아니다.', '',
         '## 1. 무엇을 비교했는가', '',
         '| 구성 | Spatial AA | Temporal 처리 | 지터 |', '|---|---|---|---|']
     for c in cases:
