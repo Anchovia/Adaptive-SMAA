@@ -26,3 +26,11 @@
 7. 성능은 PNG/readback 없는 별도 clean process에서 smoke 후 300 warmup, 4,800프레임×4회 교차 순서로 측정한다. GPU WholeFrame/SMAA/camera/spatial/resolve, wall interval을 따로 기록한다.
 
 정지 떨림 해소, 이동 품질, 속도는 독립 결론으로 보고한다. C 드라이브 여유 공간 때문에 큰 캡처는 D 드라이브에 보관하며 정확한 경로와 hash를 결과 JSON에 남긴다.
+
+## CGVQM 메모리 제한 실행
+
+120프레임의 전체 입력을 한 호출에서 준비하면 이 PC의 2 GiB pagefile 조건에서 분석 프로세스의 private commit이 약 34.1 GB에 도달했다. 시스템의 남은 commit은 약 0.5 GB였고, CUDA 할당 오류로 종료됐다. 이 실행의 점수는 없으며 SMAA 캡처 실패로 분류하지 않는다. 시스템 설정과 공식 CGVQM 소스는 변경하지 않는다.
+
+고정된 공식 CGVQM commit `8302ff45b4ff5a691682baf23f7c007d6b591e98`의 `cgvqm.py`는 `clip_size=min(fps,30)`으로 독립 temporal patch를 처리한다. 60 FPS의 동일 크기 입력에서 120프레임을 60+60으로 나누면 기존의 네 30프레임 patch 구간이 그대로 유지된다. 각 부분의 spatial patch 개수도 동일하므로 mean pooling 점수의 산술평균은 원래 전체 평균과 수학적으로 같다. 부동소수점 reduction 순서 차이는 허용 범위 `0.00002`를 넘지 않아야 한다.
+
+`cgvqm_bounded_window.py`는 공식 runner를 최대 60프레임씩 실행하고 개별 원본 결과를 모두 보존한다. 각 장면의 기존 native 120프레임 점수, 전체 test/reference pixel hash, 무손실 round-trip을 먼저 연결한 후 새 점수를 사용한다. 실제 bridge 오차는 `*-cgvqm.json`에 기록한다. 평가 구간을 줄이거나 frame rate, patch scale, 모델, reference를 바꾸는 방식은 사용하지 않는다.

@@ -109,7 +109,8 @@ def performance(scene,phase):
     comparisons={}
     for name,a,b in [('selection_pattern_on',ONSEL,ONFULL),('selection_pattern_off',SEL,FULL),('off_selective_vs_native_on',SEL,ONFULL),('off_vs_on_selective',SEL,ONSEL)]:
         comparisons[name]={k:dict(delta_ms=means[a][k]-means[b][k],delta_percent=(means[a][k]/means[b][k]-1)*100,paired_percent_by_run=[(x['mean_ms']/y['mean_ms']-1)*100 for x,y in zip(timing[a][k],timing[b][k])]) for k in means[a]}
-    out=dict(validation='PASS',classification='engineering',scene=scene,item=ITEM,phase=phase,receipt=rc,sample_frames_per_run=n,repeats=runs,window='hidden',means_ms=means,timing=timing,rates=rates,comparisons=comparisons)
+    run_std={m:{k:st.stdev(r['mean_ms'] for r in v) if len(v)>1 else None for k,v in d.items()} for m,d in timing.items()}
+    out=dict(validation='PASS',classification='engineering',scene=scene,item=ITEM,phase=phase,receipt=rc,sample_frames_per_run=n,repeats=runs,window='hidden',means_ms=means,run_mean_std_ms=run_std,timing=timing,rates=rates,comparisons=comparisons)
     (D/f'{scene}-{phase.lower()}.json').write_text(json.dumps(out,indent=2)+'\n');print(json.dumps(dict(scene=scene,phase=phase,means_ms=means,comparisons=comparisons),indent=2))
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--scene',choices=['bistro','minecraft'],required=True);p.add_argument('--phase',choices=['Capture','Smoke','Benchmark'],default='Capture');a=p.parse_args()
