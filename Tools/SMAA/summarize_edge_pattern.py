@@ -19,6 +19,7 @@ def main():
         q=d['capture'];w=q['windows']['late_still'];assert sum(q['mismatches'].values())==0
         lines.append(f"| {scene} | {q['windows']['all']['selected_percent_mean']:.4f}% | {w['rgb_step'][ONSEL]:.6f} | {w['rgb_step'][SEL]:.6f} | {w['unique_rgb_frames'][SEL]} |")
     lines+=['','RGB 차이는 0~255 단위 인접 프레임 평균 절댓값이다. 정지 초반 20~59 및 후반 200~239 모두 Off 선택 출력의 프레임 차이와 mask 전환이 0이다. 이것은 고정 카메라의 2위상 교대 해소를 의미하며 이동 중 깜빡임·고스팅 해소까지 증명하지 않는다.','',
+            'Minecraft 첫 오프라인 분석에서는 기존 O-1X PNG의 정지 RGB 판독이 일시적으로 불일치했다. 원본 파일 hash와 선택 출력 검사는 모두 일치했고, 같은 PNG의 세 차례 독립 재판독도 일치했다. 원인은 확정하지 않았다. 해당 분석은 제외하고 CGVQM 종료 후 같은 분석 코드와 엄격한 0 오차 기준으로 전체 240프레임을 다시 검사해 PASS했다. 렌더 코드나 원시 캡처를 바꾸거나 허용 오차를 넓히지 않았다. 실패와 재검증은 `validation-notes.json`에 보존했다.','',
             '## 품질','',
             '공식 CGVQM-2, 60 FPS, patch scale 4/mean, CUDA를 사용했다. 모든 FFV1 중간 영상은 RGB 무손실 round-trip을 검증했다. 기존 native control과 reference의 pixel hash 연결을 확인했다. 높은 점수가 좋다. reference는 같은 pose의 supersample spatial proxy이며 절대 temporal/고스팅 정답은 아니다.','',
             '⑥에서 확인된 시스템 commit 한도를 피하기 위해 동일한 제한 실행 방법을 재사용했다. 공식 구현이 원래 사용하는 30프레임 추론 경계에 맞춰 최대 60프레임씩 호출하고 동일 개수 patch의 점수를 평균했다. 원본 모델·전처리·공간 patch·평가 프레임은 변경하지 않았다. 각 장면의 기존 120프레임 native 점수와 0.00002 이내 일치를 먼저 검증했다. 실패 실행은 점수에 포함하지 않았다.','',
@@ -47,6 +48,7 @@ def main():
             '## 재현 자료','',
             '- `source-shader-audit.json`: native source 보존, 선택 셰이더 DXBC, source·executable hash.',
             '- `*-capture.json`, `*-frames.csv`: 원본 hash bridge, 선택/비선택 규칙, static 결과, raw 경로.',
+            '- `validation-notes.json`: 제외한 오프라인 분석과 동일 기준 전체 재검증 기록.',
             '- `*-cgvqm.json`: 공식 모델·환경·RGB round-trip·reference hash 및 점수.',
             '- `*-smoke.json`, `*-benchmark.json`: 실행 receipt와 짝 비교 통계.',
             '- `visual-provenance.json`: 정지 GIF/PNG 및 이동 60 FPS MP4 경로. 시각 자료는 정지 On artifact가 큰 ROI를 선택한 보조 자료다.','',
