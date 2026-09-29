@@ -1841,13 +1841,15 @@ protected:
 #include "BaselineVerification.inl"
 #include "SpatialFirstEdgeVerification.inl"
 #include "EdgePatternVerification.inl"
+#include "FirstEdgeStencilVerification.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
     static bool baselineCommandParsed=false;
     if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);}
     static bool spatialEdgeCommandParsed=false;
-    if(!spatialEdgeCommandParsed){spatialEdgeCommandParsed=true;QueueSpatialFirstEdgeVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);}
+    if(!spatialEdgeCommandParsed){spatialEdgeCommandParsed=true;QueueSpatialFirstEdgeVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);
+    QueueFirstEdgeStencilVerification(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)

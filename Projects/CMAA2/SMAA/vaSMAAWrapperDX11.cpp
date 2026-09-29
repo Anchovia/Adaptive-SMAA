@@ -102,6 +102,7 @@ namespace VertexAsylum
 
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_executionCoverage;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -126,6 +127,9 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {
+            return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);
+        }
         virtual bool SaveSpatialEdgeSnapshot(vaRenderDeviceContext &ctx, const wstring &path, bool saveEdge, bool probe) override
         {
             if(m_smaa==nullptr || !m_temporalHistoryValid) return false;
@@ -298,6 +302,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[0] = nullptr;
     m_temporalHistory[1] = nullptr;
     m_temporalVelocity = nullptr;
+    m_executionCoverage = nullptr;
     m_smaaReprojectionEnabled = false;
     ResetTemporalHistory( );
 }
@@ -461,19 +466,55 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
-                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X );
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
+                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr );
             }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
+            ID3D11Query *statsQuery=nullptr, *samplesQuery=nullptr;
+            ID3D11RenderTargetView *coverageRTV=nullptr;
+            m_executionQueryOK=false;
+            if(m_executionDiagnostics) {
+                auto device=GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice();
+                D3D11_QUERY_DESC q={D3D11_QUERY_PIPELINE_STATISTICS,0};
+                if(FAILED(device->CreateQuery(&q,&statsQuery))) return vaDrawResultFlags::UnspecifiedError;
+                q.Query=D3D11_QUERY_OCCLUSION;
+                if(FAILED(device->CreateQuery(&q,&samplesQuery))){statsQuery->Release();return vaDrawResultFlags::UnspecifiedError;}
+                if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) {
+                    if(!m_executionCoverage || m_executionCoverage->GetSizeX()!=inputColor->GetSizeX() || m_executionCoverage->GetSizeY()!=inputColor->GetSizeY())
+                        m_executionCoverage=vaTexture::Create2D(GetRenderDevice(),vaResourceFormat::R8_UNORM,inputColor->GetSizeX(),inputColor->GetSizeY(),1,1,1,
+                            vaResourceBindSupportFlags::RenderTarget|vaResourceBindSupportFlags::ShaderResource);
+                    if(!m_executionCoverage){statsQuery->Release();samplesQuery->Release();return vaDrawResultFlags::UnspecifiedError;}
+                    coverageRTV=m_executionCoverage->SafeCast<vaTextureDX11*>()->GetRTV();
+                    const float zero[4]={0,0,0,0};dx11Context->ClearRenderTargetView(coverageRTV,zero);
+                }
+                dx11Context->Begin(statsQuery);dx11Context->Begin(samplesQuery);
+            }
             {
                 vaScopeTimer resolveTimer("SF_Resolve", &deviceContext);
-                if(GetSpatialFirstEdgeEnabled())
+                if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
+                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV);
+                else if(GetSpatialFirstEdgeEnabled())
                     m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else
                 m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
             }
 
+            if(m_executionDiagnostics) {
+                dx11Context->End(samplesQuery);dx11Context->End(statsQuery);
+                D3D11_QUERY_DATA_PIPELINE_STATISTICS stats={};UINT64 samples=0;
+                const ULONGLONG deadline=GetTickCount64()+5000;
+                HRESULT a=S_FALSE,b=S_FALSE;
+                while((a==S_FALSE || b==S_FALSE) && GetTickCount64()<deadline) {
+                    if(a==S_FALSE)a=dx11Context->GetData(statsQuery,&stats,sizeof(stats),0);
+                    if(b==S_FALSE)b=dx11Context->GetData(samplesQuery,&samples,sizeof(samples),0);
+                    if(a==S_FALSE || b==S_FALSE)Sleep(0);
+                }
+                m_executionQueryOK=a==S_OK&&b==S_OK;
+                m_lastResolveInvocations=stats.PSInvocations;m_lastResolveSamples=samples;
+                statsQuery->Release();samplesQuery->Release();
+            }
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
             AdvanceTemporalFrame( );
@@ -600,7 +641,18 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     string vsVersion = "vs_4_0";
     string psVersion = "ps_4_1";
 
-    if( name == "LumaEdgeDetection" )
+    if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
+       || name=="NeighborhoodRetainPS" || name=="FirstEdgeStencilPS" || name=="FirstEdgeStencilCoveragePS") {
+        const bool edge=name.substr(0,5)=="Exact";
+        const bool retain=name=="NeighborhoodRetainPS";
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,edge?"DX10_SMAAEdgeDetectionVS":retain?"DX10_SMAANeighborhoodBlendingVS":"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/FirstEdgeStencil.hlsl","ps_5_0",name,shaderMacros,true);
+        tech->DSS=edge?m_DisableDepthReplaceStencil:retain?m_DisableDepthStencil:m_DisableDepthUseStencil;
+        tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=retain?0:1;
+    }
+    else if( name == "LumaEdgeDetection" )
     {
         //technique10 LumaEdgeDetection {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAEdgeDetectionVS", inputElements, shaderMacros, true );

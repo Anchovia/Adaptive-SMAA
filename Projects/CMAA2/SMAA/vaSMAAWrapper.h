@@ -62,6 +62,10 @@ namespace VertexAsylum
         bool                        m_temporalSamplePatternEnabled = true;
         vaVector2                   m_lastTemporalProjectionOffset = vaVector2(0,0);
         bool                        m_spatialFirstEdgeEnabled = false;
+        bool m_firstEdgeStencilEnabled = true;
+        bool m_executionDiagnostics = false;
+        uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
+        bool m_executionQueryOK = false;
 
         //bool                        m_debugShowEdges;
 
@@ -91,6 +95,16 @@ namespace VertexAsylum
             }
         }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
+
+        void SetFirstEdgeStencilEnabled(bool enabled) {
+            if(m_firstEdgeStencilEnabled!=enabled){m_firstEdgeStencilEnabled=enabled;ResetTemporalHistory();}
+        }
+        bool GetFirstEdgeStencilEnabled() const {return m_firstEdgeStencilEnabled;}
+        void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
+        bool ExecutionQueryOK() const {return m_executionQueryOK;}
+        uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
+        uint64 GetResolveSamples() const {return m_lastResolveSamples;}
+        virtual bool SaveExecutionCoverage(vaRenderDeviceContext&,const wstring&){return false;}
 
         void SetSpatialFirstEdgeEnabled(bool enabled) {
             if(m_spatialFirstEdgeEnabled!=enabled){m_spatialFirstEdgeEnabled=enabled;ResetTemporalHistory();}
