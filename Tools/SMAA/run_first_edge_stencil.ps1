@@ -17,6 +17,14 @@ if(Test-Path -LiteralPath $Receipt){$records=@(Get-Content -LiteralPath $Receipt
 if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase}).Count){throw 'Already completed; use a new receipt for independent run'}
 $started=[DateTime]::UtcNow.ToString('o')
 $kind=if($Isolation){'Isolation'}else{''}
+if($Phase -eq 'Benchmark'){
+    $suffix=if($Isolation){'isolation-capture'}else{'capture'}
+    $gatePath=Join-Path $root "Docs/Spatial-First-Edge-Stencil/$Scene-$suffix.json"
+    if(!(Test-Path -LiteralPath $gatePath)){throw 'Execution/output capture gate is required before benchmarking'}
+    $gate=Get-Content -LiteralPath $gatePath -Raw | ConvertFrom-Json
+    if($gate.validation -ne 'PASS' -or $gate.executable_sha256 -ne $hash){throw 'Capture gate must pass for this exact executable'}
+    if(!$gate.mismatches -or @($gate.mismatches.PSObject.Properties | Where-Object {$_.Value -ne 0}).Count){throw 'Coverage or output mismatch remains'}
+}
 $arguments=@("-smaaFirstEdgeStencil$kind$Phase",$Scene,$CaptureRoot)
 $output=& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $arguments -Hidden -TimeoutSeconds 1200
 $pass=$output | Where-Object {$_ -match 'PASS:.*report='} | Select-Object -Last 1
