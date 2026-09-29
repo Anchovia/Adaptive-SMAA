@@ -58,6 +58,9 @@ namespace VertexAsylum
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
 
+        // Research ablation: projection jitter and spatial area pattern change together.
+        bool                        m_temporalSamplePatternEnabled = true;
+        vaVector2                   m_lastTemporalProjectionOffset = vaVector2(0,0);
         bool                        m_spatialFirstEdgeEnabled = false;
 
         //bool                        m_debugShowEdges;
@@ -95,11 +98,22 @@ namespace VertexAsylum
         bool GetSpatialFirstEdgeEnabled() const {return m_spatialFirstEdgeEnabled;}
         virtual bool SaveSpatialEdgeSnapshot(vaRenderDeviceContext &,const wstring &,bool,bool){return false;}
 
+        void SetTemporalSamplePatternEnabled(bool enabled) {
+            if(m_temporalSamplePatternEnabled!=enabled){m_temporalSamplePatternEnabled=enabled;ResetTemporalHistory();}
+        }
+        bool GetTemporalSamplePatternEnabled() const {return m_temporalSamplePatternEnabled;}
+        vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}
+        bool HasZeroSubsampleIndices() const {
+            for(int i=0;i<4;++i)if(m_constants.subsampleIndices[i]!=0)return false;
+            return true;
+        }
+
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
         // Y while applying it to the projection matrix.
         vaVector2                   GetTemporalJitterOffset( ) const
         {
+            if(!m_temporalSamplePatternEnabled)return vaVector2(0,0);
             return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
         }
 
