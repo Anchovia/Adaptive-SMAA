@@ -1,0 +1,30 @@
+{
+  "first_minecraft_offline_analysis": {
+    "status": "excluded_failed_analysis",
+    "renderer_capture": "PASS",
+    "script_sha256": "92dfa1512be0f5e426601d1699a548defca23cebedb1f3e82cabbfb702c7d747",
+    "failure": "O-1X initial-still decoded RGB unique count 3, step 2.148164259380094e-06; expected 1 and 0",
+    "all_control_file_hash_mismatches": 0,
+    "all_selected_output_and_repeat_and_item6_edge_mismatches": 0,
+    "source_png_static_file_hash_count": 1,
+    "source_png_three_independent_read_checks": "40 frames each; all RGB identical on all 3 runs",
+    "cause": "Not established. Raw PNGs unchanged; no renderer change or tolerance relaxation.",
+    "retry_policy": "Run the unchanged complete 240-frame analyzer in a fresh process with CGVQM stopped; require every original strict check."
+  },
+  "unchanged_fresh_process_retry": {
+    "status": "PASS",
+    "capture_report_sha256": "1c5ad11dc5802499183372b5290da6136c89ed4bd093b2342e6535a091f9f834",
+    "script_unchanged": true,
+    "strict_tolerances_unchanged": true,
+    "cgvm_stopped": true,
+    "all_mismatches": {
+      "on_and_native_control_frames": 0,
+      "repeat_frames": 0,
+      "raw_current_pixels": 0,
+      "selected_pixels": 0,
+      "nonselected_pixels": 0,
+      "full_current_frames": 0,
+      "item6_edge_frames": 0
+    }
+  }
+}
