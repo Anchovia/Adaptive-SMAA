@@ -628,8 +628,7 @@ void CMAA2Sample::OnTick(float deltaTime)
                 }
             }
         }
-        GetRenderDevice().BeginFrame(deltaTime);
-
+        // RenderTick is still inside the frame opened above.
         // draw imgui 
         if (vaUIManager::GetInstance().IsVisible())
         {
