@@ -238,6 +238,13 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
     firstEdgeOnlyResolveTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeOnlyResolve", defines);
     temporalOnlyPrepareTechnique = techniqueManagerInterface->CreateTechnique("TemporalOnlyPrepare", defines);
+    exactEdgeTechniques[INPUT_LUMA] = techniqueManagerInterface->CreateTechnique("ExactLumaEdgePS", defines);
+    exactEdgeTechniques[INPUT_LUMA_RAW] = techniqueManagerInterface->CreateTechnique("ExactLumaRawEdgePS", defines);
+    exactEdgeTechniques[INPUT_COLOR] = techniqueManagerInterface->CreateTechnique("ExactColorEdgePS", defines);
+    exactEdgeTechniques[INPUT_DEPTH] = techniqueManagerInterface->CreateTechnique("ExactDepthEdgePS", defines);
+    rawRetainTechnique = techniqueManagerInterface->CreateTechnique("RawRetainPS", defines);
+    firstEdgeStencilTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilPS", defines);
+    firstEdgeStencilCoverageTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilCoveragePS", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -363,7 +370,7 @@ void SMAA::go(ID3D11DeviceContext * context,
 
 
 void SMAA::detectFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *colorGamma,
-                            ID3D11DepthStencilView *dsv, Input input) {
+                            ID3D11DepthStencilView *dsv, Input input, bool exactStencil) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -380,7 +387,8 @@ void SMAA::detectFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceVi
         shaderConstantsInterface->SetVariablesA(context, 0, 0, 0, 0, 1.0f);
     texturesInterface->SetResource_colorTexGamma(context, colorGamma);
     texturesInterface->SetResource_depthTex(context, nullptr);
-    edgesDetectionPass(context, dsv, input);
+    if(exactStencil) context->ClearDepthStencilView(dsv,D3D11_CLEAR_STENCIL,1.0f,0);
+    edgesDetectionPass(context, dsv, input, exactStencil);
     texturesInterface->SetResource_colorTexGamma(context, nullptr);
 }
 
@@ -409,7 +417,7 @@ void SMAA::reprojectFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourc
 }
 
 void SMAA::prepareTemporalOnly(ID3D11DeviceContext *context, ID3D11ShaderResourceView *color,
-                              ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output, bool reference) {
+                              ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output, bool reference, ID3D11RenderTargetView *retainRTV) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -426,14 +434,40 @@ void SMAA::prepareTemporalOnly(ID3D11DeviceContext *context, ID3D11ShaderResourc
         texturesInterface->SetResource_blendTex(context, *blendRT);
         neighborhoodBlendingTechnique->ApplyStates(context);
     } else {
-        temporalOnlyPrepareTechnique->ApplyStates(context);
+        (retainRTV ? rawRetainTechnique : temporalOnlyPrepareTechnique)->ApplyStates(context);
     }
-    context->OMSetRenderTargets(1, &output, nullptr);
+    assert(!reference || !retainRTV);
+    ID3D11RenderTargetView *targets[2]={output,retainRTV};
+    context->OMSetRenderTargets(retainRTV?2:1, targets, nullptr);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
     texturesInterface->SetResource_colorTex(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
     texturesInterface->SetResource_blendTex(context, nullptr);
+}
+
+void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+    ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
+    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage) {
+    SaveViewportsScope saveViewport(context);
+    SaveRenderTargetsScope saveRenderTargets(context);
+    SaveInputLayoutScope saveInputLayout(context);
+    SaveBlendStateScope saveBlendState(context);
+    SaveDepthStencilScope saveDepthStencil(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    edgesRT->setViewport(context);
+    texturesInterface->SetResource_colorTex(context, current);
+    texturesInterface->SetResource_colorTexPrev(context, previous);
+    texturesInterface->SetResource_velocityTex(context, velocity);
+    // No edge SRV: the first pass's exact stencil is the gate.
+    (coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
+    ID3D11RenderTargetView *targets[2] = {output, coverage};
+    context->OMSetRenderTargets(coverage ? 2 : 1, targets, dsv);
+    triangle->draw(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    texturesInterface->SetResource_colorTex(context, nullptr);
+    texturesInterface->SetResource_colorTexPrev(context, nullptr);
+    texturesInterface->SetResource_velocityTex(context, nullptr);
 }
 
 void SMAA::reproject(ID3D11DeviceContext * context,
@@ -593,14 +627,14 @@ void SMAA::loadSearchTex() {
 }
 
 
-void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input) {
+void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Edge Detection Pass");
 
     // Select the technique accordingly:
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
-    edgeDetectionTechniques[int(input)]->ApplyStates(context);
+    (exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
 
     // Do it!
     context->OMSetRenderTargets(1, *edgesRT, dsv);

@@ -68,6 +68,11 @@ namespace VertexAsylum
         int                         m_firstEdgeOnlyMode = 0; // 0=none, 1=detect-only control, 2=selective
 
 
+        bool m_firstEdgeStencilEnabled = true;
+        bool m_executionDiagnostics = false;
+        uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
+        bool m_executionQueryOK = false;
+
         //bool                        m_debugShowEdges;
 
     protected:
@@ -102,6 +107,16 @@ namespace VertexAsylum
             if( m_temporalOnlyEnabled != enabled || m_temporalOnlyReference != reference )
             { m_temporalOnlyEnabled = enabled; m_temporalOnlyReference = reference; ResetTemporalHistory(); }
         }
+        void SetFirstEdgeStencilEnabled(bool enabled) {
+            if(m_firstEdgeStencilEnabled!=enabled){m_firstEdgeStencilEnabled=enabled;ResetTemporalHistory();}
+        }
+        bool GetFirstEdgeStencilEnabled() const {return m_firstEdgeStencilEnabled;}
+        void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
+        bool ExecutionQueryOK() const {return m_executionQueryOK;}
+        uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
+        uint64 GetResolveSamples() const {return m_lastResolveSamples;}
+        virtual bool SaveExecutionCoverage(vaRenderDeviceContext&,const wstring&){return false;}
+
         void SetFirstEdgeOnlyMode(int mode)
         {
             assert(mode>=0 && mode<=2);
