@@ -2,7 +2,8 @@ param(
     [ValidateSet('Capture','Smoke','Benchmark')][string] $Phase='Capture',
     [ValidateSet('bistro','minecraft')][string] $Scene='bistro',
     [string] $CaptureRoot='D:/SMAAResearchCaptures/first-edge-stencil-20260929',
-    [string] $Receipt='tmp/first-edge-stencil-item6-runs.json'
+    [string] $Receipt='tmp/first-edge-stencil-item6-runs.json',
+    [switch] $Isolation
 )
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -15,7 +16,8 @@ $records=@()
 if(Test-Path -LiteralPath $Receipt){$records=@(Get-Content -LiteralPath $Receipt -Raw | ConvertFrom-Json)}
 if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase}).Count){throw 'Already completed; use a new receipt for independent run'}
 $started=[DateTime]::UtcNow.ToString('o')
-$arguments=@("-smaaFirstEdgeStencil$Phase",$Scene,$CaptureRoot)
+$kind=if($Isolation){'Isolation'}else{''}
+$arguments=@("-smaaFirstEdgeStencil$kind$Phase",$Scene,$CaptureRoot)
 $output=& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $arguments -Hidden -TimeoutSeconds 1200
 $pass=$output | Where-Object {$_ -match 'PASS:.*report='} | Select-Object -Last 1
 if(!$pass){throw 'No completed result'}

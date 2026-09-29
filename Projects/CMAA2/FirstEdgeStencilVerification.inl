@@ -3,14 +3,14 @@
 #pragma comment(lib,"advapi32.lib")
 // Item 6 only; item 5 lives on an independent baseline-derived branch.
 class BenchItemFirstEdgeStencilVerification : public AutoBenchToolWorkItem {
-    struct Mode {const char* name; CMAA2Sample::AAType type; bool selective,pattern,keep,stencil=true;};
+    struct Mode {const char* name; CMAA2Sample::AAType type; bool selective,pattern,keep,stencil=true,exactSpatial=false;};
     std::vector<Mode> m_modes;
     bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames=4800,m_repeats=4;
     double m_until=0;
     std::wstring m_output;
     vaSMAAWrapper::Preset m_savedPreset=vaSMAAWrapper::PRESET_HIGH;
-    bool m_savedPattern=true,m_savedSelective=false,m_savedStencil=true;
+    bool m_savedPattern=true,m_savedSelective=false,m_savedStencil=true,m_savedUpstream=false;
     std::map<std::string,std::vector<double>> m_samples;
     std::chrono::steady_clock::time_point m_lastTick=std::chrono::steady_clock::now();
     Mode Current() const {return m_modes[m_run%2?m_modes.size()-1-m_slot:m_slot];}
@@ -25,7 +25,7 @@ class BenchItemFirstEdgeStencilVerification : public AutoBenchToolWorkItem {
     }
     void Configure(){
         const auto c=Current();auto s=m_parent.GetSMAA();m_parent.Settings().CurrentAAOption=c.type;
-        s->SetFirstEdgeStencilEnabled(c.stencil);s->SetExecutionDiagnostics(m_capture && std::string(c.name).find("Repeat")==std::string::npos);s->SetSpatialFirstEdgeEnabled(c.selective);s->SetTemporalSamplePatternEnabled(c.pattern);s->ResetTemporalHistory();
+        s->SetStencilUpstreamControl(c.exactSpatial);s->SetFirstEdgeStencilEnabled(c.stencil);s->SetExecutionDiagnostics(m_capture && std::string(c.name).find("Repeat")==std::string::npos);s->SetSpatialFirstEdgeEnabled(c.selective);s->SetTemporalSamplePatternEnabled(c.pattern);s->ResetTemporalHistory();
         m_frame=m_capture?-60:-300;m_samples.clear();
     }
     static double Time(const char* name){auto p=vaProfiler::GetInstancePtr();auto n=p?p->FindNode(name):nullptr;return n?n->GetFrameLastTotalTimeGPU()*1000.0:0;}
@@ -42,19 +42,20 @@ class BenchItemFirstEdgeStencilVerification : public AutoBenchToolWorkItem {
         }
     }
 public:
-    BenchItemFirstEdgeStencilVerification(CMAA2Sample& p,bool capture,bool minecraft,bool smoke,std::wstring output):AutoBenchToolWorkItem(p),m_capture(capture),m_minecraft(minecraft),m_output(output){
+    BenchItemFirstEdgeStencilVerification(CMAA2Sample& p,bool capture,bool minecraft,bool smoke,std::wstring output,bool isolation=false):AutoBenchToolWorkItem(p),m_capture(capture),m_minecraft(minecraft),m_output(output){
         m_measureFrames=smoke?240:4800;m_repeats=smoke?1:4;
         const auto t=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
         m_modes={{"O-T2X-R",t,false,true,false},
                  {"ABL-Spatial-FullTemporal-PatternOff-R",t,false,false,true},
                  {"DIAG-Spatial-FirstEdge-Masked-PatternOff-R",t,true,false,true,false},
                  {"ABL-Spatial-FirstEdge-Stencil-PatternOff-R",t,true,false,true}};
-        if(capture){m_modes.push_back({"AA-Off",CMAA2Sample::AAType::None,false,true,false});m_modes.push_back({"O-1X",CMAA2Sample::AAType::SMAA,false,true,false});m_modes.push_back({"ABL-Spatial-FirstEdge-Stencil-PatternOff-R-Repeat",t,true,false,false});}
+        if(isolation)m_modes={{"DIAG-Spatial-ExactStencil-FullTemporal-PatternOff-R",t,false,false,true,true,true},{"ABL-Spatial-FirstEdge-Stencil-PatternOff-R",t,true,false,true}};
+        if(capture){if(!isolation){m_modes.push_back({"AA-Off",CMAA2Sample::AAType::None,false,true,false});m_modes.push_back({"O-1X",CMAA2Sample::AAType::SMAA,false,true,false});}m_modes.push_back({"ABL-Spatial-FirstEdge-Stencil-PatternOff-R-Repeat",t,true,false,false});}
     }
     void Tick(AutoBenchTool& tool,float) override {
         auto now=std::chrono::steady_clock::now();double wall=std::chrono::duration<double,std::milli>(now-m_lastTick).count();m_lastTick=now;
         if(!m_started){
-            m_started=true;auto s=m_parent.GetSMAA();m_savedStencil=s->GetFirstEdgeStencilEnabled();m_savedPreset=s->GetSettings().Preset;m_savedPattern=s->GetTemporalSamplePatternEnabled();m_savedSelective=s->GetSpatialFirstEdgeEnabled();s->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
+            m_started=true;auto s=m_parent.GetSMAA();m_savedUpstream=s->GetStencilUpstreamControl();m_savedStencil=s->GetFirstEdgeStencilEnabled();m_savedPreset=s->GetSettings().Preset;m_savedPattern=s->GetTemporalSamplePatternEnabled();m_savedSelective=s->GetSpatialFirstEdgeEnabled();s->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
             m_parent.Settings().SceneChoice=m_minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro;
             m_parent.SetRequireDeterminism(true);m_parent.SetFixedDeltaTime(1.0f/60.0f);m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed=std::numeric_limits<float>::infinity();
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
@@ -83,7 +84,7 @@ public:
                 if(++m_slot==int(m_modes.size())){m_slot=0;++m_run;}
                 if(m_run==(m_capture?1:m_repeats)){
                     tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");tool.ReportFinish();
-                    auto s=m_parent.GetSMAA();s->SetExecutionDiagnostics(false);s->SetFirstEdgeStencilEnabled(m_savedStencil);s->GetSettings().Preset=m_savedPreset;s->SetSpatialFirstEdgeEnabled(m_savedSelective);s->SetTemporalSamplePatternEnabled(m_savedPattern);
+                    auto s=m_parent.GetSMAA();s->SetExecutionDiagnostics(false);s->SetStencilUpstreamControl(m_savedUpstream);s->SetFirstEdgeStencilEnabled(m_savedStencil);s->GetSettings().Preset=m_savedPreset;s->SetSpatialFirstEdgeEnabled(m_savedSelective);s->SetTemporalSamplePatternEnabled(m_savedPattern);
                     m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();return;
                 }
                 Configure();
@@ -99,6 +100,7 @@ public:
         const bool temporal=c.type==CMAA2Sample::AAType::SMAA_T2x_Reprojected;
         const auto jitter=s->GetLastTemporalProjectionOffset();const bool zeroIndices=s->HasZeroSubsampleIndices();
         bool ok=s->GetTemporalModeEnabled()==temporal&&s->GetTemporalReprojectionEnabled()==temporal&&s->GetSpatialFirstEdgeEnabled()==c.selective&&s->GetTemporalSamplePatternEnabled()==c.pattern;
+        ok=ok&&s->GetFirstEdgeStencilEnabled()==c.stencil&&s->GetStencilUpstreamControl()==c.exactSpatial;
         if(temporal)ok=ok&&(c.pattern?(abs(jitter.x)==.25f&&abs(jitter.y)==.25f&&!zeroIndices):(jitter.x==0&&jitter.y==0&&zeroIndices));
         m_failed=m_failed||!ok;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),temporal?"TemporalOn":"TemporalOff",c.pattern?"PatternOn":"PatternOff",vaStringTools::Format("%.2f",jitter.x),vaStringTools::Format("%.2f",jitter.y),zeroIndices?"ZeroArea":"PairedArea",ok?"PASS":"FAIL"});
@@ -127,11 +129,12 @@ public:
 };
 static void QueueFirstEdgeStencilVerification(CMAA2Sample& parent,AutoBenchTool& tool){
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()){
-        const bool capture=_wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilCapture")==0;
-        const bool performance=_wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilBenchmark")==0;
-        const bool smoke=_wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilSmoke")==0;
+        const bool isolation=p.first.find(L"Isolation")!=std::wstring::npos;
+        const bool capture=_wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilCapture")==0 || _wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilIsolationCapture")==0;
+        const bool performance=_wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilBenchmark")==0 || _wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilIsolationBenchmark")==0;
+        const bool smoke=_wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilSmoke")==0 || _wcsicmp(p.first.c_str(),L"smaaFirstEdgeStencilIsolationSmoke")==0;
         if(!capture&&!performance&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
         if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and an absolute output root without spaces");return;}
-        tool.AddTask(std::make_shared<BenchItemFirstEdgeStencilVerification>(parent,capture,scene==L"minecraft",smoke,output));return;
+        tool.AddTask(std::make_shared<BenchItemFirstEdgeStencilVerification>(parent,capture,scene==L"minecraft",smoke,output,isolation));return;
     }
 }

@@ -467,7 +467,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
-                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr );
+                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl() );
             }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );

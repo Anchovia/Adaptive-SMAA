@@ -275,7 +275,7 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass, ID3D11RenderTargetView *retainRTV) {
+              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil) {
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -348,8 +348,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     // Native spatial work can tolerate a stale stencil superset because its
     // weight shader returns zero at zero-RG pixels. Temporal cannot: clear the
     // exact execution gate every frame, only on the new retained-output route.
-    if(retainRTV) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
-    edgesDetectionPass(context, dsv, input, retainRTV != nullptr);
+    if(retainRTV || exactStencil) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
+    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
     texturesInterface->SetResource_blendTex(context, *blendRT);

@@ -1,6 +1,6 @@
 # ⑥ 원본 spatial SMAA + first-edge stencil temporal
 
-상태: 구현 및 검증 진행 중. 기존 ⑤·⑥의 채택 철회와 원시 자료 보존은
+상태: 두 장면 실행 범위·출력 검증 통과. 공간 stencil 효과 분리 대조와 성능 해석 진행 중. 기존 ⑤·⑥의 채택 철회와 원시 자료 보존은
 `research/six-case-results-summary`의 `937b347`에 기록했다. 본 브랜치의 과거
 Spatial-First-Edge-Temporal / Pattern-Off 문서는 의존성을 가져오면서 남은 이력이며,
 새 실행 구조의 검증 결과로 사용하지 않는다.
@@ -48,6 +48,7 @@ edge-only와 output-only의 차이가 0.000410/0.000599 ms였지만 native와 �
 Microsoft 근거:
 - [earlydepthstencil](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-attributes-earlydepthstencil)
 - [Depth/stencil과 MRT](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-depth-stencil)
+- [D3D11 PSInvocations 정의](https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_query_data_pipeline_statistics)
 
 GPU는 quad/helper lane이나 cache transaction 단위로 동작할 수 있다. 선택 픽셀 수와
 물리 메모리 transaction 수가 같다고 주장하지 않는다. 전체 화면 draw 제출과 전체 화면
@@ -68,3 +69,21 @@ pixel shader 실행은 구분한다. 실행 감소는 GPU pipeline statistics로
 
 기존 mask 실행은 `DIAG-Spatial-FirstEdge-Masked-PatternOff-R` 대조군으로만 남기며
 새 구현으로 채택하지 않는다. 성능 우위와 품질 우위는 검증 전에 가정하지 않는다.
+
+## 공간 stencil 효과를 분리하는 추가 대조
+
+첫 반복 측정에서 spatial scope도 큰 폭으로 감소했다. Native wrapper는 stencil을 매
+frame clear하지 않아 과거 edge의 superset에서 2차 weight shader를 실행할 수 있다.
+새 경로의 clear + 최종 RG predicate는 이 불필요한 실행도 줄인다. 따라서 원본 대비
+전체 AA 감소율 전체를 temporal 선택의 효과라고 설명하면 안 된다.
+
+`DIAG-Spatial-ExactStencil-FullTemporal-PatternOff-R`은 새 경로와 같은 매 frame clear와
+최종 edge stencil을 사용하되, 원본 full-screen resolve와 단일 neighborhood 출력만
+사용한다. 전체 화면 resolve에는 비선택 출력 보존용 MRT가 필요하지 않으므로 추가하지
+않는다. 선택 경로만 MRT store 비용을 부담하도록 하여 그 비용도 비교에 포함한다.
+기존 ①~④ 코드는 바꾸지 않는다. 이 대조는 원본 기본 mode가 아닌 별도 진단이다.
+
+`-smaaFirstEdgeStencilIsolationCapture/Benchmark`로 위 control과 선택 경로를 비교한다.
+Isolation capture는 이 두 mode와 진단 Off repeat만 포함한다. 원시 report의 공통 소개에
+나오는 AA-Off/1X control 문구는 일반 capture 안내이며, isolation의 실제 mode 범위는
+CSV mode_check/final_hash 목록과 분석 JSON으로 확인한다.

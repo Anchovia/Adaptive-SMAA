@@ -141,7 +141,7 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false); // Selects the S2x or 4x pass (either 0 or 1).
 
         /**
          * This function perform a temporal resolve of two buffers. They must

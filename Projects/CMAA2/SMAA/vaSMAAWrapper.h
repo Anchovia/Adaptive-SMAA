@@ -63,6 +63,7 @@ namespace VertexAsylum
         vaVector2                   m_lastTemporalProjectionOffset = vaVector2(0,0);
         bool                        m_spatialFirstEdgeEnabled = false;
         bool m_firstEdgeStencilEnabled = true;
+        bool m_stencilUpstreamControl = false;
         bool m_executionDiagnostics = false;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
@@ -100,6 +101,8 @@ namespace VertexAsylum
             if(m_firstEdgeStencilEnabled!=enabled){m_firstEdgeStencilEnabled=enabled;ResetTemporalHistory();}
         }
         bool GetFirstEdgeStencilEnabled() const {return m_firstEdgeStencilEnabled;}
+        void SetStencilUpstreamControl(bool enabled){if(m_stencilUpstreamControl!=enabled){m_stencilUpstreamControl=enabled;ResetTemporalHistory();}}
+        bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
         void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
         bool ExecutionQueryOK() const {return m_executionQueryOK;}
         uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
