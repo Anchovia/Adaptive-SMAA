@@ -17,6 +17,8 @@
 
 ## 2. AA 처리 시간
 
+[원본 T2X-R=100% 기준 전체 AA·temporal resolve 비교표](baseline-relative.md)를 별도로 제공한다. 서로 다른 실행의 비율은 산술 참고값으로 명시했다.
+
 단위 ms. 표의 값은 **전체 AA GPU scope** 평균 ± 네 반복 평균의 표준편차다. Temporal resolve 단독 시간이나 전체 렌더 프레임 시간이 아니다. 작은 표준편차가 서로 다른 실행·계측 구조 사이의 편향까지 보정해 주지는 않는다.
 
 | 구성 | Bistro | Minecraft | 측정 묶음 |

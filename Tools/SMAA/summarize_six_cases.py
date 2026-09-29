@@ -9,9 +9,10 @@ OUT = ROOT / 'Docs/Six-Case-Comparison'
 SCENES = ['bistro', 'minecraft']
 SEL = {5: 'ABL-FirstEdge-TemporalOnly-PatternOff-R', 6: 'ABL-Spatial-FirstEdge-PatternOff-R'}
 ON = {5: 'ABL-FirstEdge-TemporalOnly-R', 6: 'ABL-SpatialFirstEdge-T2X-R'}
-REVS = {'B': 'e14f122', 'T': 'e2bbf87', 'P5': '2e3ac6c', 'P6': '556f226'}
+REVS = {'B': 'e14f122', 'T': 'e2bbf87', 'P5': '2e3ac6c', 'P6': '556f226', 'F5': 'a848c71'}
 DIRS = {'B': 'Docs/Baseline-Restart', 'T': 'Docs/Temporal-Only-Control',
-        'P5': 'Docs/First-Edge-Pattern-Off', 'P6': 'Docs/Spatial-First-Edge-Pattern-Off'}
+        'P5': 'Docs/First-Edge-Pattern-Off', 'P6': 'Docs/Spatial-First-Edge-Pattern-Off',
+        'F5': 'Docs/First-Edge-Temporal-Only'}
 SOURCES = []
 
 
@@ -45,12 +46,15 @@ def extract():
         p = {i: read(f'P{i}', scene + '-benchmark.json') for i in [5, 6]}
         c = {i: read(f'P{i}', scene + '-capture.json') for i in [5, 6]}
         q = {i: read(f'P{i}', scene + '-cgvqm.json') for i in [5, 6]}
+        temporal_scopes = read('F5', scene + '-benchmark-performance.json')
+        assert temporal_scopes['repeats'] == 4 and temporal_scopes['frames_per_repeat'] == 4800
         for i in [5, 6]:
             assert p[i]['repeats'] == 4 and p[i]['sample_frames_per_run'] == 4800
             assert sum(c[i]['mismatches'].values()) == 0
         for case in cases:
             i = case['id']
             value = dict(aa_ms=None, run_mean_std_ms=None, timing_group=None,
+                         resolve_ms=None, resolve_group=None, resolve_run_mean_std_ms=None,
                          moving_cgvqm2=None, transition_cgvqm2=None, static_step={})
             if i == 2:
                 record = baseline['scenes'][scene]['modes']['O-1X']['SMAA']
@@ -58,11 +62,17 @@ def extract():
             elif i == 3:
                 record = temporal['scenes'][scene]['modes']['ABL-TemporalOnly-R']
                 value.update(aa_ms=record['mean_ms'], run_mean_std_ms=record['run_mean_std_ms'], timing_group='T')
+                resolve = temporal_scopes['metrics']['ABL-TemporalOnly-R']['FE_Resolve']
+                value.update(resolve_ms=resolve['mean_ms'], resolve_group='F5',
+                             resolve_run_mean_std_ms=resolve['run_mean_std_ms'])
             elif i >= 4:
                 group = 5 if i == 5 else 6
                 mode = SEL[i] if i in SEL else 'O-T2X-R'
                 value.update(aa_ms=p[group]['means_ms'][mode]['SMAA'],
                              run_mean_std_ms=p[group]['run_mean_std_ms'][mode]['SMAA'], timing_group=f'P{group}')
+                metric = 'FE_Resolve' if group == 5 else 'SF_Resolve'
+                value.update(resolve_ms=p[group]['means_ms'][mode][metric], resolve_group=f'P{group}',
+                             resolve_run_mean_std_ms=p[group]['run_mean_std_ms'][mode][metric])
             for window in ['initial_still', 'late_still']:
                 if i in [1, 2, 4]:
                     m = {1: 'AA-Off', 2: 'O-1X', 4: 'O-T2X-R'}[i]
@@ -106,13 +116,76 @@ def extract():
                     aa_delta_percent=metrics['SMAA']['delta_percent'],
                     resolve_delta_percent=metrics[resolve]['delta_percent'],
                     aa_paired_percent_by_run=metrics['SMAA']['paired_percent_by_run']))
+    relative = []
+    for scene in SCENES:
+        reference = cases[3]['scenes'][scene]
+        for case in cases:
+            value = case['scenes'][scene]
+            for metric, group_key in [('aa_ms', 'timing_group'), ('resolve_ms', 'resolve_group')]:
+                measured, base = value[metric], reference[metric]
+                ratio = None if measured is None else measured / base * 100
+                classification = ('not-executed' if measured is None else 'baseline' if case['id'] == 4
+                                  else 'same-run-paired' if value[group_key] == 'P6' else 'cross-run-arithmetic-reference')
+                relative.append(dict(id=case['id'], scene=scene, metric=metric, time_ms=measured,
+                    source_group=value[group_key], baseline_id=4, baseline_group='P6', baseline_ms=base,
+                    baseline_percent=ratio, delta_percent=None if ratio is None else ratio - 100,
+                    classification=classification))
+    for row in comparisons:
+        if row['id'] == 6 and row['contrast'] == 'off_selective_vs_native_on':
+            for key, metric in [('aa_delta_percent', 'aa_ms'), ('resolve_delta_percent', 'resolve_ms')]:
+                ratio = next(r for r in relative if r['id'] == 6 and r['scene'] == row['scene'] and r['metric'] == metric)
+                assert abs(ratio['delta_percent'] - row[key]) < 1e-10
     return dict(classification='existing-results-summary-not-unified-six-case-benchmark',
                 validation='PASS', cases=cases, jitter_on_diagnostics=diagnostics,
-                paired_comparisons=comparisons, sources=SOURCES)
+                paired_comparisons=comparisons, baseline_relative=relative, sources=SOURCES)
 
 
 def fmt(value, precision=4):
     return '미측정' if value is None else f'{value:.{precision}f}'
+
+
+def write_relative_report(data):
+    cases = data['cases']
+    lines = ['# 원본 SMAA T2X-R 대비: 전체 AA와 temporal resolve', '',
+        '기준선은 ④ 원본 SMAA T2X-R이다. 기존 6구성 표의 전체 AA 시간을 유지하고, P6 실행의 원본 시간을 고정 분모로 사용한다. ⑤·⑥은 지터 Off, ③·④는 On이다. 새 GPU 실행 없이 기존 자료를 정규화했다.', '',
+        '**†는 서로 다른 실행의 시간으로 계산한 산술 참고값이다.** 동일 조건에서 입증한 속도 개선율로 쓰지 않는다. ④↔⑥은 같은 P6 실행의 짝 비교다. ②·③·⑤는 공간/temporal 처리 구성 자체도 원본과 다르다.', '',
+        '계산: 기준선 비율 = 해당 시간 ÷ 원본 시간 × 100. 변화율 = 기준선 비율 − 100. 100%보다 작으면 측정된 시간이 작고, 변화율의 음수는 감소다. FPS 증가율은 아니다.', '']
+    for metric, title in [('aa_ms', '1. 전체 AA GPU 시간'), ('resolve_ms', '2. Temporal resolve GPU 시간만')]:
+        lines += ['## ' + title, '']
+        if metric == 'aa_ms':
+            lines += ['공간 SMAA, camera velocity 생성, 해당 경로의 입력 준비·edge 검출·resolve 등을 포함하는 AA 전체 scope다. 전체 장면 렌더 프레임 시간은 아니다.', '']
+        else:
+            lines += ['기존 temporal 결합 패스의 GPU timer만 비교한다. Current/velocity/history 읽기와 혼합, 선택 경로에서는 edge 읽기와 분기를 포함한다. **Camera velocity를 만드는 앞선 패스, 공간 SMAA, 입력 준비 비용은 제외**한다.', '']
+        lines += ['| 구성 | Bistro ms | 원본 대비 비율 (변화율) | Minecraft ms | 원본 대비 비율 (변화율) |', '|---|---:|---:|---:|---:|']
+        for case in cases:
+            records = [next(r for r in data['baseline_relative'] if r['id'] == case['id'] and r['scene'] == s and r['metric'] == metric) for s in SCENES]
+            mark = ' †' if any(r['classification'] == 'cross-run-arithmetic-reference' for r in records) else ''
+            cells = []
+            for r in records:
+                if r['time_ms'] is None:
+                    cells += ['미실행', '—']
+                else:
+                    cells += [f"{r['time_ms']:.6f}", f"{r['baseline_percent']:.2f}% ({r['delta_percent']:+.2f}%)"]
+            lines.append('| ' + chr(0x2460 + case['id'] - 1) + ' ' + case['name'] + mark + ' | ' + ' | '.join(cells) + ' |')
+        lines += ['']
+    lines += ['①은 AA 패스 자체가 없고, ②는 temporal resolve를 실행하지 않는다. 미실행을 실측 0ms 또는 전체 렌더링 100% 단축으로 해석하지 않는다.', '',
+        '③의 전체 AA 시간은 기존 표와 같은 T 실행, resolve 시간은 별도 단계 계측이 있는 F5 실행에서 가져왔다. **두 수치를 서로 빼서 나머지 패스 비용을 역산하지 않는다.** F5의 ③ resolve가 원본과 매우 가까운 것은 관측값이며, Bistro의 -0.04%를 검증된 개선이라고 표현하지 않는다.', '',
+        '## 3. 가장 직접적인 비교: ④ 대 ⑥', '',
+        '| 장면 | 전체 AA 변화 | Temporal resolve 변화 |', '|---|---:|---:|']
+    for scene in SCENES:
+        rows = {r['metric']: r for r in data['baseline_relative'] if r['id'] == 6 and r['scene'] == scene}
+        lines.append(f"| {scene} | {rows['aa_ms']['delta_percent']:+.2f}% | {rows['resolve_ms']['delta_percent']:+.2f}% |")
+    lines += ['', 'Temporal resolve는 전체 AA의 일부이므로, resolve에서 절약한 비율이 전체 AA에 그대로 적용되지는 않는다. ⑥은 공간 SMAA와 velocity 생성 등을 계속 수행한다. Bistro에서는 resolve가 약 0.00564ms 줄어도 전체 AA의 감소는 약 2.37%다. Minecraft에서는 resolve가 늘어 전체 AA도 소폭 증가했다.', '',
+        '⑤의 전체 AA 시간이 원본보다 절반 수준인 것은 공간 SMAA를 수행하지 않는 구성 차이도 포함한다. 이를 공간 품질을 유지한 50% 최적화라고 주장하지 않는다. ⑤와 ⑥의 resolve 시간은 각 장면에서 비슷한 범위지만 서로 다른 실행의 결과이므로 작은 차이로 우열을 정하지 않는다.', '',
+        '## 4. 출처', '',
+        '| 항목 | 자료 | 고정 커밋 |', '|---|---|---|',
+        '| ② 전체 AA | B: 원본 기준선 재검증 | `e14f122` |',
+        '| ③ 전체 AA | T: Temporal-only 독립 대조 | `e2bbf87` |',
+        '| ③ resolve | F5: 첫 edge 실험의 edge 검출 없는 ③ 대조군 | `a848c71` |',
+        '| ⑤ 전체/resolve | P5: 지터 Off 실험 | `2e3ac6c` |',
+        '| ④·⑥ 전체/resolve | P6: 공간 SMAA 유지 지터 On/Off 실험 | `556f226` |', '',
+        'RTX 3060 Ti, DX11, 1920×1061 Ultra, hidden. 각 시간은 4,800프레임×4회 평균이다. 프레임 수명·history reset·timer 구성 차이는 [6개 구성 보고서](report.md)에 명시했다. 반올림 전 시간, 비율, 비교 분류와 입력 hash는 `comparison.json`의 `baseline_relative`와 `sources`에 보존했다.', '']
+    (OUT / 'baseline-relative.md').write_text('\n'.join(lines), encoding='utf-8')
 
 
 def write_report(data):
@@ -127,6 +200,7 @@ def write_report(data):
         lines.append(f"| {label(c)} | {c['spatial']} | {c['temporal']} | {c['jitter']} |")
     lines += ['', '③~⑥의 reprojection은 camera/depth 기반이다. Object motion vector까지 검증한 결과가 아니다. ⑤는 공간 혼합을 하지 않지만 선택에 필요한 원본 첫 edge 검출을 실행한다. ⑥은 원본 공간 SMAA 세 패스를 모두 보존한다. ⑤·⑥은 검출된 RG edge를 모두 사용하며, Intel의 non-dominant 제거로 절반을 고른 구현이 아니다.', '',
         '## 2. AA 처리 시간', '',
+        '[원본 T2X-R=100% 기준 전체 AA·temporal resolve 비교표](baseline-relative.md)를 별도로 제공한다. 서로 다른 실행의 비율은 산술 참고값으로 명시했다.', '',
         '단위 ms. 표의 값은 **전체 AA GPU scope** 평균 ± 네 반복 평균의 표준편차다. Temporal resolve 단독 시간이나 전체 렌더 프레임 시간이 아니다. 작은 표준편차가 서로 다른 실행·계측 구조 사이의 편향까지 보정해 주지는 않는다.', '',
         '| 구성 | Bistro | Minecraft | 측정 묶음 |', '|---|---:|---:|---|']
     for c in cases:
@@ -194,6 +268,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / 'comparison.json').write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     write_report(data)
+    write_relative_report(data)
     print('PASS: six-case tables match pinned source JSONs; shared quality references/settings verified')
 
 
