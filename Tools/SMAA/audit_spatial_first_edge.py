@@ -23,6 +23,10 @@ def main():
     shader=norm((S/'SpatialFirstEdge.hlsl').read_bytes())
     prior=norm(git('show','a774772:Projects/CMAA2/SMAA/FirstEdgeTemporalOnly.hlsl'))
     assert shader.split(b'\n',1)[1].replace(b'SpatialFirstEdgePS',b'FirstEdgeTemporalOnlyPS')==prior.split(b'\n',1)[1]
+    sample=norm((R/'Projects/CMAA2/CMAA2Sample.cpp').read_bytes())
+    tick=sample[sample.index(b'void CMAA2Sample::OnTick('):sample.index(b'vaDrawResultFlags CMAA2Sample::DrawScene(')]
+    assert tick.count(b'GetRenderDevice().BeginFrame(deltaTime);')==1
+    assert tick.count(b'GetRenderDevice().EndAndPresentFrame(')==1
     fxc='C:/Program Files (x86)/Windows Kits/10/bin/10.0.19041.0/x64/fxc.exe';variants=[]
     for r in [0,1]:
         obj=T/f'spatial-edge-r{r}.dxbc';asm=T/f'spatial-edge-r{r}.asm'
@@ -38,7 +42,7 @@ def main():
         assert all(i>early for i,l in samples if 't4.' in l or 't7.' in l)
         variants.append(dict(reprojection=r,dxbc_sha256=sha(obj.read_bytes()),instructions=code))
     paths=git('diff','--name-only','e14f122','--','Projects/CMAA2').decode().splitlines()+['Projects/CMAA2/SMAA/SpatialFirstEdge.hlsl','Projects/CMAA2/SpatialFirstEdgeVerification.inl']
-    out=dict(validation='PASS',baseline='e14f122',reused_helper='a774772',branch=git('branch','--show-current').decode().strip(),
+    out=dict(validation='PASS',baseline='e14f122',reused_helper='a774772',frame_lifecycle_dependency='c51ca28 -> 54f85af',branch=git('branch','--show-current').decode().strip(),
         original_unchanged=unchanged,source_sha256_lf={p:sha(norm((R/p).read_bytes())) for p in sorted(set(paths))},
         variants=variants,executable_sha256=sha((R/'Projects/CMAA2/CMAA2.exe').read_bytes()),compiler=fxc,
         scope='Native spatial source exact; selected shader math matches item 5. R-On runtime, R-Off compile only. DXBC is not GPU ISA profiling.')

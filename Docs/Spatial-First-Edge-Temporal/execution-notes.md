@@ -20,3 +20,11 @@
   호출하는 구조를 확인했다. 첫 WholeFrame scope가 끝나지 않는 계측 문제를 별도 tooling
   브랜치로 교정하며, 출력 동일성을 다시 확인한 뒤 성능을 재측정한다. 앞선 무진행과의
   인과관계는 아직 단정하지 않는다.
+- 중복 BeginFrame 제거는 `tooling/smaa-frame-lifecycle`의 `c51ca28`에 단독 커밋했고,
+  본 연구 브랜치에는 `54f85af`로 cherry-pick했다. 새 실행파일을 빌드하고 원본 공간 함수,
+  원본 resolve, shader 동일성 및 선택 shader DXBC를 다시 확인했다.
+- 수정 후 BridgeCapture Bistro `20260929_090402`와 Minecraft `20260929_090804`는 각각
+  다섯 구성×240프레임의 최종 PNG SHA-256이 최초 캡처와 전부 일치했다(총 2,400장,
+  mismatch 0). 두 실행 모두 Aggregate PASS, 정상 종료, 잔류 CMAA2=0이었다.
+  초기/수정 후 실행파일의 감사 파일을 분리해 보존한다. 수정 후 성능은 새로 측정하며
+  과거 브랜치의 프레임 루프와 reset 조건이 다른 절대 timing을 직접 비교하지 않는다.

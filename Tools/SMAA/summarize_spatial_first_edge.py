@@ -4,7 +4,8 @@ from analyze_spatial_first_edge import D,FULL,SEL
 def main():
     scenes=['bistro','minecraft'];q={s:json.loads((D/f'{s}-capture.json').read_text()) for s in scenes}
     p={s:json.loads((D/f'{s}-benchmark-performance.json').read_text()) for s in scenes}
-    assert all(x['validation']=='PASS' for x in [*q.values(),*p.values()])
+    bridge={s:json.loads((D/f'{s}-frame-lifecycle-bridge.json').read_text()) for s in scenes}
+    assert all(x['validation']=='PASS' for x in [*q.values(),*p.values(),*bridge.values()])
     text='''# ⑥ 원본 공간 SMAA + 첫 edge 선택 temporal 결과
 
 ## 실험 범위
@@ -76,6 +77,14 @@ AA-Off/실제 SMAA 1X/원본 SMAA T2X-R은 초기·후기 정지 구간에서 RG
 
 ## 원본 T2X-R 대비 성능
 
+첫 smoke는 WholeFrame GPU가 0이어서 실패로 제외했다. 공통 기준선의 프레임 루프에서
+BeginFrame 중복 호출을 발견해 `tooling/smaa-frame-lifecycle`의 `c51ca28`로 분리 수정하고,
+본 브랜치에 `54f85af`로 cherry-pick했다. AA 알고리즘 변경은 없다. 수정 후 장면별 다섯
+구성×240프레임, 총 2,400장의 최종 PNG SHA-256이 수정 전과 모두 같음을 확인했다.
+이 검증은 두 고정 카메라 경로의 출력 보존이며 모든 실행 조건의 동일성을 보장하지 않는다.
+아래 값은 수정된 동일 실행파일 안에서 원본/선택 처리를 다시 측정한 결과다.
+이전 브랜치의 프레임 루프·reset·계측 조건이 다른 timing과 직접 비교하지 않는다.
+
 RTX 3060 Ti, DX11, 1920×1061, Ultra, VSync Off, 숨김 창. 장면별 별도 clean process smoke
 후 30초 precondition, 300 warm-up, 각 구성 4,800프레임×4회로 정/역 순서를 교차했다.
 이미지/마스크 readback은 끄고 timestamp query는 유지했다. 240프레임 경로를 반복하며
@@ -121,11 +130,14 @@ pooled percentile이 아니다. FPS는 tick 간격의 `1000/mean`; 1% low는 가
 ## 재현·남은 범위
 
 - [실험 방법](method.md), [소스·DXBC 감사](source-shader-audit.json), [실패/재시도 기록](execution-notes.md)
-- `run_spatial_first_edge.ps1 -Phase Capture|Smoke|Benchmark -Scene bistro|minecraft`:
+- `run_spatial_first_edge.ps1 -Phase Capture|BridgeCapture|Smoke|Benchmark -Scene bistro|minecraft`:
   실행 전후 CMAA2=0 검사, timeout 및 완성된 Aggregate PASS 보고서 검증.
 - `analyze_spatial_first_edge.py`, `analyze_spatial_first_edge_performance.py`,
   `visualize_spatial_first_edge.py`, `summarize_spatial_first_edge.py`로 재생성한다.
 - 각 scene의 capture JSON에 원시 경로·EXE/report hash와 기존 기준선 연결을 기록했다.
+  최초 캡처의 실행파일은 `initial-source-shader-audit.json`, 프레임 수정 후 bridge 및
+  성능 측정 실행파일은 `source-shader-audit.json`에 각각 대응한다.
+  `verify_spatial_frame_bridge.py`와 `*-frame-lifecycle-bridge.json`으로 두 출력을 연결했다.
 - `tmp/spatial-first-edge-visuals`에 frame220/221 PNG 및 4 FPS로 느리게 재생한 진단 GIF가 있다.
   변화가 가장 큰 320×320 ROI를 64픽셀 격자에서 선정했으며 원본 1X/④/⑥/edge를 나란히 표시했다.
   공통 256색 palette GIF는 정량 지표에 사용하지 않는다. 좌표와 hash는 `visual-provenance.json`에 있다.

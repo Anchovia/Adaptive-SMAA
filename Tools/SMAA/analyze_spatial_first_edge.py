@@ -28,7 +28,7 @@ def receipt(scene,phase):
     rs=json.loads((R/'tmp/spatial-first-edge-runs.json').read_text(encoding='utf-8-sig'));found=[r for r in rs if r['scene']==scene and r['phase']==phase];assert len(found)==1
     r=found[0];p=Path(r['report']);assert sha(p)==r['report_sha256'].lower()
     text=p.read_text(encoding='utf-8-sig');assert 'Aggregate: PASS' in text and 'FAIL' not in text
-    audit=json.loads((D/'source-shader-audit.json').read_text());assert r['executable_sha256'].lower()==audit['executable_sha256']
+    audit=json.loads((D/('initial-source-shader-audit.json' if phase=='Capture' else 'source-shader-audit.json')).read_text());assert r['executable_sha256'].lower()==audit['executable_sha256']
     return r,p,text
 def capture(scene):
     rc,p,text=receipt(scene,'Capture');cap=p.parent;prior=json.loads((D/f'{scene}-prior.json').read_text());base=Path(prior['baseline']);old=Path(prior['first_edge_only_capture'])

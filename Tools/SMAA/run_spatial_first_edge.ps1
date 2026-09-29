@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Capture','Smoke','Benchmark')][string] $Phase='Capture',
+    [ValidateSet('Capture','BridgeCapture','Smoke','Benchmark')][string] $Phase='Capture',
     [ValidateSet('bistro','minecraft')][string] $Scene='bistro',
     [string] $Receipt='tmp/spatial-first-edge-runs.json'
 )

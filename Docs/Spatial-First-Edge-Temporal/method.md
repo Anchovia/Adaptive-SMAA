@@ -33,9 +33,20 @@ point sampler, camera/depth velocity, paired projection jitter/subsample index�
 
 ## 성능 조건
 
+첫 smoke에서 `WholeFrame=0`이 발생해 실패 처리했다. 공통 기준선의 `OnTick`에는
+`BeginFrame` 두 번과 `EndAndPresentFrame` 한 번이 있었으며, 중복 BeginFrame 제거만
+`tooling/smaa-frame-lifecycle`의 `c51ca28`로 분리했다. 본 브랜치에는 `54f85af`로
+cherry-pick했다. AA 알고리즘은 수정하지 않았다.
+
+수정 전 캡처는 `initial-source-shader-audit.json`의 실행파일에 대응한다. 수정 후에는
+`BridgeCapture`로 같은 다섯 구성의 240프레임 PNG SHA-256을 모두 대조하고,
+성능은 새 `source-shader-audit.json`의 실행파일로 다시 측정한다. BridgeCapture는
+하나의 PNG를 매 프레임 덮어써 원시 캡처의 중복 저장을 피하며 성능 측정과 분리한다.
+
 별도 clean process의 smoke240×1 이후 30초 precondition, warm-up300,
 4,800프레임×4회 순서를 교차한다. 각 240프레임 경로 회귀 시 history를 reset한다.
 ⑤ benchmark는 매 cycle reset이 없었으므로 서로 다른 실행의 전체 timing을 직접 비교하지 않는다.
+프레임 루프 수정까지 있으므로 과거 브랜치의 timing과도 직접적인 속도 증감률을 계산하지 않는다.
 
 이미지/마스크 readback을 끄고, 기존 WholeFrame와 SMAA GPU scope에 camera/spatial/resolve
 timer를 추가한다. Steady-clock tick 간격의 평균·median·표준편차·p95/p99와

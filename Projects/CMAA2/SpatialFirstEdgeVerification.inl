@@ -1,11 +1,14 @@
 #include <map>
 #include <cmath>
 #include <chrono>
+#include <fstream>
+#include <wincrypt.h>
+#pragma comment(lib,"advapi32.lib")
 // Item 6 only: native spatial SMAA remains enabled for full and selective temporal.
 class BenchItemSpatialFirstEdgeVerification : public AutoBenchToolWorkItem {
     struct Mode {const char* name; CMAA2Sample::AAType type; bool selective=false;};
     std::vector<Mode> m_modes;
-    bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false;
+    bool m_capture,m_minecraft,m_bridge,m_started=false,m_done=false,m_failed=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames=4800,m_repeats=4;
     double m_until=0;
     vaSMAAWrapper::Preset m_savedPreset=vaSMAAWrapper::PRESET_HIGH;
@@ -14,6 +17,16 @@ class BenchItemSpatialFirstEdgeVerification : public AutoBenchToolWorkItem {
     Mode Current() const {return m_modes[m_run%2?m_modes.size()-1-m_slot:m_slot];}
     void Configure(){m_parent.Settings().CurrentAAOption=Current().type;m_parent.GetSMAA()->SetSpatialFirstEdgeEnabled(Current().selective);m_parent.GetSMAA()->ResetTemporalHistory();m_frame=m_capture?-60:-300;m_samples.clear();}
     static double Time(const char* name){auto p=vaProfiler::GetInstancePtr();auto n=p?p->FindNode(name):nullptr;return n?n->GetFrameLastTotalTimeGPU()*1000.0:0;}
+    static std::string FileSHA256(const std::wstring& path){
+        HCRYPTPROV provider=0;HCRYPTHASH hash=0;
+        if(!CryptAcquireContext(&provider,nullptr,nullptr,PROV_RSA_AES,CRYPT_VERIFYCONTEXT))return "";
+        bool ok=CryptCreateHash(provider,CALG_SHA_256,0,0,&hash)!=FALSE;
+        std::ifstream file(path.c_str(),std::ios::binary);ok=ok&&file.is_open();char buffer[65536];
+        while(ok&&file){file.read(buffer,sizeof(buffer));auto n=file.gcount();if(n>0)ok=CryptHashData(hash,reinterpret_cast<const BYTE*>(buffer),DWORD(n),0)!=FALSE;}
+        BYTE digest[32]={};DWORD size=sizeof(digest);ok=ok&&file.eof()&&CryptGetHashParam(hash,HP_HASHVAL,digest,&size,0)&&size==32;
+        if(hash)CryptDestroyHash(hash);CryptReleaseContext(provider,0);
+        if(!ok)return "";std::string out;for(BYTE x:digest)out+=vaStringTools::Format("%02x",int(x));return out;
+    }
     void Summarize(AutoBenchTool& tool,const char* metric,std::vector<double> v){
         if(v.size()!=size_t(m_measureFrames)){m_failed=true;return;}
         double mean=0;for(double x:v)mean+=x;mean/=v.size();std::sort(v.begin(),v.end());
@@ -27,7 +40,7 @@ class BenchItemSpatialFirstEdgeVerification : public AutoBenchToolWorkItem {
         }
     }
 public:
-    BenchItemSpatialFirstEdgeVerification(CMAA2Sample& p,bool capture,bool minecraft,bool smoke=false):AutoBenchToolWorkItem(p),m_capture(capture),m_minecraft(minecraft){
+    BenchItemSpatialFirstEdgeVerification(CMAA2Sample& p,bool capture,bool minecraft,bool smoke=false,bool bridge=false):AutoBenchToolWorkItem(p),m_capture(capture),m_minecraft(minecraft),m_bridge(bridge){
         m_measureFrames=smoke?240:4800;m_repeats=smoke?1:4;
         m_modes={{"O-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,false},
                  {"ABL-SpatialFirstEdge-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,true}};
@@ -44,6 +57,7 @@ public:
             tool.ReportStart();tool.ReportAddText("Item 6 from e14f122; all three native spatial SMAA passes retained. Native first-edge RG>0 gates native temporal math; no extra detection/prepare/copy/compact pass. Native spatial-frame history and paired projection jitter retained. Camera/depth reprojection only.\r\n");
             tool.ReportAddText(m_capture?"Capture: 240 frames per mode; final/current PNG, native edge and spatial-input probes. No timing claim.\r\n":"Timing: 30s precondition; 300 warmup; 4800 frames x 4 alternating repeats (Smoke 240 x 1). No image/mask readback. WholeFrame/SMAA/camera/spatial/resolve GPU scopes; steady-clock wall frame. Rate = 1000/mean; 1% low = 1000/mean slowest ceil(N*.01) intervals.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra, fixed60Hz; t=2+clamp(phase-60,0,120)/60; 240-frame still/move/still cycle. Reset history at each cycle wrap.\r\n");
+            if(m_bridge)tool.ReportAddText("BridgeCapture: overwrite one rolling PNG and record its SHA-256 for every final frame; compare with prior full captures. No timing claim.\r\n");
             Configure();if(!m_capture)m_until=app.GetTimeFromStart()+30;
         }else if(m_until!=0){
             if(m_parent.GetApplication().GetTimeFromStart()<m_until){m_parent.GetFlythroughCameraController()->SetPlayTime(2);return;}
@@ -79,6 +93,11 @@ public:
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),temporal?"TemporalOn":"TemporalOff",temporal?"CameraR":"NoR",ok?"PASS":"FAIL"});
         const auto dir=tool.ReportGetDir()+vaStringTools::SimpleWiden(c.name)+L"\\";vaFileTools::EnsureDirectoryExists(dir);
         const auto prefix=dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d",m_frame));
+        if(m_bridge){
+            const auto rolling=tool.ReportGetDir()+L"bridge-rolling.png";
+            const bool saved=color->SaveToPNGFile(ctx,rolling);const std::string hash=saved?FileSHA256(rolling):"";
+            m_failed=m_failed||hash.size()!=64;tool.ReportAddRowValues({"bridge_hash",c.name,std::to_string(m_frame),hash});return;
+        }
         const bool probe=m_frame==0||m_frame==1||m_frame==59||m_frame==60||m_frame==61||m_frame==100||m_frame==179||m_frame==180||m_frame==181||m_frame==239;
         const bool primary=std::string(c.name)=="ABL-SpatialFirstEdge-T2X-R";
         if(temporal && (primary || !c.selective || probe))
@@ -90,11 +109,12 @@ public:
 };
 static void QueueSpatialFirstEdgeVerification(CMAA2Sample& parent,AutoBenchTool& tool){
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()){
-        const bool capture=_wcsicmp(p.first.c_str(),L"smaaSpatialFirstEdgeCapture")==0;
+        const bool bridge=_wcsicmp(p.first.c_str(),L"smaaSpatialFirstEdgeBridgeCapture")==0;
+        const bool capture=bridge||_wcsicmp(p.first.c_str(),L"smaaSpatialFirstEdgeCapture")==0;
         const bool performance=_wcsicmp(p.first.c_str(),L"smaaSpatialFirstEdgeBenchmark")==0;
         const bool smoke=_wcsicmp(p.first.c_str(),L"smaaSpatialFirstEdgeSmoke")==0;
         if(!capture&&!performance&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene;input>>scene;
         if(scene!=L"bistro"&&scene!=L"minecraft"){VA_LOG_ERROR("Expected bistro or minecraft");return;}
-        tool.AddTask(std::make_shared<BenchItemSpatialFirstEdgeVerification>(parent,capture,scene==L"minecraft",smoke));return;
+        tool.AddTask(std::make_shared<BenchItemSpatialFirstEdgeVerification>(parent,capture,scene==L"minecraft",smoke,bridge));return;
     }
 }
