@@ -410,6 +410,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
             return vaDrawResultFlags::ShadersStillCompiling;
 
+        m_lastTemporalProjectionOffset = const_cast<vaCameraBase*>(optionalCamera)->GetSubpixelOffset();
         const vaMatrix4x4 currentJitteredViewProj = optionalCamera->GetViewMatrix( ) * optionalCamera->GetProjMatrix( );
         vaCameraBase unjitteredCamera = *optionalCamera;
         vaVector2 zeroJitter( 0.0f, 0.0f );
@@ -471,7 +472,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 m_smaa->prepareTemporalOnly( dx11Context, spatialColorSRV, velocitySRV, currentHistoryRTV, GetTemporalOnlyReference() );
             }
             else
-                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, SMAA::MODE_SMAA_T2X );
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X );
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;

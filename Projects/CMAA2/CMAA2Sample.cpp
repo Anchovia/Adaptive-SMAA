@@ -1841,11 +1841,12 @@ protected:
 #include "BaselineVerification.inl"
 #include "TemporalOnlyVerification.inl"
 #include "FirstEdgeOnlyVerification.inl"
+#include "EdgePatternVerification.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
     static bool baselineCommandParsed=false;
-    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueTemporalOnlyVerification(m_parent,*this);QueueFirstEdgeOnlyVerification(m_parent,*this);}
+    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueTemporalOnlyVerification(m_parent,*this);QueueFirstEdgeOnlyVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)
