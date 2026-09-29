@@ -1,0 +1,232 @@
+{
+  "validation": "PASS",
+  "scene": "minecraft",
+  "phase": "Smoke",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Smoke",
+    "window": "hidden",
+    "source_baseline": "e14f122",
+    "research_branch": "experiment/spatial-first-edge-temporal",
+    "arguments": [
+      "-smaaSpatialFirstEdgeSmoke",
+      "minecraft"
+    ],
+    "started_utc": "2026-09-29T00:11:19.2091547Z",
+    "completed_utc": "2026-09-29T00:11:54.6328735Z",
+    "executable_sha256": "5CBD210023C2AFC7FF138FFD1503BB1998C39F1FC3FE2F98790F4CAC5673C291",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_091120\\20260929_091120_results.csv",
+    "report_sha256": "05E2AB0C26486FD381FFD7A9C04637D9C53C29512D281A16FA02A0B333D8C6F5"
+  },
+  "repeats": 1,
+  "frames_per_repeat": 240,
+  "metrics": {
+    "O-T2X-R": {
+      "WholeFrame": {
+        "mean_ms": 1.178569333,
+        "run_means_ms": [
+          1.178569333
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 1.2072,
+        "mean_run_p95_ms": 1.23392,
+        "mean_run_p99_ms": 1.24928
+      },
+      "SMAA": {
+        "mean_ms": 0.2530048,
+        "run_means_ms": [
+          0.2530048
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.292864,
+        "mean_run_p95_ms": 0.316416,
+        "mean_run_p99_ms": 0.318464
+      },
+      "SF_CameraVelocity": {
+        "mean_ms": 0.023829333,
+        "run_means_ms": [
+          0.023829333
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576
+      },
+      "SF_Spatial": {
+        "mean_ms": 0.194410667,
+        "run_means_ms": [
+          0.194410667
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.23552,
+        "mean_run_p95_ms": 0.252928,
+        "mean_run_p99_ms": 0.253952
+      },
+      "SF_Resolve": {
+        "mean_ms": 0.0347648,
+        "run_means_ms": [
+          0.0347648
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.03584,
+        "mean_run_p95_ms": 0.04096,
+        "mean_run_p99_ms": 0.04096
+      },
+      "WallFrame": {
+        "mean_ms": 1.20362625,
+        "run_means_ms": [
+          1.20362625
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 1.217,
+        "mean_run_p95_ms": 1.2563,
+        "mean_run_p99_ms": 1.287
+      }
+    },
+    "ABL-SpatialFirstEdge-T2X-R": {
+      "WholeFrame": {
+        "mean_ms": 1.212303733,
+        "run_means_ms": [
+          1.212303733
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 1.221632,
+        "mean_run_p95_ms": 1.23904,
+        "mean_run_p99_ms": 1.243136
+      },
+      "SMAA": {
+        "mean_ms": 0.286203733,
+        "run_means_ms": [
+          0.286203733
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.300032,
+        "mean_run_p95_ms": 0.325632,
+        "mean_run_p99_ms": 0.329728
+      },
+      "SF_CameraVelocity": {
+        "mean_ms": 0.0236416,
+        "run_means_ms": [
+          0.0236416
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576
+      },
+      "SF_Spatial": {
+        "mean_ms": 0.224968533,
+        "run_means_ms": [
+          0.224968533
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.236544,
+        "mean_run_p95_ms": 0.253952,
+        "mean_run_p99_ms": 0.257024
+      },
+      "SF_Resolve": {
+        "mean_ms": 0.0375552,
+        "run_means_ms": [
+          0.0375552
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 0.038912,
+        "mean_run_p95_ms": 0.048128,
+        "mean_run_p99_ms": 0.049152
+      },
+      "WallFrame": {
+        "mean_ms": 1.219549167,
+        "run_means_ms": [
+          1.219549167
+        ],
+        "run_mean_std_ms": null,
+        "mean_run_median_ms": 1.2238,
+        "mean_run_p95_ms": 1.251,
+        "mean_run_p99_ms": 1.2794
+      }
+    }
+  },
+  "selective_minus_native": {
+    "WholeFrame": {
+      "delta_ms": 0.03373439999999994,
+      "percent": 2.862317816647275,
+      "paired_deltas_ms": [
+        0.03373439999999994
+      ],
+      "paired_percent": [
+        2.862317816647275
+      ],
+      "paired_delta_std_ms": null
+    },
+    "SMAA": {
+      "delta_ms": 0.03319893300000004,
+      "percent": 13.121858952873634,
+      "paired_deltas_ms": [
+        0.03319893300000004
+      ],
+      "paired_percent": [
+        13.121858952873634
+      ],
+      "paired_delta_std_ms": null
+    },
+    "SF_CameraVelocity": {
+      "delta_ms": -0.00018773300000000243,
+      "percent": -0.787823142175248,
+      "paired_deltas_ms": [
+        -0.00018773300000000243
+      ],
+      "paired_percent": [
+        -0.787823142175248
+      ],
+      "paired_delta_std_ms": null
+    },
+    "SF_Spatial": {
+      "delta_ms": 0.03055786599999999,
+      "percent": 15.718204392560398,
+      "paired_deltas_ms": [
+        0.03055786599999999
+      ],
+      "paired_percent": [
+        15.718204392560398
+      ],
+      "paired_delta_std_ms": null
+    },
+    "SF_Resolve": {
+      "delta_ms": 0.0027903999999999984,
+      "percent": 8.026509572901318,
+      "paired_deltas_ms": [
+        0.0027903999999999984
+      ],
+      "paired_percent": [
+        8.026509572901318
+      ],
+      "paired_delta_std_ms": null
+    },
+    "WallFrame": {
+      "delta_ms": 0.015922917000000147,
+      "percent": 1.3229120750731571,
+      "paired_deltas_ms": [
+        0.015922917000000147
+      ],
+      "paired_percent": [
+        1.3229120750731571
+      ],
+      "paired_delta_std_ms": null
+    }
+  },
+  "rates": [
+    {
+      "mode": "O-T2X-R",
+      "repeat": 0,
+      "average_fps": 830.822691014,
+      "one_percent_low_fps": 769.625448948
+    },
+    {
+      "mode": "ABL-SpatialFirstEdge-T2X-R",
+      "repeat": 0,
+      "average_fps": 819.975141087,
+      "one_percent_low_fps": 760.899890938
+    }
+  ],
+  "note": "Hidden-window engineering; same native spatial, jitter, history and camera motion. No image/mask readback. Timestamp query instrumentation remains. Wall FPS includes host/window scheduling. No matched-quality improvement claim."
+}

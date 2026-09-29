@@ -1,12 +1,4 @@
-"""Generate the item-6 report from validated per-scene captures and timing summaries."""
-import json,statistics as st
-from analyze_spatial_first_edge import D,FULL,SEL
-def main():
-    scenes=['bistro','minecraft'];q={s:json.loads((D/f'{s}-capture.json').read_text()) for s in scenes}
-    p={s:json.loads((D/f'{s}-benchmark-performance.json').read_text()) for s in scenes}
-    bridge={s:json.loads((D/f'{s}-frame-lifecycle-bridge.json').read_text()) for s in scenes}
-    assert all(x['validation']=='PASS' for x in [*q.values(),*p.values(),*bridge.values()])
-    text='''# ⑥ 원본 공간 SMAA + 첫 edge 선택 temporal 결과
+# ⑥ 원본 공간 SMAA + 첫 edge 선택 temporal 결과
 
 ## 실험 범위
 
@@ -47,11 +39,9 @@ Raw scene RGB와 spatial RGB가 실제로 달라지는 픽셀도 모든 probe에
 
 | 장면 | probe별 공간 보정으로 달라진 픽셀 수 범위 | 전체 240프레임 평균 edge 선택 비율 |
 |---|---:|---:|
-'''
-    for s in scenes:
-        counts=[v['spatial_vs_raw_changed_pixels'] for v in q[s]['probes']]
-        text+=f"| {s.title()} | {min(counts):,} ~ {max(counts):,} | {q[s]['windows']['all']['selected_percent_mean']:.3f}% |\n"
-    text+='''
+| Bistro | 34,654 ~ 38,581 | 2.594% |
+| Minecraft | 84,303 ~ 253,740 | 17.368% |
+
 선택 비율의 분모는 화면 전체 2,037,120픽셀이다. 검출 edge 중 50%를 남긴 값이 아니며,
 추가 제거 없이 원본 RG edge를 모두 사용했다. 공간 처리 후에도 edge mask 자체는 ⑤와 같다.
 
@@ -66,10 +56,9 @@ AA-Off/실제 SMAA 1X/원본 SMAA T2X-R은 초기·후기 정지 구간에서 RG
 
 | 장면 | 원본 ④ | ⑤ 공간 보정 없음 | ⑥ 공간 SMAA 유지 | 양쪽 비선택 기여 | 선택 상태 변경 기여 |
 |---|---:|---:|---:|---:|---:|
-'''
-    for s in scenes:
-        w=q[s]['windows']['late_still'];text+=f"| {s.title()} | {w['full_rgb_step']:.6f} | {w['prior_raw_selective_rgb_step']:.6f} | {w['selective_rgb_step']:.6f} | {w['both_nonselected_contribution']:.6f} | {w['selection_changed_contribution']:.6f} |\n"
-    text+='''
+| Bistro | 0.000000 | 1.223442 | 1.255586 | 1.040598 | 0.214988 |
+| Minecraft | 0.000000 | 2.797890 | 2.954760 | 1.784873 | 1.169887 |
+
 양쪽 프레임 모두 선택된 픽셀의 변화 기여는 0이었다. 나머지 두 그룹의 합이 표의 ⑥ 변화다.
 ⑤와 ⑥ 비교는 정렬된 동일 정지 프레임의 변화 진단이며 절대 품질 점수나 공간 AA 일반의
 우열이 아니다. 이동 중 고스팅·선명도·CGVQM/초고해상도 reference 평가는 아직 하지 않았다.
@@ -95,18 +84,16 @@ RTX 3060 Ti, DX11, 1920×1061, Ultra, VSync Off, 숨김 창. 장면별 별도 cl
 
 | 장면 | 구성 | Camera velocity | 공간 SMAA 세 패스 | Temporal resolve | 전체 AA | WholeFrame GPU |
 |---|---|---:|---:|---:|---:|---:|
-'''
-    for s in scenes:
-        for m,label in [(FULL,'④ 원본 SMAA T2X-R'),(SEL,'⑥ SMAA + edge 선택')]:
-            mm=p[s]['metrics'][m];text+=f"| {s.title()} | {label} | "+' | '.join(f"{mm[k]['mean_ms']:.6f}" for k in ['SF_CameraVelocity','SF_Spatial','SF_Resolve','SMAA','WholeFrame'])+' |\n'
-    text+='''
+| Bistro | ④ 원본 SMAA T2X-R | 0.023725 | 0.150803 | 0.033397 | 0.207940 | 2.493567 |
+| Bistro | ⑥ SMAA + edge 선택 | 0.023687 | 0.151092 | 0.027855 | 0.202654 | 2.494584 |
+| Minecraft | ④ 원본 SMAA T2X-R | 0.023958 | 0.226644 | 0.034977 | 0.285603 | 1.220999 |
+| Minecraft | ⑥ SMAA + edge 선택 | 0.023923 | 0.226860 | 0.037932 | 0.288737 | 1.223658 |
+
 | 장면 | Resolve 변화 | 전체 AA 변화 | WholeFrame GPU 변화 | 반복별 전체 AA 변화율 범위 |
 |---|---:|---:|---:|---:|
-'''
-    for s in scenes:
-        c=p[s]['selective_minus_native'];rr=c['SMAA']['paired_percent']
-        text+=f"| {s.title()} | "+' | '.join(f"{c[k]['delta_ms']:+.6f} ({c[k]['percent']:+.2f}%)" for k in ['SF_Resolve','SMAA','WholeFrame'])+f" | {min(rr):+.2f}% ~ {max(rr):+.2f}% |\n"
-    text+='''
+| Bistro | -0.005542 (-16.59%) | -0.005286 (-2.54%) | +0.001018 (+0.04%) | -2.78% ~ -2.26% |
+| Minecraft | +0.002954 (+8.45%) | +0.003135 (+1.10%) | +0.002659 (+0.22%) | +0.66% ~ +1.35% |
+
 선택 resolve 차이에는 edge Load·분기·생략한 history/velocity sampling과 계산이 함께 포함된다.
 순수 texture 전송 또는 divergence 비용으로 단정하지 않는다. 작은 전체 프레임 차이는
 장면 렌더링 및 실행 변동도 포함하며 한 GPU·두 장면의 숨김 창 조건을 넘어 일반화하지 않는다.
@@ -117,12 +104,11 @@ pooled percentile이 아니다. FPS는 tick 간격의 `1000/mean`; 1% low는 가
 
 | 장면 | 구성 | AA 평균 ± run 표준편차(ms) | AA p95 / p99(ms) | Wall frame 평균(ms) | 평균 FPS | 1% low FPS |
 |---|---|---:|---:|---:|---:|---:|
-'''
-    for s in scenes:
-        for m,label in [(FULL,'④ 원본'),(SEL,'⑥ 선택')]:
-            a=p[s]['metrics'][m]['SMAA'];w=p[s]['metrics'][m]['WallFrame'];rates=[r for r in p[s]['rates'] if r['mode']==m]
-            text+=f"| {s.title()} | {label} | {a['mean_ms']:.6f} ± {a['run_mean_std_ms']:.6f} | {a['mean_run_p95_ms']:.6f} / {a['mean_run_p99_ms']:.6f} | {w['mean_ms']:.6f} | {st.mean(r['average_fps'] for r in rates):.3f} | {st.mean(r['one_percent_low_fps'] for r in rates):.3f} |\n"
-    text+='''
+| Bistro | ④ 원본 | 0.207940 ± 0.000759 | 0.215808 / 0.217856 | 2.907798 | 343.903 | 324.019 |
+| Bistro | ⑥ 선택 | 0.202654 ± 0.000317 | 0.208128 / 0.210432 | 2.915271 | 343.023 | 314.569 |
+| Minecraft | ④ 원본 | 0.285603 ± 0.000839 | 0.320000 / 0.324864 | 1.230040 | 812.982 | 748.587 |
+| Minecraft | ⑥ 선택 | 0.288737 ± 0.000502 | 0.327424 / 0.332544 | 1.232403 | 811.424 | 747.636 |
+
 모든 metric의 mean/median/sample 표준편차/p95/p99, 반복별 평균과 차분은 `*-timings.csv`,
 `*-performance.json`에 보존했다. 정지 품질이 나빠진 조건이므로 timing 이득이 있더라도
 동등 품질의 최적화 성공이나 논문의 최종 성능 우위로 주장하지 않는다.
@@ -144,6 +130,3 @@ pooled percentile이 아니다. FPS는 tick 간격의 `1000/mean`; 1% low는 가
 - ①~⑥ 구현 항목은 분리되어 있지만, 동일 조건의 최종 6구성 품질·성능 행렬은 아직 아니다.
   ⑥의 품질 한계를 유지한 채 기록한다. 지터 정책/비선택 출력에 대한 후속 변경은 별도 연구로
   정의해야 하며 이 브랜치에 후보 확장이나 다른 temporal 기법을 누적하지 않는다.
-'''
-    (D/'results-ko.md').write_text(text,encoding='utf-8');print('PASS: report generated from validated capture and benchmark JSON')
-if __name__=='__main__':main()
