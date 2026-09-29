@@ -1,0 +1,462 @@
+{
+  "classification": "existing-results-summary-not-unified-six-case-benchmark",
+  "validation": "PASS",
+  "cases": [
+    {
+      "id": 1,
+      "name": "AA-Off",
+      "spatial": "없음",
+      "temporal": "없음",
+      "jitter": "Off",
+      "scenes": {
+        "bistro": {
+          "aa_ms": null,
+          "run_mean_std_ms": null,
+          "timing_group": null,
+          "moving_cgvqm2": null,
+          "transition_cgvqm2": null,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        },
+        "minecraft": {
+          "aa_ms": null,
+          "run_mean_std_ms": null,
+          "timing_group": null,
+          "moving_cgvqm2": null,
+          "transition_cgvqm2": null,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "SMAA 1X",
+      "spatial": "원본 SMAA",
+      "temporal": "없음",
+      "jitter": "Off",
+      "scenes": {
+        "bistro": {
+          "aa_ms": 0.148339307,
+          "run_mean_std_ms": 0.0024182007671820806,
+          "timing_group": "B",
+          "moving_cgvqm2": 96.06275177001953,
+          "transition_cgvqm2": 95.87457275390625,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        },
+        "minecraft": {
+          "aa_ms": 0.22082266675,
+          "run_mean_std_ms": 0.0014339162191384224,
+          "timing_group": "B",
+          "moving_cgvqm2": 95.17250061035156,
+          "transition_cgvqm2": 94.91637420654297,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Temporal-only",
+      "spatial": "없음",
+      "temporal": "전체 화면",
+      "jitter": "On",
+      "scenes": {
+        "bistro": {
+          "aa_ms": 0.0797018665,
+          "run_mean_std_ms": 0.0005436996097874266,
+          "timing_group": "T",
+          "moving_cgvqm2": null,
+          "transition_cgvqm2": null,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        },
+        "minecraft": {
+          "aa_ms": 0.0822722135,
+          "run_mean_std_ms": 8.56899326817289e-05,
+          "timing_group": "T",
+          "moving_cgvqm2": null,
+          "transition_cgvqm2": null,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "name": "원본 SMAA T2X-R",
+      "spatial": "원본 SMAA",
+      "temporal": "전체 화면",
+      "jitter": "On",
+      "scenes": {
+        "bistro": {
+          "aa_ms": 0.21236448025,
+          "run_mean_std_ms": 0.0028069612571288297,
+          "timing_group": "P6",
+          "moving_cgvqm2": 96.19123840332031,
+          "transition_cgvqm2": 96.71925354003906,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        },
+        "minecraft": {
+          "aa_ms": 0.28457466649999996,
+          "run_mean_std_ms": 0.0015849754259892146,
+          "timing_group": "P6",
+          "moving_cgvqm2": 93.91136169433594,
+          "transition_cgvqm2": 94.9057388305664,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "Edge-selective temporal-only",
+      "spatial": "없음",
+      "temporal": "첫 패스 edge",
+      "jitter": "Off",
+      "scenes": {
+        "bistro": {
+          "aa_ms": 0.10369487975,
+          "run_mean_std_ms": 6.56095979430623e-05,
+          "timing_group": "P5",
+          "moving_cgvqm2": 96.03322982788086,
+          "transition_cgvqm2": 95.64765167236328,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          },
+          "selected_screen_percent": 2.5868335771415856
+        },
+        "minecraft": {
+          "aa_ms": 0.11639578675,
+          "run_mean_std_ms": 0.00021815381884253703,
+          "timing_group": "P5",
+          "moving_cgvqm2": 95.40603256225586,
+          "transition_cgvqm2": 94.9689712524414,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          },
+          "selected_screen_percent": 17.353615030042413
+        }
+      }
+    },
+    {
+      "id": 6,
+      "name": "SMAA + edge-selective temporal",
+      "spatial": "원본 SMAA",
+      "temporal": "첫 패스 edge",
+      "jitter": "Off",
+      "scenes": {
+        "bistro": {
+          "aa_ms": 0.20732885325,
+          "run_mean_std_ms": 0.00016974400957986145,
+          "timing_group": "P6",
+          "moving_cgvqm2": 96.17337417602539,
+          "transition_cgvqm2": 95.91162872314453,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          },
+          "selected_screen_percent": 2.5868335771415856
+        },
+        "minecraft": {
+          "aa_ms": 0.28796976,
+          "run_mean_std_ms": 0.0008431026767083011,
+          "timing_group": "P6",
+          "moving_cgvqm2": 95.2341079711914,
+          "transition_cgvqm2": 94.8941650390625,
+          "static_step": {
+            "initial_still": 0.0,
+            "late_still": 0.0
+          },
+          "selected_screen_percent": 17.353615030042413
+        }
+      }
+    }
+  ],
+  "jitter_on_diagnostics": [
+    {
+      "id": 5,
+      "scene": "bistro",
+      "jitter": "On",
+      "timing_group": "P5",
+      "aa_ms": 0.103835413,
+      "late_static_step": 1.2234422452612839,
+      "cgvqm2": null
+    },
+    {
+      "id": 6,
+      "scene": "bistro",
+      "jitter": "On",
+      "timing_group": "P6",
+      "aa_ms": 0.20697375974999999,
+      "late_static_step": 1.2555861543093518,
+      "cgvqm2": null
+    },
+    {
+      "id": 5,
+      "scene": "minecraft",
+      "jitter": "On",
+      "timing_group": "P5",
+      "aa_ms": 0.11644837325,
+      "late_static_step": 2.797889995025657,
+      "cgvqm2": null
+    },
+    {
+      "id": 6,
+      "scene": "minecraft",
+      "jitter": "On",
+      "timing_group": "P6",
+      "aa_ms": 0.28764741325,
+      "late_static_step": 2.9547604788459525,
+      "cgvqm2": null
+    }
+  ],
+  "paired_comparisons": [
+    {
+      "id": 5,
+      "scene": "bistro",
+      "contrast": "selection_pattern_off",
+      "timing_group": "P5",
+      "aa_delta_percent": -5.725208492757106,
+      "resolve_delta_percent": -18.199177561899827,
+      "aa_paired_percent_by_run": [
+        -5.594144936834889,
+        -5.737772296378907,
+        -5.724694888267279,
+        -5.84372876692838
+      ]
+    },
+    {
+      "id": 6,
+      "scene": "bistro",
+      "contrast": "off_selective_vs_native_on",
+      "timing_group": "P6",
+      "aa_delta_percent": -2.3712190447630177,
+      "resolve_delta_percent": -16.83624778045678,
+      "aa_paired_percent_by_run": [
+        -0.47723655089919603,
+        -3.117967298634683,
+        -2.758817358901544,
+        -3.0807759132304047
+      ]
+    },
+    {
+      "id": 6,
+      "scene": "bistro",
+      "contrast": "selection_pattern_off",
+      "timing_group": "P6",
+      "aa_delta_percent": -2.6813707215350147,
+      "resolve_delta_percent": -16.914844832452847,
+      "aa_paired_percent_by_run": [
+        -2.6024951902142046,
+        -2.7678047632119673,
+        -2.68652594673775,
+        -2.6685252417211647
+      ]
+    },
+    {
+      "id": 5,
+      "scene": "minecraft",
+      "contrast": "selection_pattern_off",
+      "timing_group": "P5",
+      "aa_delta_percent": 2.182261283732112,
+      "resolve_delta_percent": 7.07289857909752,
+      "aa_paired_percent_by_run": [
+        2.1782654570857707,
+        2.2281899358576274,
+        2.020711932270469,
+        2.302166348636203
+      ]
+    },
+    {
+      "id": 6,
+      "scene": "minecraft",
+      "contrast": "off_selective_vs_native_on",
+      "timing_group": "P6",
+      "aa_delta_percent": 1.1930413700405929,
+      "resolve_delta_percent": 8.404521172937173,
+      "aa_paired_percent_by_run": [
+        2.1471081905580336,
+        0.5243614113318751,
+        1.5310737484736103,
+        0.5821460974038573
+      ]
+    },
+    {
+      "id": 6,
+      "scene": "minecraft",
+      "contrast": "selection_pattern_off",
+      "timing_group": "P6",
+      "aa_delta_percent": 0.9582693490953309,
+      "resolve_delta_percent": 8.496392340727056,
+      "aa_paired_percent_by_run": [
+        1.3699483907288368,
+        0.5702472114128554,
+        1.4563903140086376,
+        0.4403186125911063
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "group": "B",
+      "commit": "e14f122d841f432b9c633fdd480740e85fc8edff",
+      "path": "Docs/Baseline-Restart/performance.json",
+      "sha256": "a21b3b4f25c30ad36cdc2f1d026ade1e21f642c2a56b1203e29a6af2f23b6373",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e14f122d841f432b9c633fdd480740e85fc8edff/Docs/Baseline-Restart/performance.json"
+    },
+    {
+      "group": "T",
+      "commit": "e2bbf8711910d207365f687b7b0c37c03d54ae9d",
+      "path": "Docs/Temporal-Only-Control/performance.json",
+      "sha256": "08ae6bc45328bd82fd2b45180a5c106d0b82c1a67a29ce2c5add4f1b44da48a4",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e2bbf8711910d207365f687b7b0c37c03d54ae9d/Docs/Temporal-Only-Control/performance.json"
+    },
+    {
+      "group": "B",
+      "commit": "e14f122d841f432b9c633fdd480740e85fc8edff",
+      "path": "Docs/Baseline-Restart/bistro-capture.json",
+      "sha256": "c87ed3f93ca6656d52d356913e73d9f66d60cbf75a8a56a33344c24f000ec139",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e14f122d841f432b9c633fdd480740e85fc8edff/Docs/Baseline-Restart/bistro-capture.json"
+    },
+    {
+      "group": "T",
+      "commit": "e2bbf8711910d207365f687b7b0c37c03d54ae9d",
+      "path": "Docs/Temporal-Only-Control/bistro-capture.json",
+      "sha256": "5943a186aeedb1b3d8f3f53fca7bcabfea4d7220c1570190c1e11245ebb5d606",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e2bbf8711910d207365f687b7b0c37c03d54ae9d/Docs/Temporal-Only-Control/bistro-capture.json"
+    },
+    {
+      "group": "B",
+      "commit": "e14f122d841f432b9c633fdd480740e85fc8edff",
+      "path": "Docs/Baseline-Restart/bistro-cgvqm.json",
+      "sha256": "8259a891027ba69b894e09079b81dff033ada9bc6d7604d287e69dd5dc4ea237",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e14f122d841f432b9c633fdd480740e85fc8edff/Docs/Baseline-Restart/bistro-cgvqm.json"
+    },
+    {
+      "group": "P5",
+      "commit": "2e3ac6ce21639552c8cf57c57d18e607a030e0e7",
+      "path": "Docs/First-Edge-Pattern-Off/bistro-benchmark.json",
+      "sha256": "3c0e61eef69ae38cbc4deae1c90a4e5cc5ebead6fea9d81fb22b69dec88899ea",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/2e3ac6ce21639552c8cf57c57d18e607a030e0e7/Docs/First-Edge-Pattern-Off/bistro-benchmark.json"
+    },
+    {
+      "group": "P6",
+      "commit": "556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9",
+      "path": "Docs/Spatial-First-Edge-Pattern-Off/bistro-benchmark.json",
+      "sha256": "0fe34d2198bb266d733fbe39299c2411dc7b6378b7450ba4db0325713d976a86",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9/Docs/Spatial-First-Edge-Pattern-Off/bistro-benchmark.json"
+    },
+    {
+      "group": "P5",
+      "commit": "2e3ac6ce21639552c8cf57c57d18e607a030e0e7",
+      "path": "Docs/First-Edge-Pattern-Off/bistro-capture.json",
+      "sha256": "bcf6544edebda44cdf8a4d8cc95881ade4688d6d784c1c03196009bab3da72ea",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/2e3ac6ce21639552c8cf57c57d18e607a030e0e7/Docs/First-Edge-Pattern-Off/bistro-capture.json"
+    },
+    {
+      "group": "P6",
+      "commit": "556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9",
+      "path": "Docs/Spatial-First-Edge-Pattern-Off/bistro-capture.json",
+      "sha256": "cf05d2078dfb51c631b3fee3a64e830c8058e178ec55df5c48d3eeab7a9f4a60",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9/Docs/Spatial-First-Edge-Pattern-Off/bistro-capture.json"
+    },
+    {
+      "group": "P5",
+      "commit": "2e3ac6ce21639552c8cf57c57d18e607a030e0e7",
+      "path": "Docs/First-Edge-Pattern-Off/bistro-cgvqm.json",
+      "sha256": "543a21271e5f792cd64b0a2181168eb24f4f189bd8123f77ac14757fcb80d06b",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/2e3ac6ce21639552c8cf57c57d18e607a030e0e7/Docs/First-Edge-Pattern-Off/bistro-cgvqm.json"
+    },
+    {
+      "group": "P6",
+      "commit": "556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9",
+      "path": "Docs/Spatial-First-Edge-Pattern-Off/bistro-cgvqm.json",
+      "sha256": "40ecdde2ad1ae8ad1eb5bc87efe5ab371092982cee8e27e9e939d363d67a928f",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9/Docs/Spatial-First-Edge-Pattern-Off/bistro-cgvqm.json"
+    },
+    {
+      "group": "B",
+      "commit": "e14f122d841f432b9c633fdd480740e85fc8edff",
+      "path": "Docs/Baseline-Restart/minecraft-capture.json",
+      "sha256": "bfa1f0ecfff4ea5ceb0ae9e6584bebb71bcb0e7bc12f52c0d01697d72bd80c66",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e14f122d841f432b9c633fdd480740e85fc8edff/Docs/Baseline-Restart/minecraft-capture.json"
+    },
+    {
+      "group": "T",
+      "commit": "e2bbf8711910d207365f687b7b0c37c03d54ae9d",
+      "path": "Docs/Temporal-Only-Control/minecraft-capture.json",
+      "sha256": "bc6caf75e878e64ad73c37d19f5dd65fb08a8b3fd8cc44ff676fb70fbdc69631",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e2bbf8711910d207365f687b7b0c37c03d54ae9d/Docs/Temporal-Only-Control/minecraft-capture.json"
+    },
+    {
+      "group": "B",
+      "commit": "e14f122d841f432b9c633fdd480740e85fc8edff",
+      "path": "Docs/Baseline-Restart/minecraft-cgvqm.json",
+      "sha256": "e3719d73f5458ddc09adf3eb8e6e56f5b3239302d26a310a95779274affb203e",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/e14f122d841f432b9c633fdd480740e85fc8edff/Docs/Baseline-Restart/minecraft-cgvqm.json"
+    },
+    {
+      "group": "P5",
+      "commit": "2e3ac6ce21639552c8cf57c57d18e607a030e0e7",
+      "path": "Docs/First-Edge-Pattern-Off/minecraft-benchmark.json",
+      "sha256": "d8f4e3563e8c4332b9c07733c10044fd8658fc0ade5be620d37e5fbed7b5952f",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/2e3ac6ce21639552c8cf57c57d18e607a030e0e7/Docs/First-Edge-Pattern-Off/minecraft-benchmark.json"
+    },
+    {
+      "group": "P6",
+      "commit": "556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9",
+      "path": "Docs/Spatial-First-Edge-Pattern-Off/minecraft-benchmark.json",
+      "sha256": "287059b8f53a690f8581ae6f149e70b4b17a5976ca8b29d50955788b9a21a9ee",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9/Docs/Spatial-First-Edge-Pattern-Off/minecraft-benchmark.json"
+    },
+    {
+      "group": "P5",
+      "commit": "2e3ac6ce21639552c8cf57c57d18e607a030e0e7",
+      "path": "Docs/First-Edge-Pattern-Off/minecraft-capture.json",
+      "sha256": "b6ea384b385178d6720a3a25f11ce374b0058eb87526cd836b58a8179c5d2209",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/2e3ac6ce21639552c8cf57c57d18e607a030e0e7/Docs/First-Edge-Pattern-Off/minecraft-capture.json"
+    },
+    {
+      "group": "P6",
+      "commit": "556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9",
+      "path": "Docs/Spatial-First-Edge-Pattern-Off/minecraft-capture.json",
+      "sha256": "8969e1e9df7c5c9c8bfd400eb2e594b20e1e05d16e8e060811b1f1584b58c85b",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9/Docs/Spatial-First-Edge-Pattern-Off/minecraft-capture.json"
+    },
+    {
+      "group": "P5",
+      "commit": "2e3ac6ce21639552c8cf57c57d18e607a030e0e7",
+      "path": "Docs/First-Edge-Pattern-Off/minecraft-cgvqm.json",
+      "sha256": "b7a486b8be704ebd223a890e6fb4c0454055922d4519b1040ee635340644e408",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/2e3ac6ce21639552c8cf57c57d18e607a030e0e7/Docs/First-Edge-Pattern-Off/minecraft-cgvqm.json"
+    },
+    {
+      "group": "P6",
+      "commit": "556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9",
+      "path": "Docs/Spatial-First-Edge-Pattern-Off/minecraft-cgvqm.json",
+      "sha256": "14e709cfd2d9431790cb9ceb2e265a6b36d346e81edbf52355376f93671af61b",
+      "url": "https://github.com/Anchovia/Adaptive-SMAA/blob/556f2264dbfc3ccf6742c8b4c42d945d2ac0d9f9/Docs/Spatial-First-Edge-Pattern-Off/minecraft-cgvqm.json"
+    }
+  ]
+}
