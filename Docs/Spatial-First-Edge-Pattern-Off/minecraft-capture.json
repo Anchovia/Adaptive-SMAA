@@ -1,0 +1,142 @@
+{
+  "validation": "PASS",
+  "static_stability": "PASS",
+  "scene": "minecraft",
+  "item": 6,
+  "capture": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\minecraft\\20260929_104256",
+  "prior": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_084926",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Capture",
+    "item": 6,
+    "window": "hidden",
+    "baseline": "c51ca28",
+    "dependency": "8e5a972",
+    "branch": "experiment/spatial-first-edge-pattern-off",
+    "arguments": [
+      "-smaaEdgePatternCapture",
+      "minecraft",
+      "D:/SMAAResearchCaptures/first-edge-pattern-off-20260929"
+    ],
+    "started_utc": "2026-09-29T01:42:54.9269799Z",
+    "completed_utc": "2026-09-29T01:47:15.6252947Z",
+    "executable_sha256": "F81D8932263D2B8DF9DAFB74F5D8F5DD301E138C293CD560D7A30A5F73BBEFE7",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_104256\\20260929_104256_results.csv",
+    "report_sha256": "2DB3DC3BC39A8094B55624BCB851C900128195B03BBF7E4A037BD4397EE60C45"
+  },
+  "frames": 240,
+  "pixels_checked": 488908800,
+  "mismatches": {
+    "on_and_native_control_frames": 0,
+    "repeat_frames": 0,
+    "spatial_current_pixels": 0,
+    "selected_pixels": 0,
+    "nonselected_pixels": 0,
+    "full_current_frames": 0
+  },
+  "windows": {
+    "all": {
+      "selected_count_mean": 353513.9625,
+      "selected_percent_mean": 17.353615030042413
+    },
+    "moving": {
+      "selected_count_mean": 421554.425,
+      "selected_percent_mean": 20.6936471587339
+    },
+    "initial_still": {
+      "selected_count_mean": 131521,
+      "selected_percent_mean": 6.456222510210494,
+      "unique_rgb_frames": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 1,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 1,
+        "O-T2X-R": 1,
+        "ABL-SpatialFirstEdge-T2X-R": 2,
+        "O-1X": 1,
+        "AA-Off": 1
+      },
+      "rgb_step": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 0.0,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 0.0,
+        "O-T2X-R": 0.0,
+        "ABL-SpatialFirstEdge-T2X-R": 1.0392091122107028,
+        "O-1X": 0.0,
+        "AA-Off": 0.0
+      },
+      "mask_switch_pixels": 0
+    },
+    "late_still": {
+      "selected_count_mean": 439426,
+      "selected_percent_mean": 21.57094329249136,
+      "unique_rgb_frames": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 1,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 1,
+        "O-T2X-R": 1,
+        "ABL-SpatialFirstEdge-T2X-R": 2,
+        "O-1X": 1,
+        "AA-Off": 1
+      },
+      "rgb_step": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 0.0,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 0.0,
+        "O-T2X-R": 0.0,
+        "ABL-SpatialFirstEdge-T2X-R": 2.9547604788459525,
+        "O-1X": 0.0,
+        "AA-Off": 0.0
+      },
+      "mask_switch_pixels": 0
+    }
+  },
+  "probes": [
+    {
+      "frame": 0,
+      "spatial_vs_input_changed_pixels": 81676,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 1,
+      "spatial_vs_input_changed_pixels": 81676,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 59,
+      "spatial_vs_input_changed_pixels": 81676,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 60,
+      "spatial_vs_input_changed_pixels": 81676,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 61,
+      "spatial_vs_input_changed_pixels": 94299,
+      "velocity_max": 0.044891357421875
+    },
+    {
+      "frame": 100,
+      "spatial_vs_input_changed_pixels": 243840,
+      "velocity_max": 0.01239776611328125
+    },
+    {
+      "frame": 179,
+      "spatial_vs_input_changed_pixels": 245366,
+      "velocity_max": 0.0153961181640625
+    },
+    {
+      "frame": 180,
+      "spatial_vs_input_changed_pixels": 243201,
+      "velocity_max": 0.015960693359375
+    },
+    {
+      "frame": 181,
+      "spatial_vs_input_changed_pixels": 243201,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 239,
+      "spatial_vs_input_changed_pixels": 243201,
+      "velocity_max": 0.0
+    }
+  ],
+  "scope": "Paired jitter/area-pattern ablation. Native temporal math, spatial-frame history, camera/depth R. Static stability does not establish moving quality or speed."
+}

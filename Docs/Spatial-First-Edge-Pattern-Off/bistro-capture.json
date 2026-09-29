@@ -1,0 +1,142 @@
+{
+  "validation": "PASS",
+  "static_stability": "PASS",
+  "scene": "bistro",
+  "item": 6,
+  "capture": "D:\\SMAAResearchCaptures\\first-edge-pattern-off-20260929\\item6\\bistro\\20260929_103742",
+  "prior": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_084056",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Capture",
+    "item": 6,
+    "window": "hidden",
+    "baseline": "c51ca28",
+    "dependency": "8e5a972",
+    "branch": "experiment/spatial-first-edge-pattern-off",
+    "arguments": [
+      "-smaaEdgePatternCapture",
+      "bistro",
+      "D:/SMAAResearchCaptures/first-edge-pattern-off-20260929"
+    ],
+    "started_utc": "2026-09-29T01:37:40.1493059Z",
+    "completed_utc": "2026-09-29T01:42:42.9131540Z",
+    "executable_sha256": "F81D8932263D2B8DF9DAFB74F5D8F5DD301E138C293CD560D7A30A5F73BBEFE7",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_103742\\20260929_103742_results.csv",
+    "report_sha256": "07B18A635CFA71D3B1F0E76ABCA41F0A4D39BFE824428AEA7DBDC8A1C3B7AB21"
+  },
+  "frames": 240,
+  "pixels_checked": 488908800,
+  "mismatches": {
+    "on_and_native_control_frames": 0,
+    "repeat_frames": 0,
+    "spatial_current_pixels": 0,
+    "selected_pixels": 0,
+    "nonselected_pixels": 0,
+    "full_current_frames": 0
+  },
+  "windows": {
+    "all": {
+      "selected_count_mean": 52696.90416666667,
+      "selected_percent_mean": 2.5868335771415856
+    },
+    "moving": {
+      "selected_count_mean": 52301.308333333334,
+      "selected_percent_mean": 2.567414208948581
+    },
+    "initial_still": {
+      "selected_count_mean": 50111,
+      "selected_percent_mean": 2.459894360666038,
+      "unique_rgb_frames": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 1,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 1,
+        "O-T2X-R": 1,
+        "ABL-SpatialFirstEdge-T2X-R": 2,
+        "O-1X": 1,
+        "AA-Off": 1
+      },
+      "rgb_step": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 0.0,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 0.0,
+        "O-T2X-R": 0.0,
+        "ABL-SpatialFirstEdge-T2X-R": 1.1850520996963032,
+        "O-1X": 0.0,
+        "AA-Off": 0.0
+      },
+      "mask_switch_pixels": 0
+    },
+    "late_still": {
+      "selected_count_mean": 56074,
+      "selected_percent_mean": 2.7526115300031417,
+      "unique_rgb_frames": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 1,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 1,
+        "O-T2X-R": 1,
+        "ABL-SpatialFirstEdge-T2X-R": 2,
+        "O-1X": 1,
+        "AA-Off": 1
+      },
+      "rgb_step": {
+        "ABL-Spatial-FullTemporal-PatternOff-R": 0.0,
+        "ABL-Spatial-FirstEdge-PatternOff-R": 0.0,
+        "O-T2X-R": 0.0,
+        "ABL-SpatialFirstEdge-T2X-R": 1.2555861543093518,
+        "O-1X": 0.0,
+        "AA-Off": 0.0
+      },
+      "mask_switch_pixels": 0
+    }
+  },
+  "scope": "Paired jitter/area-pattern ablation. Native temporal math, spatial-frame history, camera/depth R. Static stability does not establish moving quality or speed.",
+  "probes": [
+    {
+      "frame": 0,
+      "spatial_vs_input_changed_pixels": 34175,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 1,
+      "spatial_vs_input_changed_pixels": 34175,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 59,
+      "spatial_vs_input_changed_pixels": 34175,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 60,
+      "spatial_vs_input_changed_pixels": 34175,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 61,
+      "spatial_vs_input_changed_pixels": 34290,
+      "velocity_max": 0.003368377685546875
+    },
+    {
+      "frame": 100,
+      "spatial_vs_input_changed_pixels": 34896,
+      "velocity_max": 0.00392913818359375
+    },
+    {
+      "frame": 179,
+      "spatial_vs_input_changed_pixels": 37607,
+      "velocity_max": 0.00513458251953125
+    },
+    {
+      "frame": 180,
+      "spatial_vs_input_changed_pixels": 37905,
+      "velocity_max": 0.005218505859375
+    },
+    {
+      "frame": 181,
+      "spatial_vs_input_changed_pixels": 37905,
+      "velocity_max": 0.0
+    },
+    {
+      "frame": 239,
+      "spatial_vs_input_changed_pixels": 37905,
+      "velocity_max": 0.0
+    }
+  ]
+}
