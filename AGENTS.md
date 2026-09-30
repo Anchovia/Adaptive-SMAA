@@ -49,3 +49,16 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 실제 first-pass edge 시각화 검증
+
+- `validation/native-first-pass-edge-visuals`는 수정된 ② 기준선에서 직접 분기한 진단 항목이다.
+  ②와 해당 기준선의 원본 ④ 대조군에 GPU edge readback만 추가한다. AA 셰이더, 지터,
+  history, spatial/temporal 계산을 바꾸지 않는다. readback 실행은 성능 결과로 쓰지 않는다.
+- `-smaaNativeFirstPassEdgeCapture`에서만 frame 100~219의 실제 first-pass RG를 저장한다.
+  전체 240-frame RGB는 기존 각 구성의 해시와 일치해야 하며 O-1X 반복 edge도 검사한다.
+- ⑤·⑥은 독립 구현의 기존 RG/coverage 자료를 최신 RGB 해시와 대응시켜 재사용한다.
+  ②·④에 ⑤·⑥의 알고리즘 코드를 가져오거나 내부 edge를 최종 RGB의 Sobel로 대체하지 않는다.
+- ①·③은 내부 edge 검출 단계가 없다. 내부 edge 비교는 ②·④·⑤·⑥이다. ④의 first-pass
+  edge는 공간 SMAA용이며 전체 화면 temporal 실행 범위를 뜻하지 않는다.
+- 결과는 `Docs/Native-FirstPass-Edge-Visuals/`에, GIF 및 원시 캡처는 Git 밖에 보존한다.

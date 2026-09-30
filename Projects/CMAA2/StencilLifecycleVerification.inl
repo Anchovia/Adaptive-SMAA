@@ -4,7 +4,7 @@
 class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
     struct Mode {const char* name; CMAA2Sample::AAType type; bool target;};
     std::vector<Mode> m_modes;
-    bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
+    bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false,m_edgeCapture=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames=4800,m_repeats=6;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
@@ -37,7 +37,7 @@ class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_output(output){
+    BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output,bool edgeCapture=false):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_edgeCapture(edgeCapture),m_output(output){
         m_measureFrames=smoke?240:4800;m_repeats=smoke?1:6;
         m_modes={{"O-1X",CMAA2Sample::AAType::SMAA,true},{"O-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,false}};
         if(capture)m_modes.push_back({"O-1X-Repeat",CMAA2Sample::AAType::SMAA,true});
@@ -52,6 +52,7 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
+            if(m_edgeCapture)tool.ReportAddText("Native first-pass edge readback; final RG, frames 100..219; native O-1X and O-T2X-R plus O-1X repeat. Capture only, not timing.\r\n");
             tool.ReportAddText("Stencil lifecycle refresh; independent case 2; target O-1X; base c51ca2896979c78d7fd10c208303c0420a819c76.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60; camera/depth motion only.\r\n");
             tool.ReportAddText("Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.\r\n");
@@ -102,17 +103,20 @@ public:
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),temporal?"TemporalOn":"TemporalOff",ok?"PASS":"FAIL"});
         const auto dir=m_output+vaStringTools::SimpleWiden(c.name)+L"/";vaFileTools::EnsureDirectoryExists(dir);
         if(!color->SaveToPNGFile(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d.png",m_frame))))m_failed=true;
+        if(m_edgeCapture && m_frame>=100 && m_frame<220)
+            if(!s->SaveNativeFirstPassEdge(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d-edge.rg8",m_frame))))m_failed=true;
     }
     bool IsDone(AutoBenchTool&) const override{return m_done;}
     float GetProgress() const override{return float(m_slot)/float(m_modes.size());}
 };
 static void QueueStencilLifecycleVerification(CMAA2Sample& parent,AutoBenchTool& tool){
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()){
-        const bool capture=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleCapture")==0;
+        const bool edgeCapture=_wcsicmp(p.first.c_str(),L"smaaNativeFirstPassEdgeCapture")==0;
+        const bool capture=edgeCapture || _wcsicmp(p.first.c_str(),L"smaaStencilLifecycleCapture")==0;
         const bool benchmark=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleBenchmark")==0;
         const bool smoke=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleSmoke")==0;
         if(!capture&&!benchmark&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
         if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");return;}
-        tool.AddTask(std::make_shared<BenchItemStencilLifecycle>(parent,capture,scene==L"minecraft",smoke,output));return;
+        tool.AddTask(std::make_shared<BenchItemStencilLifecycle>(parent,capture,scene==L"minecraft",smoke,output,edgeCapture));return;
     }
 }

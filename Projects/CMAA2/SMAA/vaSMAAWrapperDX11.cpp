@@ -38,6 +38,7 @@
 #include "vaSMAAWrapper.h"
 
 #include "SMAA.h"
+#include <fstream>
 
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
 
@@ -124,6 +125,32 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+
+        virtual bool SaveNativeFirstPassEdge(vaRenderDeviceContext &ctx, const std::wstring &path) override
+        {
+            if(m_smaa == nullptr) return false;
+            auto dc=ctx.SafeCast<vaRenderDeviceContextDX11*>()->GetDXContext();
+            ID3D11Texture2D *source=*m_smaa->getEdgesRenderTarget();
+            D3D11_TEXTURE2D_DESC desc;source->GetDesc(&desc);
+            const int stride=(desc.Format==DXGI_FORMAT_R8G8_UNORM || desc.Format==DXGI_FORMAT_R8G8_TYPELESS)?2:
+                (desc.Format==DXGI_FORMAT_R8G8B8A8_UNORM || desc.Format==DXGI_FORMAT_R8G8B8A8_TYPELESS)?4:0;
+            if(stride==0 || desc.SampleDesc.Count!=1) return false;
+            desc.Usage=D3D11_USAGE_STAGING;desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;desc.MiscFlags=0;
+            ID3D11Texture2D *stage=nullptr;
+            if(FAILED(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()->CreateTexture2D(&desc,nullptr,&stage))) return false;
+            dc->CopyResource(stage,source);
+            D3D11_MAPPED_SUBRESOURCE mapped;
+            if(FAILED(dc->Map(stage,0,D3D11_MAP_READ,0,&mapped))){stage->Release();return false;}
+            std::ofstream out(path.c_str(),std::ios::binary);
+            out.write("EDG1",4);out.write(reinterpret_cast<const char*>(&desc.Width),4);out.write(reinterpret_cast<const char*>(&desc.Height),4);
+            std::vector<unsigned char> row(desc.Width*2);
+            for(UINT y=0;y<desc.Height;++y){
+                const auto src=static_cast<const unsigned char*>(mapped.pData)+y*mapped.RowPitch;
+                for(UINT x=0;x<desc.Width;++x){row[x*2]=src[x*stride];row[x*2+1]=src[x*stride+1];}
+                out.write(reinterpret_cast<const char*>(row.data()),row.size());
+            }
+            out.close();const bool ok=out.good();dc->Unmap(stage,0);stage->Release();return ok;
+        }
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );

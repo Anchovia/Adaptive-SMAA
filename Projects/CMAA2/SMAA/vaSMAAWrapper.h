@@ -97,6 +97,9 @@ namespace VertexAsylum
 
         virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; }
 
+        // Diagnostic readback only; never called by normal rendering or benchmarks.
+        virtual bool SaveNativeFirstPassEdge(vaRenderDeviceContext &, const std::wstring &) { return false; }
+
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
                                             const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr )  = 0;
