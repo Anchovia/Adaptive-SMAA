@@ -76,10 +76,11 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
+            tool.ReportAddRowValues({"presentation_timeline",m_capture?"480":"240","60",m_capture?"360":"120","60","60fps"});
             tool.ReportAddText("Persistence cost audit. Direct base 304f749 + explicit renderer dependency 2d4d0cc. A=baseline6; S=storage; K=constant export; D=current depth; P=union prep/current stencil; B=case7; L=conservative depth; E=first-pass stencil union; O=native4.\r\n");
-            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60; camera/depth motion only.\r\n");
+            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; capture still60/move360/still60; timing still60/move120/still60; camera/depth motion only.\r\n");
             tool.ReportAddText("Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.\r\n");
-            tool.ReportAddText(m_capture?"Capture: A/B/E/O 240 frames each. Test: all nine variants, 6 frames each. A/S/K/D/P expect baseline6; B/L/E expect case7; O expects native4. Trace readbacks and queries only on explicit diagnostic frames; no timing claim.\r\n":"Timing: all nine variants; PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 3 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
+            tool.ReportAddText(m_capture?"Presentation long capture: A/B/E/O 480 frames each; final PNG only. Test: all nine variants, 6 frames each. A/S/K/D/P expect baseline6; B/L/E expect case7; O expects native4. Trace readbacks and queries only on explicit diagnostic frames; no timing claim.\r\n":"Timing: all nine variants; PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 3 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             m_output+=std::wstring(m_capture?(m_shortCapture?L"/test/":L"/capture/"):L"/timing/")+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -105,7 +106,7 @@ public:
                     m_samples["WallFrame"].push_back((now-m_lastTick)*1000.0);
                 }
                 ++m_frame;
-                if(m_frame>=(m_capture?(m_shortCapture?6:240):m_measureFrames)){
+                if(m_frame>=(m_capture?(m_shortCapture?6:480):m_measureFrames)){
                     if(!m_capture)for(auto& kv:m_samples)Summarize(tool,kv.first,kv.second);
                     if(++m_slot==int(m_modes.size())){m_slot=0;++m_run;}
                     if(m_run==(m_capture?1:m_repeats)){Finish(tool);return;}Configure();
@@ -113,12 +114,12 @@ public:
             }
         }
         const auto c=Current();auto s=m_parent.GetSMAA();
-        const bool diagnostic=m_capture&&c.diagnostics&&TraceFrame();
+        const bool diagnostic=m_capture&&m_shortCapture&&c.diagnostics&&TraceFrame();
         s->SetExecutionDiagnostics(diagnostic);
         s->SetThinLineTracePrefix(diagnostic?Prefix():L"");
-        m_lastTick=now;const int phase=m_frame<0?0:m_frame%240;
+        m_lastTick=now;const int phase=m_frame<0?0:m_frame%(m_capture?480:240);
         if(m_frame>=0&&phase==0)m_parent.GetSMAA()->ResetTemporalHistory();
-        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f);
+        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,m_capture?360:120))/60.0f);
     }
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
@@ -129,7 +130,7 @@ public:
         m_failed=m_failed||!ok;if(!m_capture||m_frame<0)return;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),temporal?"TemporalOn":"TemporalOff",ok?"PASS":"FAIL"});
         const auto dir=m_output+vaStringTools::SimpleWiden(c.name)+L"/";vaFileTools::EnsureDirectoryExists(dir);
-        if(c.diagnostics&&TraceFrame()) {
+        if(m_shortCapture&&c.diagnostics&&TraceFrame()) {
             const auto prefix=Prefix();
             const bool inputs=s->SaveThinLineTraceInputs(ctx,prefix)&&s->SaveSpatialEdgeSnapshot(ctx,prefix,true,false);
             const bool coverage=s->SaveExecutionCoverage(ctx,prefix+L"-coverage.dds");
