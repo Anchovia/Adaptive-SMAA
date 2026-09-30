@@ -1,0 +1,139 @@
+{
+  "validation": "PASS",
+  "executable_sha256": "3e8ad3b8b637ab70e7bb95f78343c2093e0d8512770a5a56d208626ae44297cd",
+  "receipt": {
+    "case": 4,
+    "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+    "scene": "minecraft",
+    "phase": "Smoke",
+    "window": "hidden",
+    "arguments": [
+      "-smaaStencilLifecycleSmoke",
+      "minecraft",
+      "D:/SMAAResearchCaptures/stencil-lifecycle-20260930"
+    ],
+    "started_utc": "2026-09-30T07:34:30.8919940Z",
+    "completed_utc": "2026-09-30T07:35:06.0872719Z",
+    "executable_sha256": "3E8AD3B8B637AB70E7BB95F78343C2093E0D8512770A5A56D208626AE44297CD",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_163432\\20260930_163432_results.csv",
+    "report_sha256": "A26B4351D34287D69EB4152CA5DB0E243AABAEBA8EC8237E4A3278D2B66F309E"
+  },
+  "scene": "minecraft",
+  "case": 4,
+  "config": {
+    "case": 4,
+    "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+    "base": "c51ca2896979c78d7fd10c208303c0420a819c76",
+    "target": "O-T2X-R",
+    "pattern": "On",
+    "spatial": true,
+    "temporal": true,
+    "stencil_used": true,
+    "native_control": "O-T2X-R",
+    "source_changes": "SMAA spatial stencil clear only; selective clear retained without duplication; timer names normalized; no shader changes"
+  },
+  "frames_per_mode_run": 240,
+  "repeats": 1,
+  "modes": {
+    "O-T2X-R": {
+      "SMAA": {
+        "mean_ms": 0.223543467,
+        "run_mean_std_ms": null,
+        "run_means_ms": [
+          0.223543467
+        ],
+        "mean_run_median_ms": 0.241664,
+        "mean_run_p95_ms": 0.273408,
+        "mean_run_p99_ms": 0.27648,
+        "mean_frame_stddev_ms": 0.043071689,
+        "mean_slowest_one_percent_equivalent_fps": 3610.212569316
+      },
+      "WholeFrame": {
+        "mean_ms": 1.1657408,
+        "run_mean_std_ms": null,
+        "run_means_ms": [
+          1.1657408
+        ],
+        "mean_run_median_ms": 1.166336,
+        "mean_run_p95_ms": 1.236992,
+        "mean_run_p99_ms": 1.318912,
+        "mean_frame_stddev_ms": 0.048833359,
+        "mean_slowest_one_percent_equivalent_fps": 758.200698758
+      },
+      "WallFrame": {
+        "mean_ms": 1.1968975,
+        "run_mean_std_ms": null,
+        "run_means_ms": [
+          1.1968975
+        ],
+        "mean_run_median_ms": 1.1839,
+        "mean_run_p95_ms": 1.3017,
+        "mean_run_p99_ms": 1.4182,
+        "mean_frame_stddev_ms": 0.052110118,
+        "mean_slowest_one_percent_equivalent_fps": 686.31824577
+      },
+      "SR_CameraVelocity": {
+        "mean_ms": 0.023688533,
+        "run_mean_std_ms": null,
+        "run_means_ms": [
+          0.023688533
+        ],
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576,
+        "mean_frame_stddev_ms": 0.000348093,
+        "mean_slowest_one_percent_equivalent_fps": 40690.104166667
+      },
+      "SR_Resolve": {
+        "mean_ms": 0.034538667,
+        "run_mean_std_ms": null,
+        "run_means_ms": [
+          0.034538667
+        ],
+        "mean_run_median_ms": 0.031744,
+        "mean_run_p95_ms": 0.04096,
+        "mean_run_p99_ms": 0.04096,
+        "mean_frame_stddev_ms": 0.004824495,
+        "mean_slowest_one_percent_equivalent_fps": 24112.654320988
+      }
+    }
+  },
+  "relative_to_corrected_t2x_r": {
+    "SMAA": {
+      "change_percent": 0.0,
+      "difference_ms": 0.0,
+      "paired_run_change_percent": [
+        0.0
+      ]
+    },
+    "WholeFrame": {
+      "change_percent": 0.0,
+      "difference_ms": 0.0,
+      "paired_run_change_percent": [
+        0.0
+      ]
+    },
+    "WallFrame": {
+      "change_percent": 0.0,
+      "difference_ms": 0.0,
+      "paired_run_change_percent": [
+        0.0
+      ]
+    },
+    "SR_CameraVelocity": {
+      "change_percent": 0.0,
+      "difference_ms": 0.0,
+      "paired_run_change_percent": [
+        0.0
+      ]
+    },
+    "SR_Resolve": {
+      "change_percent": 0.0,
+      "difference_ms": 0.0,
+      "paired_run_change_percent": [
+        0.0
+      ]
+    }
+  },
+  "classification": "Within-executable paired GPU comparison; native On vs selective Off where applicable, not isolated selection effect. AA-Off AA=0 by definition. WholeFrame GPU and CPU wall distinct."
+}
