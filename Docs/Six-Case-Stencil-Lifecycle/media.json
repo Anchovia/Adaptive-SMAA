@@ -1,0 +1,647 @@
+{
+  "validation": "PASS",
+  "clips": [
+    {
+      "validation": "PASS",
+      "clip": {
+        "id": "bistro-chairs-moving",
+        "scene": "bistro",
+        "title": "Bistro · 의자 다리 / 이동",
+        "roi": [
+          1190,
+          530,
+          1478,
+          722
+        ],
+        "start": 100,
+        "end": 160,
+        "fps": 30
+      },
+      "case_order": [
+        "① AA-Off",
+        "② SMAA 1X",
+        "③ Temporal-only",
+        "④ SMAA T2X-R",
+        "⑤ Edge temporal-only",
+        "⑥ SMAA + edge temporal"
+      ],
+      "layout": "2 columns x 3 rows: [1,2] / [3,4] / [5,6]",
+      "summary_sha256": "d03833607fc828ada71a913ac9121bac8312c0bc4bd6bec5a62c4735296e988c",
+      "source_fps": 60,
+      "crop_scale": 2,
+      "spatial_resize": "nearest neighbor",
+      "color_adjustment": "none",
+      "frame_interpolation": false,
+      "source_rgb_verified_count": 360,
+      "source_rgb_digest": "f2aded1d6c71d6ee19786a318c20841ca52c9b2b12c6fa79bcc4bfe06e349ab9",
+      "sources": [
+        {
+          "case": 1,
+          "branch": "baseline/aa-off-stencil-lifecycle",
+          "commit": "eb1d05a44eb7f0995fa811ab4352cd6d42d15ab4",
+          "target": "AA-Off",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case1\\bistro\\20260930_163920\\AA-Off"
+        },
+        {
+          "case": 2,
+          "branch": "baseline/smaa-1x-stencil-lifecycle",
+          "commit": "15fb796bac3be602ba88727a4593f9fcc033088d",
+          "target": "O-1X",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case2\\bistro\\20260930_165921\\O-1X"
+        },
+        {
+          "case": 3,
+          "branch": "baseline/temporal-only-stencil-lifecycle",
+          "commit": "3274633951d07a752c8d20e03a47fe1cd6b11461",
+          "target": "ABL-TemporalOnly-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case3\\bistro\\20260930_171020\\ABL-TemporalOnly-R"
+        },
+        {
+          "case": 4,
+          "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+          "commit": "8a08824dbf9ed17dc09d0d306336718f422ee9ad",
+          "target": "O-T2X-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case4\\bistro\\20260930_163014\\O-T2X-R"
+        },
+        {
+          "case": 5,
+          "branch": "experiment/first-edge-temporal-only-stencil-lifecycle",
+          "commit": "0b4191407b340bdcaab207b7f8b3f1b872731b71",
+          "target": "ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case5\\bistro\\20260930_172120\\ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R"
+        },
+        {
+          "case": 6,
+          "branch": "experiment/spatial-first-edge-stencil-lifecycle",
+          "commit": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+          "target": "ABL-Spatial-FirstEdge-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case6\\bistro\\20260930_173241\\ABL-Spatial-FirstEdge-Stencil-PatternOff-R"
+        }
+      ],
+      "comparison_gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\six-way.gif",
+        "sha256": "218b4fb66a917d9439b5ae397aebc0a6845e98836af680dfdc72110b7ab43a17",
+        "frames": 60,
+        "duration_ms": 2000,
+        "average_fps": 30,
+        "fixed_shared_palette": true,
+        "dither": false,
+        "decoded_quantized_rgb_exact": true
+      },
+      "individual_gifs": [
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\case1.gif",
+          "sha256": "cd210ff03f5cdc57009c8bc747cf3c61f6c24ade9293b0cf68b342e281deb5e1",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\case2.gif",
+          "sha256": "75998bfea6cd3274ec322a12f5aca93dcdfa6081a9ff37da5f34d7c5ea9b2e46",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\case3.gif",
+          "sha256": "b3ffef5a06c94f5dc4b771386ce47d55b372274e4914f8a7ba1e45a30084ea19",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\case4.gif",
+          "sha256": "79a4010ed0b29d2bc4ce14ed15ba55bc4a5730b08e0708279b17a30744491bfa",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\case5.gif",
+          "sha256": "f50cf05407c6a297c509d6da736cb1fe9cdf020d94b01bbf43ee6dcc359ecef1",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\case6.gif",
+          "sha256": "beb2492ced9adc8290f841b92570a16bb85a0c16f3d4b6919a4cbb8e4bd0d582",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        }
+      ],
+      "realtime_video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\six-way-60fps.mp4",
+        "sha256": "62c7491ef6e2fbb052a79d06b9211496456e12cb8de0f1a97e5f6af2537f19cd",
+        "frames": 60,
+        "fps": 60,
+        "pts_verified": true,
+        "encoding": "H264 CRF10 yuv420p; playback, not lossless evidence"
+      },
+      "original_rgb_sequence": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-chairs-moving\\adjacent-original-rgb.png",
+      "interpretation": "Visual inspection only. GIF has 256-color quantization. No new quality score or absolute ghosting claim. Pattern On 3/4 vs Off 5/6. Screen-fixed ROIs; only camera motion, not moving-object validation."
+    },
+    {
+      "validation": "PASS",
+      "clip": {
+        "id": "minecraft-thin-edges-moving",
+        "scene": "minecraft",
+        "title": "Minecraft · 얇은 경계 / 이동",
+        "roi": [
+          780,
+          460,
+          1068,
+          652
+        ],
+        "start": 100,
+        "end": 160,
+        "fps": 30
+      },
+      "case_order": [
+        "① AA-Off",
+        "② SMAA 1X",
+        "③ Temporal-only",
+        "④ SMAA T2X-R",
+        "⑤ Edge temporal-only",
+        "⑥ SMAA + edge temporal"
+      ],
+      "layout": "2 columns x 3 rows: [1,2] / [3,4] / [5,6]",
+      "summary_sha256": "d03833607fc828ada71a913ac9121bac8312c0bc4bd6bec5a62c4735296e988c",
+      "source_fps": 60,
+      "crop_scale": 2,
+      "spatial_resize": "nearest neighbor",
+      "color_adjustment": "none",
+      "frame_interpolation": false,
+      "source_rgb_verified_count": 360,
+      "source_rgb_digest": "05eb4b3ac8df1e35efe8c10799790a442f61fa757ae26040d3b77f14dcddc87c",
+      "sources": [
+        {
+          "case": 1,
+          "branch": "baseline/aa-off-stencil-lifecycle",
+          "commit": "eb1d05a44eb7f0995fa811ab4352cd6d42d15ab4",
+          "target": "AA-Off",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case1\\minecraft\\20260930_164126\\AA-Off"
+        },
+        {
+          "case": 2,
+          "branch": "baseline/smaa-1x-stencil-lifecycle",
+          "commit": "15fb796bac3be602ba88727a4593f9fcc033088d",
+          "target": "O-1X",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case2\\minecraft\\20260930_170127\\O-1X"
+        },
+        {
+          "case": 3,
+          "branch": "baseline/temporal-only-stencil-lifecycle",
+          "commit": "3274633951d07a752c8d20e03a47fe1cd6b11461",
+          "target": "ABL-TemporalOnly-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case3\\minecraft\\20260930_171227\\ABL-TemporalOnly-R"
+        },
+        {
+          "case": 4,
+          "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+          "commit": "8a08824dbf9ed17dc09d0d306336718f422ee9ad",
+          "target": "O-T2X-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case4\\minecraft\\20260930_163229\\O-T2X-R"
+        },
+        {
+          "case": 5,
+          "branch": "experiment/first-edge-temporal-only-stencil-lifecycle",
+          "commit": "0b4191407b340bdcaab207b7f8b3f1b872731b71",
+          "target": "ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case5\\minecraft\\20260930_172336\\ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R"
+        },
+        {
+          "case": 6,
+          "branch": "experiment/spatial-first-edge-stencil-lifecycle",
+          "commit": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+          "target": "ABL-Spatial-FirstEdge-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case6\\minecraft\\20260930_173457\\ABL-Spatial-FirstEdge-Stencil-PatternOff-R"
+        }
+      ],
+      "comparison_gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\six-way.gif",
+        "sha256": "8b814b88f6a76eb44010d2d8ce57208634ac98aa9a0363160b720c0c58ae4ed9",
+        "frames": 60,
+        "duration_ms": 2000,
+        "average_fps": 30,
+        "fixed_shared_palette": true,
+        "dither": false,
+        "decoded_quantized_rgb_exact": true
+      },
+      "individual_gifs": [
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\case1.gif",
+          "sha256": "cb2f72902e6e3ae747454ea78a0e475f3718629f3a53a721195de2e6591dc6ba",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\case2.gif",
+          "sha256": "937418839420175e9bbf9ddf0e36e90cc176d8d1d84086366f2e11795677d9c2",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\case3.gif",
+          "sha256": "846ac8514cef337567352cc80e1acd658dfd7805cc9a86a2899722b3dc14cfaa",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\case4.gif",
+          "sha256": "8b4c7b487e05c60cd70cf831cdbbbaf9f59cc690c009a81dee74a22b08e0422a",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\case5.gif",
+          "sha256": "700affe89a76fe76b23a49e3f694f05b11b78b139f783029e1c91de7df01c750",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\case6.gif",
+          "sha256": "19cf85455bc6527babdcb00c929919a501dcc2d6b0cf4801cee79851848edf28",
+          "frames": 60,
+          "duration_ms": 2000,
+          "average_fps": 30,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        }
+      ],
+      "realtime_video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\six-way-60fps.mp4",
+        "sha256": "bb5736d65b79034047d9e8d8be64db22bf2f70ae12e54fd548efc6e4ee6d521c",
+        "frames": 60,
+        "fps": 60,
+        "pts_verified": true,
+        "encoding": "H264 CRF10 yuv420p; playback, not lossless evidence"
+      },
+      "original_rgb_sequence": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-thin-edges-moving\\adjacent-original-rgb.png",
+      "interpretation": "Visual inspection only. GIF has 256-color quantization. No new quality score or absolute ghosting claim. Pattern On 3/4 vs Off 5/6. Screen-fixed ROIs; only camera motion, not moving-object validation."
+    },
+    {
+      "validation": "PASS",
+      "clip": {
+        "id": "minecraft-leaves-stop",
+        "scene": "minecraft",
+        "title": "Minecraft · 나뭇잎 / 이동 → 정지",
+        "roi": [
+          1180,
+          770,
+          1468,
+          962
+        ],
+        "start": 160,
+        "end": 220,
+        "fps": 15
+      },
+      "case_order": [
+        "① AA-Off",
+        "② SMAA 1X",
+        "③ Temporal-only",
+        "④ SMAA T2X-R",
+        "⑤ Edge temporal-only",
+        "⑥ SMAA + edge temporal"
+      ],
+      "layout": "2 columns x 3 rows: [1,2] / [3,4] / [5,6]",
+      "summary_sha256": "d03833607fc828ada71a913ac9121bac8312c0bc4bd6bec5a62c4735296e988c",
+      "source_fps": 60,
+      "crop_scale": 2,
+      "spatial_resize": "nearest neighbor",
+      "color_adjustment": "none",
+      "frame_interpolation": false,
+      "source_rgb_verified_count": 360,
+      "source_rgb_digest": "2d5bd55588b0a83b968063df0b74c58818b4229d202ebdaf8991d3edcb546bd0",
+      "sources": [
+        {
+          "case": 1,
+          "branch": "baseline/aa-off-stencil-lifecycle",
+          "commit": "eb1d05a44eb7f0995fa811ab4352cd6d42d15ab4",
+          "target": "AA-Off",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case1\\minecraft\\20260930_164126\\AA-Off"
+        },
+        {
+          "case": 2,
+          "branch": "baseline/smaa-1x-stencil-lifecycle",
+          "commit": "15fb796bac3be602ba88727a4593f9fcc033088d",
+          "target": "O-1X",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case2\\minecraft\\20260930_170127\\O-1X"
+        },
+        {
+          "case": 3,
+          "branch": "baseline/temporal-only-stencil-lifecycle",
+          "commit": "3274633951d07a752c8d20e03a47fe1cd6b11461",
+          "target": "ABL-TemporalOnly-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case3\\minecraft\\20260930_171227\\ABL-TemporalOnly-R"
+        },
+        {
+          "case": 4,
+          "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+          "commit": "8a08824dbf9ed17dc09d0d306336718f422ee9ad",
+          "target": "O-T2X-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case4\\minecraft\\20260930_163229\\O-T2X-R"
+        },
+        {
+          "case": 5,
+          "branch": "experiment/first-edge-temporal-only-stencil-lifecycle",
+          "commit": "0b4191407b340bdcaab207b7f8b3f1b872731b71",
+          "target": "ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case5\\minecraft\\20260930_172336\\ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R"
+        },
+        {
+          "case": 6,
+          "branch": "experiment/spatial-first-edge-stencil-lifecycle",
+          "commit": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+          "target": "ABL-Spatial-FirstEdge-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case6\\minecraft\\20260930_173457\\ABL-Spatial-FirstEdge-Stencil-PatternOff-R"
+        }
+      ],
+      "comparison_gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\six-way.gif",
+        "sha256": "f0f3a339f89b64e9b0fcae2fd18d9759648695e0a28877e19f0923e924185a5b",
+        "frames": 60,
+        "duration_ms": 4000,
+        "average_fps": 15,
+        "fixed_shared_palette": true,
+        "dither": false,
+        "decoded_quantized_rgb_exact": true
+      },
+      "individual_gifs": [
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\case1.gif",
+          "sha256": "bb35fbf61f4296d0a53a8546a51e3989ce1b7eb9cee2e17b93babc03925160a2",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\case2.gif",
+          "sha256": "9e0ff05411863199640ae8f2bbefd1963c6a3fc17c0eae5b628d087f42da7b4a",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\case3.gif",
+          "sha256": "a86cb557405b28faa8bfd8b3eb6f8bbe884932410924a60eeba8d80f0eda58e9",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\case4.gif",
+          "sha256": "eb95317c17b7aa87105ab70c057ef9680304d2abf73eba75f4e90286903a0f69",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\case5.gif",
+          "sha256": "76be2a8ad50f0bcef324751070de8cbf84f07a88fca51fef46d69069055c61e0",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\case6.gif",
+          "sha256": "ea7535d6beaced6318bbc45dcb05e1ed889106d4b8d2e66fd68a9a8405976160",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        }
+      ],
+      "realtime_video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\six-way-60fps.mp4",
+        "sha256": "3e735423e3ca804a72e995203844ec54364951b8782f87f37a37b249cdb9aec9",
+        "frames": 60,
+        "fps": 60,
+        "pts_verified": true,
+        "encoding": "H264 CRF10 yuv420p; playback, not lossless evidence"
+      },
+      "original_rgb_sequence": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\minecraft-leaves-stop\\adjacent-original-rgb.png",
+      "interpretation": "Visual inspection only. GIF has 256-color quantization. No new quality score or absolute ghosting claim. Pattern On 3/4 vs Off 5/6. Screen-fixed ROIs; only camera motion, not moving-object validation."
+    },
+    {
+      "validation": "PASS",
+      "clip": {
+        "id": "bistro-window-stop",
+        "scene": "bistro",
+        "title": "Bistro · 창살 / 이동 → 정지",
+        "roi": [
+          880,
+          430,
+          1168,
+          622
+        ],
+        "start": 160,
+        "end": 220,
+        "fps": 15
+      },
+      "case_order": [
+        "① AA-Off",
+        "② SMAA 1X",
+        "③ Temporal-only",
+        "④ SMAA T2X-R",
+        "⑤ Edge temporal-only",
+        "⑥ SMAA + edge temporal"
+      ],
+      "layout": "2 columns x 3 rows: [1,2] / [3,4] / [5,6]",
+      "summary_sha256": "d03833607fc828ada71a913ac9121bac8312c0bc4bd6bec5a62c4735296e988c",
+      "source_fps": 60,
+      "crop_scale": 2,
+      "spatial_resize": "nearest neighbor",
+      "color_adjustment": "none",
+      "frame_interpolation": false,
+      "source_rgb_verified_count": 360,
+      "source_rgb_digest": "d12e33825abdf73f17358b14286c583b20afb027fc767b47f3897d79f8396bd5",
+      "sources": [
+        {
+          "case": 1,
+          "branch": "baseline/aa-off-stencil-lifecycle",
+          "commit": "eb1d05a44eb7f0995fa811ab4352cd6d42d15ab4",
+          "target": "AA-Off",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case1\\bistro\\20260930_163920\\AA-Off"
+        },
+        {
+          "case": 2,
+          "branch": "baseline/smaa-1x-stencil-lifecycle",
+          "commit": "15fb796bac3be602ba88727a4593f9fcc033088d",
+          "target": "O-1X",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case2\\bistro\\20260930_165921\\O-1X"
+        },
+        {
+          "case": 3,
+          "branch": "baseline/temporal-only-stencil-lifecycle",
+          "commit": "3274633951d07a752c8d20e03a47fe1cd6b11461",
+          "target": "ABL-TemporalOnly-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case3\\bistro\\20260930_171020\\ABL-TemporalOnly-R"
+        },
+        {
+          "case": 4,
+          "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+          "commit": "8a08824dbf9ed17dc09d0d306336718f422ee9ad",
+          "target": "O-T2X-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case4\\bistro\\20260930_163014\\O-T2X-R"
+        },
+        {
+          "case": 5,
+          "branch": "experiment/first-edge-temporal-only-stencil-lifecycle",
+          "commit": "0b4191407b340bdcaab207b7f8b3f1b872731b71",
+          "target": "ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case5\\bistro\\20260930_172120\\ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R"
+        },
+        {
+          "case": 6,
+          "branch": "experiment/spatial-first-edge-stencil-lifecycle",
+          "commit": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+          "target": "ABL-Spatial-FirstEdge-Stencil-PatternOff-R",
+          "folder": "D:\\SMAAResearchCaptures\\stencil-lifecycle-20260930\\case6\\bistro\\20260930_173241\\ABL-Spatial-FirstEdge-Stencil-PatternOff-R"
+        }
+      ],
+      "comparison_gif": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\six-way.gif",
+        "sha256": "93a42d811bb13fa5549fd373a48bf0aa8f825641341cddf9150888b979ee64e9",
+        "frames": 60,
+        "duration_ms": 4000,
+        "average_fps": 15,
+        "fixed_shared_palette": true,
+        "dither": false,
+        "decoded_quantized_rgb_exact": true
+      },
+      "individual_gifs": [
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\case1.gif",
+          "sha256": "8cd7502d64706b52eb77513fef4cfcd86430c37b0bcfe3d25f8d17b8c8c6021f",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\case2.gif",
+          "sha256": "61b59298890e0d57b364956007bad8f2ddee08ea15ea0cd6de711016161f6d83",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\case3.gif",
+          "sha256": "e26e9721f78d49baa343412cf88ead507aede5bfbced7810363da4d7cedc303c",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\case4.gif",
+          "sha256": "904e9234b1184e29ab2ba64261d3710d0ef13e14b7b55cfc6bf0faf3866a3211",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\case5.gif",
+          "sha256": "3a47bbb81f90acac907f2ba27ba806cdd0dcd2fafc7f032a525a2ebb3b6d4b6f",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\case6.gif",
+          "sha256": "28e877ced94f510207918a3e549a77645e06f25ff9afd73984d5d6a8f3db31e8",
+          "frames": 60,
+          "duration_ms": 4000,
+          "average_fps": 15,
+          "fixed_shared_palette": true,
+          "dither": false,
+          "decoded_quantized_rgb_exact": true
+        }
+      ],
+      "realtime_video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\six-way-60fps.mp4",
+        "sha256": "cafcb478a552280add5f8d2d6a8355d6d774a69d6cc1759897ceeea0af27bc09",
+        "frames": 60,
+        "fps": 60,
+        "pts_verified": true,
+        "encoding": "H264 CRF10 yuv420p; playback, not lossless evidence"
+      },
+      "original_rgb_sequence": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\stencil-six-case-20260930\\bistro-window-stop\\adjacent-original-rgb.png",
+      "interpretation": "Visual inspection only. GIF has 256-color quantization. No new quality score or absolute ghosting claim. Pattern On 3/4 vs Off 5/6. Screen-fixed ROIs; only camera motion, not moving-object validation."
+    }
+  ],
+  "total_source_frames_verified": 1440,
+  "builder_sha256": "dbb7d46d63293466f8ac04495cb32f840720924197b15ef86efb0d73fb9ebf05"
+}

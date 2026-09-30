@@ -66,3 +66,7 @@ Resolve에는 camera velocity 생성이나 입력 준비·공간 처리가 포�
 - ⑥ SMAA + edge temporal: `experiment/spatial-first-edge-stencil-lifecycle` / `304f7493c6a5e53fa3cfac5dfd084ce0e86ca459`
 
 기존 초기화 누락 기준선으로 계산한 개선율은 과거 실행 조건의 기록으로 보존하고, 이후 성능 비교는 이번 수정 기준선을 사용한다. 이번 측정은 여섯 control의 재정비이며 최종 Original/Adaptive 8-case 연구 완료를 의미하지 않는다.
+
+## 육안 비교 자료
+
+같은 프레임·영역을 사용한 [여섯 구성 GIF 및 60fps 영상 목록](media.md)을 추가했다. Bistro 의자 다리와 Minecraft 얇은 경계의 이동, 나뭇잎과 창살의 이동→정지 구간을 비교한다. 각 구성의 개별 GIF와 인접 원본 RGB도 함께 제공한다. 생성 조건과 원본 해시 검증 기록은 `media.json`에 있으며, 새 품질 점수나 renderer 변경은 없다.
