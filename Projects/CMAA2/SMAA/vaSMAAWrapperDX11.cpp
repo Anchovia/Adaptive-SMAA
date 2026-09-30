@@ -514,7 +514,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
-                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,GetEdgePersistenceMode()!=0);
+                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,UsesPersistenceDepthGate());
                 else if(GetSpatialFirstEdgeEnabled())
                     m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else
@@ -661,7 +661,14 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     string vsVersion = "vs_4_0";
     string psVersion = "ps_4_1";
 
-    if(name=="NeighborhoodPersistencePS" || name=="NeighborhoodCurrentDepthPS" || name=="FirstEdgeDepthPS" || name=="FirstEdgeDepthCoveragePS") {
+    if(name=="PersistenceLumaEdgePS" || name=="PersistenceLumaRawEdgePS" || name=="PersistenceColorEdgePS" || name=="PersistenceDepthEdgePS") {
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",name,shaderMacros,true);
+        tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="NeighborhoodPersistencePS" || name=="NeighborhoodConstantDepthPS" || name=="NeighborhoodConservativeDepthPS" || name=="NeighborhoodCurrentDepthPS" || name=="FirstEdgeDepthPS" || name=="FirstEdgeDepthCoveragePS") {
         const bool retain=name.substr(0,12)=="Neighborhood";
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,retain?"DX10_SMAANeighborhoodBlendingVS":"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
         const string entry=retain?name:name=="FirstEdgeDepthPS"?"FirstEdgeStencilPS":"FirstEdgeStencilCoveragePS";

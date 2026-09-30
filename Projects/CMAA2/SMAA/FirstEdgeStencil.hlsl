@@ -52,6 +52,35 @@ void NeighborhoodPersistencePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
     selectionDepth = (currentEdge || (inBounds && previousEdge)) ? 1.0 : 0.0;
 }
 
+// Diagnostic only: baseline constant raster depth expressed as a shader export.
+void NeighborhoodConstantDepthPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
+                                float4 offset : TEXCOORD1,
+                                out float4 history : SV_TARGET0, out float4 visible : SV_TARGET1,
+                                out float selectionDepth : SV_Depth) {
+    history = DX10_SMAANeighborhoodBlendingPS(p, uv, offset);
+    visible = history;
+    selectionDepth = 1.0;
+}
+
+// Fullscreen triangle raster depth is 1; both exported values 0/1 satisfy <=.
+void NeighborhoodConservativeDepthPS(noperspective centroid float4 p : SV_POSITION, float2 uv : TEXCOORD0,
+                              float4 offset : TEXCOORD1,
+                              out float4 history : SV_TARGET0, out float4 visible : SV_TARGET1,
+                              out float selectionDepth : SV_DepthLessEqual) {
+    history = DX10_SMAANeighborhoodBlendingPS(p, uv, offset);
+    visible = history;
+    bool currentEdge = any(edgesTex.Load(int3(int2(p.xy), 0)).rg > 0.0);
+    // Match native resolve's point velocity and history texel, not the velocity
+    // blended by the spatial neighborhood shader into history alpha.
+    float2 previousUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    bool inBounds = all(previousUV >= 0.0) && all(previousUV < 1.0);
+    int2 previousPixel = int2(floor(previousUV * SMAA_RT_METRICS.zw));
+    // Texture Load is defined as zero outside the texture; the explicit UV gate
+    // also rejects border coordinates instead of clamping old edge marks.
+    bool previousEdge = any(previousRawEdges.Load(int3(previousPixel, 0)).rg > 0.0);
+    selectionDepth = (currentEdge || (inBounds && previousEdge)) ? 1.0 : 0.0;
+}
+
 [earlydepthstencil]
 float4 FirstEdgeStencilPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
     return DX10_SMAAResolvePS(p, uv);
