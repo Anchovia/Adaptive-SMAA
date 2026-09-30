@@ -345,10 +345,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
     // And here we go!
-    // Native spatial work can tolerate a stale stencil superset because its
-    // weight shader returns zero at zero-RG pixels. Temporal cannot: clear the
-    // exact execution gate every frame, only on the new retained-output route.
-    if(retainRTV || exactStencil) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
+    // The dedicated SMAA stencil must describe this frame, for every spatial route.
+    if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
     edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);

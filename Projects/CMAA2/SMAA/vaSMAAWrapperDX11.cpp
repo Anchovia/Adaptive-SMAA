@@ -409,7 +409,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     if( GetTemporalReprojectionEnabled( ) )
     {
-        vaScopeTimer cameraTimer("SF_CameraVelocity", &deviceContext);
+        vaScopeTimer cameraTimer("SR_CameraVelocity", &deviceContext);
         if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
             return vaDrawResultFlags::ShadersStillCompiling;
 
@@ -492,7 +492,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 dx11Context->Begin(statsQuery);dx11Context->Begin(samplesQuery);
             }
             {
-                vaScopeTimer resolveTimer("SF_Resolve", &deviceContext);
+                vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
                     m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV);
                 else if(GetSpatialFirstEdgeEnabled())
