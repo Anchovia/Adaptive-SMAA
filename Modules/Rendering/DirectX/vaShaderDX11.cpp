@@ -405,6 +405,9 @@ namespace VertexAsylum
                     szEntryPoint, szShaderModel, dwShaderFlags, 0, ppBlobOut, &pErrorBlob );
                 if( FAILED( hr ) )
                 {
+                    if(vaShader::ReportNonInteractiveCompileFailure(vaStringTools::SimpleNarrow(fullFileName).c_str(), szEntryPoint,
+                        pErrorBlob ? (const char*)pErrorBlob->GetBufferPointer() : "D3DCompile failed without diagnostic blob", macrosAsIncludeFile))
+                    { SAFE_RELEASE(pErrorBlob); return hr; }
                     if( pErrorBlob != nullptr )
                     {
                         wstring absFileName = vaFileTools::GetAbsolutePath( fullFileName );
@@ -456,6 +459,9 @@ namespace VertexAsylum
                 szEntryPoint, szShaderModel, dwShaderFlags, 0, ppBlobOut, &pErrorBlob );
             if( FAILED( hr ) )
             {
+                if(vaShader::ReportNonInteractiveCompileFailure(ansiName.c_str(), szEntryPoint,
+                    pErrorBlob ? (const char*)pErrorBlob->GetBufferPointer() : "D3DCompile failed without diagnostic blob", macrosAsIncludeFile))
+                { SAFE_RELEASE(pErrorBlob); return hr; }
                 if( pErrorBlob != nullptr )
                 {
                     OutputDebugStringA( CorrectErrorIfNotFullPath11( (char*)pErrorBlob->GetBufferPointer( ), includeHelper ).c_str( ) );
@@ -504,6 +510,9 @@ namespace VertexAsylum
             dwShaderFlags, 0, ppBlobOut, &pErrorBlob );
         if( FAILED( hr ) )
         {
+            if(vaShader::ReportNonInteractiveCompileFailure("<from_buffer>", szEntryPoint,
+                pErrorBlob ? (const char*)pErrorBlob->GetBufferPointer() : "D3DCompile failed without diagnostic blob", macrosAsIncludeFile))
+            { SAFE_RELEASE(pErrorBlob); return hr; }
             if( pErrorBlob != nullptr )
             {
                 OutputDebugStringA( CorrectErrorIfNotFullPath11( (char*)pErrorBlob->GetBufferPointer( ), includeHelper ).c_str( ) );

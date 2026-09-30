@@ -103,6 +103,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_executionCoverage;
+        bool m_thinLineRawSaved=false;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -127,6 +128,13 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext &ctx,const wstring &prefix) override {
+            return m_thinLineRawSaved && !m_thinLineTracePrefix.empty() && m_thinLineTracePrefix==prefix
+                && m_temporalHistoryValid
+                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-current.dds")
+                && m_temporalHistory[GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-previous.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx,prefix+L"-velocity.dds");
+        }
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {
             return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);
         }
@@ -441,6 +449,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_previousViewProjValid = true;
     }
 
+    // Diagnostic readback before spatial processing; no extra draw.
+    m_thinLineRawSaved=false;
+    if(!m_thinLineTracePrefix.empty())
+        m_thinLineRawSaved=inputColor->SaveToDDSFile(deviceContext,m_thinLineTracePrefix+L"-raw.dds");
     SetGlobalStates( deviceContext );
 
     if( inputColor->GetArrayCount() == 1 )
