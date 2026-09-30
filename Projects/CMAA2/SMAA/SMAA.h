@@ -275,7 +275,7 @@ class SMAA {
 
         void loadAreaTex();
         void loadSearchTex();
-        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false);
+        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, bool persistenceStencil=false);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
         void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr, int persistenceMode=0);
 
@@ -319,7 +319,8 @@ class SMAA {
         SMAATechniqueInterface *        spatialFirstEdgeTechnique;
         SMAATechniqueInterface *exactEdgeTechniques[4];
         SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
-        SMAATechniqueInterface *neighborhoodPersistenceTechnique, *neighborhoodCurrentDepthTechnique;
+        SMAATechniqueInterface *persistenceEdgeTechniques[4];
+        SMAATechniqueInterface *neighborhoodPersistenceTechnique, *neighborhoodCurrentDepthTechnique, *neighborhoodConstantDepthTechnique, *neighborhoodConservativeDepthTechnique;
         SMAATechniqueInterface *firstEdgeDepthTechnique, *firstEdgeDepthCoverageTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;

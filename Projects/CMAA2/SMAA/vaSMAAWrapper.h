@@ -111,10 +111,14 @@ namespace VertexAsylum
         uint64 GetResolveSamples() const {return m_lastResolveSamples;}
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext&,const wstring&){return false;}
         void SetEdgePersistenceMode(int mode) {
-            assert(mode>=0 && mode<=2);
+            assert(mode>=0 && mode<=7);
             if(m_edgePersistenceMode!=mode){m_edgePersistenceMode=mode;ResetTemporalHistory();}
         }
         int GetEdgePersistenceMode() const {return m_edgePersistenceMode;}
+        // Cost audit: 3=storage only, 4=constant depth export, 5=union preparation
+        // with baseline stencil resolve, 6=identical union with conservative depth,
+        // 7=identical union written by pass 1 into the existing stencil.
+        bool UsesPersistenceDepthGate() const {return m_edgePersistenceMode==1 || m_edgePersistenceMode==2 || m_edgePersistenceMode==6;}
         void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}
         virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext&,const wstring&){return false;}
 

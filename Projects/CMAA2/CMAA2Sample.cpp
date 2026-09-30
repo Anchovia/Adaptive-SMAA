@@ -1843,6 +1843,7 @@ protected:
 #include "BaselineVerification.inl"
 #include "StencilLifecycleVerification.inl"
 #include "EdgePersistenceVerification.inl"
+#include "EdgePersistenceCostAudit.inl"
 #include "SpatialFirstEdgeVerification.inl"
 #include "EdgePatternVerification.inl"
 #include "FirstEdgeStencilVerification.inl"
@@ -1850,7 +1851,7 @@ protected:
 void AutoBenchTool::Tick(float deltaTime)
 {
     static bool baselineCommandParsed=false;
-    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueStencilLifecycleVerification(m_parent,*this);QueueEdgePersistenceVerification(m_parent,*this);}
+    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueStencilLifecycleVerification(m_parent,*this);QueueEdgePersistenceVerification(m_parent,*this);QueueEdgePersistenceCostAudit(m_parent,*this);}
     static bool spatialEdgeCommandParsed=false;
     if(!spatialEdgeCommandParsed){spatialEdgeCommandParsed=true;QueueSpatialFirstEdgeVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);
     QueueFirstEdgeStencilVerification(m_parent,*this);}
