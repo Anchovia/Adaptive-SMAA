@@ -1839,11 +1839,12 @@ protected:
 };
 
 #include "BaselineVerification.inl"
+#include "StencilLifecycleVerification.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
     static bool baselineCommandParsed=false;
-    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);}
+    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueStencilLifecycleVerification(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)

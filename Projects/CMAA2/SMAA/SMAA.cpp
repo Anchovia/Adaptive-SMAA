@@ -336,6 +336,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_depthTex(context, depthSRV);
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
+    // The dedicated SMAA stencil must describe this frame, for every spatial route.
+    if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
     // And here we go!
     edgesDetectionPass(context, dsv, input);
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
