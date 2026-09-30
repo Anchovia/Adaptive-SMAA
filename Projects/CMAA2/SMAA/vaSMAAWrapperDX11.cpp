@@ -384,6 +384,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
     if( GetTemporalReprojectionEnabled( ) )
     {
+        vaScopeTimer cameraTimer("SR_CameraVelocity", &deviceContext);
         if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
             return vaDrawResultFlags::ShadersStillCompiling;
 
@@ -444,7 +445,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
+            {
+                vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
             m_smaa->reproject( dx11Context, currentHistorySRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ) );
+            }
 
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
