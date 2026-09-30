@@ -1,0 +1,76 @@
+{
+  "validation": "PASS",
+  "baseline": "c51ca2896979c78d7fd10c208303c0420a819c76",
+  "branch": "experiment/smaa-1x-stencil-clear",
+  "unchanged_core": [
+    {
+      "path": "Projects/CMAA2/SMAA/AreaTex.h",
+      "normalized_sha256": "f2838043c41d10df08eb77f44ced37f0fe0b2af2bfba48b71e0806b8d89a4142"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/LICENSE.txt",
+      "normalized_sha256": "6088dabb2126729ddb2355b179ce0598e7c246406677b30395f22220695d69fe"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/README.md",
+      "normalized_sha256": "b3953f5beb1585f34d5d0d8f74f55193e7ddd967ff3581c3ee58bdd5581f4ee0"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/RenderTarget.cpp",
+      "normalized_sha256": "be5eab8f1e80ade6a431d0416a839feb427c9cf23e71888ca90b5c19a7aa43e3"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/RenderTarget.h",
+      "normalized_sha256": "ce98fc8e67dc309d2a0e3885a0afba54858fb3affae1842e51fe45dfba6f8637"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.cpp",
+      "normalized_sha256": "fc42c65cb82029bba47af9b9fe462c8fed9849c1a12a2e876205fac26c9771a0"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.fx",
+      "normalized_sha256": "5463a63b1b6cc21572d30f825d13df9687338220b04bb2d8f16ba4a011f8837c"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.h",
+      "normalized_sha256": "bb8e910f43f3a0c6c72b4cf88f13a7346c1c3df9203e1dd5671fde7c83a0d65c"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.hlsl",
+      "normalized_sha256": "71cfdc93b4e6151dea8b80dcc3540a7614abbd76d1a19ed70359848c84dcf9cc"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAAWrapper.hlsl",
+      "normalized_sha256": "1bed3d30d086645cc748dbc99d10eb93810967e923558384702a8dce867dcd02"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SearchTex.h",
+      "normalized_sha256": "34bbd4ff9f6fd39b583c2f5a450d815fa2f380a50d06008e411278e6f6a4d911"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/vaSMAAWrapper.cpp",
+      "normalized_sha256": "85415597da649cd2a17776ff8215a7c065a629b69130323ea5af8caf01bd92da"
+    }
+  ],
+  "changed_sources": {
+    "Projects/CMAA2/CMAA2Sample.cpp": "9f4615b4b2859d5de636d50afa94e50829fcf6e5e953a1ed0d45e300b03f251c",
+    "Projects/CMAA2/OneXStencilClearVerification.inl": "58e205a43b19243901545a1e40a36a36e62a7b4968c7749b32890f07f6c994ff",
+    "Projects/CMAA2/SMAA/vaSMAAWrapper.h": "c5bf24b3bbbc82689f1b505dc6dea024bceb3956eb076df2b4697a3dfeab5f65",
+    "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "e4e2231b2ac8209301614aca3e607960fef40b1e2b76f3f6525b11284c6aa6cc"
+  },
+  "official_commit": "71c806a838bdd7d517df19192a20f0c61b3ca29d",
+  "official_file_hashes": {
+    "Demo_DX10_Code_Demo.cpp": "e8e34180e611b3981bab19b9f993a9260cf739f6711dff0c88d3a43ca5fba863",
+    "Demo_DX10_Code_SMAA.cpp": "34264306b92aad57c5dce6e923f10734427356ad2504472e32cec6f51abaeba1",
+    "Demo_DX10_Shaders_SMAA.fx": "9de6fe966703848b071e269e048c2e5057c83e2ffcd1fde920ee9d8d6c3f9849",
+    "SMAA.hlsl": "4db53d92ef0b45661f8450303589ffabce93c352cae4282a6f32dd2b80efbeb9"
+  },
+  "official_clear_lines": [
+    596,
+    601
+  ],
+  "official_one_x_call_line": 686,
+  "official_per_frame_clear_line": 739,
+  "executable_sha256": "6ae2269fa62ad9dd963b6c82ed0650ba685f2609eaeda8d8ded863fd6704095a",
+  "interpretation": "Official demo clears the shared main stencil before SMAA; our wrapper has a separate uncleared SMAA stencil. Not a new SMAA algorithm."
+}

@@ -87,6 +87,7 @@ namespace VertexAsylum
                                     m_techniques;
 
         SMAA *                      m_smaa                          = nullptr;
+        ID3D11Query *                m_oneXSpatialQuery              = nullptr;
         int                         m_sampleCount                   = -1;       // need to re-create views if sample count changed
 
         shared_ptr<vaTexture>       m_texDepthStencil               = nullptr;
@@ -260,6 +261,8 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
 
 void vaSMAAWrapperDX11::CleanupTemporaryResources( )
 {
+    SAFE_RELEASE( m_oneXSpatialQuery );
+    m_oneXStencilStatisticsValid = false;
     SAFE_DELETE( m_smaa );
     m_externalInputColor = nullptr;
     m_texDepthStencil = nullptr;
@@ -441,8 +444,37 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         }
         else
         {
+            // Scene rendering does not clear this dedicated SMAA stencil.
+            // Only its initialization changes; preserve the original edge shader.
+            if( m_oneXStencilClear )
+                dx11Context->ClearDepthStencilView( m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV(), D3D11_CLEAR_STENCIL, 1.0f, 0 );
+            m_oneXStencilStatisticsValid = false;
+            if( m_oneXStencilStatistics )
+            {
+                if( m_oneXSpatialQuery == nullptr )
+                {
+                    D3D11_QUERY_DESC desc = { D3D11_QUERY_PIPELINE_STATISTICS, 0 };
+                    auto device = GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
+                    if( FAILED( device->CreateQuery( &desc, &m_oneXSpatialQuery ) ) )
+                    {
+                        UnsetGlobalStates( deviceContext ); deviceContext.SetOutputs( rtState );
+                        return vaDrawResultFlags::UnspecifiedError;
+                    }
+                }
+                dx11Context->Begin( m_oneXSpatialQuery );
+            }
             m_smaa->go( dx11Context, colorGammaSRV, m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, nullptr,
                 dstRT->SafeCast<vaTextureDX11*>( )->GetRTV( ), m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV(), inputMode, SMAA::MODE_SMAA_1X );
+            if( m_oneXStencilStatistics )
+            {
+                dx11Context->End( m_oneXSpatialQuery );
+                D3D11_QUERY_DATA_PIPELINE_STATISTICS data = {};
+                const ULONGLONG deadline = GetTickCount64() + 2000;
+                HRESULT result;
+                while( (result = dx11Context->GetData( m_oneXSpatialQuery, &data, sizeof(data), 0 )) == S_FALSE && GetTickCount64() < deadline ) Sleep(1);
+                m_oneXStencilStatisticsValid = result == S_OK;
+                if( m_oneXStencilStatisticsValid ) m_oneXSpatialPSInvocations = data.PSInvocations;
+            }
         }
     }
     else

@@ -57,6 +57,11 @@ namespace VertexAsylum
         bool                        m_temporalModeEnabled               = false;
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
+        // Independent spatial-only experiment; original shaders remain unchanged.
+        bool                        m_oneXStencilClear = false;
+        bool                        m_oneXStencilStatistics = false;
+        bool                        m_oneXStencilStatisticsValid = false;
+        uint64                      m_oneXSpatialPSInvocations = 0;
 
         //bool                        m_debugShowEdges;
 
@@ -68,6 +73,12 @@ namespace VertexAsylum
     public:
         // Harness access to the same preset edited by the existing UI.
         Settings &                  GetSettings( ) { return m_settings; }
+        void SetOneXStencilClear(bool v) { m_oneXStencilClear=v; }
+        bool GetOneXStencilClear() const { return m_oneXStencilClear; }
+        void SetOneXStencilStatistics(bool v) { m_oneXStencilStatistics=v; }
+        bool GetOneXStencilStatistics() const { return m_oneXStencilStatistics; }
+        bool GetOneXStencilStatisticsValid() const { return m_oneXStencilStatisticsValid; }
+        uint64 GetOneXSpatialPSInvocations() const { return m_oneXSpatialPSInvocations; }
         void                        SetTemporalModeEnabled( bool enabled )
         {
             if( m_temporalModeEnabled != enabled )
