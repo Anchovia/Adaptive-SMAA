@@ -14,10 +14,14 @@ $settings=Join-Path $root 'Projects/CMAA2/ApplicationSettings.xml'
 $content=[System.IO.File]::ReadAllText($settings)
 if(([regex]::Matches($content,'<SceneChoice>\d+</SceneChoice>')).Count -ne 1){throw 'Unexpected initial scene settings'}
 $sceneIndex=if($Scene -eq 'bistro'){0}else{2}
-[System.IO.File]::WriteAllText($settings,[regex]::Replace($content,'<SceneChoice>\d+</SceneChoice>',"<SceneChoice>$sceneIndex</SceneChoice>"))
+$content=[regex]::Replace($content,'<SceneChoice>\d+</SceneChoice>',"<SceneChoice>$sceneIndex</SceneChoice>")
+# Avoid running a saved temporal mode before the deterministic harness configures its first mode.
+# The 60-frame warmup, every captured mode and output hash bridge remain unchanged.
+$content=[regex]::Replace($content,'<CurrentAAOption>\d+</CurrentAAOption>','<CurrentAAOption>0</CurrentAAOption>')
+[System.IO.File]::WriteAllText($settings,$content)
 $command=if($Case -eq 'audit'){'-smaaEdgePersistenceCostAuditCapture'}else{'-smaaStencilLifecycleCapture'}
 $started=[DateTime]::UtcNow.ToString('o')
-$output=& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments @($command,$Scene,$OutputRoot) -Hidden -TimeoutSeconds 1200
+$output=& (Join-Path $root 'Tools/SMAA/run_clean_cmaa2.ps1') -CMAA2Arguments @($command,$Scene,$OutputRoot) -Hidden -TimeoutSeconds 600
 $pass=$output | Where-Object {$_ -match 'PASS:.*report='} | Select-Object -Last 1
 if(!$pass){throw 'No completed result'}
 $report=($pass -split 'report=',2)[1].Trim()
