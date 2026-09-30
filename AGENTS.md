@@ -49,3 +49,17 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## History 혼합 기여 진단
+
+- 이 브랜치는 수정된 ⑥ `304f749`에서 직접 분기한 `validation/spatial-edge-history-contribution`이다.
+  ⑤는 자체 수정 기준선에서 별도로 분기한다. 두 구현을 합치지 않는다.
+- 기존 native resolve가 계산한 weight를 진단용 R32_FLOAT MRT에 저장한다. -1은 미실행,
+  0~0.5는 실행된 픽셀의 실제 혼합 비중이다. 원본 production 셰이더 DXBC와 기존 RGB
+  해시를 비교한다. 진단 Off 반복과 ④ control을 함께 검사한다.
+- 100~219 frame의 weight, coverage, temporal 직전 current와 final을 비교한다. ⑤ current는
+  raw이고 ⑥ current는 공간 SMAA 결과다. 해상도/경로/지터/선택/history semantics는 불변이다.
+- weight, 최종 RGB 변화, 반짝임 억제 효과를 구분한다. RGB 변화는 양자화 이후 차이이며
+  이것만으로 ghosting 또는 품질 개선을 주장하지 않는다. 새 성능 측정은 하지 않는다.
+- 이번 진단에 jitter, dilation, TSCMAA 필터/weight/feedback 변경을 추가하지 않는다.
+  그 적용 여부는 본 자료를 본 뒤 독립 연구 브랜치에서 다룬다.

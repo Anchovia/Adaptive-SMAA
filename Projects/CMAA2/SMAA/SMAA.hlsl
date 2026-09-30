@@ -1397,6 +1397,9 @@ float4 SMAAResolvePS(float2 texcoord,
     // Attenuate the previous pixel if the velocity is different:
     float delta = abs(current.a * current.a - previous.a * previous.a) / 5.0;
     float weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    #ifdef SMAA_REPORT_HISTORY_WEIGHT
+    SMAA_REPORT_HISTORY_WEIGHT(weight);
+    #endif
 
     // Blend the pixels according to the calculated weight:
     return lerp(current, previous, weight);
@@ -1404,6 +1407,9 @@ float4 SMAAResolvePS(float2 texcoord,
     // Just blend the pixels:
     float4 current = SMAASamplePoint(currentColorTex, texcoord);
     float4 previous = SMAASamplePoint(previousColorTex, texcoord);
+    #ifdef SMAA_REPORT_HISTORY_WEIGHT
+    SMAA_REPORT_HISTORY_WEIGHT(0.5);
+    #endif
     return lerp(current, previous, 0.5);
     #endif
 }

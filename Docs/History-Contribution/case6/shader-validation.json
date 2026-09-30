@@ -1,0 +1,40 @@
+{
+  "validation": "PASS",
+  "case": 6,
+  "baseline": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "compiler": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\fxc.exe",
+  "production_entries": [
+    {
+      "entry": "DX10_SMAAResolvePS",
+      "byte_exact": true,
+      "dxbc_sha256": "f5126b044bc5c1e0abed37e8a6080ec6181b98a9dacc330ab621fc91e951bb26"
+    },
+    {
+      "entry": "DX10_SMAALumaEdgeDetectionPS",
+      "byte_exact": true,
+      "dxbc_sha256": "8fe6ec6a136a34d58934c88547f39f6531b82fc1e9db1a7625937c7f11bc8635"
+    },
+    {
+      "entry": "DX10_SMAABlendingWeightCalculationPS",
+      "byte_exact": true,
+      "dxbc_sha256": "f49a0b29c1aff8d5877b10e5f34dfc41116526da9332ee8fe43826908ba4a702"
+    },
+    {
+      "entry": "DX10_SMAANeighborhoodBlendingPS",
+      "byte_exact": true,
+      "dxbc_sha256": "db2b12778751c230cb59bd0f6080d77f11ac1ac710bae4353d0528e4ad0ce9a4"
+    },
+    {
+      "entry": "FirstEdgeStencilPS",
+      "byte_exact": true,
+      "dxbc_sha256": "936deb00d7ad5c674ad0c7ab6212d4390c5ba44689c914ece7b973f140be03f9"
+    },
+    {
+      "entry": "FirstEdgeStencilCoveragePS",
+      "byte_exact": true,
+      "dxbc_sha256": "3cc466529cb3408ad5d445bc40f73a38e4c17e70109eb0058fd6172250d7912c"
+    }
+  ],
+  "diagnostic_dxbc_sha256": "ad0d9311b5d52f45b76b6360c8928dc4773c9b3cb6cc996d3a47075353c2f3dd",
+  "scope": "Compiler-bytecode equivalence for the six listed production entry points and successful diagnostic compilation; runtime RGB still requires capture."
+}

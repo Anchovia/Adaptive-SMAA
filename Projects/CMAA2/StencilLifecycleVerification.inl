@@ -5,6 +5,7 @@ class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
     struct Mode {const char* name; CMAA2Sample::AAType type; bool target;};
     std::vector<Mode> m_modes;
     bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
+    bool m_contribution=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames=4800,m_repeats=6;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
@@ -17,6 +18,8 @@ class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
         s->SetTemporalModeEnabled(c.type==CMAA2Sample::AAType::SMAA_T2x_Reprojected);
         s->SetTemporalReprojectionEnabled(c.type==CMAA2Sample::AAType::SMAA_T2x_Reprojected);
         s->SetFirstEdgeStencilEnabled(true);s->SetExecutionDiagnostics(false);s->SetSpatialFirstEdgeEnabled(c.target);s->SetStencilUpstreamControl(false);s->SetTemporalSamplePatternEnabled(!c.target);
+        const bool diagnostic=m_contribution && c.target && std::string(c.name).find("Repeat")==std::string::npos;
+        s->SetExecutionDiagnostics(diagnostic);s->SetHistoryContributionDiagnostics(diagnostic);
         s->ResetTemporalHistory();m_frame=m_capture?-60:-300;m_samples.clear();m_rendered=false;
         m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
@@ -33,11 +36,13 @@ class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
             vaStringTools::Format("%.9f",sqrt(variance)),vaStringTools::Format("%.9f",tailMean>0?1000/tailMean:0)});
     }
     void Finish(AutoBenchTool& tool){
+        m_parent.GetSMAA()->SetHistoryContributionDiagnostics(false);
+        m_parent.GetSMAA()->SetExecutionDiagnostics(false);
         tool.ReportAddText(m_failed?"Aggregate: FAIL\r\n":"Aggregate: PASS\r\n");tool.ReportFinish();
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_output(output){
+    BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output,bool contribution=false):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_output(output),m_contribution(contribution){
         m_measureFrames=smoke?240:4800;m_repeats=smoke?1:6;
         m_modes={{"ABL-Spatial-FirstEdge-Stencil-PatternOff-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,true},{"O-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,false}};
         if(capture)m_modes.push_back({"ABL-Spatial-FirstEdge-Stencil-PatternOff-R-Repeat",CMAA2Sample::AAType::SMAA_T2x_Reprojected,true});
@@ -60,6 +65,7 @@ public:
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             m_output+=L"/case6/"+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
             tool.ReportAddRowValues({"capture_root",vaStringTools::SimpleNarrow(m_output)});
+            if(m_contribution)tool.ReportAddText("History contribution diagnostic: native calculated weight in R32_FLOAT MRT, -1 outside stencil; frames 100..219. Unmodified target Repeat and native control verify RGB. No new timing result.\r\n");
             Configure();if(!m_capture)m_until=now+30;
         }else{
             if(m_until!=0){
@@ -101,6 +107,13 @@ public:
         m_failed=m_failed||!ok;if(!m_capture||m_frame<0)return;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),temporal?"TemporalOn":"TemporalOff",ok?"PASS":"FAIL"});
         const auto dir=m_output+vaStringTools::SimpleWiden(c.name)+L"/";vaFileTools::EnsureDirectoryExists(dir);
+        if(m_contribution && s->GetHistoryContributionDiagnostics() && m_frame>=100 && m_frame<220){
+            const auto prefix=dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d",m_frame));
+            const bool probe=m_frame==100||m_frame==179||m_frame==180||m_frame==190;
+            if(!s->SaveHistoryContribution(ctx,prefix,probe)||!s->SaveExecutionCoverage(ctx,prefix+L"-coverage.dds"))m_failed=true;
+            if(!s->ExecutionQueryOK())m_failed=true;
+            tool.ReportAddRowValues({"execution",c.name,std::to_string(m_frame),std::to_string(s->GetResolveInvocations()),std::to_string(s->GetResolveSamples()),s->ExecutionQueryOK()?"PASS":"FAIL"});
+        }
         if(!color->SaveToPNGFile(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d.png",m_frame))))m_failed=true;
     }
     bool IsDone(AutoBenchTool&) const override{return m_done;}
@@ -108,11 +121,12 @@ public:
 };
 static void QueueStencilLifecycleVerification(CMAA2Sample& parent,AutoBenchTool& tool){
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()){
-        const bool capture=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleCapture")==0;
+        const bool contribution=_wcsicmp(p.first.c_str(),L"smaaHistoryContributionCapture")==0;
+        const bool capture=contribution || _wcsicmp(p.first.c_str(),L"smaaStencilLifecycleCapture")==0;
         const bool benchmark=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleBenchmark")==0;
         const bool smoke=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleSmoke")==0;
         if(!capture&&!benchmark&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
         if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");return;}
-        tool.AddTask(std::make_shared<BenchItemStencilLifecycle>(parent,capture,scene==L"minecraft",smoke,output));return;
+        tool.AddTask(std::make_shared<BenchItemStencilLifecycle>(parent,capture,scene==L"minecraft",smoke,output,contribution));return;
     }
 }
