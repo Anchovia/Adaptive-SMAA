@@ -70,6 +70,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--test-dir", type=Path, required=True)
     parser.add_argument("--reference-dir", type=Path, required=True)
+    parser.add_argument(
+        "--frame-glob", default="*.png",
+        help="PNG selection pattern; use an exact final-frame pattern when diagnostic PNGs share the directory.",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument(
         "--cgvqm-root",
@@ -140,11 +144,11 @@ def frame_index(path: Path) -> int:
     return int(match.group(1))
 
 
-def collect_frames(directory: Path) -> dict[int, Path]:
+def collect_frames(directory: Path, pattern: str = "*.png") -> dict[int, Path]:
     if not directory.is_dir():
         raise FileNotFoundError(f"Frame directory does not exist: {directory}")
     indexed: dict[int, Path] = {}
-    for path in directory.glob("*.png"):
+    for path in directory.glob(pattern):
         index = frame_index(path)
         if index in indexed:
             raise ValueError(
@@ -526,8 +530,8 @@ def main() -> int:
     input_dir = output_dir / "LosslessInputs"
     input_dir.mkdir(parents=True, exist_ok=True)
 
-    test_by_index = collect_frames(args.test_dir.resolve())
-    reference_by_index = collect_frames(args.reference_dir.resolve())
+    test_by_index = collect_frames(args.test_dir.resolve(), args.frame_glob)
+    reference_by_index = collect_frames(args.reference_dir.resolve(), args.frame_glob)
     indices, reference_indices, test_paths, reference_paths = (
         select_offset_aligned_frames(
             test_by_index,
@@ -617,6 +621,7 @@ def main() -> int:
             "ground truth."
         ),
         "provenance": {
+            "frame_glob": args.frame_glob,
             "scene": args.scene,
             "camera_profile": args.camera_profile,
             "test_mode": args.test_mode,

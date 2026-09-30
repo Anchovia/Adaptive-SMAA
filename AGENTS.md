@@ -66,3 +66,17 @@
 - Minecraft 일부 프레임의 선 단절 복원은 확인했으나 다른 위치·프레임의 단절은 남았다.
   정지 후에는 기존 ⑥과 같다. 기본 경로로 채택하거나 전체 품질 개선 성공으로 부르지 않는다.
 - 이후 다른 가설은 다시 검증된 기준선에서 분기한다. 이 실험 전체를 무조건 상속하지 않는다.
+
+### 같은 구현의 추가 품질 평가 (2026-10-01)
+
+- 렌더러를 바꾸지 않고 검증된 GPU PNG로 새 구현 CGVQM-2 4회 평가를 완료했다.
+  기존 ⑥·원본 ④ 점수 8개는 해당 입력/공간 참조 stream hash가 정확히 같을 때만
+  재사용했다. 새 GPU 점수와 과거 CPU 예상 영상의 점수를 혼동하지 않는다.
+- 이동 f60~179 / 정지 전환 f160~219에서 새−기존 ⑥ CGVQM은 Bistro
+  +0.064465/+0.029526, Minecraft +0.059334/+0.007072점이다. 모두 RGB FFV1
+  round-trip mismatch 0이며 공식 model 2/patch scale 4/mean/CUDA 조건이다.
+- 원본 full PNG 8장, 세 ROI의 6연속 sheet 9개와 Minecraft 추가 6프레임을 다시 열었다.
+  f131/f134의 부분 복원과 별개로 f132/f135/f137에는 구조 보존 실패가 남는다.
+  CGVQM 상승을 원본 T2X-R 수준의 반짝임 억제나 global ghosting 해결로 해석하지 않는다.
+- 재현 도구는 `Tools/SMAA/evaluate_edge_persistence_cgvqm.py`, 결과·입력 hash는
+  `Docs/Edge-Persistence-GPU/{bistro,minecraft}-cgvqm.json` 및 `results-ko.md`다.

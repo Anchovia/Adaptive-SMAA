@@ -4,6 +4,23 @@ from pathlib import Path
 from analyze_edge_persistence_gpu import ROOT,DOC,A,B,C
 LABEL={A:'기존 ⑥: 현재 edge',B:'새 구현: 직전 raw edge 유지',C:'원본 ④: SMAA T2X-R'}
 def read(name):return json.loads((DOC/name).read_text(encoding='utf8'))
+def cgvqm_section():
+    if not all((DOC/f'{s}-cgvqm.json').exists() for s in ['bistro','minecraft']):
+        return ['','CGVQM은 아직 두 장면 모두의 결과가 완성되지 않았다. RGB MAE/PSNR과 직접 프레임 검사를 별도로 참고한다.','']
+    out=['','### CGVQM-2 추가 품질 측정','',
+         '2026-10-01 후속 평가. 새 GPU 구현은 이동 f60~179, 정지 전환 f160~219를 두 장면에서 새로 평가했다(4회). 기존 ⑥과 원본 ④의 8개 점수는 현재 캡처와 참조의 RGB stream hash가 이전 평가 입력과 정확히 같음을 확인한 뒤 재사용했다. 대조군을 새로 평가했다고 표현하지 않는다.','',
+         'IntelLabs/CGVQM commit `8302ff45b4ff5a691682baf23f7c007d6b591e98`, model 2, CUDA, patch scale 4, mean pooling, 60 fps. FFV1 변환 후 RGB 불일치 0. 점수는 높을수록 좋지만, 고해상도 **공간** 참조에 대한 보조 지표이며 절대 고스팅 점수가 아니다.','',
+         '| 장면 / 구간 | 기존 ⑥ | 새 GPU | 원본 ④ | 새−기존 ⑥ | 새−원본 ④ |',
+         '|---|---:|---:|---:|---:|---:|']
+    for scene in ['bistro','minecraft']:
+        d=read(f'{scene}-cgvqm.json');assert d['validation']=='PASS'
+        for w,label in [('moving','이동 f60~179'),('transition','정지 전환 f160~219')]:
+            r=d['results'][w];s=r['scores']
+            out.append(f"| {scene} / {label} | {s[A]:.6f} | {s[B]:.6f} | {s[C]:.6f} | {s[B]-s[A]:+.6f} | {s[B]-s[C]:+.6f} |")
+    out+=['','차이는 점수 단위이며 품질 향상률(%)이 아니다. 정지 전환 CGVQM 구간은 위 MAE 표의 짧은 전환 구간(f178~185)과 다르다. 전체 평균 점수와 무관하게 Minecraft f132/f135/f137의 남은 선 단절을 품질 실패로 기록한다. 두 selective 방식의 Pattern Off와 원본의 Pattern On 차이도 포함되어 있다.','',
+          '평가 명령, 입력/참조 hash, 재사용 기록과 공식 소스 hash는 `bistro-cgvqm.json`, `minecraft-cgvqm.json`에 보존했다. 재현 도구는 `Tools/SMAA/evaluate_edge_persistence_cgvqm.py`다.','']
+    return out
+
 def main():
     audit=read('source-audit.json');out=[]
     out += ['# 직전 raw edge 유지: GPU 구현·성능·품질 결과','',
@@ -44,7 +61,9 @@ def main():
         for window,label in [('moving','이동 f60~179'),('transition','정지 전환 f178~185'),('late_still','정지 f190~239')]:
             x=q['summary'][window]['full']
             out += [f"| {scene} / {label} | {x[A]['rgb_mae']:.6f} | {x[B]['rgb_mae']:.6f} | {x[C]['rgb_mae']:.6f} |"]
-    out += ['','새 GPU 구현에 대해 CGVQM을 재실행하지 않았다. 이번 정량 검사는 RGB MAE/PSNR, ROI edge strength, frame change 및 reference-delta residual이며, 세부 값은 장면별 `*-quality.json`에 있다. 수치의 방향이 엇갈리므로 원본 프레임의 구조 보존 문제를 우선했다.','',
+    out += ['','RGB MAE/PSNR, ROI edge strength, frame change 및 reference-delta residual은 장면별 `*-quality.json`에 있다. 수치의 방향이 엇갈리므로 원본 프레임의 구조 보존 문제를 우선한다.']
+    out += cgvqm_section()
+    out += ['',
             '### 선택 영역','',
             '이동 구간 중 진단한 23프레임의 평균이다. 전체 120 이동 프레임의 전수 통계나 GPU 시간 변화율이 아니다.','',
             '| 장면 | 기존 ⑥ / 전체 픽셀 | 새 GPU / 전체 픽셀 | 선택 픽셀 상대 증가 |',

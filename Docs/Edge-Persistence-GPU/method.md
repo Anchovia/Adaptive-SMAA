@@ -16,6 +16,19 @@ CPU native reconstruction helper are reused from `63fbd59`, whose provenance is
 `756ff54`. The previous offline hypothesis is not presented as GPU evidence.
 The capture/benchmark harness derives from the baseline's stencil-lifecycle harness.
 
+## Follow-up quality evaluation
+
+The follow-up quality evaluation uses the already validated GPU PNG sequences.
+`evaluate_edge_persistence_cgvqm.py` verifies all 240 final RGB frames per mode
+against the capture hashes and compares reference/input stream hashes before
+reusing any prior control score. It runs unmodified official CGVQM-2 on the new
+GPU target for motion [60,180) and motion-to-still [160,220), with CUDA, 60 fps,
+patch scale 4 and mean pooling. RGB-preserving FFV1 round trips must be exact.
+The adapter's explicit final-frame glob excludes diagnostic `-current.png`
+files without duplicating or modifying the captures. This analysis does not
+modify the renderer or remeasure performance. Source hashes and commands are
+recorded in the scene CGVQM JSON files; direct frame inspection remains primary.
+
 ## Algorithm and execution
 
 Keep original spatial SMAA, camera/depth motion, point history sampling, native
