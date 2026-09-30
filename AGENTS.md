@@ -62,3 +62,8 @@
 - ①·③은 내부 edge 검출 단계가 없다. 내부 edge 비교는 ②·④·⑤·⑥이다. ④의 first-pass
   edge는 공간 SMAA용이며 전체 화면 temporal 실행 범위를 뜻하지 않는다.
 - 결과는 `Docs/Native-FirstPass-Edge-Visuals/`에, GIF 및 원시 캡처는 Git 밖에 보존한다.
+- 같은 진단 항목의 temporal 실행 범위 시각화는 `Temporal-Coverage/` 하위 manifest로
+  기록한다. ⑤·⑥은 기존 GPU coverage MRT를 그대로 쓰고 실제 RG 및 실행 수와 대조한다.
+  ②의 검정·④의 흰색은 실행 여부/전체 화면 GPU 집계로 확인한 범위 표시이며, 저장된
+  pixel별 GPU dump로 표현하지 않는다. 실행 범위를 history 기여량이나 품질 이득으로
+  해석하지 않는다. 이 후처리 시각화 때문에 여섯 독립 구현을 수정·결합하지 않는다.

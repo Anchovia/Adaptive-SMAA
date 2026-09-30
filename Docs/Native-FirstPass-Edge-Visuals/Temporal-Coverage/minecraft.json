@@ -1,0 +1,1356 @@
+{
+  "validation": "PASS",
+  "scene": "minecraft",
+  "evidence_commit": "2b3ca2f",
+  "native_edge_validation_commit": "c26850d",
+  "corrected_branch_pins": {
+    "2": {
+      "case": 2,
+      "branch": "baseline/smaa-1x-stencil-lifecycle",
+      "commit": "15fb796bac3be602ba88727a4593f9fcc033088d",
+      "source_base": "c51ca2896979c78d7fd10c208303c0420a819c76",
+      "unchanged_shader_files": 6
+    },
+    "4": {
+      "case": 4,
+      "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+      "commit": "8a08824dbf9ed17dc09d0d306336718f422ee9ad",
+      "source_base": "c51ca2896979c78d7fd10c208303c0420a819c76",
+      "unchanged_shader_files": 6
+    },
+    "5": {
+      "case": 5,
+      "branch": "experiment/first-edge-temporal-only-stencil-lifecycle",
+      "commit": "0b4191407b340bdcaab207b7f8b3f1b872731b71",
+      "source_base": "ba1761d6a79bbbd84f720fc097e24b726587472f",
+      "unchanged_shader_files": 9
+    },
+    "6": {
+      "case": 6,
+      "branch": "experiment/spatial-first-edge-stencil-lifecycle",
+      "commit": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+      "source_base": "53ff61dc71e0533461da886f6990dc443ea0b6ce",
+      "unchanged_shader_files": 8
+    }
+  },
+  "source_reports": {
+    "5": {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_161418\\20260929_161418_results.csv",
+      "sha256": "ec5b46f38a8ce76b26d911e680e11a37ea8bc95816e2e0b4f45379ebce45e59c"
+    },
+    "6": {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260929_152613\\20260929_152613_results.csv",
+      "sha256": "2e01039d6ee09e50395feb5ac761ceea8bc71247779cf239ce18c7ed60c5a8cd"
+    }
+  },
+  "native_report": {
+    "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_215306\\20260930_215306_results.csv",
+    "sha256": "5c624f808adf6afb0ba756645b77735618993bc617d8741167d5fe0c5e583ffc"
+  },
+  "coverage_witness": {
+    "commit": "2b3ca2f",
+    "path": "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl",
+    "sha256": "fcf5b70c2738e4ec9eea72fb08178677c7a49bb46bb0dee62a4e2ea72e2a407b"
+  },
+  "masks": {
+    "2": "Constructed black: TemporalOff verified per frame; no temporal pass.",
+    "4": "Constructed white: native full-screen resolve; per-frame PSInvocations and SamplesPassed equal width*height, RGB hash bridged to corrected control. Not a saved GPU coverage image.",
+    "5": "Saved GPU MRT execution witness, written 1 only where temporal resolve passed early stencil; identical to stored first-pass RG>0.",
+    "6": "Saved GPU MRT execution witness, written 1 only where temporal resolve passed early stencil; identical to stored first-pass RG>0."
+  },
+  "frames": [
+    {
+      "frame": 100,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 442035,
+        "6": 442035
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "3211de8daa65119eccc94821f413907f3b749991dc3afb41d529c9fc8ecd9d07",
+        "6": "3211de8daa65119eccc94821f413907f3b749991dc3afb41d529c9fc8ecd9d07"
+      },
+      "corrected_rgb_sha256": {
+        "2": "53eccc7692692a028d407e4fc53b5bb3d6bfb1c9b806f22213c47b0ece22c75e",
+        "4": "a4464e7e7fd2a1f4e20edecdd68c6632ca2479443cada23f60e5d198ed77027d",
+        "5": "1665c715f01ac3050ee15b4e4c3e4acdb64dbda2f7a17d41eb472c0067f39a4d",
+        "6": "354f4ea3194cdc7985442d8195a5a1885389ecdd44a19683aca9bf820504b884"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 101,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 447027,
+        "6": 447027
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "1c9ade0c1e9f0f7e17ace96408dbb23e663fc71a1581315f044cff370d0494f1",
+        "6": "1c9ade0c1e9f0f7e17ace96408dbb23e663fc71a1581315f044cff370d0494f1"
+      },
+      "corrected_rgb_sha256": {
+        "2": "5244b0ef5cd530b9039318eacc66560df655e851cd934106774b78de06371e34",
+        "4": "78511b81ceb8237788050e6f78f49d1d0ea90ea3c9917a9b488aea577dc9d369",
+        "5": "a44184528bbfe550a6c384413db59f2112c6e95e1710a139a0be8d6ee13733c6",
+        "6": "6b46d0898ea818fcdc293e625c30f9edb5304ca90a8b1f6d11ad9d75fedafd46"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 102,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 449190,
+        "6": 449190
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "0e30f0991b2927216015fa896263c958ca38298b9f5872a00da6a98e089d244d",
+        "6": "0e30f0991b2927216015fa896263c958ca38298b9f5872a00da6a98e089d244d"
+      },
+      "corrected_rgb_sha256": {
+        "2": "ed4f01dee928988fb29c469a1cd50216d21a1cf1491d877d1de35fd48f8c792a",
+        "4": "b524b6afe304059f4600f3d65fc9b47ff766ac62b16208e048f5e3c16b1de19f",
+        "5": "1e7a14eee6faf50ae8dd6187c80c65540241fc03f11c9cadeb8342565b931554",
+        "6": "3dfed03cf424148cc8a6b222d75821ba5b1d21712bc1881b299314dfc3d78d0f"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 103,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 452091,
+        "6": 452091
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "57818469ade50f3c1afecfee7aaa6f05982f8d03a0443a721feb3cf25943a922",
+        "6": "57818469ade50f3c1afecfee7aaa6f05982f8d03a0443a721feb3cf25943a922"
+      },
+      "corrected_rgb_sha256": {
+        "2": "839c748f06cb4a296704fd9fd1867a7927239ddda2f339dfb674794dc3d58268",
+        "4": "d62cc064fd42ff690396ddb58faa3857d809335d273f5b0ef858774f0b80d841",
+        "5": "a6cfc31a66e58f50bb264e12b021577350e66712031798d1a94160d10bb219c9",
+        "6": "3e7d78ddc570d9d0e9cbf11806d5d7f6c7f49ee9b1792bbd9a9bd2e7b5e41bd7"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 104,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 455713,
+        "6": 455713
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "e06ea1c66f88bb793820b056cc4413f49a7cdbb7fb632425a03191fc3ca82842",
+        "6": "e06ea1c66f88bb793820b056cc4413f49a7cdbb7fb632425a03191fc3ca82842"
+      },
+      "corrected_rgb_sha256": {
+        "2": "18c47ee1551d88c73420a754c707c2be6d03f8de5cdd7273ae3de669a880d5f3",
+        "4": "f69ca33167c5f98cc3e80ddcc0eda1880c11e08af4e3957a3e3ace5bc850d2df",
+        "5": "bf0fc148cae0525e40fa7e0008f9c6ecc9baf01bb837f619e7023c4ce02bb1bb",
+        "6": "448f595e493074aca867f412dc6de48ddad396a0668ab9ff91694a3a277fd79a"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 105,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 459327,
+        "6": 459327
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "cdd81aceac303f1252a0d3b56e2bb27121f8ea79dc749af5fed3019e96e68c6a",
+        "6": "cdd81aceac303f1252a0d3b56e2bb27121f8ea79dc749af5fed3019e96e68c6a"
+      },
+      "corrected_rgb_sha256": {
+        "2": "dd9cdfbecdc213069c0d3b1397ebb3cb7ab1d7b45caf8f105609397e3ffcb23f",
+        "4": "d413cea1f52c8789a3661f5ef6c47a47ed778f68d3cb89161ceb666d5935030b",
+        "5": "10f3ccb8b1dab142f8cc4bbc85a330471c1a4ba39e1b287fcbe35b502961160a",
+        "6": "c846918b8840c4f808bbb2235f020660d4ce7ce1b59958d66745905a7f7cff21"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 106,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 462678,
+        "6": 462678
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "e01ce71116cbf392894287d17e528caa931cb8860fc819f467c08e3428733173",
+        "6": "e01ce71116cbf392894287d17e528caa931cb8860fc819f467c08e3428733173"
+      },
+      "corrected_rgb_sha256": {
+        "2": "f306615ed0d5a47e33f5523032f906938ddf9cd756c6d6014ff7dab74f9c4f88",
+        "4": "8f3ee84e0fc039ae632fad6142808a3143668804bc4f62391d28fa9a28c2b7d6",
+        "5": "d5f6b341bf0af04f25c8919ebc42ce3233be90e3e4163f59b80b381594e5a0a1",
+        "6": "14b19255b71a88bd36b91ce8d6349d214c1c4ffea0fd2c4c5b1d86339f677e62"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 107,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 467562,
+        "6": 467562
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "6b395fa708a5ac5eca754a12ebaf99b7e50585a1f3098b7b375bdd488cb13ab2",
+        "6": "6b395fa708a5ac5eca754a12ebaf99b7e50585a1f3098b7b375bdd488cb13ab2"
+      },
+      "corrected_rgb_sha256": {
+        "2": "6a06db3482ba4820711b6acf9d686fdf16d4cc981b3dce82a5e52cfc4aaa73b3",
+        "4": "e4afc1a56bbca4db2983a48185b8014a3ef5c238d1e2e0564acc9dbb4ec26db0",
+        "5": "c05d6c060721ba049f7a2a3afe7d5950ff440538d657d9f1d05a6aa72f7833f2",
+        "6": "8e70561dc365d4c4d512b3fcffb8572b5a941754d5afb338230dd8a537e6643f"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 108,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 471202,
+        "6": 471202
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "a2ee3b1abc7382124f4ad736d73aa38ce604b07e028ba39ebc625c0e11c13b2d",
+        "6": "a2ee3b1abc7382124f4ad736d73aa38ce604b07e028ba39ebc625c0e11c13b2d"
+      },
+      "corrected_rgb_sha256": {
+        "2": "ecc188aa0cd3b1f6f47eb8bc959c89633ba7cfef63f14996c5476f0b79358bc8",
+        "4": "f36bcd764d1a85925ff17e48cc929cfb2159a24c0b350a9f87c3c4545e2d6803",
+        "5": "e05b5ee9ccefcf8832a425e2752b018865cecf7914bf0789dcc3785fbc3c332d",
+        "6": "2bd373796afab94147db7f119ce31cd024a4a316914058e56eb18a8fa47400fc"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 109,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 475172,
+        "6": 475172
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "ef583c6d590b444ddb04f1c1ba948daf101b68c96ad66041a1f6fab63706e276",
+        "6": "ef583c6d590b444ddb04f1c1ba948daf101b68c96ad66041a1f6fab63706e276"
+      },
+      "corrected_rgb_sha256": {
+        "2": "7d9e522160f0cc8a4ce3c7e42bf468194f8086fa4ca497cc6d965740ad6c1c6b",
+        "4": "9b026f98769059c0d5997afdb369a46c7d1cf32c553962afdadac7a271d70e23",
+        "5": "47fd6171a8419cea055e50898cf46959c3b4f66f1d9cb0337827fe244b8ba6f3",
+        "6": "1b86792daec0265f6cf7d84e187df8295df49ad9a49c75fbe425b189824fcef3"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 110,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 478125,
+        "6": 478125
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "552508c50be60b41a632f36d9a7097450a432b0c35a008ba6453a0ea904328c9",
+        "6": "552508c50be60b41a632f36d9a7097450a432b0c35a008ba6453a0ea904328c9"
+      },
+      "corrected_rgb_sha256": {
+        "2": "c86ed5ebe9472e38e2a4b0990f54d89b7f978bf5523c464fa9134c51287a546d",
+        "4": "bf030119631f0f54613ee38fcd00a52dac1b515b8c9c93b3ffc9c958fe67a35a",
+        "5": "ae3e1d76601edbe6a63675b62108edafc2df4180989c5d3571a8aa38eb0f6cac",
+        "6": "914fe71625168741af5d31f54c2f07896692557db612d897f07a06f913915dd0"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 111,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 480754,
+        "6": 480754
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "dbc261225fe184212bff810ab80dbdef4593900b67112e644fd7ab35614c9b27",
+        "6": "dbc261225fe184212bff810ab80dbdef4593900b67112e644fd7ab35614c9b27"
+      },
+      "corrected_rgb_sha256": {
+        "2": "cfadb442f49f81bba390ae4201a093ca068c95a8347cc8d3d9fa223641249d9f",
+        "4": "de72585b062b19e21de59c8037dba7fc43727e2d75de9304e8d0d5f5b96211cd",
+        "5": "6cda214de874286d84bc19255a205d7f817c7f336d10266f5c397f8417cd6e41",
+        "6": "a02674c6ba13373d6ca732e702c74f7ea5423614b7d6fb815fe0f8dee3e2b3db"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 112,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 483674,
+        "6": 483674
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "b0568b71ac6072006f0b64c1fb898a7726c056cf3a682c2e7070931880debc70",
+        "6": "b0568b71ac6072006f0b64c1fb898a7726c056cf3a682c2e7070931880debc70"
+      },
+      "corrected_rgb_sha256": {
+        "2": "b2377e957b78bec66d4063de4ad7ce670cb67e3c1bf6110cb098ae641b166d33",
+        "4": "23e2e00acc6cfcdd9d59528da47c505096a7cd1b27b910a032fa2ffad60531e8",
+        "5": "900cc09a94b4dab0181ce975d97801e6a6a779bff62bc6551079d08747e0f954",
+        "6": "2d6bb82c02218e294bbea6a6cb38254eee077a979d7b0007b83ec1ae05e4f9d2"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 113,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 488134,
+        "6": 488134
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "10e0fde65a206ddd9d0aa261102bd82235aa741b2dac3f57039e97075592ac18",
+        "6": "10e0fde65a206ddd9d0aa261102bd82235aa741b2dac3f57039e97075592ac18"
+      },
+      "corrected_rgb_sha256": {
+        "2": "dabdc040424195d9f6ca4e1c6b1edc3f2c491cabab5bd58048b5ea5b55809c18",
+        "4": "277fbcdba97b373591d8c83f232db469113c3f25faf856882ecdbffd529d373a",
+        "5": "6a729a29261d3729704fccf91c57d2605569d2e191b86ff2ec92dad5e41530a6",
+        "6": "d6d801f21c8d28a45e1a5878d3cadfd2a83c4fe20be9d381d041c0154810b6eb"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 114,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 492791,
+        "6": 492791
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "f8030776d3ac5395fdf753496ca5dd5c2c481c87bd4c1147f9555eea305c016f",
+        "6": "f8030776d3ac5395fdf753496ca5dd5c2c481c87bd4c1147f9555eea305c016f"
+      },
+      "corrected_rgb_sha256": {
+        "2": "9d00090ecf70cee3c92ebca3597fe88d40f7adafc747b497a6a36a87b5fadbbc",
+        "4": "e09407f32c8ce4fc658a6cb8f1f07778c64578628b4bad8be4ace49b6c25c2c9",
+        "5": "14f840ec4484e57f5ebc603851cfc69558b104ca92d3f91f8d1af35648226503",
+        "6": "93ffae3fed1b824ff70186a06d4e91895fbca6da49ec1f9eb30950bc378780dc"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 115,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 497047,
+        "6": 497047
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "fb5dee7feffecae032cf437e22b72ccb382725ae20e5d1c988950b36b9758231",
+        "6": "fb5dee7feffecae032cf437e22b72ccb382725ae20e5d1c988950b36b9758231"
+      },
+      "corrected_rgb_sha256": {
+        "2": "0116334e1457647bfbd209d2fcf349655acda0e7e518c381997e08046750bff1",
+        "4": "49dd39e6a2f58318c75877d73a60aa00f1c686358447c697b72c5caaa125a043",
+        "5": "b25ef6a12d1dd25a00c2b31a5ab96c79b93eb5c86fb806a90c5621a3b71511b8",
+        "6": "038e4bd70e261b99270223600da22d45ab2a7858ea4c21a2f6625dfddfaa2898"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 116,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 499933,
+        "6": 499933
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "51690d766a703236981d3d5c9eab983ffb6f6d94a8d8f4e193f31c8be0b3da20",
+        "6": "51690d766a703236981d3d5c9eab983ffb6f6d94a8d8f4e193f31c8be0b3da20"
+      },
+      "corrected_rgb_sha256": {
+        "2": "28e59b7ef53a834b51d6df6091bb2f16b17785ddf3d2a7887ee529da75919dc4",
+        "4": "60c04774f644fb939c8747b106fbf963dfbdf076e673d9f740b5c9db2d106791",
+        "5": "a924ccad8d766834d09891df154a85fb25f2cd2d54db51ec3df762d053d18c03",
+        "6": "214f5bde14f9b24971d99f16028be216b0f381d6a9c3d3b7fb000ffa2fb2a07b"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 117,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 504113,
+        "6": 504113
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "b5191555824f552bffaac44d5a1de2f4eff17f00b4c29bc4ac9fae20efba68cf",
+        "6": "b5191555824f552bffaac44d5a1de2f4eff17f00b4c29bc4ac9fae20efba68cf"
+      },
+      "corrected_rgb_sha256": {
+        "2": "ac8b9fbcd4e43c1c65d6bced07b3f212eb2bfcea0de1098987ee0781d5cdc415",
+        "4": "c88323f4244c693e33b2c50096d66737ac1b0c137ac2038921073e1e53176955",
+        "5": "e4bf0ca95f0c4084a15959c85c80cc34320ac5a3f7e371201f204cfb1e7f77a8",
+        "6": "765b55472ee523053e0223118b01051c6a32cd56e519097b837fd431faabafde"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 118,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 508262,
+        "6": 508262
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "8034c9fd0cbe71ba0beb18f0153a356d91510c3840a77f6c38694046f91cb745",
+        "6": "8034c9fd0cbe71ba0beb18f0153a356d91510c3840a77f6c38694046f91cb745"
+      },
+      "corrected_rgb_sha256": {
+        "2": "ae03d9c7dc273ba40cc73e0b45f28b6a021f61b09c3b8475b6d31c7205fb5f6c",
+        "4": "420e2f49914c9ccf0681185dc9bcce0e70c4605c415a0b61af5564a0639d2dca",
+        "5": "1863b5943dd9529f7961511f67cb826f1508b78dad5a9a367898bbdd4590bf43",
+        "6": "9115ddde5bf770896717cdb14e0bacdc8bdb2e945be242f71e32f363f48c9944"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 119,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 513208,
+        "6": 513208
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "743ffed0126c63d8d7a7c3bc9b21c0fda4f4de6f60a34a8e443802065c4fe335",
+        "6": "743ffed0126c63d8d7a7c3bc9b21c0fda4f4de6f60a34a8e443802065c4fe335"
+      },
+      "corrected_rgb_sha256": {
+        "2": "610912153b7b00b7e70663bdb9ca98b7c350f27d8ac5d39aab6d0ad1835ca68b",
+        "4": "431ebca4a878b01b59324dfc1eb30ac5e56bdbb4f54b04353b84f221389e6c84",
+        "5": "82d81075f577cf0bc17c6f484661316c4687a22f45d02e9e798a9fd1e0ac6ed6",
+        "6": "c2fb2cc4f9d853499626b0c1ea9babd8781399e105b358e283fdca215fcc6107"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 120,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516067,
+        "6": 516067
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "1c8fce1ed9f4f4ddd3c68bd4d36762553a5fc663f290ba881b766aace6eaa33c",
+        "6": "1c8fce1ed9f4f4ddd3c68bd4d36762553a5fc663f290ba881b766aace6eaa33c"
+      },
+      "corrected_rgb_sha256": {
+        "2": "91e0ac40414d88af4e2e9e4f58464c68fd56437e87ce4b4a080521727ea73d90",
+        "4": "4f96cf5d641448116b3fbc5161816635bf19ee105e53fa74baaceab3b0469ae0",
+        "5": "ef53d24f7b080d70aa8816e27f5b949881cbabd11b3c0aa5c343e4a72309bc2f",
+        "6": "91d761815a449859bdda4a043f3b4138c05f6afe78fdf0e1bcf52b97dd3e6f6a"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 121,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 519986,
+        "6": 519986
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "e66c987f7601e2714582c6dc3a7f225ee21d9136e499c0301a49178044b213ed",
+        "6": "e66c987f7601e2714582c6dc3a7f225ee21d9136e499c0301a49178044b213ed"
+      },
+      "corrected_rgb_sha256": {
+        "2": "5ac41de2270b3676548260f37082dd90a04e71d6b3e61d83ce3a979db35a050f",
+        "4": "e6876eaea130beeb3b895c202f093311fd6bd8935e3b3bd29930bc1fe4e5f24f",
+        "5": "e06ea46814fa87c01706e28164b71de42650e9049ae0daef1922b6879293781d",
+        "6": "83a5fd50d0adcb6824477cb3e6a574326ba703283fd735e7c0e91857ebcf2825"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 122,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 520386,
+        "6": 520386
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "d19020efbf6f4e7c0ac69e55e930a069da823f11925258dc9d60f72fba3c38fb",
+        "6": "d19020efbf6f4e7c0ac69e55e930a069da823f11925258dc9d60f72fba3c38fb"
+      },
+      "corrected_rgb_sha256": {
+        "2": "fb1d54fdf4e1af0da265621ce643548f6c74a5a5d20acda783c71d4038f75b5e",
+        "4": "4110351041c9853513f2c525450203660af1307fad1b0f0036ec37898d3aaeea",
+        "5": "c0b9837798dd070e6c384e9cc33eb1e52840ea964e66b64a11df675995444c53",
+        "6": "de07393421473087a52507252642ef7d2f345eb9489a861395b13404c277565d"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 123,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 520135,
+        "6": 520135
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "13bb56c2130d30cfdbe0046dcfb0f0dc958bfb1c3dd1fae4623e73ea0a2bb5b7",
+        "6": "13bb56c2130d30cfdbe0046dcfb0f0dc958bfb1c3dd1fae4623e73ea0a2bb5b7"
+      },
+      "corrected_rgb_sha256": {
+        "2": "75e1c7b26560d8ca2156dff945eb56494a1e7a8f47aa65733c40066e28ef5e14",
+        "4": "3960ee40f5bc6e94042db61418ddc329b94a0cb69a84a2716c07f4c801a0f0bb",
+        "5": "93416679dbd1af36fb924041c5553c0308067591f53be2e8bd469579945c55e2",
+        "6": "e3ec415517f769741a94644c9683b3f91c6ab2b1ca59f2534ced386e20701bd0"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 124,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 518459,
+        "6": 518459
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "16c1f81a58cae954caee5e1be2c48e4661a063c585e5503f834781d5973d9ef1",
+        "6": "16c1f81a58cae954caee5e1be2c48e4661a063c585e5503f834781d5973d9ef1"
+      },
+      "corrected_rgb_sha256": {
+        "2": "54138bf123adb0dd2d0d000082a60cf0eccb755c1949f94607b6f2208d65b34e",
+        "4": "220aa42fd993873eb23f83d998e93ab092f740f025592b708db7835257b5d6ce",
+        "5": "368d308051c194d26b4cbd8b21e3abb0ea296d749ecb89190c9627cc37afd8be",
+        "6": "fa8d09068158017cfddfca8b76311b1fab80adf9f617040db18874da23db2c3a"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 125,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 519567,
+        "6": 519567
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "10e7a027d14b9ad51fb0d5b6b43c27187a1ff2ae0ab1beb824658c7dd63ec022",
+        "6": "10e7a027d14b9ad51fb0d5b6b43c27187a1ff2ae0ab1beb824658c7dd63ec022"
+      },
+      "corrected_rgb_sha256": {
+        "2": "d92af11c68eebccdbfe5a631deadef7cb0044f4cf52db312ed8a038e33e93de2",
+        "4": "4cee4e995abcb30ae8304d74924cc863af8a2b437d9a91c95a9f526bc7789595",
+        "5": "1c18537359790b7b1062cdad55296ac7d15a629eabd9c35cbdb2e0d9938857c9",
+        "6": "b5f967876732641d80cbaa32508af885175309387742f19e02e7f958ab5c9395"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 126,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 519466,
+        "6": 519466
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "1a7ff41a759739493b0d3f11a81e4aa264bc20c817bfd356d6d6f2167102409c",
+        "6": "1a7ff41a759739493b0d3f11a81e4aa264bc20c817bfd356d6d6f2167102409c"
+      },
+      "corrected_rgb_sha256": {
+        "2": "56525d6c54e6fc174ef626f54dd32b04020aee743e70e84b170b074f3c8f800c",
+        "4": "e095232f72c4e19752579d6fca8a123015f8e0e5748aaf676f2eb36895f53d66",
+        "5": "bfb11ad8104539e0556b84b05cea89c8df04e81235a999327b0d51707fbbfdd0",
+        "6": "e5c2118f8b6366da4c019936e7a21514c111b385ee383d9c3c1c61ee85900728"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 127,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 520351,
+        "6": 520351
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "d80c2201aa7c8a44fcbc63e1e896495aea37a4ba9191f4ac123d3704feca0aec",
+        "6": "d80c2201aa7c8a44fcbc63e1e896495aea37a4ba9191f4ac123d3704feca0aec"
+      },
+      "corrected_rgb_sha256": {
+        "2": "2467f7fc3336178355eb5f5aad5345aadf80fb6f61d175ce67663a1b66247f1b",
+        "4": "86af7a0422cf435fa4c3b89670459cf416a6718ef81724bdd6cf37038095710f",
+        "5": "b1485500994ec66ae81ab411ad8d5c9da10c4cdcd0f8da2e461ea7847dc93fd9",
+        "6": "768d3bdc9a84ca6df97b4d4a83fb887bfe1a533c7fed68a1924682a8b957537b"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 128,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 521601,
+        "6": 521601
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "eec55eed97944a25f4895a70a4c1d54c6d3243e26255333538002fa5d3c90440",
+        "6": "eec55eed97944a25f4895a70a4c1d54c6d3243e26255333538002fa5d3c90440"
+      },
+      "corrected_rgb_sha256": {
+        "2": "6bc452ae0f5f2deb68817f620eb9277ceec7994079611409dea64c9dca5befda",
+        "4": "66f95404668a35a07ed9e2926e12b2d5745cb178de6b1df8a3a497a7a72d6ab0",
+        "5": "3229d4f8a7cc6ef16ff7e87877974cc4a52134233613251073bdf7dba635aaae",
+        "6": "f207a37959ec44368d73f2b628b4d891c77d1cd0e4c519e528e1254d8e19ae3d"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 129,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 520321,
+        "6": 520321
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "169a0f3b305294422b3b13633413a117ee3b804c41b9d97210ad1913450801cf",
+        "6": "169a0f3b305294422b3b13633413a117ee3b804c41b9d97210ad1913450801cf"
+      },
+      "corrected_rgb_sha256": {
+        "2": "85a5ca582403989db301fa79bfae63427d27e0d386f3a1c37830643d38f2dec9",
+        "4": "fe93abde0a12937ee9c227008fb6899b6ebdc720fc97de5c182516f0d932a0d1",
+        "5": "c0824169d3a4ee951ecba30f02c193a35cc3b436e316a43000678ff0c073998a",
+        "6": "41911ee460de342b5f894ccdab82f87a9339d84df9499fba7e1387e8bd85e8b1"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 130,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 520359,
+        "6": 520359
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "d3f4c05bb48c5b0a542f86bdcc84f209fa3ba016d2ccc3c523510d0fcd69ae21",
+        "6": "d3f4c05bb48c5b0a542f86bdcc84f209fa3ba016d2ccc3c523510d0fcd69ae21"
+      },
+      "corrected_rgb_sha256": {
+        "2": "47ca98f325cacb23b5d7626460720f3dcc180c2bb551201d941773c40269f9a3",
+        "4": "44cfefd7ff824a351cfdcbba4a4591156abe133cad7373a2571e6de13162d5cb",
+        "5": "59df9be1586eba8a15e8b130788ff3eb4884bc44985f82f93960fb5bb800c681",
+        "6": "d07c2614e26cc39ed30fb3902ba279fa8577ed893627f307b27e63541a1fd8b1"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 131,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 520091,
+        "6": 520091
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "7dddd053467ed8acc3ab2e3f1042938055946a95f64ee87db6ebbea55f9440f7",
+        "6": "7dddd053467ed8acc3ab2e3f1042938055946a95f64ee87db6ebbea55f9440f7"
+      },
+      "corrected_rgb_sha256": {
+        "2": "99dd565cee3982f84bcbe0c6d1dc09c2597749a53407f0c5038a593955c7942c",
+        "4": "b6d10fbecc5ed8f70ae5621640e53f2517c27cf1d3b8f580d91c045be4e662f7",
+        "5": "1e4657edb1f36026da1e5d4c2ab8c6fe2047f02611ac574445325db218581457",
+        "6": "74caf8dcc436a0f28a1321f9b2567fda4a5cbb8e30ce2d734d4c8dd9899a3a6e"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 132,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 518269,
+        "6": 518269
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "37b3d50d0e44a7f088a763beafae4bdf6f6c0639fbb6d5e60d89a45bca67e9c1",
+        "6": "37b3d50d0e44a7f088a763beafae4bdf6f6c0639fbb6d5e60d89a45bca67e9c1"
+      },
+      "corrected_rgb_sha256": {
+        "2": "d2c0b7f80acf7ccf5fb99edf192ceb477a76279c8741ba17b0041d36fcce782a",
+        "4": "2ec99704831c57309c87b80237c4f5c97155d6d149ced87cb739840ac34f5d40",
+        "5": "e24f5237971400df966ae579214369d034a6e312d16ca01ae71a95973b866988",
+        "6": "9eff31de32785b7abe620ea496444e6644251e7bdc737c4388bc9e8629929d04"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 133,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 518628,
+        "6": 518628
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "d079b6d35077b9a0a881285a76398b96f985bdee938408c28615ed0f6a9ef3b9",
+        "6": "d079b6d35077b9a0a881285a76398b96f985bdee938408c28615ed0f6a9ef3b9"
+      },
+      "corrected_rgb_sha256": {
+        "2": "b22d0dbd5eba02fb7bbe8edb6c9619788edec6971d70f0a0ee5a58071a54e2ad",
+        "4": "b087cec88022de0708d4a310c85caaad7af40c5f9464f366598d9f1636835bef",
+        "5": "a4b673f03551c9a9a051bec3651fbb9acefde35f90e6e7032b552449258c00f8",
+        "6": "ca71a2b5346e8a9b890af60139112098906f37e024deb2bb86de2719056bf700"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 134,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516178,
+        "6": 516178
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "f7edfcfb9cc8c429ed6f8ab2d64e7ddfad65b1182400834367db240b5614ea44",
+        "6": "f7edfcfb9cc8c429ed6f8ab2d64e7ddfad65b1182400834367db240b5614ea44"
+      },
+      "corrected_rgb_sha256": {
+        "2": "577eb8d248b0c9255cef55a6f0a4f96256a402adac13fd3c0410a8a152ce14d8",
+        "4": "a287a2a041ff9fb9912a5f262c49491c9ba200e4211f790d2b7e0718f9c92eeb",
+        "5": "92e909259643c459380fd9193b63061e4415c8516dc89ce5b8e3a87a8cf2f147",
+        "6": "c3692777d7ae55183e56d2f5d086cfc5201cb8b89ff46d8f2c7ffc65ecd32ee3"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 135,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516623,
+        "6": 516623
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "96153b838bc57b1c6c5c09ac806a716a4f2420331cf611b97cc6277d186a7950",
+        "6": "96153b838bc57b1c6c5c09ac806a716a4f2420331cf611b97cc6277d186a7950"
+      },
+      "corrected_rgb_sha256": {
+        "2": "6682b7ba8b46542c30f4277363375e1077a32c274f01ccf8fcd50bb87000fcda",
+        "4": "fecbd1530d9f3075907d6f66764d0ac9ade97a6c3661f8e78acc993717877d40",
+        "5": "8eeafc1dbfb1bca8ee5d216de04fd2ac3ceb65cd019f93ee40bc01d382eee281",
+        "6": "c2fe2d4947e18755317b797c2096711903deceb9d04116752ddca815782a8c79"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 136,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516653,
+        "6": 516653
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "cbcab55af54b08304c2b9cce69988e9ede8537f31392f97513d600ff7a32ffc5",
+        "6": "cbcab55af54b08304c2b9cce69988e9ede8537f31392f97513d600ff7a32ffc5"
+      },
+      "corrected_rgb_sha256": {
+        "2": "0ae32f5db9999c16572b1c9427c561900a6f38eba5373fc4fe3a248344e9b90a",
+        "4": "02f3328af09b96b88fdb8a1bc8859d4f7d15b0fad3d6f61aa73a21144b48cda0",
+        "5": "bdb0634919e3abb7e246b89bc0fef4f9e738fe6a840a277d6d4e247c67d53f4d",
+        "6": "3fb44c0d1080b142b6e1b7b8d9b2b426c7e7e267211bd8935131b89115c7dbdf"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 137,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516208,
+        "6": 516208
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "69b38c65269e1979822374a690a704dc640f0ecf56f7f03c01905ab0e54a219d",
+        "6": "69b38c65269e1979822374a690a704dc640f0ecf56f7f03c01905ab0e54a219d"
+      },
+      "corrected_rgb_sha256": {
+        "2": "81106aa2a5af3ec925d815b68c81ffc55e5cc9c7bea430692875fe1523ceeaaa",
+        "4": "cfb8fb2bd2fe539adc976da762f0d060946a1ec6a0a33e94dd87034060e2dd63",
+        "5": "96fffa7e86ba6d77af9743e6a01fc622d8d8f019391a2c0b53cc0ef8c1ce0fa2",
+        "6": "a38af55e8fd1466c96a92997a1529b24022df72c86e7c6d58cee7740e803c860"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 138,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516613,
+        "6": 516613
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "93f61c498eeda868b30509826843db4ce63cde49919a79ba624942e6779d51e9",
+        "6": "93f61c498eeda868b30509826843db4ce63cde49919a79ba624942e6779d51e9"
+      },
+      "corrected_rgb_sha256": {
+        "2": "cbdc6c5f2f274ef1f39454ffecdb149c20c19df3ecaa5fcfcd6a3410103ac4b6",
+        "4": "a50fbadac655df0717e1d307bb0f790c0777b631c521b00ec1030b5d269a0e55",
+        "5": "07b00f782129c7c83d1e202f2c9eab5ca48f749314e5925dceb94ac800d9a7ea",
+        "6": "49609163fb3a6a132246c575cc7c999a172f439738b13be05666fb2d0d25200d"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 139,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516264,
+        "6": 516264
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "84323e0e2bc2083bf467930cff969a924aef81bc281d3a7302999d140c03ff05",
+        "6": "84323e0e2bc2083bf467930cff969a924aef81bc281d3a7302999d140c03ff05"
+      },
+      "corrected_rgb_sha256": {
+        "2": "60e049b54c0efa58dec807101fe257aa9eb54cc2afb67ac482006b7a8f7eaa39",
+        "4": "ef25a02f71e47a27fabbfafff1b22b19172c94e11b6e6e362d41a4adb74317dc",
+        "5": "aa652c97977e3f63ee0b36a07b4878e1dc7f7dcbfe0e0a0abac24e90a3bd4ab8",
+        "6": "dc86fb03fd78c84328dcfee0e34eb7a2edb3ee6f9c970baaa1ea102a96456c4a"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 140,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516593,
+        "6": 516593
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "4f2033bedc269854a543f31313b7a0a3d7d1a8e63e56ea801639742d3ece1e57",
+        "6": "4f2033bedc269854a543f31313b7a0a3d7d1a8e63e56ea801639742d3ece1e57"
+      },
+      "corrected_rgb_sha256": {
+        "2": "55324ff5969b6e4238bf79a6b2a5b90628396c693c78bdc8ce9424cd020826ab",
+        "4": "a3ed2261ab615c66b9741b7ba1277a455915f13fc5effbb6e72b89c9d0fd93e5",
+        "5": "487ff0bdbf0e6da65ff310cec2dd9c983b7d44a656af6707f128d0e4c8209e2a",
+        "6": "88307939cc11be7eae1933628f26a34f767df1af816fc6795bbbb11213b6e572"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 141,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 515822,
+        "6": 515822
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "e64c9358e621d691d597034d926b828ba35f56706b9face6fdb8864c87d5daee",
+        "6": "e64c9358e621d691d597034d926b828ba35f56706b9face6fdb8864c87d5daee"
+      },
+      "corrected_rgb_sha256": {
+        "2": "48e5c4b50b4bac0714692fc88d3b5cbb7544a8406feb776ee29d58237586ab75",
+        "4": "2d800b2d0d70484ec49e7dc56674b04305c46521521537f1cce0806159b451cb",
+        "5": "bdfa3b58a412ea722a3641131b6c28269791c58fee39631e1a2bad4b89048eea",
+        "6": "f2172b4027888a4abef445b828e6403ce1f0bc5f4063ec5e337f834174b1a2f6"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 142,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 516170,
+        "6": 516170
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "14f821ea01e151eec9e72f97d38e77bfeceea5db40b766cecc380b35a6a01a6b",
+        "6": "14f821ea01e151eec9e72f97d38e77bfeceea5db40b766cecc380b35a6a01a6b"
+      },
+      "corrected_rgb_sha256": {
+        "2": "aebf13a7dfdba8f44c8429fb253a5ea3d6320425385e1704298bffba9741a25c",
+        "4": "c51edcb2b61c64617ee6fcb680c0727695c6d5b621a17da752827656b8f65d17",
+        "5": "fc1b446f72ff241a4dc1a1486f43f264d5b4b85e72302bd74e7044906d36926c",
+        "6": "732b80a0051064b9e47c6d74f25e8aee71c66317b3410a5e622d8d311459dce3"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 143,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 513780,
+        "6": 513780
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "efa21c83ac6afd143f0685c8348374a6ec4b728dd49b3018a7d5c032369a681a",
+        "6": "efa21c83ac6afd143f0685c8348374a6ec4b728dd49b3018a7d5c032369a681a"
+      },
+      "corrected_rgb_sha256": {
+        "2": "1f172316b825454e046dc813ed90546ca6f91ff0791be83fdc2926d42c168e4f",
+        "4": "24536e257fab21b932867098b11dc58dc6eb30695f561e251af75907bf56a2be",
+        "5": "59798517d6861fb2df5b1597ff856aabb1576e8271da4efd114a1dea5695b215",
+        "6": "6a4bb67d6d4755ee4f7672b6e40a4212c1c48dd2b77ee7a2f231c477d5a98530"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 144,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 514634,
+        "6": 514634
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "47f3f437c50d11dcea8170f41fd158a0529cbc67528dd605aba198cb7332ee3e",
+        "6": "47f3f437c50d11dcea8170f41fd158a0529cbc67528dd605aba198cb7332ee3e"
+      },
+      "corrected_rgb_sha256": {
+        "2": "80e765e83070b14f5497e1151534da26c41d4b75983c3fad7be6eb2a5420f22e",
+        "4": "646e3d2e37b48dfd149403af014ab88386f8e4fba565041a6111e81580198637",
+        "5": "9aa1c166ee5973bca6fb34f93ed3f1328fe3e293575d4dda91dede0aa6ef3b54",
+        "6": "71138f228379feab0660d62e020f20fb67c8912add31877b6fd14d217f524d74"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 145,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 513719,
+        "6": 513719
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "4e58018a9a1be5cf570b5aa3c442cba01b7911f268196cb1eb712f8281427d58",
+        "6": "4e58018a9a1be5cf570b5aa3c442cba01b7911f268196cb1eb712f8281427d58"
+      },
+      "corrected_rgb_sha256": {
+        "2": "41e677539c5fa16d991b7117a23d83c9ffd53cf62b94b998d0a785ce2155b9e1",
+        "4": "418b1d50a9c711d75c52773fabaca70c7e489c8f6f23c1b20a7c3659cf2630e3",
+        "5": "6affa771d9336e35e7008a0e7c8fdafafcdda7a470a1cfc9202a178c36162f90",
+        "6": "5da2e5aed504764b89daac2cc664becfefdfc3bd967aa4d9a5e5964270f4cd7d"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 146,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 512356,
+        "6": 512356
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "fbe1aaa204d78206b5e7b93e5bbe390a1185dfb0e0a680407a77150f6c00cc6b",
+        "6": "fbe1aaa204d78206b5e7b93e5bbe390a1185dfb0e0a680407a77150f6c00cc6b"
+      },
+      "corrected_rgb_sha256": {
+        "2": "29557820ed5b881be13bc5b0ee3b162c377cbe73e22ef05cf575679a64f82431",
+        "4": "904b3365b683536b488dcbf9df7d88984c44e632f410199d35f9bf228d7d6136",
+        "5": "8b67e0ac41186f17732ac93bf73d56e37d0051c4ed66c6b32a364c0a51756889",
+        "6": "9ace0749010a42644d8e9bea883678baf27204c1864a5d7724213b5d851cf6b1"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 147,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 511075,
+        "6": 511075
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "bc0ec31bd4173a5a69024133bfed6a7a99317ecde09a4809ee79f6bce1ef84b8",
+        "6": "bc0ec31bd4173a5a69024133bfed6a7a99317ecde09a4809ee79f6bce1ef84b8"
+      },
+      "corrected_rgb_sha256": {
+        "2": "dc9cd079a5313bfeb0c35c89d20405451fcd2481fb96bfc6fd228c1a0f502aad",
+        "4": "3b2f1e1f6f107f9bbc9b5665433b49bb760b0aff286d84e5dcddf91096d8336c",
+        "5": "3cfcc81f565d408c8d3258d5cece896a076ff74d78667f69c5c572ea6480293b",
+        "6": "e0c99eaf82afb3d44d4d29f86136ee3fc07168a2fbc598ed4e36000a178389ea"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 148,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 510306,
+        "6": 510306
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "1845c0c16f91925f76afb00fc09c01062f7270fdde876a46341f8458855d8645",
+        "6": "1845c0c16f91925f76afb00fc09c01062f7270fdde876a46341f8458855d8645"
+      },
+      "corrected_rgb_sha256": {
+        "2": "233b913d6b98accdf8661bb268d1389d83484d87d197f8b2cf385a7561e4e1b2",
+        "4": "727e460316af228e7e8355f0a55f752f04db9ae67d0989a0951b75964cf7f2dc",
+        "5": "44be14f7389a5c2de2ac4e7a072caec3cad50c280a8a5376bd10013a5574369e",
+        "6": "63c0eee1bb49cb989b7a198b6785a4e35fdd88aef2d1831be08876c5337ea7bf"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 149,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 508568,
+        "6": 508568
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "c62a0ff0484542e79514a6820b35dbc7bc727bd1a08f81a3f7dc3cac5003e38c",
+        "6": "c62a0ff0484542e79514a6820b35dbc7bc727bd1a08f81a3f7dc3cac5003e38c"
+      },
+      "corrected_rgb_sha256": {
+        "2": "3b9d933d90e092a8120aa6f48a4199858ea4aa13b5f3abe4c09c3da79827084b",
+        "4": "3fb6a945de2260e509c65638dcb8ef96d36ee903db284b805e32013b34511dd4",
+        "5": "a25f8a1f1e813b846aa7bdb7352fee5a61d72f2f761957c957d2a27a46be346b",
+        "6": "695385cca363a44ec084fb91d45edbd7fc1b74dc40c96f61eaea81cc052b2c7e"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 150,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 507719,
+        "6": 507719
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "d253cd27c9e8ce21b240acf859a9518bee64912b7a25a32280469d1f70e318e5",
+        "6": "d253cd27c9e8ce21b240acf859a9518bee64912b7a25a32280469d1f70e318e5"
+      },
+      "corrected_rgb_sha256": {
+        "2": "a168397504a439f74114e8d57cc465a2d2e4126991af837ec8e6a21bd04ebe5b",
+        "4": "962b1566c43ac733d1ff7b90631fe9e18f473b9709d27f53e55c5da42c804be2",
+        "5": "bcaf647e9fbeb065b3f7a8051eef5403e98b9e2bc6c7b2f71ba864a0fa487c92",
+        "6": "9eba31888d08882d71505f58502f57da6fbea0b817c24d34923a0ff1306d0390"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 151,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 507329,
+        "6": 507329
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "570eebd8e52b2ad0abbfcdb55c7ec6e95aed8f40ab049f52e0e226bea83fadf6",
+        "6": "570eebd8e52b2ad0abbfcdb55c7ec6e95aed8f40ab049f52e0e226bea83fadf6"
+      },
+      "corrected_rgb_sha256": {
+        "2": "50d31616cdd1e50c4406063b1f9b1fa8b000acbcd50608ccc0b648695e990452",
+        "4": "bef8f3ee01bb343f3db9ec09617ca9f6ac10c2f441d1bbc0e83696b9889c80a4",
+        "5": "2994c4caababd3ef13f0851ca289b720c81e256ffb0b5144826a58b996aca78e",
+        "6": "cb59ad8c59ddff51a8377bc1871b65bd5520f801a5b262d73294412a86652dda"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 152,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 505587,
+        "6": 505587
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "365e6abddd9a6bf356f6978f3d3b0a327e9ebf2e5ee684ec0b9270dfe79e0d10",
+        "6": "365e6abddd9a6bf356f6978f3d3b0a327e9ebf2e5ee684ec0b9270dfe79e0d10"
+      },
+      "corrected_rgb_sha256": {
+        "2": "2c128d3ca7cd59f7ff09bdbbefd0ce36afe697fac32aa1d26f7e473518594f0e",
+        "4": "fd3809e07086162a0155f1908988e7b3407b4000a091d7d4ed8bb1bdbfe29f6b",
+        "5": "9865470a4b30638827009deefaa9c81980ecb74ec80d46a38d2e4c1067a3546d",
+        "6": "c1119f31710a65874674e410a3d23975900dd3b01d894fa4ffc623f90528a0d9"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 153,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 506078,
+        "6": 506078
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "06bde1cbd2b71e60c0353201a7a4722c32ee7dfe82d45ee8ace83f752522c3ac",
+        "6": "06bde1cbd2b71e60c0353201a7a4722c32ee7dfe82d45ee8ace83f752522c3ac"
+      },
+      "corrected_rgb_sha256": {
+        "2": "cbaaec93e81d858a9bc4239bef40678e763930ec8aa423a926a23e44d9013e22",
+        "4": "c8847051991f58b8ee379416e7ab9b2c44e30b6d27fd5a21a797e13f7d37af92",
+        "5": "26b1ffdda273f24a1cf2d95aeba03164116bb52a853ff88286f08475f33f860e",
+        "6": "e3b0f1bc5e45827fdeb2b6412ca7405a02b1fd054e840d50ce577fab922e5f3c"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 154,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 505669,
+        "6": 505669
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "d7e3cfcb3febf56aaf1be113fed808757376211961b9636e132884848d20313f",
+        "6": "d7e3cfcb3febf56aaf1be113fed808757376211961b9636e132884848d20313f"
+      },
+      "corrected_rgb_sha256": {
+        "2": "c4524688d283c09e2696e70cf49e398d71734e7c349a1eef609dfb60f900f8dd",
+        "4": "850c2754c5604eb8b2e101f17067b9d84f73a1f60fe2afb66c1030e47b9894e3",
+        "5": "36002c267a19dd1315598969f933384198768950f976f86f895e05b349efcffd",
+        "6": "03648840757bcc0b7c415314ab14f643a4cc01166fda66bd1c32ede22d5a0925"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 155,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 504748,
+        "6": 504748
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "ed77b19be59b48f7f1cf9efaf025bbe3f9be48c8df39936999b84ada39cf39b2",
+        "6": "ed77b19be59b48f7f1cf9efaf025bbe3f9be48c8df39936999b84ada39cf39b2"
+      },
+      "corrected_rgb_sha256": {
+        "2": "b624bfab5c6f06226aff942d256aa80b92bdde684b683b6625995a9722c4dac0",
+        "4": "81fb209a470b1fc5dc1533bcc879274d9bf45cbb36e48a3089fc7b106e9d3149",
+        "5": "9981f75c70f891dab6bcc3ecc5fd395ec1742b20c9bd0fd133ad207b998f3b62",
+        "6": "6b112a7d8e92e244931fe4d5b5d4cbebe9e7ecdec729f1fbb3da4d75825506fe"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 156,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 502907,
+        "6": 502907
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "017f849f1c65ce65fc8545a1783dc3c74eddc4973a06af0c0678ac8a4bda560a",
+        "6": "017f849f1c65ce65fc8545a1783dc3c74eddc4973a06af0c0678ac8a4bda560a"
+      },
+      "corrected_rgb_sha256": {
+        "2": "fc57d2591fe9847f222c47106fae2053331911b1c832d047819ff41b24d12f2c",
+        "4": "b3c5aeb539883cb3eec00190d6a890b241a3185a604d7ca71d618b4052173729",
+        "5": "c3c15f01a6d5b5a90b8597f7326f5af23508ab347d682695fb105bbea1cfc6d7",
+        "6": "0db3add9103a3efc4bc71b24412e52c04dea1554208f612e2e92b0c694e61d7d"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 157,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 502367,
+        "6": 502367
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "c2876ae99c752ccb7b34764aaa1868215d8d468501d17cc507cb6ca4d18bd0b8",
+        "6": "c2876ae99c752ccb7b34764aaa1868215d8d468501d17cc507cb6ca4d18bd0b8"
+      },
+      "corrected_rgb_sha256": {
+        "2": "f4c2a4d594fe73f6e39a5e768029c571368f90fe680fcc94c3b362e7cbd8c270",
+        "4": "470d2aca0ae5b3b2f48333e924bb25355ec8243bd1d5924d5e548e647c9ac3f7",
+        "5": "68f0906a0fbcabf29e4b406d7d695b536f4265de391958c57d07c2d7c8490e7a",
+        "6": "afc36a6a970a166db91c9786ce8f3c0ced595d46885941c913900e6f0c0074ff"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 158,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 501866,
+        "6": 501866
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "e2bfb377ade66be70d575d4ff07f1bc5f2990835c2b0bb2f3099439c92cb4b8d",
+        "6": "e2bfb377ade66be70d575d4ff07f1bc5f2990835c2b0bb2f3099439c92cb4b8d"
+      },
+      "corrected_rgb_sha256": {
+        "2": "c273147e163bfffc072f7e827eb28f726c62d9f84c15f909e05499c00e3e4c62",
+        "4": "8c32f3978fa4e8423fecef8ff42ae3fa1c36e69dfe58e4a21ea322cde69f4bc3",
+        "5": "0903741f2b4226f2ef0567aaf3f9f1505c28ad848b9519aa6da7c765e0bcec5c",
+        "6": "dec14b0f1ea6525ea104ae9f7e5d85f9fc1708bc036bc1dae7124ef95c8683b7"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    },
+    {
+      "frame": 159,
+      "execution_pixels": {
+        "2": 0,
+        "4": 2037120,
+        "5": 499252,
+        "6": 499252
+      },
+      "gpu_coverage_dds_sha256": {
+        "5": "2d5accf72ba0db370ecaaa569bd711b864424fb279ced6ee8ba553240cb4c881",
+        "6": "2d5accf72ba0db370ecaaa569bd711b864424fb279ced6ee8ba553240cb4c881"
+      },
+      "corrected_rgb_sha256": {
+        "2": "74886e2af31fd492a690cb9552e0f41ac1a999af695c4b01af41cc32ef8b9b41",
+        "4": "dc5fe9b7b7f80df922da3854d50103bb9a35566c3194b798aabcd3b32cf509fd",
+        "5": "f52e21e02570dd2fa3553dc167a777e7e233d561e684bfcd0763de6d9ab5fba1",
+        "6": "a805eeaf7b96326d75acdfc14fc7785cee37144c18a68faabb5f408691a44598"
+      },
+      "selective_equal": true,
+      "selective_equal_first_edge": true
+    }
+  ],
+  "clips": [
+    {
+      "clip": {
+        "id": "minecraft-thin-edges-moving",
+        "scene": "minecraft",
+        "title": "Minecraft · 얇은 경계 / 이동",
+        "roi": [
+          780,
+          460,
+          1068,
+          652
+        ],
+        "start": 100,
+        "end": 160,
+        "fps": 30
+      },
+      "temporal_coverage": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\temporal-coverage-20260930\\minecraft-thin-edges-moving-temporal-coverage.gif",
+        "sha256": "b0739b24c0a687cf6efbfeebb67f6382e9bc2467e4e083651e6da30a9ba1fabb",
+        "frames": 60,
+        "duration_ms": 2000,
+        "grayscale_decoded_exact": true
+      },
+      "preview": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\temporal-coverage-20260930\\minecraft-thin-edges-moving-preview.png",
+      "mean_full_screen_execution_percent": {
+        "2": 0.0,
+        "4": 100.0,
+        "5": 24.607295266520055,
+        "6": 24.607295266520055
+      }
+    }
+  ],
+  "interpretation": "Execution coverage only. White does not imply nonzero history weight or nonzero final-current RGB difference. No new GPU run, timing, quality score, AA algorithm, jitter, or dilation change."
+}

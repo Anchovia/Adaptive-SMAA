@@ -42,3 +42,19 @@ Release x64, DX11, Ultra, 1920×1061, fixed60; 기존 still60/move120/still60 �
 상세 픽셀 수·RG 해시·출처와 실행파일/리포트 해시는 장면별 analysis.json 및 run.json에 기록했다. ⑤·⑥ 및 기존 색상 자료의 pinned provenance는 2b3ca2f의 Docs/Six-Case-Stencil-Lifecycle이다. 원시 이미지·GIF·AutoBench는 Git에 넣지 않았다.
 
 재현: Tools/SMAA/build_baseline.py로 빌드하고 Tools/SMAA/run_native_first_pass_edges.ps1에서 장면별 독립 캡처 후 analyze_native_first_pass_edges.py --scene bistro 또는 --scene minecraft로 검증·GIF 생성을 수행한다. 캡처용 readback은 일반 렌더링과 기존 benchmark에서 실행되지 않는다.
+
+## Temporal 실행 범위 시각화
+
+같은 세 장면의 frame/crop으로 ②·④·⑤·⑥ temporal 실행 범위를 추가했다. ⑤·⑥은 temporal shader가 stencil을 통과한 픽셀에만 1을 기록한 기존 GPU coverage MRT를 직접 사용했다. 선택된 위치는 실제 첫 패스 RG와 같고, 두 독립 구현의 마스크도 같다. 실행 여부가 아니라 색상 차이로 선택 마스크를 역산하지 않는다.
+
+②는 프레임별 TemporalOff 검증에 따라 검정으로, ④는 원본 full-screen draw와 PSInvocations/SamplesPassed가 각각 2,037,120인 집계에 따라 흰색으로 표시했다. 이 두 균일 마스크는 검증된 범위의 시각화이며 저장된 pixel별 GPU coverage dump가 아니다. ④의 실행 집계 자료와 최신 수정 기준선은 최종 PNG 해시로 연결했다. 모든 사용 프레임은 수정 기준선 RGB 해시와도 일치한다.
+
+흰색은 temporal resolve 계산이 실행된 위치다. History 가중치가 0보다 큰지, 현재 색상과 혼합 결과가 달라졌는지, 깜빡임이 억제됐는지는 이 자료로 판단하지 않는다. 전체 화면 비율은 각 GIF의 crop 비율과 구분해 표기했다. ⑤·⑥은 같은 위치를 처리하지만 입력이 각각 raw color와 spatial SMAA 결과이므로 결과 색상까지 같다는 뜻은 아니다.
+
+생성 도구는 `Tools/SMAA/create_temporal_coverage_media.py --scene bistro|minecraft`다. 상세 출처/해시/프레임별 실행 수/검증 결과는 `Temporal-Coverage/bistro.json`과 `minecraft.json`에 기록한다. GIF 전체 decode의 회색조 픽셀·프레임 수·재생 시간 일치를 검증했다. 저장 자료를 재사용했으며 GPU 실행이나 성능·품질 재측정은 하지 않았다.
+
+![Bistro 의자 다리 temporal 실행 범위](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/temporal-coverage-20260930/bistro-chairs-moving-temporal-coverage.gif)
+
+![Minecraft 얇은 경계 temporal 실행 범위](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/temporal-coverage-20260930/minecraft-thin-edges-moving-temporal-coverage.gif)
+
+![Bistro 창살 이동→정지 temporal 실행 범위](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/temporal-coverage-20260930/bistro-window-stop-temporal-coverage.gif)
