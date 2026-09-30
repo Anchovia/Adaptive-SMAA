@@ -40,7 +40,6 @@ public:
     BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_output(output){
         m_measureFrames=smoke?240:4800;m_repeats=smoke?1:6;
         m_modes={{"O-1X",CMAA2Sample::AAType::SMAA,true},{"O-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,false}};
-        if(capture)m_modes.push_back({"O-1X-Repeat",CMAA2Sample::AAType::SMAA,true});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -52,10 +51,11 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
+            tool.ReportAddRowValues({"presentation_timeline",m_capture?"480":"240","60",m_capture?"360":"120","60","60fps"});
             tool.ReportAddText("Stencil lifecycle refresh; independent case 2; target O-1X; base c51ca2896979c78d7fd10c208303c0420a819c76.\r\n");
-            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60; camera/depth motion only.\r\n");
+            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; capture still60/move360/still60; timing still60/move120/still60; camera/depth motion only.\r\n");
             tool.ReportAddText("Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.\r\n");
-            tool.ReportAddText(m_capture?"Capture: target/control + target repeat; 240 frames each; no timing claim.\r\n":"Timing: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
+            tool.ReportAddText(m_capture?"Presentation long capture: target/control; 480 frames each; no timing claim.\r\n":"Timing: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             m_output+=L"/case2/"+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -81,16 +81,16 @@ public:
                     m_samples["WallFrame"].push_back((now-m_lastTick)*1000.0);
                 }
                 ++m_frame;
-                if(m_frame>=(m_capture?240:m_measureFrames)){
+                if(m_frame>=(m_capture?480:m_measureFrames)){
                     if(!m_capture)for(auto& kv:m_samples)Summarize(tool,kv.first,kv.second);
                     if(++m_slot==int(m_modes.size())){m_slot=0;++m_run;}
                     if(m_run==(m_capture?1:m_repeats)){Finish(tool);return;}Configure();
                 }
             }
         }
-        m_lastTick=now;const int phase=m_frame<0?0:m_frame%240;
+        m_lastTick=now;const int phase=m_frame<0?0:m_frame%(m_capture?480:240);
         if(m_frame>=0&&phase==0)m_parent.GetSMAA()->ResetTemporalHistory();
-        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f);
+        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,m_capture?360:120))/60.0f);
     }
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
