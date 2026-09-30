@@ -1,0 +1,24 @@
+{
+  "classification": "Excluded incomplete startup runs",
+  "incidents": [
+    {
+      "pid": 27392,
+      "started": "2026-09-30T16:48:21.0763653+09:00",
+      "observed": "2026-09-30T16:52:39.8815417+09:00",
+      "cpu_seconds": 2.234375,
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\CMAA2.exe",
+      "reason": "No CPU or log progress for multiple minutes during shader startup; no targetable error window; incomplete run excluded"
+    },
+    {
+      "pid": 38988,
+      "started": "2026-09-30T16:53:10.7686958+09:00",
+      "observed": "2026-09-30T16:56:28.3447219+09:00",
+      "cpu_seconds": 2.1875,
+      "reason": "Repeated pre-render startup stall; excluded; investigate initial scene selection"
+    }
+  ],
+  "successful_retry": "20260930_165657",
+  "launch_adjustment": "Preselect Minecraft SceneChoice=2 in ignored ApplicationSettings.xml before process start",
+  "algorithm_or_executable_changed": false,
+  "internal_cause_confirmed": false
+}

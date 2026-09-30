@@ -1,0 +1,52 @@
+{
+  "validation": "PASS",
+  "config": {
+    "case": 4,
+    "branch": "baseline/smaa-t2x-r-stencil-lifecycle",
+    "base": "c51ca2896979c78d7fd10c208303c0420a819c76",
+    "target": "O-T2X-R",
+    "pattern": "On",
+    "spatial": true,
+    "temporal": true,
+    "stencil_used": true,
+    "native_control": "O-T2X-R",
+    "source_changes": "SMAA spatial stencil clear only; selective clear retained without duplication; timer names normalized; no shader changes"
+  },
+  "unchanged_shaders": [
+    {
+      "path": "Projects/CMAA2/SMAA/AreaTex.h",
+      "normalized_sha256": "f2838043c41d10df08eb77f44ced37f0fe0b2af2bfba48b71e0806b8d89a4142"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/RenderTarget.h",
+      "normalized_sha256": "ce98fc8e67dc309d2a0e3885a0afba54858fb3affae1842e51fe45dfba6f8637"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.fx",
+      "normalized_sha256": "5463a63b1b6cc21572d30f825d13df9687338220b04bb2d8f16ba4a011f8837c"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.hlsl",
+      "normalized_sha256": "71cfdc93b4e6151dea8b80dcc3540a7614abbd76d1a19ed70359848c84dcf9cc"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAAWrapper.hlsl",
+      "normalized_sha256": "1bed3d30d086645cc748dbc99d10eb93810967e923558384702a8dce867dcd02"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SearchTex.h",
+      "normalized_sha256": "34bbd4ff9f6fd39b583c2f5a450d815fa2f380a50d06008e411278e6f6a4d911"
+    }
+  ],
+  "executable_sha256": "3e8ad3b8b637ab70e7bb95f78343c2093e0d8512770a5a56d208626ae44297cd",
+  "sources": {
+    "Projects/CMAA2/CMAA2Sample.cpp": "aa371234380507419ffeac046ae6af2e0d45ac31070501ece2fc89c3ab3c07b8",
+    "Projects/CMAA2/SMAA/SMAA.cpp": "56dbf4bb63e0cdb9703a293db58e9f778f9e2f4ad9f1c7d9d7706f27a3e5fa4e",
+    "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "8385a09fe3c2a6d0d5712f1908c1625a97f97b7e7a8a7c5d7a86f352f0840b5b",
+    "Projects/CMAA2/StencilLifecycleVerification.inl": "14af0f6f3c227f9855d8126b6715b19a82c0704c109a40419808d8cea6b6f3ac",
+    "Tools/SMAA/analyze_stencil_lifecycle.py": "ff1480000842689aa9c01abb441fb7821bdb70c2f54a13d6a8216094e93b8f3b",
+    "Tools/SMAA/run_stencil_lifecycle.ps1": "7f267c3572acb314e1e25974ba65a4bfbd8ac2713212286ecfb2ea5bcb6ee8b6"
+  },
+  "spatial_go_clear_calls": 1,
+  "raw_exact_edge_clear_preserved": false
+}

@@ -1,0 +1,64 @@
+{
+  "validation": "PASS",
+  "config": {
+    "case": 5,
+    "branch": "experiment/first-edge-temporal-only-stencil-lifecycle",
+    "base": "ba1761d6a79bbbd84f720fc097e24b726587472f",
+    "target": "ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R",
+    "pattern": "Off",
+    "spatial": false,
+    "temporal": true,
+    "stencil_used": true,
+    "native_control": "O-T2X-R",
+    "source_changes": "SMAA spatial stencil clear only; selective clear retained without duplication; timer names normalized; no shader changes"
+  },
+  "unchanged_shaders": [
+    {
+      "path": "Projects/CMAA2/SMAA/AreaTex.h",
+      "normalized_sha256": "f2838043c41d10df08eb77f44ced37f0fe0b2af2bfba48b71e0806b8d89a4142"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl",
+      "normalized_sha256": "991c51326d9609d6c634c3a52a254115cfbc79154e009e5e437914fa8837f96a"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/FirstEdgeTemporalOnly.hlsl",
+      "normalized_sha256": "c8ff38b6117e9ca589a6633730074dbc01d9e0a27f2db8859e1a6c90844ae014"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/RenderTarget.h",
+      "normalized_sha256": "ce98fc8e67dc309d2a0e3885a0afba54858fb3affae1842e51fe45dfba6f8637"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.fx",
+      "normalized_sha256": "5463a63b1b6cc21572d30f825d13df9687338220b04bb2d8f16ba4a011f8837c"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAA.hlsl",
+      "normalized_sha256": "71cfdc93b4e6151dea8b80dcc3540a7614abbd76d1a19ed70359848c84dcf9cc"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SMAAWrapper.hlsl",
+      "normalized_sha256": "1bed3d30d086645cc748dbc99d10eb93810967e923558384702a8dce867dcd02"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/SearchTex.h",
+      "normalized_sha256": "34bbd4ff9f6fd39b583c2f5a450d815fa2f380a50d06008e411278e6f6a4d911"
+    },
+    {
+      "path": "Projects/CMAA2/SMAA/TemporalOnlyControl.hlsl",
+      "normalized_sha256": "8270e7f5581aacbcefa0733165cc42d4895fcc86e5f94e6d7f33484e8a8530af"
+    }
+  ],
+  "executable_sha256": "2b9a29a98504b6dd7aab070ece9d798a854603113d9bb551f2c1459f09823255",
+  "sources": {
+    "Projects/CMAA2/CMAA2Sample.cpp": "1a4e503cd8b43c766114201240b22dd7204e50c6c35a6f3c4bb20e28cc42ad30",
+    "Projects/CMAA2/SMAA/SMAA.cpp": "2e81e69ba2b4977b16715d1b84bdfb7811f4dd6f862fbad57ff1b37c307856c3",
+    "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "24c52d1a74bd2fefe4a91e0329223a56d84e67307f462188ec5998252fd1f74f",
+    "Projects/CMAA2/StencilLifecycleVerification.inl": "7377b69f02de696910381c331bde7bf60935ced45491392466e9642d4bc01b00",
+    "Tools/SMAA/analyze_stencil_lifecycle.py": "ff1480000842689aa9c01abb441fb7821bdb70c2f54a13d6a8216094e93b8f3b",
+    "Tools/SMAA/run_stencil_lifecycle.ps1": "bd1786f5e84819fbaa37ceded3c9de62f5fb171290eb4f727d94410d26cfa55c"
+  },
+  "spatial_go_clear_calls": 1,
+  "raw_exact_edge_clear_preserved": true
+}
