@@ -49,3 +49,20 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 2026-10-01: 직전 raw edge 유지 GPU 단독 실험
+
+- `experiment/spatial-edge-persistence-depth`는 수정된 ⑥ `304f749`에서 직접 분기했다.
+  구현은 `2d4d0cc`, 기준 문서는 `Docs/Edge-Persistence-GPU/results-ko.md`다.
+- 현재 raw edge와 재투영한 직전 raw edge만 union한다. 누적 union feedback, 지터 변경,
+  dilation, sampler/weight 변경은 없다. 기존 3차 패스의 SV_Depth 출력과 temporal의
+  early depth rejection을 쓰며 추가 draw/dispatch를 만들지 않았다.
+- 기존 ⑥·원본 ④의 960프레임 hash, current-only depth control 480프레임,
+  새 구현 진단 On/Off 반복 480프레임이 일치했다. 부분 raw trace의 GPU/CPU 검증은
+  texel 경계 인접 차이를 별도로 기록하므로 모든 픽셀 bit-exact라고 표현하지 않는다.
+- 1920×1061, RTX 3060 Ti, 4,800프레임×6회에서 새 구현 전체 AA 시간은 원본 ④ 대비
+  Bistro +5.28%, Minecraft +8.23%였다. 기존 ⑥ 대비는 +24.02%, +12.80%이며
+  증가분 대부분이 공간 3차 패스 구간이다. 순수 데이터 전송 비용으로 해석하지 않는다.
+- Minecraft 일부 프레임의 선 단절 복원은 확인했으나 다른 위치·프레임의 단절은 남았다.
+  정지 후에는 기존 ⑥과 같다. 기본 경로로 채택하거나 전체 품질 개선 성공으로 부르지 않는다.
+- 이후 다른 가설은 다시 검증된 기준선에서 분기한다. 이 실험 전체를 무조건 상속하지 않는다.

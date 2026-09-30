@@ -1,0 +1,132 @@
+{
+  "validation": "PASS",
+  "branch": "experiment/spatial-edge-persistence-depth",
+  "renderer_commit": "2d4d0ccba06f6f9882c16abffd7489bed52030d7",
+  "base": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "executable_sha256": "4ce7ee5efe13dabc6fba47a4649b5539d64d18a2d8d5ad62e5355c9855c91539",
+  "fxc": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/fxc.exe",
+  "shader_results": [
+    {
+      "entry": "ExactLumaEdgePS",
+      "reprojection": 0,
+      "dxbc_sha256": "cff2e3933cdfdbec50b79ef23579794237e8e9a0981fec623526dcef139f85bc",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "ExactLumaRawEdgePS",
+      "reprojection": 0,
+      "dxbc_sha256": "42a5026503d0d1cd50491267ff0140234d48fa27657502a9689b3cda32e98087",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "ExactColorEdgePS",
+      "reprojection": 0,
+      "dxbc_sha256": "91952edb5f6b73c684d1c751819c01d0bd48b63cb92b30e776cb19de1c861a96",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "ExactDepthEdgePS",
+      "reprojection": 0,
+      "dxbc_sha256": "3f09864f031fb22b1bbb3f201159c0583c4c7d043d653add9ccbab164b8f0b2e",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "NeighborhoodRetainPS",
+      "reprojection": 0,
+      "dxbc_sha256": "65ccdbe4e3ecee575a3009eba1981025db43a18036b6f5334c87c3788d471167",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "FirstEdgeStencilPS",
+      "reprojection": 0,
+      "dxbc_sha256": "a0846cc29e1cfd6c11f4e55f375e449c91114673501634c304914b4d967948b1",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "FirstEdgeStencilCoveragePS",
+      "reprojection": 0,
+      "dxbc_sha256": "58a6e869c0be0509a6dcd9b44301128d55f5e524a575f99bec53afa61960fbb4",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "NeighborhoodPersistencePS",
+      "reprojection": 0,
+      "dxbc_sha256": "4618930d181c7349243160d18d803a0da32e685fbaed45c4ec9036f5a260b908",
+      "baseline_byte_identical": false
+    },
+    {
+      "entry": "NeighborhoodCurrentDepthPS",
+      "reprojection": 0,
+      "dxbc_sha256": "4dd111cd3ce079afab40298aa9ca014871308f96dbd9035961e43a13f7557450",
+      "baseline_byte_identical": false
+    },
+    {
+      "entry": "ExactLumaEdgePS",
+      "reprojection": 1,
+      "dxbc_sha256": "cff2e3933cdfdbec50b79ef23579794237e8e9a0981fec623526dcef139f85bc",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "ExactLumaRawEdgePS",
+      "reprojection": 1,
+      "dxbc_sha256": "42a5026503d0d1cd50491267ff0140234d48fa27657502a9689b3cda32e98087",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "ExactColorEdgePS",
+      "reprojection": 1,
+      "dxbc_sha256": "91952edb5f6b73c684d1c751819c01d0bd48b63cb92b30e776cb19de1c861a96",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "ExactDepthEdgePS",
+      "reprojection": 1,
+      "dxbc_sha256": "3f09864f031fb22b1bbb3f201159c0583c4c7d043d653add9ccbab164b8f0b2e",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "NeighborhoodRetainPS",
+      "reprojection": 1,
+      "dxbc_sha256": "d484fd2312fc25612f1c60aca00e426239b5950f029c9030c4f3fa15d34745fb",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "FirstEdgeStencilPS",
+      "reprojection": 1,
+      "dxbc_sha256": "db6d14c164014a492d137773565ec31391fef94d9a13f03cc9f2d4dd996e4c1d",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "FirstEdgeStencilCoveragePS",
+      "reprojection": 1,
+      "dxbc_sha256": "b0ea306f8f178250cce732ead40eaa7b1be01912560f51f734d53d9b71b805d6",
+      "baseline_byte_identical": true
+    },
+    {
+      "entry": "NeighborhoodPersistencePS",
+      "reprojection": 1,
+      "dxbc_sha256": "8bdf38bd3e64b52c48457d7368efaeae049e7478f86208dd55056c4ff4a5b4fb",
+      "baseline_byte_identical": false
+    },
+    {
+      "entry": "NeighborhoodCurrentDepthPS",
+      "reprojection": 1,
+      "dxbc_sha256": "b9b46f4f20718073b5c369d03b8f29c96d1d8e1f8ce287800680476ecfdf36ca",
+      "baseline_byte_identical": false
+    }
+  ],
+  "source_sha256": {
+    "Projects/CMAA2/CMAA2Sample.cpp": "f277f39324ad4ea698a982fc087ca58eff3c04b91dc75a60ff4c8b263acaccea",
+    "Projects/CMAA2/EdgePersistenceVerification.inl": "1d9965d26baef8ca18d6868aa5da3e854f15eb501e198bbec085de77e3895a5c",
+    "Projects/CMAA2/SMAA/SMAA.cpp": "f52720bd485cf499aea9c2e847115a6da35e8117dde99c8fb302ade476286eac",
+    "Projects/CMAA2/SMAA/SMAA.h": "a83bd95e58c5ee9a2b7d2aee710c78f7106c82e28883f25050fa0d004e635fbe",
+    "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "0dcc827d266527ee0e5cb67a9ec90e7a4374aceb79652e563d82dd6e8aacdd8a",
+    "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "cfe915032ff2ee68f40cd3abdef48a4a0556337b8c75ccc4782440a5336ced66",
+    "Projects/CMAA2/SMAA/vaSMAAWrapper.h": "e79065435ce79276c790d6ca37b8f26cdae93aab15409bc336ea1de9a6211bd8"
+  },
+  "dependencies": {
+    "guard_and_trace": "9fefa77",
+    "cpu_decoder": "63fbd59"
+  },
+  "build_log_sha256": "39d55f5207acb5ea962898f698422d47f6b67110eb00960f983a4babb1d9c6be"
+}
