@@ -42,4 +42,4 @@ for kind in ['Luma','LumaRaw','Color','Depth']:
     results.append(dict(entry=entry,dxbc_sha256=sha(dest),edge_equation_body_verified=True))
 data=dict(validation='PASS',branch=git('branch','--show-current').decode().strip(),base='304f7493c6a5e53fa3cfac5dfd084ce0e86ca459',explicit_dependency='2d4d0ccba06f6f9882c16abffd7489bed52030d7',executable_sha256=sha(R/'Projects/CMAA2/CMAA2.exe'),fxc=fxc,resolution=[1920,1061],shader_results=results,source_sha256={n:sha(R/n) for n in files},build_log_sha256=sha(R/'tmp/baseline-restart-build.log'))
 (D/'source-audit.json').write_text(json.dumps(data,indent=2)+'\n')
-print('PASS: native 14 bytecodes unchanged; 8 diagnostic variants compiled at actual resolution')
+print('PASS: native 14 bytecodes unchanged; 8 depth variants and 4 stencil edge shaders compiled at actual resolution')

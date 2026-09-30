@@ -49,3 +49,28 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 2026-10-01: 직전 raw edge 유지 비용 감사
+
+- `validation/edge-persistence-cost-audit`는 수정된 ⑥ `304f749`에서 직접 분기하고,
+  감사 대상인 ⑦ 렌더러 `2d4d0cc`만 명시적 의존성으로 가져왔다. 기존 ⑦ 브랜치와
+  결과는 보존한다. 새 렌더러/진단 커밋은 `9b9953e`다.
+- 기준 문서는 `Docs/Edge-Persistence-Cost-Audit/results-ko.md`와 `method.md`다.
+  A=기존 ⑥, B=기존 ⑦ depth 전달, E=동일 union의 first-pass stencil 전달, O=④다.
+  E를 ⑥으로 부르거나 기존 ⑦ 수치를 E 측정값으로 덮어쓰지 않는다.
+- 기존 ⑦은 raw edge를 CopyResource하지 않고 두 RG8 target을 swap한다. 큰 추가
+  비용은 shader depth export 경로에서 재현됐다. 고정 1만 SV_Depth로 출력하는
+  대조군도 AA 시간이 Bistro +0.028941 ms, Minecraft +0.022050 ms 증가했다.
+  이전 edge 보관/읽기의 불가피한 비용 또는 단순 Early-Z culling 상실로 설명하지 않는다.
+- E는 native edge 식에서 early discard를 zero return으로 바꾼 별도 함수로 current RG를
+  보존하고, current edge가 없을 때만 재투영한 previous raw edge를 검사해 stencil에 union을
+  표시한다. Previous-only 픽셀의 raw RG는 0이다. 기존 3차 pass와 native temporal resolve를
+  사용하며 추가 draw/dispatch는 없다. 2차 spatial 실행 영역은 넓어지므로 출력 보존을 검증한다.
+- 두 장면 각 240프레임에서 E/B 최종 RGB가 완전히 같았다. 86개 trace의 raw RG,
+  current spatial DDS, 실제 temporal coverage도 같다. PS invocation 및 passing samples는
+  두 구현 모두 coverage pixel 수와 일치했다. Native shader 14 DXBC도 기준선과 같다.
+- 1920×1061, RTX 3060 Ti, hidden, 4,800프레임×3회에서 E는 B보다 AA 시간이
+  Bistro -13.94%, Minecraft -4.39%였다. 같은 실행의 ④ 대비는 -9.53%, +3.33%다.
+  따라서 양 장면 모두 ④보다 빨라졌다고 주장하지 않는다. 기존 ⑥ 대비 E는 여전히 느리다.
+- 이번 결과는 동일 출력의 비용 개선이다. 기존 ⑦의 얇은 선 단절/반짝임 문제 해결,
+  새로운 품질 개선, 모든 GPU/장면 검증 또는 최적화 한계 도달을 주장하지 않는다.
