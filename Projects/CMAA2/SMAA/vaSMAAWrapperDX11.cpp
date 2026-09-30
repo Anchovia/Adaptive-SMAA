@@ -39,6 +39,7 @@
 
 #include "SMAA.h"
 #include "Core/Misc/vaProfiler.h"
+#include "Core/Misc/vaXXHash.h"
 #include <fstream>
 
 #include "Rendering/DirectX/vaRenderDeviceContextDX12.h" // only so the dx12 stub compiles - will be removed once ported to dx12 file
@@ -79,6 +80,7 @@ namespace VertexAsylum
         ID3D11DepthStencilState *   m_DisableDepthStencil           = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthReplaceStencil    = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthUseStencil        = nullptr;
+        ID3D11DepthStencilState *   m_FullScreenCoverageControl      = nullptr;
         ID3D11BlendState *          m_Blend                         = nullptr;
         ID3D11BlendState *          m_NoBlending                    = nullptr;
 
@@ -127,6 +129,35 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        bool ReadTextureHash(vaRenderDeviceContext &ctx,const shared_ptr<vaTexture> &texture,uint64 &hash) {
+            if(!texture)return false;
+            auto dc=ctx.SafeCast<vaRenderDeviceContextDX11*>()->GetDXContext();
+            auto source=texture->SafeCast<vaTextureDX11*>()->GetTexture2D();
+            D3D11_TEXTURE2D_DESC desc;source->GetDesc(&desc);
+            if(desc.ArraySize!=1||desc.MipLevels!=1||desc.SampleDesc.Count!=1)return false;
+            if(desc.Format!=DXGI_FORMAT_R8G8B8A8_TYPELESS && desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM
+                && desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB && desc.Format!=DXGI_FORMAT_R16G16_FLOAT)return false;
+            desc.Usage=D3D11_USAGE_STAGING;desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;desc.MiscFlags=0;
+            ID3D11Texture2D *stage=nullptr;
+            if(FAILED(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()->CreateTexture2D(&desc,nullptr,&stage)))return false;
+            dc->CopyResource(stage,source);D3D11_MAPPED_SUBRESOURCE mapped;
+            if(FAILED(dc->Map(stage,0,D3D11_MAP_READ,0,&mapped))){stage->Release();return false;}
+            vaXXHash64 digest;
+            for(UINT y=0;y<desc.Height;++y)digest.AddBytes(static_cast<const char*>(mapped.pData)+y*mapped.RowPitch,desc.Width*4);
+            hash=digest.Digest();dc->Unmap(stage,0);stage->Release();return true;
+        }
+        virtual bool ReadCoverageInputHashes(vaRenderDeviceContext &ctx,uint64 *hashes) override {
+            if(!m_temporalHistoryValid)return false;
+            return ReadTextureHash(ctx,m_temporalHistory[1-GetTemporalFrameIndex()],hashes[0])
+                && ReadTextureHash(ctx,m_temporalHistory[GetTemporalFrameIndex()],hashes[1])
+                && ReadTextureHash(ctx,m_temporalVelocity,hashes[2]);
+        }
+        virtual bool SaveCoverageInputProbe(vaRenderDeviceContext &ctx,const wstring &prefix) override {
+            return m_temporalHistoryValid
+                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-current.dds")
+                && m_temporalHistory[GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-previous.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx,prefix+L"-velocity.dds");
+        }
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {
             return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);
         }
@@ -241,6 +272,9 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
         desc.StencilEnable              = TRUE;
         desc.FrontFace.StencilFunc      = D3D11_COMPARISON_EQUAL;
         V( device->CreateDepthStencilState( &desc, &m_DisableDepthUseStencil ) );
+        // Only coverage changes; keep the selective state's disabled depth test.
+        desc.StencilEnable = FALSE;
+        V( device->CreateDepthStencilState( &desc, &m_FullScreenCoverageControl ) );
     }
     {
         CD3D11_BLEND_DESC desc = CD3D11_BLEND_DESC( CD3D11_DEFAULT( ) );
@@ -278,6 +312,7 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
     // Reset( );
 
     SAFE_RELEASE( m_DisableDepthStencil        );
+    SAFE_RELEASE( m_FullScreenCoverageControl  );
     SAFE_RELEASE( m_DisableDepthReplaceStencil );
     SAFE_RELEASE( m_DisableDepthUseStencil     );
     SAFE_RELEASE( m_Blend                      );
@@ -494,7 +529,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
-                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV);
+                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,
+                        GetFullScreenCoverageControl()?m_FullScreenCoverageControl:nullptr);
                 else if(GetSpatialFirstEdgeEnabled())
                     m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else

@@ -65,6 +65,7 @@ namespace VertexAsylum
         bool m_firstEdgeStencilEnabled = true;
         bool m_stencilUpstreamControl = false;
         bool m_executionDiagnostics = false;
+        bool m_fullScreenCoverageControl = false;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
 
@@ -104,6 +105,10 @@ namespace VertexAsylum
         void SetStencilUpstreamControl(bool enabled){if(m_stencilUpstreamControl!=enabled){m_stencilUpstreamControl=enabled;ResetTemporalHistory();}}
         bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
         void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
+        void SetFullScreenCoverageControl(bool enabled){if(m_fullScreenCoverageControl!=enabled){m_fullScreenCoverageControl=enabled;ResetTemporalHistory();}}
+        bool GetFullScreenCoverageControl() const {return m_fullScreenCoverageControl;}
+        virtual bool ReadCoverageInputHashes(vaRenderDeviceContext&,uint64*){return false;}
+        virtual bool SaveCoverageInputProbe(vaRenderDeviceContext&,const wstring&){return false;}
         bool ExecutionQueryOK() const {return m_executionQueryOK;}
         uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
         uint64 GetResolveSamples() const {return m_lastResolveSamples;}
