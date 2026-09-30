@@ -14,7 +14,9 @@ DOC.mkdir(parents=True,exist_ok=True)
 for version in ('before','after'):
     folder=OUT/version
     folder.mkdir(parents=True,exist_ok=True)
-    for name in ('SMAA.hlsl','SMAAWrapper.hlsl','FirstEdgeStencil.hlsl'):
+    names=['SMAA.hlsl','SMAAWrapper.hlsl','FirstEdgeStencil.hlsl']
+    if CFG['case']==5:names.append('TemporalOnlyControl.hlsl')
+    for name in names:
         path='Projects/CMAA2/SMAA/'+name
         data=subprocess.check_output(['git','show',BASE+':'+path],cwd=ROOT) if version=='before' else (ROOT/path).read_bytes()
         (folder/name).write_bytes(data)
