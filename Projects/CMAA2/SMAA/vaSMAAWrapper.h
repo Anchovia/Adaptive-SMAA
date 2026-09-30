@@ -65,6 +65,8 @@ namespace VertexAsylum
         bool m_firstEdgeStencilEnabled = true;
         bool m_stencilUpstreamControl = false;
         bool m_executionDiagnostics = false;
+        int m_edgePersistenceMode = 0; // 0 baseline, 1 one-frame raw union, 2 current-only depth control
+        wstring m_thinLineTracePrefix;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
 
@@ -108,6 +110,13 @@ namespace VertexAsylum
         uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
         uint64 GetResolveSamples() const {return m_lastResolveSamples;}
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext&,const wstring&){return false;}
+        void SetEdgePersistenceMode(int mode) {
+            assert(mode>=0 && mode<=2);
+            if(m_edgePersistenceMode!=mode){m_edgePersistenceMode=mode;ResetTemporalHistory();}
+        }
+        int GetEdgePersistenceMode() const {return m_edgePersistenceMode;}
+        void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}
+        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext&,const wstring&){return false;}
 
         void SetSpatialFirstEdgeEnabled(bool enabled) {
             if(m_spatialFirstEdgeEnabled!=enabled){m_spatialFirstEdgeEnabled=enabled;ResetTemporalHistory();}
