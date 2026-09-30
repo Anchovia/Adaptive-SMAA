@@ -59,11 +59,12 @@ def main():
         checks=[r for r in rows if r and r[0]=='mode_check'];assert len(checks)==n*len(capture_modes)
         result.update(capture_root=str(base),frames_per_mode=n,compared_modes=capture_modes,mismatched_frames=comparisons,trace_count=len(traces),selection_validation=trace_checks,output_hashes=hashes)
     else:
-        runs={m:{} for m in MODES};count=1 if args.phase=='Smoke' else 3;n=240 if count==1 else 4800
+        runs={m:{} for m in MODES};seen=set();count=1 if args.phase=='Smoke' else 3;n=240 if count==1 else 4800
         for r in rows:
             if not r or r[0]!='timing':continue
             _,mode,run,metric,samples,mean,*_=r
             assert mode in MODES and int(samples)==n
+            key=(mode,int(run),metric);assert key not in seen and int(run) in range(count);seen.add(key)
             runs[mode].setdefault(metric,[]).append(float(mean))
         for mode,metrics in runs.items():
             assert len(metrics)==6,(mode,metrics)
@@ -72,7 +73,15 @@ def main():
         pairs={}
         for a,b in [('S-StorageOnly-Stencil','A-CurrentEdge-Stencil'),('K-ConstantDepth-Stencil','S-StorageOnly-Stencil'),('D-CurrentEdge-Depth','K-ConstantDepth-Stencil'),('P-UnionPrep-Stencil','K-ConstantDepth-Stencil'),('B-PreviousRawEdge-Depth','P-UnionPrep-Stencil'),('L-PreviousRawEdge-ConservativeDepth','B-PreviousRawEdge-Depth')]:
             pairs[a+' minus '+b]={k:means[a][k]-means[b][k] for k in means[a]}
-        result.update(runs=runs,means=means,differences_ms=pairs)
+        comparisons={}
+        for baseline in [MODES[0],MODES[5],'O-T2X-R']:
+            comparisons[baseline]={}
+            for mode in MODES:
+                comparisons[baseline][mode]={}
+                for metric in means[mode]:
+                    percentages=[100*(a/b-1) for a,b in zip(runs[mode][metric],runs[baseline][metric])]
+                    comparisons[baseline][mode][metric]=dict(delta_ms=means[mode][metric]-means[baseline][metric],percent=100*(means[mode][metric]/means[baseline][metric]-1),paired_run_percent=percentages)
+        result.update(runs=runs,means=means,differences_ms=pairs,comparisons=comparisons)
         for mode in MODES:
             v=means[mode];print(mode, 'AA %.6f spatial %.6f temporal %.6f native %+.2f%%'%(v['SMAA'],v['SF_Spatial'],v['SR_Resolve'],100*(v['SMAA']/means['O-T2X-R']['SMAA']-1)))
     DOC.mkdir(exist_ok=True);out=DOC/(args.scene+'-'+args.phase.lower()+'.json');out.write_text(json.dumps(result,indent=2)+'\n')

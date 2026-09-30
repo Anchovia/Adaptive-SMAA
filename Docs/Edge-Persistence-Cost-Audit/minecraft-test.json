@@ -1,0 +1,168 @@
+{
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Test",
+    "window": "hidden",
+    "arguments": [
+      "-smaaEdgePersistenceCostAuditTest",
+      "minecraft",
+      "D:/SMAAResearchCaptures/edge-persistence-cost-audit-20261001"
+    ],
+    "scene_bootstrap": 2,
+    "started_utc": "2026-09-30T18:51:46.4965226Z",
+    "completed_utc": "2026-09-30T18:52:02.5903270Z",
+    "executable_sha256": "1CBE80F8D148B82EFF956CD47FC10B3B20F35B66406FE7B5B8350F0EE8F2BAE9",
+    "shader_sha256": {
+      "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+      "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "4273D7704BFECE280F89303E65DD3C863111F78CA22C61768F366774ABA3332D",
+      "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+      "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "842843CC7516A409C6313395FDD2215A93E14C74E8638B105083AD01EB27CDBD"
+    },
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20261001_035148\\20261001_035148_results.csv",
+    "report_sha256": "235C743E6195237BF7D9EC875BB34B706700E6ADB5E3B4C895601413DE778577"
+  },
+  "classification": "controlled-cost-audit; not new quality measurement",
+  "capture_root": "D:\\SMAAResearchCaptures\\edge-persistence-cost-audit-20261001\\test\\minecraft\\20261001_035148",
+  "frames_per_mode": 6,
+  "compared_modes": [
+    "A-CurrentEdge-Stencil",
+    "S-StorageOnly-Stencil",
+    "K-ConstantDepth-Stencil",
+    "D-CurrentEdge-Depth",
+    "P-UnionPrep-Stencil",
+    "B-PreviousRawEdge-Depth",
+    "L-PreviousRawEdge-ConservativeDepth",
+    "E-PreviousRawEdge-FirstStencil",
+    "O-T2X-R"
+  ],
+  "mismatched_frames": {
+    "S-StorageOnly-Stencil vs A": 0,
+    "K-ConstantDepth-Stencil vs A": 0,
+    "D-CurrentEdge-Depth vs A": 0,
+    "P-UnionPrep-Stencil vs A": 0,
+    "L vs B": 0,
+    "E vs B": 0,
+    "A-CurrentEdge-Stencil vs preserved original": 0,
+    "B-PreviousRawEdge-Depth vs preserved original": 0,
+    "O-T2X-R vs preserved original": 0
+  },
+  "trace_count": 24,
+  "selection_validation": [
+    {
+      "frame": 0,
+      "passing_samples": 131521,
+      "baseline_samples": 131521,
+      "fix_ps_invocations": 131521,
+      "old_depth_ps_invocations": 131521
+    },
+    {
+      "frame": 1,
+      "passing_samples": 131521,
+      "baseline_samples": 131521,
+      "fix_ps_invocations": 131521,
+      "old_depth_ps_invocations": 131521
+    },
+    {
+      "frame": 2,
+      "passing_samples": 131521,
+      "baseline_samples": 131521,
+      "fix_ps_invocations": 131521,
+      "old_depth_ps_invocations": 131521
+    },
+    {
+      "frame": 3,
+      "passing_samples": 131521,
+      "baseline_samples": 131521,
+      "fix_ps_invocations": 131521,
+      "old_depth_ps_invocations": 131521
+    },
+    {
+      "frame": 4,
+      "passing_samples": 131521,
+      "baseline_samples": 131521,
+      "fix_ps_invocations": 131521,
+      "old_depth_ps_invocations": 131521
+    },
+    {
+      "frame": 5,
+      "passing_samples": 131521,
+      "baseline_samples": 131521,
+      "fix_ps_invocations": 131521,
+      "old_depth_ps_invocations": 131521
+    }
+  ],
+  "output_hashes": {
+    "A-CurrentEdge-Stencil": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "S-StorageOnly-Stencil": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "K-ConstantDepth-Stencil": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "D-CurrentEdge-Depth": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "P-UnionPrep-Stencil": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "B-PreviousRawEdge-Depth": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "L-PreviousRawEdge-ConservativeDepth": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "E-PreviousRawEdge-FirstStencil": [
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53",
+      "0140b8f1b987859407e253bc00971787ee49114946f80cd5b2cc5e40c763cf53"
+    ],
+    "O-T2X-R": [
+      "2a3f73d86dd0cad84dfc55487c608b2445266c289f82ae34423ffb1dd98d4927",
+      "df1c6f0d3d2728bde8a9b06cc42dc3e86111a134fdb4978ab6b47d75fdffa70d",
+      "df1c6f0d3d2728bde8a9b06cc42dc3e86111a134fdb4978ab6b47d75fdffa70d",
+      "df1c6f0d3d2728bde8a9b06cc42dc3e86111a134fdb4978ab6b47d75fdffa70d",
+      "df1c6f0d3d2728bde8a9b06cc42dc3e86111a134fdb4978ab6b47d75fdffa70d",
+      "df1c6f0d3d2728bde8a9b06cc42dc3e86111a134fdb4978ab6b47d75fdffa70d"
+    ]
+  }
+}
