@@ -24,7 +24,17 @@ using namespace VertexAsylum;
 std::vector<vaShader *> vaShader::s_allShaderList;
 mutex vaShader::s_allShaderListMutex;
 std::atomic_int vaShader::s_activelyCompilingShaderCount = 0;
+std::atomic_bool vaShader::s_nonInteractiveCompilation = false;
+std::atomic_int vaShader::s_compilationFailures = 0;
 std::atomic_int64_t vaShader::s_lastUniqueShaderContentsID = -1;
+
+bool vaShader::ReportNonInteractiveCompileFailure(const char* source, const char* entry, const char* error, const string& macros)
+{
+    if(!s_nonInteractiveCompilation.load()) return false;
+    s_compilationFailures++;
+    VA_LOG_ERROR("NONINTERACTIVE_SHADER_COMPILE_FAILURE source=%s entry=%s\n%s\nMacros:\n%s", source, entry, error, macros.c_str());
+    return true;
+}
 
 vaShader::vaShader( const vaRenderingModuleParams & params ) : vaRenderingModule( params )
 { 

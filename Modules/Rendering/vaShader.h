@@ -55,6 +55,8 @@ namespace VertexAsylum
         static std::vector<vaShader *>  s_allShaderList;
         static mutex                    s_allShaderListMutex;
         static std::atomic_int          s_activelyCompilingShaderCount;
+        static std::atomic_bool         s_nonInteractiveCompilation;
+        static std::atomic_int          s_compilationFailures;
         int                             m_allShaderListIndex;
 
     public:
@@ -98,6 +100,9 @@ namespace VertexAsylum
     public:
         virtual                         ~vaShader( );
         void                            PrepareForDestruction( ) override final { WaitFinishIfBackgroundCreateActive(); }
+        static void                     SetNonInteractiveCompilation(bool enabled) { s_nonInteractiveCompilation=enabled; }
+        static int                      GetCompilationFailureCount() { return s_compilationFailures.load(); }
+        static bool                     ReportNonInteractiveCompileFailure(const char* source, const char* entry, const char* error, const string& macros);
 
         virtual void                    CreateShaderFromFile( const wstring & filePath, const string & shaderModel, const string & entryPoint, const vaShaderMacroContaner & macros, bool forceImmediateCompile );
         void                            CreateShaderFromFile( const string & filePath, const string & shaderModel, const string & entryPoint, const vaShaderMacroContaner & macros, bool forceImmediateCompile )    { CreateShaderFromFile( vaStringTools::SimpleWiden(filePath), shaderModel, entryPoint, macros, forceImmediateCompile ); }
