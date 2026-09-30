@@ -1,0 +1,146 @@
+{
+  "validation": "PASS",
+  "quality_contrasts": [
+    {
+      "scene": "bistro",
+      "window": "moving",
+      "total": -0.017864227294921875,
+      "pattern_control": 0.16352081298828125,
+      "selection_at_pattern_off": -0.18138504028320312
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "total": -0.8076248168945312,
+      "pattern_control": -0.7456130981445312,
+      "selection_at_pattern_off": -0.06201171875
+    },
+    {
+      "scene": "minecraft",
+      "window": "moving",
+      "total": 1.3227462768554688,
+      "pattern_control": 1.20989990234375,
+      "selection_at_pattern_off": 0.11284637451171875
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "total": -0.01157379150390625,
+      "pattern_control": -0.090484619140625,
+      "selection_at_pattern_off": 0.07891082763671875
+    }
+  ],
+  "raw_quality_contrasts": [
+    {
+      "scene": "bistro",
+      "window": "moving",
+      "total": -0.2158050537109375,
+      "pattern_control": -0.029033660888671875,
+      "selection_at_pattern_off": -0.18677139282226562
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "total": -1.1448211669921875,
+      "pattern_control": -1.0809555053710938,
+      "selection_at_pattern_off": -0.06386566162109375
+    },
+    {
+      "scene": "minecraft",
+      "window": "moving",
+      "total": 0.3132896423339844,
+      "pattern_control": 0.23586273193359375,
+      "selection_at_pattern_off": 0.07742691040039062
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "total": -1.2473831176757812,
+      "pattern_control": -1.2981414794921875,
+      "selection_at_pattern_off": 0.05075836181640625
+    }
+  ],
+  "roi_deltas": [
+    {
+      "scene": "bistro",
+      "roi": "chair-legs",
+      "deltas": {
+        "rgb_mae": -0.023874058078151794,
+        "luma_ssim": -9.334534157190433e-05,
+        "gradient_mae": -0.020040909537274387,
+        "flow_error_residual_10": -0.08087752176626306
+      }
+    },
+    {
+      "scene": "bistro",
+      "roi": "foreground-boundary",
+      "deltas": {
+        "rgb_mae": 0.007873897557531206,
+        "luma_ssim": -0.0012054570059149006,
+        "gradient_mae": -0.0040609569905484255,
+        "flow_error_residual_10": -0.034323130945675184
+      }
+    },
+    {
+      "scene": "bistro",
+      "roi": "window-rails",
+      "deltas": {
+        "rgb_mae": 0.05499324833513275,
+        "luma_ssim": -0.003313934437571553,
+        "gradient_mae": 0.011389168812662609,
+        "flow_error_residual_10": -0.06296003028687713
+      }
+    },
+    {
+      "scene": "minecraft",
+      "roi": "stone-steps",
+      "deltas": {
+        "rgb_mae": -0.2549113477958742,
+        "luma_ssim": 0.005156957917719529,
+        "gradient_mae": -0.20907009523933362,
+        "flow_error_residual_10": -0.145001822671175
+      }
+    },
+    {
+      "scene": "minecraft",
+      "roi": "foliage",
+      "deltas": {
+        "rgb_mae": -0.8053872896343908,
+        "luma_ssim": 0.02445531685386315,
+        "gradient_mae": -0.6531348004722717,
+        "flow_error_residual_10": -0.09420481248671564
+      }
+    },
+    {
+      "scene": "minecraft",
+      "roi": "foreground-boundary",
+      "deltas": {
+        "rgb_mae": -0.514124392729844,
+        "luma_ssim": 0.012026405770835469,
+        "gradient_mae": -0.34966274929702845,
+        "flow_error_residual_10": -0.4848013112441476
+      }
+    }
+  ],
+  "charts": [
+    {
+      "scene": "bistro",
+      "path": "D:\\SMAAResearchCaptures\\first-edge-stencil-quality-20260929\\Summary\\bistro-quality-timeline.png",
+      "sha256": "44dd2de5af0c7a7413ca5b68d18158c94e3e71e595c6d0d0da0a540a7fa0410a"
+    },
+    {
+      "scene": "minecraft",
+      "path": "D:\\SMAAResearchCaptures\\first-edge-stencil-quality-20260929\\Summary\\minecraft-quality-timeline.png",
+      "sha256": "78ff5e3a53ca9d718d8cad727d67a4218d5e08e53b729c69a3a5db30397ebb52"
+    }
+  ],
+  "inputs": {
+    "bistro-cgvqm.json": "433a08d3fc1b02e9e8f743a24d598ebbf609d9275cb143c35cbf706b63eda62f",
+    "bistro-metrics.json": "d4156a1295fa8da3a0e6a9f6731c64251520ab242ed3c4816379db57a4de3a7b",
+    "bistro-visuals.json": "33127b05b930d936a75e0bafc80c833f182352096796199d316490e495805b44",
+    "minecraft-cgvqm.json": "a785c188ffeee39737a93319991b62dba131060247b21645c6a2ddbb17f5aafb",
+    "minecraft-metrics.json": "7eef2b9d7f4ce6f26de67920df4979dc0358d3aa53d055b892656f19890d28f3",
+    "minecraft-visuals.json": "f5840cbd0ee8183ce61f78e116d9fdfe6772284e714e045345a5680819b7a913"
+  },
+  "scope": "Completed existing-camera-path quality assessment, not independent-object/disocclusion ground truth or final paper-wide comparison."
+}
