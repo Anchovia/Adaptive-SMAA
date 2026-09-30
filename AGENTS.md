@@ -49,3 +49,18 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 선택 범위와 sample-pattern 대조 실험
+
+- `validation/spatial-edge-coverage-pattern-control`은 수정된 ⑥ `304f749`에서 직접 분기했다.
+  이전 history contribution, ⑤ raw, TSCMAA source kernel 및 dilation 코드를 상속하지 않는다.
+- 새 대조군은 ⑥과 동일한 spatial/resolve/input/history 경로를 쓰면서 resolve의 stencil
+  test만 비활성화한다. 같은 지터 Off 조건에서 coverage 효과를 분리한다.
+- 기존 ④ native Pattern On과 native Pattern Off 보조 대조를 포함한다. matched full Off와
+  native full Off의 출력 일치를 검사한 뒤에만 ④와 sample-pattern 차이를 해석한다.
+- full Off 반복은 관측 MRT를 끈다. 기존 ⑥·④ RGB 회귀, current/previous/velocity 입력
+  hash, 선택 영역 출력 일치, 비선택 current 보존, 실제 GPU coverage를 검사한다.
+- camera/depth reprojection, point sampling, native alpha weight 0..0.5 및 spatial-frame
+  history를 유지한다. AA 알고리즘의 새 개선안이 아니라 품질 원인 분리 대조 실험이다.
+- 공통 실행 도구 의존성으로 `12f5d56`의 비대화형 shader 실패 종료만 가져온다.
+  `run_clean_cmaa2.ps1` 및 이전 fixed60/still60-move120-still60 경로를 재사용한다.
