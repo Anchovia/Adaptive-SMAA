@@ -4,6 +4,8 @@
 검사 입력은 `bistro-quality.json`, `minecraft-quality.json`, 프레임/ROI/배율과
 미디어 경로는 `media.json`에 기록했다. GIF는 10 fps, 원래 60 fps의 1/6 속도다.
 팔레트 양자화가 있으므로 수치·미세 색상 판단에는 원본 PNG와 무손실 WebP를 쓴다.
+GIF는 시퀀스 전체를 한 번에 양자화한 공통 팔레트와 dithering Off를 사용한다.
+프레임마다 다른 팔레트 때문에 추가 깜빡임이 생기는 것을 피하기 위한 출력 설정이다.
 
 ## 직접 연 이미지
 

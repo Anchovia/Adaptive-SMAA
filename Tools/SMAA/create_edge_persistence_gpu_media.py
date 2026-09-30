@@ -27,6 +27,16 @@ def panel(dirs,frame,roi,scale,title):
     d.text((8,82+h),'원본 RGB · 지터 조건 차이 포함 · GIF: 10 fps (원래 60 fps의 1/6 속도)',font=SMALL,fill='white')
     return canvas
 
+def encode_gif(panels,path):
+    # One palette and one quantization operation across the entire sequence.
+    # Independently quantizing frames could add palette-induced shimmer.
+    w,h=panels[0].size
+    atlas=Image.new('RGB',(w,h*len(panels)))
+    for i,im in enumerate(panels):atlas.paste(im,(0,i*h))
+    atlas=atlas.quantize(colors=256,method=Image.Quantize.MEDIANCUT,dither=Image.Dither.NONE)
+    indexed=[atlas.crop((0,i*h,w,(i+1)*h)) for i in range(len(panels))]
+    indexed[0].save(path,save_all=True,append_images=indexed[1:],duration=100,loop=0,disposal=2,optimize=False)
+
 def verify_sheets_and_extend():
     checks=[]
     for m in json.loads((DOC/'media.json').read_text(encoding='utf8')):
@@ -60,7 +70,7 @@ def main():
             stem=f'{scene}-{name}-{window}';title=f'{scene} / {name} / {window} / ROI {roi}'
             panels=[panel(dirs,f,roi,scale,title) for f in frames]
             # Each frame gets an explicit frame label, preserving even identical still colors.
-            panels[0].save(OUT/(stem+'.gif'),save_all=True,append_images=panels[1:],duration=100,loop=0,disposal=2,optimize=False)
+            encode_gif(panels,OUT/(stem+'.gif'))
             panels[0].save(OUT/(stem+'.webp'),save_all=True,append_images=panels[1:],duration=100,loop=0,lossless=True,method=4)
             strip=[panel(dirs,f,roi,scale,title) for f in six]
             sheet=Image.new('RGB',(strip[0].width,strip[0].height*6),(20,23,25))
@@ -80,6 +90,7 @@ def main():
             records.append({'scene':scene,'name':stem,'roi':roi,'scale':scale,'frames':frames,'six_frames':six,
                             'duration_ms':100,'source_fps':60,'playback_fps':10,'gif':str(OUT/(stem+'.gif')),
                             'sheet':str(OUT/(stem+'-six.png')),'lossless':str(OUT/(stem+'.webp')),
+                            'gif_palette':'single sequence-wide palette; no dithering',
                             'gif_quantization_mean_rgb_error':float(np.mean(mae)),'gif_max_rgb_error':max_err})
             print(stem,'media roundtrip PASS',flush=True)
     for scene in ['bistro','minecraft']:
