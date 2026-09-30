@@ -21,7 +21,8 @@ improvement is inferred. Missing old images or mismatch blocks performance adopt
 
 Capture and GPU timing are separate clean processes. Performance: 30s precondition,
 300 warmup per mode, 4800 frames x6 alternating repeats (smoke 240 x1). No image,
-mask, query or counter readback. Total AA includes stencil clear; temporal resolve
+mask or diagnostic pipeline/occlusion/candidate-counter readback. GPU timestamp
+queries remain enabled for timing. Total AA includes stencil clear; temporal resolve
 excludes camera velocity and preparation, which remain in total AA. AA-Off is zero
 AA GPU work by definition, not a zero-duration timestamp observation. WholeFrame
 and CPU wall frame are reported separately. Different executable absolute times
@@ -30,3 +31,8 @@ are not a paired contrast; use each branch's corrected native control for ratios
 Upstream origin: Intel CMAA2 `071c6b0857559f4e36f614362e6d2aab1b61938a` SMAA wrapper
 omits stencil clear; SMAA author demo `71c806a838bdd7d517df19192a20f0c61b3ca29d`
 clears stencil before SMAA. This corrects integration, not the SMAA algorithm.
+
+The source audit records source/tool hashes at build and measurement time.
+Subsequent launcher-policy and documentation commits do not change the measured
+renderer or executable. The launcher now preselects the requested startup scene;
+the harness still applies the same final scene, mode, timeline and warmup.
