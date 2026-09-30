@@ -49,3 +49,13 @@ Source frames 160~219, crop [880, 430, 1168, 622].
 - 전체 화면: [Bistro](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/stencil-six-case-20260930/edge-only/bistro-full-edges.gif) · [Minecraft](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/stencil-six-case-20260930/edge-only/minecraft-full-edges.gif)
 - 이동 확대: [Bistro 의자 다리](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/stencil-six-case-20260930/edge-only/bistro-chairs-moving-edges.gif) · [Minecraft 얇은 경계](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/stencil-six-case-20260930/edge-only/minecraft-thin-edges-moving-edges.gif)
 - 이동→정지 확대: [Bistro 창살](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/stencil-six-case-20260930/edge-only/bistro-window-stop-edges.gif) · [Minecraft 나뭇잎](C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Projects/CMAA2/Captures/stencil-six-case-20260930/edge-only/minecraft-leaves-stop-edges.gif)
+
+## 세 장면의 6-way 색상 / 최종 출력 윤곽 비교
+
+`output-contour-media.json`은 Bistro 의자 다리, Minecraft 얇은 경계, Bistro 창살의 색상 GIF 바로 아래에 같은 ①② / ③④ / ⑤⑥ 배치의 윤곽 GIF를 제시하기 위한 기록이다. 기존 색상 GIF는 그대로 사용한다. 각각 동일 source frame·crop·재생 시간이며 1,080개 원본 RGB 해시가 색상 자료의 입력과 일치한다.
+
+이 윤곽은 **최종 출력 RGB에서 오프라인으로 추출한 시각화**다. 실제 first-pass edge나 temporal 선택 마스크가 아니다. AA-Off와 Temporal-only에도 동일 필터를 적용하여 여섯 최종 결과의 윤곽을 비교할 수 있게 했다. 내부 선택 마스크는 위의 ⑤·⑥ 자료와 구분한다.
+
+표시 RGB의 luma(0.2126R + 0.7152G + 0.0722B)에 동일 3×3 Sobel을 적용한다. 두 축을 4로 나눈 gradient 크기에 고정 표시 배율 4를 적용하고 0~255로 제한한다. 구성별·프레임별 정규화나 threshold 조절은 없다. crop 외곽 1픽셀을 함께 읽어 필터 경계를 보존하며 최종 확대는 nearest-neighbor다. 밝은 윤곽 일부는 표시 범위에서 포화될 수 있으므로 품질 점수나 내부 후보 판정으로 해석하지 않는다. 원본 RGB나 렌더러는 변경하지 않았다.
+
+각 장면의 합성 GIF와 6개 개별 GIF를 저장하고 모든 decode frame이 렌더한 회색조 영상과 일치함을 검사했다. 두 GIF의 프레임·duration은 동일하지만 앱이 별도 GIF의 재생 시작을 동기화한다고 보장하지 않는다. 파일 경로와 해시는 [출력 윤곽 기록](output-contour-media.json)에 있다.
