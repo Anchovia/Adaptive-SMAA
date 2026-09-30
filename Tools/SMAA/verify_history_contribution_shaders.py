@@ -19,12 +19,18 @@ for version in ('before','after'):
         data=subprocess.check_output(['git','show',BASE+':'+path],cwd=ROOT) if version=='before' else (ROOT/path).read_bytes()
         (folder/name).write_bytes(data)
 
-def compile(version,entry,file,diagnostic=False):
+def compile(version,entry,file,diagnostic=False,engine=False):
     folder=OUT/version
     output=folder/(entry+'.dxbc')
-    command=[str(FXC),'/nologo','/T','ps_5_0','/E',entry,'/O3','/D','SMAA_REPROJECTION=1','/D','SMAA_PRESET_ULTRA=1',
-             '/D','SMAA_RT_METRICS=float4(1.0/1920.0,1.0/1061.0,1920.0,1061.0)','/Fo',str(output)]
-    if diagnostic:command+=['/D','SMAA_CAPTURE_HISTORY_WEIGHT=1']
+    command=[str(FXC),'/nologo','/T','ps_5_0','/E',entry,'/O3','/Fo',str(output)]
+    definitions={'SMAA_REPROJECTION':'1','SMAA_PRESET_ULTRA':'1',
+                 'SMAA_RT_METRICS':'float4(1.0/1920.0,1.0/1061.0,1920.0,1061.0)'}
+    if diagnostic:definitions['SMAA_CAPTURE_HISTORY_WEIGHT']='1'
+    if engine:
+        (folder/'MagicMacrosMagicFile.h').write_text(''.join('#define '+k+' '+v+'\n' for k,v in definitions.items()))
+        command+=['/D','VA_COMPILED_AS_SHADER_CODE=1','/D','VA_DIRECTX=11']
+    else:
+        for k,v in definitions.items():command+=['/D',k+'='+v]
     command+=[str(folder/file)]
     result=subprocess.run(command,cwd=ROOT,capture_output=True)
     assert result.returncode==0,(entry,result.stdout,result.stderr)
@@ -36,9 +42,14 @@ for file,entries in [('SMAAWrapper.hlsl',['DX10_SMAAResolvePS','DX10_SMAALumaEdg
     for entry in entries:
         before=compile('before',entry,file);after=compile('after',entry,file)
         assert before==after,entry
-        results.append(dict(entry=entry,byte_exact=True,dxbc_sha256=after))
+        engine_before=compile('before',entry,file,engine=True)
+        engine_after=compile('after',entry,file,engine=True)
+        assert engine_before==engine_after==after,entry
+        results.append(dict(entry=entry,byte_exact=True,engine_include_byte_exact=True,dxbc_sha256=after))
 diagnostic=compile('after','FirstEdgeHistoryContributionPS','FirstEdgeStencil.hlsl',True)
+assert compile('after','FirstEdgeHistoryContributionPS','FirstEdgeStencil.hlsl',True,True)==diagnostic
 record=dict(validation='PASS',case=CFG['case'],baseline=BASE,compiler=str(FXC),production_entries=results,
-            diagnostic_dxbc_sha256=diagnostic,scope='Compiler-bytecode equivalence for the six listed production entry points and successful diagnostic compilation; runtime RGB still requires capture.')
+            diagnostic_dxbc_sha256=diagnostic,engine_macro_include_verified=True,
+            scope='Six listed production entries are byte-identical in direct /D and engine-style virtual macro include compilation. Diagnostic compiled both ways. Runtime RGB still requires capture.')
 (DOC/'shader-validation.json').write_text(json.dumps(record,indent=2)+'\n')
 print('PASS:',len(results),'unchanged DXBC entries; native-weight diagnostic compiles',flush=True)

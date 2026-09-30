@@ -1,5 +1,9 @@
 // Native first-pass edges, hardware stencil rejection, native T2X-R math.
 // No edge SRV read, selection branch, or full-screen current-color return here.
+#ifdef VA_COMPILED_AS_SHADER_CODE
+// The engine supplies application macros through this virtual include, not /D.
+#include "MagicMacrosMagicFile.h"
+#endif
 #ifdef SMAA_CAPTURE_HISTORY_WEIGHT
 // Per-invocation observation of the weight calculated by the native resolve.
 // Only the capture entry point defines this; production shaders are unchanged.
