@@ -49,3 +49,16 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## History 혼합 기여 진단
+
+- 이 브랜치는 수정된 ⑤ `0b41914`에서 직접 분기한 `validation/raw-edge-history-contribution`이다.
+  ⑥의 renderer나 공간 처리를 합치지 않는다. current는 raw 입력이다.
+- `validation/spatial-edge-history-contribution`의 `d603d29`에서 공통 진단 코드와 도구만
+  명시적 의존성으로 재사용한다. 비대화형 shader 실패 종료는 기존 `12f5d56`의 실행 도구다.
+- 기존 native resolve의 실제 weight를 R32_FLOAT MRT에 기록한다. -1은 미실행,
+  0..0.5는 실행된 픽셀의 실제 값이다. current와 final의 차이는 8-bit RGB 차이다.
+- 진단 On/Off 반복 및 ④ control을 기존 RGB hash와 비교한다. 기존 coverage를 보존하고
+  비선택 픽셀 변화가 0인지 검사한다. 직접 FXC 인자와 엔진 virtual macro include를 모두 검사한다.
+- jitter, dilation, sampling, weight, history topology를 바꾸지 않는다. 품질 개선이나
+  속도 개선을 주장하지 않는다. TSCMAA 요소 적용은 진단 결과 검토 후 별도 연구다.

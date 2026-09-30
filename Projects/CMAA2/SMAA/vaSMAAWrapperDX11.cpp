@@ -102,7 +102,8 @@ namespace VertexAsylum
 
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
-        shared_ptr<vaTexture> m_executionCoverage;
+        shared_ptr<vaTexture>       m_executionCoverage;
+        shared_ptr<vaTexture>       m_historyWeight;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -127,7 +128,20 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
-        virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);}
+        virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {
+            return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);
+        }
+        virtual bool SaveHistoryContribution(vaRenderDeviceContext &ctx,const wstring &prefix,bool probe) override {
+            if(!m_historyContributionDiagnostics || !m_historyWeight || !m_temporalHistoryValid) return false;
+            const auto current=m_temporalHistory[1-GetTemporalFrameIndex()];
+            const auto previous=m_temporalHistory[GetTemporalFrameIndex()];
+            bool ok=m_historyWeight->SaveToDDSFile(ctx,prefix+L"-weight.dds")
+                && current->SaveToPNGFile(ctx,prefix+L"-current.png");
+            if(probe) ok=ok && current->SaveToDDSFile(ctx,prefix+L"-current.dds")
+                && previous->SaveToDDSFile(ctx,prefix+L"-previous.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx,prefix+L"-velocity.dds");
+            return ok;
+        }
         virtual bool SaveFirstEdgeSnapshot(vaRenderDeviceContext &ctx, const wstring &path, bool saveCurrent) override
         {
             if(m_smaa==nullptr || !m_temporalHistoryValid) return false;
@@ -303,6 +317,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[1] = nullptr;
     m_temporalVelocity = nullptr;
     m_executionCoverage = nullptr;
+    m_historyWeight = nullptr;
     m_smaaReprojectionEnabled = false;
     ResetTemporalHistory( );
 }
@@ -480,7 +495,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
             ID3D11Query *statsQuery=nullptr, *samplesQuery=nullptr;
-            ID3D11RenderTargetView *coverageRTV=nullptr;
+            ID3D11RenderTargetView *coverageRTV=nullptr, *historyWeightRTV=nullptr;
             m_executionQueryOK=false;
             if(m_executionDiagnostics) {
                 auto device=GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice();
@@ -495,13 +510,21 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     if(!m_executionCoverage){statsQuery->Release();samplesQuery->Release();return vaDrawResultFlags::UnspecifiedError;}
                     coverageRTV=m_executionCoverage->SafeCast<vaTextureDX11*>()->GetRTV();
                     const float zero[4]={0,0,0,0};dx11Context->ClearRenderTargetView(coverageRTV,zero);
+                    if(m_historyContributionDiagnostics) {
+                        if(!m_historyWeight || m_historyWeight->GetSizeX()!=inputColor->GetSizeX() || m_historyWeight->GetSizeY()!=inputColor->GetSizeY())
+                            m_historyWeight=vaTexture::Create2D(GetRenderDevice(),vaResourceFormat::R32_FLOAT,inputColor->GetSizeX(),inputColor->GetSizeY(),1,1,1,
+                                vaResourceBindSupportFlags::RenderTarget|vaResourceBindSupportFlags::ShaderResource);
+                        if(!m_historyWeight){statsQuery->Release();samplesQuery->Release();return vaDrawResultFlags::UnspecifiedError;}
+                        historyWeightRTV=m_historyWeight->SafeCast<vaTextureDX11*>()->GetRTV();
+                        const float sentinel[4]={-1,-1,-1,-1};dx11Context->ClearRenderTargetView(historyWeightRTV,sentinel);
+                    }
                 }
                 dx11Context->Begin(statsQuery);dx11Context->Begin(samplesQuery);
             }
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetTemporalOnlyControl() && GetFirstEdgeOnlyMode()==2 && GetFirstEdgeStencilEnabled())
-                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV);
+                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,historyWeightRTV);
                 else if(GetTemporalOnlyControl() && GetFirstEdgeOnlyMode()==2)
                     m_smaa->reprojectFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else
@@ -649,10 +672,11 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     string psVersion = "ps_4_1";
 
     if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
-       || name=="RawRetainPS" || name=="FirstEdgeStencilPS" || name=="FirstEdgeStencilCoveragePS") {
+       || name=="RawRetainPS" || name=="FirstEdgeStencilPS" || name=="FirstEdgeStencilCoveragePS" || name=="FirstEdgeHistoryContributionPS") {
         const bool edge=name.substr(0,5)=="Exact";
         const bool retain=name=="RawRetainPS";
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,edge?"DX10_SMAAEdgeDetectionVS":retain?"DX10_SMAANeighborhoodBlendingVS":"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
+        if(name=="FirstEdgeHistoryContributionPS")shaderMacros.push_back({"SMAA_CAPTURE_HISTORY_WEIGHT","1"});
         tech->PS->CreateShaderFromFile(L"SMAA/FirstEdgeStencil.hlsl","ps_5_0",name,shaderMacros,true);
         tech->DSS=edge?m_DisableDepthReplaceStencil:retain?m_DisableDepthStencil:m_DisableDepthUseStencil;
         tech->BS=m_NoBlending;

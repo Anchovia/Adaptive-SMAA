@@ -1,5 +1,15 @@
 // Native first-pass edges, hardware stencil rejection, native T2X-R math.
 // No edge SRV read, selection branch, or full-screen current-color return here.
+#ifdef VA_COMPILED_AS_SHADER_CODE
+// The engine supplies application macros through this virtual include, not /D.
+#include "MagicMacrosMagicFile.h"
+#endif
+#ifdef SMAA_CAPTURE_HISTORY_WEIGHT
+// Per-invocation observation of the weight calculated by the native resolve.
+// Only the capture entry point defines this; production shaders are unchanged.
+static float capturedHistoryWeight = 0.0;
+#define SMAA_REPORT_HISTORY_WEIGHT(value) capturedHistoryWeight = (value)
+#endif
 #include "SMAAWrapper.hlsl"
 
 #define EXACT_EDGE_ENTRY(name, original) \
@@ -30,3 +40,14 @@ void FirstEdgeStencilCoveragePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
 
 #include "TemporalOnlyControl.hlsl"
 void RawRetainPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0, out float4 history : SV_TARGET0, out float4 visible : SV_TARGET1) {history=TemporalOnlyPreparePS(p,uv);visible=history;}
+
+#ifdef SMAA_CAPTURE_HISTORY_WEIGHT
+[earlydepthstencil]
+void FirstEdgeHistoryContributionPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
+    out float4 visible : SV_TARGET0, out float coverage : SV_TARGET1,
+    out float historyWeight : SV_TARGET2) {
+    visible = DX10_SMAAResolvePS(p, uv);
+    coverage = 1.0;
+    historyWeight = capturedHistoryWeight;
+}
+#endif
