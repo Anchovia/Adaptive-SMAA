@@ -1,0 +1,218 @@
+{
+  "validation": "PASS",
+  "executable_sha256": "22c6da4fd567a458bb4ae53bf137fa71084e8f791543422aa773f03a4cdde784",
+  "receipt": {
+    "case": 1,
+    "branch": "baseline/aa-off-stencil-lifecycle",
+    "scene": "bistro",
+    "phase": "Benchmark",
+    "window": "hidden",
+    "arguments": [
+      "-smaaStencilLifecycleBenchmark",
+      "bistro",
+      "D:/SMAAResearchCaptures/stencil-lifecycle-20260930"
+    ],
+    "started_utc": "2026-09-30T07:44:45.6486147Z",
+    "completed_utc": "2026-09-30T07:48:19.9514185Z",
+    "executable_sha256": "22C6DA4FD567A458BB4AE53BF137FA71084E8F791543422AA773F03A4CDDE784",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_164447\\20260930_164447_results.csv",
+    "report_sha256": "9B87A1F584EAF967839102BCD29B274A84DF4E70E5D2B1E60CFEE945D13F84D1"
+  },
+  "scene": "bistro",
+  "case": 1,
+  "config": {
+    "case": 1,
+    "branch": "baseline/aa-off-stencil-lifecycle",
+    "base": "c51ca2896979c78d7fd10c208303c0420a819c76",
+    "target": "AA-Off",
+    "pattern": "Off",
+    "spatial": false,
+    "temporal": false,
+    "stencil_used": false,
+    "native_control": "O-T2X-R",
+    "source_changes": "SMAA spatial stencil clear only; selective clear retained without duplication; timer names normalized; no shader changes"
+  },
+  "frames_per_mode_run": 4800,
+  "repeats": 6,
+  "modes": {
+    "AA-Off": {
+      "SMAA": {
+        "mean_ms": 0.0,
+        "run_mean_std_ms": 0.0,
+        "run_means_ms": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mean_run_median_ms": 0.0,
+        "mean_run_p95_ms": 0.0,
+        "mean_run_p99_ms": 0.0,
+        "mean_frame_stddev_ms": 0.0,
+        "mean_slowest_one_percent_equivalent_fps": 0.0
+      },
+      "WholeFrame": {
+        "mean_ms": 2.2936467658333335,
+        "run_mean_std_ms": 0.009324806644750237,
+        "run_means_ms": [
+          2.279183527,
+          2.289876547,
+          2.295406,
+          2.307859527,
+          2.296138687,
+          2.293416307
+        ],
+        "mean_run_median_ms": 2.255872,
+        "mean_run_p95_ms": 2.5342293333333332,
+        "mean_run_p99_ms": 2.6233173333333335,
+        "mean_frame_stddev_ms": 0.094543424,
+        "mean_slowest_one_percent_equivalent_fps": 374.208483336
+      },
+      "WallFrame": {
+        "mean_ms": 2.9426572049999997,
+        "run_mean_std_ms": 0.011710852838651429,
+        "run_means_ms": [
+          2.933414188,
+          2.935799896,
+          2.938224229,
+          2.964967813,
+          2.945908021,
+          2.937629083
+        ],
+        "mean_run_median_ms": 2.90435,
+        "mean_run_p95_ms": 3.171333333333333,
+        "mean_run_p99_ms": 3.27315,
+        "mean_frame_stddev_ms": 0.103869622,
+        "mean_slowest_one_percent_equivalent_fps": 295.81723654333337
+      }
+    },
+    "O-T2X-R": {
+      "SMAA": {
+        "mean_ms": 0.1575670045,
+        "run_mean_std_ms": 0.00023456209156787729,
+        "run_means_ms": [
+          0.157213867,
+          0.157525973,
+          0.15755136,
+          0.157950507,
+          0.157557333,
+          0.157602987
+        ],
+        "mean_run_median_ms": 0.157184,
+        "mean_run_p95_ms": 0.16401066666666667,
+        "mean_run_p99_ms": 0.16520533333333334,
+        "mean_frame_stddev_ms": 0.004765796833333333,
+        "mean_slowest_one_percent_equivalent_fps": 6035.688101091
+      },
+      "WholeFrame": {
+        "mean_ms": 2.4802513133333335,
+        "run_mean_std_ms": 0.004855406496141201,
+        "run_means_ms": [
+          2.474793867,
+          2.47937632,
+          2.479971633,
+          2.47592944,
+          2.483621573,
+          2.487815047
+        ],
+        "mean_run_median_ms": 2.450432,
+        "mean_run_p95_ms": 2.70336,
+        "mean_run_p99_ms": 2.791765333333333,
+        "mean_frame_stddev_ms": 0.08659375833333333,
+        "mean_slowest_one_percent_equivalent_fps": 351.4402719958333
+      },
+      "WallFrame": {
+        "mean_ms": 2.977391336833333,
+        "run_mean_std_ms": 0.005530020253611882,
+        "run_means_ms": [
+          2.976107563,
+          2.972978146,
+          2.975572812,
+          2.975573104,
+          2.988446042,
+          2.975670354
+        ],
+        "mean_run_median_ms": 2.9436833333333334,
+        "mean_run_p95_ms": 3.2052,
+        "mean_run_p99_ms": 3.3055333333333334,
+        "mean_frame_stddev_ms": 0.10113580366666666,
+        "mean_slowest_one_percent_equivalent_fps": 292.1514502616667
+      },
+      "SR_CameraVelocity": {
+        "mean_ms": 0.02384888883333333,
+        "run_mean_std_ms": 2.8162788920251578e-05,
+        "run_means_ms": [
+          0.02382272,
+          0.02382016,
+          0.023843413,
+          0.023877547,
+          0.02384128,
+          0.023888213
+        ],
+        "mean_run_median_ms": 0.023552,
+        "mean_run_p95_ms": 0.024576,
+        "mean_run_p99_ms": 0.024576,
+        "mean_frame_stddev_ms": 0.0005089416666666667,
+        "mean_slowest_one_percent_equivalent_fps": 40515.13568860917
+      },
+      "SR_Resolve": {
+        "mean_ms": 0.033347697833333335,
+        "run_mean_std_ms": 4.190687269848127e-05,
+        "run_means_ms": [
+          0.033291947,
+          0.033350827,
+          0.033345707,
+          0.03339008,
+          0.033397333,
+          0.033310293
+        ],
+        "mean_run_median_ms": 0.03072,
+        "mean_run_p95_ms": 0.03771733333333333,
+        "mean_run_p99_ms": 0.037888,
+        "mean_frame_stddev_ms": 0.0036474308333333334,
+        "mean_slowest_one_percent_equivalent_fps": 26391.105599831666
+      }
+    }
+  },
+  "relative_to_corrected_t2x_r": {
+    "SMAA": {
+      "change_percent": -100.0,
+      "difference_ms": -0.1575670045,
+      "paired_run_change_percent": [
+        -100.0,
+        -100.0,
+        -100.0,
+        -100.0,
+        -100.0,
+        -100.0
+      ]
+    },
+    "WholeFrame": {
+      "change_percent": -7.523614502161591,
+      "difference_ms": -0.1866045475,
+      "paired_run_change_percent": [
+        -7.904106382691312,
+        -7.643041980815568,
+        -7.442247747678177,
+        -6.788154391023338,
+        -7.548770232879598,
+        -7.814035059978464
+      ]
+    },
+    "WallFrame": {
+      "change_percent": -1.1665961206925424,
+      "difference_ms": -0.034734131833333404,
+      "paired_run_change_percent": [
+        -1.4345373645354265,
+        -1.2505389604031136,
+        -1.2551728813147922,
+        -0.3564117105959719,
+        -1.4234160631366621,
+        -1.2784101219029065
+      ]
+    }
+  },
+  "classification": "Within-executable paired GPU comparison; native On vs selective Off where applicable, not isolated selection effect. AA-Off AA=0 by definition. WholeFrame GPU and CPU wall distinct."
+}
