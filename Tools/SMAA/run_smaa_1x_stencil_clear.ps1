@@ -16,6 +16,12 @@ if($Phase -ne 'Capture'){
     $validation=Get-Content -LiteralPath $gate -Raw | ConvertFrom-Json
     if($validation.validation -ne 'PASS' -or $validation.receipt.executable_sha256 -ne $hash){throw 'Capture gate belongs to another executable or failed'}
 }
+if($Phase -eq 'Benchmark'){
+    $smokePath=Join-Path $root "Docs/SMAA-1X-Stencil-Clear/$Scene-smoke.json"
+    if(!(Test-Path -LiteralPath $smokePath)){throw 'Validated smoke missing'}
+    $smoke=Get-Content -LiteralPath $smokePath -Raw | ConvertFrom-Json
+    if($smoke.validation -ne 'PASS' -or $smoke.receipt.executable_sha256 -ne $hash){throw 'Smoke gate belongs to another executable or failed'}
+}
 $started=[DateTime]::UtcNow.ToString('o')
 $arguments=@("-smaaOneXStencilClear$Phase",$Scene)
 $output=& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $arguments -Hidden -TimeoutSeconds 1200

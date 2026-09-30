@@ -1,0 +1,62 @@
+{
+  "validation": "PASS",
+  "scene": "bistro",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Capture",
+    "window": "hidden",
+    "source_baseline": "c51ca28",
+    "arguments": [
+      "-smaaOneXStencilClearCapture",
+      "bistro"
+    ],
+    "started_utc": "2026-09-30T06:36:10.3753176Z",
+    "completed_utc": "2026-09-30T06:37:58.0423141Z",
+    "executable_sha256": "6AE2269FA62AD9DD963B6C82ED0650BA685F2609EAEDA8D8DED863FD6704095A",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_153612\\20260930_153612_results.csv",
+    "report_sha256": "5F9524CA5BE99E8DA7152DA06956041765C3C7F02DCCADDBAA64E5FCD73F278D"
+  },
+  "frames_per_mode": 240,
+  "mode_checks": 960,
+  "comparisons": {
+    "clear_vs_legacy_mismatch_frames": 0,
+    "clear_vs_legacy_changed_pixels": 0,
+    "max_channel_error": 0,
+    "repeat_mismatch_frames": 0,
+    "old_1x_mismatch_frames": 0
+  },
+  "rgb_mae": 0.0,
+  "static_unique_rgb": {
+    "O-1X-LegacyStencil": {
+      "initial": 1,
+      "late": 1
+    },
+    "O-1X-ClearStencil": {
+      "initial": 1,
+      "late": 1
+    }
+  },
+  "spatial_ps_invocations": {
+    "O-1X-LegacyStencil": {
+      "all": 4561565.133333334,
+      "moving": 4596130.766666667,
+      "late": 4911449
+    },
+    "O-1X-ClearStencil": {
+      "all": 4129563.2875,
+      "moving": 4129079.575,
+      "late": 4133535
+    }
+  },
+  "old_1x_capture": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_164823\\O-1X",
+  "old_capture_metadata_sha256": "66ea2ca599cf15ccb8b11bb491ae316858749ba50aa362618c302c20cda15c7b",
+  "quality": {
+    "method": "Pixel-exact RGB equivalence to existing 1X; no new CGVQM model run",
+    "scores_both_modes": {
+      "moving": 96.06275177001953,
+      "transition": 95.87457275390625
+    },
+    "score_difference": 0,
+    "source_sha256": "bbbaad70912d4f00f05aa4e98bd7ae2af87767278ba22412d592f8b8ba9b5ad6"
+  }
+}

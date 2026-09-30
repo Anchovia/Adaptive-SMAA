@@ -1,0 +1,62 @@
+{
+  "validation": "PASS",
+  "scene": "minecraft",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Capture",
+    "window": "hidden",
+    "source_baseline": "c51ca28",
+    "arguments": [
+      "-smaaOneXStencilClearCapture",
+      "minecraft"
+    ],
+    "started_utc": "2026-09-30T06:38:53.6914729Z",
+    "completed_utc": "2026-09-30T06:40:39.0874943Z",
+    "executable_sha256": "6AE2269FA62AD9DD963B6C82ED0650BA685F2609EAEDA8D8DED863FD6704095A",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_153855\\20260930_153855_results.csv",
+    "report_sha256": "3F4630B38FB7EC2E85A1BADD233F039AF652CFDFD2947691FE32FE90C5745003"
+  },
+  "frames_per_mode": 240,
+  "mode_checks": 960,
+  "comparisons": {
+    "clear_vs_legacy_mismatch_frames": 0,
+    "clear_vs_legacy_changed_pixels": 0,
+    "max_channel_error": 0,
+    "repeat_mismatch_frames": 0,
+    "old_1x_mismatch_frames": 0
+  },
+  "rgb_mae": 0.0,
+  "static_unique_rgb": {
+    "O-1X-LegacyStencil": {
+      "initial": 1,
+      "late": 1
+    },
+    "O-1X-ClearStencil": {
+      "initial": 1,
+      "late": 1
+    }
+  },
+  "spatial_ps_invocations": {
+    "O-1X-LegacyStencil": {
+      "all": 5316482.841666667,
+      "moving": 5500060.683333334,
+      "late": 6038090
+    },
+    "O-1X-ClearStencil": {
+      "all": 4464802.9625,
+      "moving": 4538066.925,
+      "late": 4555358
+    }
+  },
+  "old_1x_capture": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260928_165939\\O-1X",
+  "old_capture_metadata_sha256": "2859d3895b65a546209b61f658d739c908374ab45734576e4d7b1012eac202fc",
+  "quality": {
+    "method": "Pixel-exact RGB equivalence to existing 1X; no new CGVQM model run",
+    "scores_both_modes": {
+      "moving": 95.17250061035156,
+      "transition": 94.91637420654297
+    },
+    "score_difference": 0,
+    "source_sha256": "c401ead32ee6e01392ca0b6107d8cbc902e9d4a981593c8317dbb2c0e81b1699"
+  }
+}

@@ -43,13 +43,19 @@ def audit():
     assert 'if( m_oneXStencilClear )' in wrapper and 'D3D11_CLEAR_STENCIL, 1.0f, 0' in wrapper
     official=ROOT/'tmp/stencil-clear-official'
     tree=json.loads((official/'tree.json').read_text())
+    commit=json.loads((official/'commit.json').read_text())
+    assert commit['sha']==tree['sha']
     demo=(official/'Demo_DX10_Code_Demo.cpp').read_text(encoding='utf-8')
     assert 'device->ClearDepthStencilView(*rtc.mainDS, D3D10_CLEAR_DEPTH | D3D10_CLEAR_STENCIL, 1.0, 0);' in demo
-    proof={p.name:sha(p) for p in official.iterdir() if p.is_file() and p.name!='tree.json'}
+    proof={p.name:sha(p) for p in official.iterdir() if p.is_file() and p.suffix!='.json'}
     changed={p:sha(ROOT/p) for p in ['Projects/CMAA2/CMAA2Sample.cpp','Projects/CMAA2/OneXStencilClearVerification.inl','Projects/CMAA2/SMAA/vaSMAAWrapper.h','Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp']}
+    imported=git('show','ee0020d:Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp')
+    assert b'ClearDepthStencilView' not in imported
+    assert b'm_texDepthStencil = vaTexture::Create2D' in imported
     write('source-audit.json',dict(validation='PASS',baseline=BASE,branch=git('branch','--show-current').decode().strip(),
-        unchanged_core=core,changed_sources=changed,official_commit=tree['sha'],official_file_hashes=proof,
+        unchanged_core=core,changed_sources=changed,official_commit=commit['sha'],official_tree=commit['commit']['tree']['sha'],official_file_hashes=proof,
         official_clear_lines=[596,601],official_one_x_call_line=686,official_per_frame_clear_line=739,
+        initial_import=dict(commit='ee0020d',wrapper_sha256=hashlib.sha256(imported).hexdigest(),clear_api_calls=0,owns_separate_stencil=True),
         executable_sha256=sha(ROOT/'Projects/CMAA2/CMAA2.exe'),
         interpretation='Official demo clears the shared main stencil before SMAA; our wrapper has a separate uncleared SMAA stencil. Not a new SMAA algorithm.'))
     print('PASS source audit:',len(core),'unchanged files',flush=True)

@@ -1,0 +1,123 @@
+{
+  "validation": "PASS",
+  "scene": "bistro",
+  "phase": "Benchmark",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Benchmark",
+    "window": "hidden",
+    "source_baseline": "c51ca28",
+    "arguments": [
+      "-smaaOneXStencilClearBenchmark",
+      "bistro"
+    ],
+    "started_utc": "2026-09-30T06:46:12.4871307Z",
+    "completed_utc": "2026-09-30T06:49:46.4727345Z",
+    "executable_sha256": "6AE2269FA62AD9DD963B6C82ED0650BA685F2609EAEDA8D8DED863FD6704095A",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_154614\\20260930_154614_results.csv",
+    "report_sha256": "22566075DD5E5E12B21BF35B3E4C89B56B0EB58E79E5670985ED327CCE511601"
+  },
+  "frames_per_mode_run": 4800,
+  "repeats": 6,
+  "modes": {
+    "O-1X-LegacyStencil": {
+      "SMAA": {
+        "mean_ms": 0.141096249,
+        "run_mean_std_ms": 0.0002033600245712004,
+        "run_means_ms": [
+          0.141466667,
+          0.140955307,
+          0.140919893,
+          0.141035307,
+          0.141013973,
+          0.141186347
+        ],
+        "mean_run_median_ms": 0.14148266666666665,
+        "mean_run_p95_ms": 0.14660266666666666,
+        "mean_run_p99_ms": 0.148992,
+        "mean_frame_stddev_ms": 0.006081705333333333,
+        "mean_slowest_one_percent_equivalent_fps": 6662.321231538
+      },
+      "WallFrame": {
+        "mean_ms": 2.948855743,
+        "run_mean_std_ms": 0.009266389143591972,
+        "run_means_ms": [
+          2.940912917,
+          2.936699167,
+          2.954463604,
+          2.945199583,
+          2.955811354,
+          2.960047833
+        ],
+        "mean_run_median_ms": 2.909466666666667,
+        "mean_run_p95_ms": 3.1775333333333333,
+        "mean_run_p99_ms": 3.314216666666667,
+        "mean_frame_stddev_ms": 0.11054813633333334,
+        "mean_slowest_one_percent_equivalent_fps": 287.77304227499997
+      }
+    },
+    "O-1X-ClearStencil": {
+      "SMAA": {
+        "mean_ms": 0.09348124433333332,
+        "run_mean_std_ms": 0.00015929945751654858,
+        "run_means_ms": [
+          0.09334528,
+          0.093376853,
+          0.0936032,
+          0.0933184,
+          0.093712853,
+          0.09353088
+        ],
+        "mean_run_median_ms": 0.093184,
+        "mean_run_p95_ms": 0.096256,
+        "mean_run_p99_ms": 0.09693866666666667,
+        "mean_frame_stddev_ms": 0.0014771696666666667,
+        "mean_slowest_one_percent_equivalent_fps": 10291.301566581835
+      },
+      "WallFrame": {
+        "mean_ms": 2.9526613888333335,
+        "run_mean_std_ms": 0.021000768981511847,
+        "run_means_ms": [
+          2.933398125,
+          2.942618271,
+          2.958550687,
+          2.992184875,
+          2.946442042,
+          2.942774333
+        ],
+        "mean_run_median_ms": 2.9118166666666667,
+        "mean_run_p95_ms": 3.1930666666666667,
+        "mean_run_p99_ms": 3.3514666666666666,
+        "mean_frame_stddev_ms": 0.11539450283333333,
+        "mean_slowest_one_percent_equivalent_fps": 285.55601254116664
+      }
+    }
+  },
+  "contrasts": {
+    "SMAA": {
+      "change_percent": -33.746470940320094,
+      "difference_ms": -0.04761500466666668,
+      "paired_run_change_percent": [
+        -34.01606047592822,
+        -33.754283547479346,
+        -33.57701456670847,
+        -33.833306010387886,
+        -33.54356947307625,
+        -33.7535944605182
+      ]
+    },
+    "WallFrame": {
+      "change_percent": 0.129055001838152,
+      "difference_ms": 0.0038056458333333154,
+      "paired_run_change_percent": [
+        -0.2555258252143533,
+        0.20155636186756087,
+        0.13833587235485556,
+        1.5953177594891788,
+        -0.3169793629529405,
+        -0.5835547590625656
+      ]
+    }
+  },
+  "classification": "Paired same-executable 1X stencil-clear-only engineering GPU timing; hidden; no capture/readback/query."
+}

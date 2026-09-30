@@ -59,6 +59,7 @@
     "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "e4e2231b2ac8209301614aca3e607960fef40b1e2b76f3f6525b11284c6aa6cc"
   },
   "official_commit": "71c806a838bdd7d517df19192a20f0c61b3ca29d",
+  "official_tree": "7249fb2bc6b4e13cc8535b2bcbb6d59eadb17869",
   "official_file_hashes": {
     "Demo_DX10_Code_Demo.cpp": "e8e34180e611b3981bab19b9f993a9260cf739f6711dff0c88d3a43ca5fba863",
     "Demo_DX10_Code_SMAA.cpp": "34264306b92aad57c5dce6e923f10734427356ad2504472e32cec6f51abaeba1",
@@ -71,6 +72,12 @@
   ],
   "official_one_x_call_line": 686,
   "official_per_frame_clear_line": 739,
+  "initial_import": {
+    "commit": "ee0020d",
+    "wrapper_sha256": "41ebaff92aa7e95fb63e1bbe5c06c860b841eda0d79b79120402244b05a1b94c",
+    "clear_api_calls": 0,
+    "owns_separate_stencil": true
+  },
   "executable_sha256": "6ae2269fa62ad9dd963b6c82ed0650ba685f2609eaeda8d8ded863fd6704095a",
   "interpretation": "Official demo clears the shared main stencil before SMAA; our wrapper has a separate uncleared SMAA stencil. Not a new SMAA algorithm."
 }
