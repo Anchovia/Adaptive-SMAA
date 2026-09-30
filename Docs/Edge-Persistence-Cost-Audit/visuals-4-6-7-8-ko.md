@@ -55,3 +55,27 @@ Bistro의 의자·창문도 ⑦·⑧이 같다. 이 자료만으로 잔상 감�
 `.gif`, `.webp`, `-six.png`를 제공한다. 큰 이미지 파일은 기존 Captures 정책대로 Git에 넣지 않는다.
 메타데이터: [visuals-4-6-7-8.json](visuals-4-6-7-8.json).
 생성 도구: `Tools/SMAA/create_persistence_audit_visuals.py` (기존 quality-venv의 Pillow/NumPy 사용).
+
+## 전체 타임라인 및 정상 속도 재생
+
+후속 요청에 따라 같은 네 mode의 **f0–239 전체**를 사용한 재생 자료를 추가했다.
+이는 새 장면이나 더 긴 카메라 경로의 측정이 아니라 기존 자료의 전체 구간 재생이다.
+원본은 60 fps, 4초이며 시작 정지 1초 → 이동 2초 → 정지 1초로 구성된다.
+
+- `{ROI}-full-half-speed.gif`: 전체 240프레임을 보존한 8초 GIF. 평균 30 fps, 0.5배속으로,
+  이전 3초/10 fps GIF보다 재생 속도가 3배 빠르다. 실제 움직임이 지속되는 시간은 재생상 4초다.
+  GIF의 10 ms 시간 단위를 고려해 30/30/40 ms를 반복하며 모든 복원 프레임과 duration을 검사한다.
+- `{ROI}-full-60fps.mp4`: 60 fps 정상 속도 4초. H.264 CRF12/YUV420 발표용이며 픽셀 분석의 기준이 아니다.
+  240개 복원 프레임, average rate 60과 모든 PTS 간격 1/60초를 검사한다.
+- `{ROI}-full-realtime.webp`: RGB를 보존한 정상 속도 대안. 17/17/16 ms 반복으로 총 4초이며
+  각 복원 RGB와 프레임 duration을 검사한다. GIF와 MP4의 색 손실과 구분한다.
+
+ROI·확대 배율·④⑥⑦⑧ 순서·색 보정 없음 조건은 위와 같다. 2장면 × 4 mode × 240프레임의
+원본 RGB hash를 기존 receipt와 확인하며, ⑦·⑧ 각각의 실제 캡처를 사용한다.
+기존 3초 GIF를 덮어쓰지 않는다. 원본 그림을 역재생하거나 보간해 새 이동 장면으로 만들지 않는다.
+ROI는 물체 추적이 아닌 화면 고정 영역이다. 따라서 Minecraft의 시작 구간에는 이전 짧은 GIF의
+회색 벽 대신 녹색 표면이 보인다. 생성한 f60/f100 PNG에서 확인했으며 구간 교체나 색 보정이 아니다.
+
+갤러리는 같은 출력 디렉터리의 `long-playback.html`, 재생·검증 기록은
+[long-playback-4-6-7-8.json](long-playback-4-6-7-8.json), 생성 도구는
+`Tools/SMAA/create_persistence_audit_long_playback.py`다. 더 긴 연속 카메라 이동 자료는 새 캡처가 필요하다.

@@ -34,14 +34,15 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def compose(title, frame, phase, tiles, scale):
+def compose(title, frame, phase, tiles, scale, playback_note=None):
     width = max(224, tiles[0].width * scale)
     height = tiles[0].height * scale
     gap = 12
     canvas = Image.new('RGB', (4 * width + 5 * gap, height + 115), BG)
     draw = ImageDraw.Draw(canvas)
     draw.text((gap, 5), f'{title} | f{frame:03d} | {phase}', font=FONT, fill='white')
-    draw.text((gap, 30), f'60 fps 원본 → 10 fps 재생 (1/6배속) · {scale}배 확대 · 색 보정 없음', font=SMALL, fill='#c7ccd1')
+    speed = playback_note or '60 fps 원본 → 10 fps 재생 (1/6배속)'
+    draw.text((gap, 30), f'{speed} · {scale}배 확대 · 색 보정 없음', font=SMALL, fill='#c7ccd1')
     for j, (tile, mode) in enumerate(zip(tiles, MODES)):
         x = gap + j * (width + gap)
         draw.text((x, 58), mode[2], font=FONT, fill='white')
