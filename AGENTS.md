@@ -87,6 +87,9 @@
   검토했다. 실제 D3D11 장치는 shader stencil reference 미지원이라 해당 경로는 제외했다.
 - F는 현재 edge가 없을 때만 이전 edge를 읽던 분기를 제거하고 조회를 앞당긴다. 실제
   temporal 계산은 E와 동일한 union stencil 픽셀에서만 실행한다. 추가 pass/copy는 없다.
+- 사용자의 후속 명명에 따라 F를 비교 구성 ⑨로 지정한다. ⑦=3차 depth 전달,
+  ⑧=1차 조건부 이전-edge 조회와 union stencil, ⑨=동일 union의 이전-edge 선행 조회다.
+  로그의 F 식별자는 그대로 보존하며 종합 표는 `nine-case-summary-ko.md`를 따른다.
 - 두 장면 각 240프레임에서 F/U/G의 최종 RGB가 E와 같고, A/E/O도 보존된 출력과 같다.
   raw RG/current spatial/temporal coverage 및 G의 현재-edge-only 2차 실행을 86개 trace로
   검증했다. 이동·전환·정지 연속 6프레임을 직접 검사했으며 기존 선 단절은 해결하지 않았다.
