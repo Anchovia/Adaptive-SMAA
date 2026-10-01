@@ -143,7 +143,8 @@ class SMAA {
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
                 int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, int persistenceMode=0, bool previousValid=false,
-                VertexAsylum::vaRenderDeviceContext *profilingContext=nullptr); // Optional diagnostic timestamps only.
+                VertexAsylum::vaRenderDeviceContext *profilingContext=nullptr, bool countWeights=false); // Optional diagnostics only.
+        UINT64 lastWeightSamples=~UINT64(0), lastWeightInvocations=~UINT64(0);
 
         /**
          * This function perform a temporal resolve of two buffers. They must
@@ -277,8 +278,8 @@ class SMAA {
 
         void loadAreaTex();
         void loadSearchTex();
-        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, bool persistenceStencil=false);
-        void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
+        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, int persistenceMode=0);
+        void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex, bool currentDepthGate=false);
         void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr, int persistenceMode=0);
 
         ID3D11Device *device;
@@ -305,7 +306,7 @@ class SMAA {
         //                                   *depthTexVariable, *velocityTexVariable,
         //                                   *edgesTexVariable, *blendTexVariable;
         //
-        //ID3D10EffectTechnique *edgeDetectionTechniques[3],
+        //ID3D10EffectTechnique *edgeDetectionTechniques[4],
         //                      *blendingWeightCalculationTechnique,
         //                      *neighborhoodBlendingTechnique,
         //                      *resolveTechnique,
@@ -315,13 +316,15 @@ class SMAA {
         SMAATexturesInterface *         texturesInterface;
         SMAATechniqueManagerInterface * techniqueManagerInterface;
 
-        SMAATechniqueInterface *        edgeDetectionTechniques[3];
+        SMAATechniqueInterface *        edgeDetectionTechniques[4];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        spatialFirstEdgeTechnique;
         SMAATechniqueInterface *exactEdgeTechniques[4];
         SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
         SMAATechniqueInterface *persistenceEdgeTechniques[4];
+        SMAATechniqueInterface *eagerPersistenceEdgeTechniques[4], *depthPersistenceEdgeTechniques[4];
+        SMAATechniqueInterface *currentDepthWeightsTechnique;
         SMAATechniqueInterface *neighborhoodPersistenceTechnique, *neighborhoodCurrentDepthTechnique, *neighborhoodConstantDepthTechnique, *neighborhoodConservativeDepthTechnique;
         SMAATechniqueInterface *firstEdgeDepthTechnique, *firstEdgeDepthCoverageTechnique;
         SMAATechniqueInterface *        resolveTechnique;

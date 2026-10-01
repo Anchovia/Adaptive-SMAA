@@ -223,6 +223,14 @@ float2 PersistenceSMAADepthEdgeDetectionPS(float2 texcoord,
     return edges;
 }
 
+bool PreviousRawEdgeAt(float2 uv) {
+    float2 previousUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    bool inBounds = all(previousUV >= 0.0) && all(previousUV < 1.0);
+    int2 previousPixel = int2(floor(previousUV * SMAA_RT_METRICS.zw));
+    bool previousEdge = any(previousRawEdges.Load(int3(previousPixel, 0)).rg > 0.0);
+    return inBounds && previousEdge;
+}
+
 void KeepCurrentOrPrevious(float2 edge, float2 uv) {
     [branch] if (!any(edge > 0.0)) {
         float2 previousUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
@@ -234,43 +242,99 @@ void KeepCurrentOrPrevious(float2 edge, float2 uv) {
 }
 float2 PersistenceLumaRawEdgePS(float4 position : SV_POSITION,
                                     float2 texcoord : TEXCOORD0,
-                                    float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                    float4 offset[3] : TEXCOORD1
+#if PERSISTENCE_DEPTH_MASK
+                                     , out float currentDepth : SV_Depth
+#endif
+                                     ) : SV_TARGET {
+#if PERSISTENCE_EAGER_FETCH
+    bool oldEdge = PreviousRawEdgeAt(texcoord);
+#endif
     #if SMAA_PREDICATION
     float2 edge = PersistenceSMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
     float2 edge = PersistenceSMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma);
     #endif
+#if PERSISTENCE_EAGER_FETCH
+    if (!(any(edge > 0.0) || oldEdge)) discard;
+#else
     KeepCurrentOrPrevious(edge, texcoord);
+#endif
+#if PERSISTENCE_DEPTH_MASK
+    currentDepth = any(edge > 0.0) ? 1.0 : 0.0;
+#endif
     return edge;
 }
 float2 PersistenceLumaEdgePS(float4 position : SV_POSITION,
                                     float2 texcoord : TEXCOORD0,
-                                    float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                    float4 offset[3] : TEXCOORD1
+#if PERSISTENCE_DEPTH_MASK
+                                     , out float currentDepth : SV_Depth
+#endif
+                                     ) : SV_TARGET {
+#if PERSISTENCE_EAGER_FETCH
+    bool oldEdge = PreviousRawEdgeAt(texcoord);
+#endif
     #if SMAA_PREDICATION
     float2 edge = PersistenceSMAALumaEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
     float2 edge = PersistenceSMAALumaEdgeDetectionPS(texcoord, offset, colorTexGamma);
     #endif
+#if PERSISTENCE_EAGER_FETCH
+    if (!(any(edge > 0.0) || oldEdge)) discard;
+#else
     KeepCurrentOrPrevious(edge, texcoord);
+#endif
+#if PERSISTENCE_DEPTH_MASK
+    currentDepth = any(edge > 0.0) ? 1.0 : 0.0;
+#endif
     return edge;
 }
 
 float2 PersistenceColorEdgePS(float4 position : SV_POSITION,
                                      float2 texcoord : TEXCOORD0,
-                                     float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                     float4 offset[3] : TEXCOORD1
+#if PERSISTENCE_DEPTH_MASK
+                                     , out float currentDepth : SV_Depth
+#endif
+                                     ) : SV_TARGET {
+#if PERSISTENCE_EAGER_FETCH
+    bool oldEdge = PreviousRawEdgeAt(texcoord);
+#endif
     #if SMAA_PREDICATION
     float2 edge = PersistenceSMAAColorEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
     float2 edge = PersistenceSMAAColorEdgeDetectionPS(texcoord, offset, colorTexGamma);
     #endif
+#if PERSISTENCE_EAGER_FETCH
+    if (!(any(edge > 0.0) || oldEdge)) discard;
+#else
     KeepCurrentOrPrevious(edge, texcoord);
+#endif
+#if PERSISTENCE_DEPTH_MASK
+    currentDepth = any(edge > 0.0) ? 1.0 : 0.0;
+#endif
     return edge;
 }
 
 float2 PersistenceDepthEdgePS(float4 position : SV_POSITION,
                                      float2 texcoord : TEXCOORD0,
-                                     float4 offset[3] : TEXCOORD1) : SV_TARGET {
+                                     float4 offset[3] : TEXCOORD1
+#if PERSISTENCE_DEPTH_MASK
+                                     , out float currentDepth : SV_Depth
+#endif
+                                     ) : SV_TARGET {
+#if PERSISTENCE_EAGER_FETCH
+    bool oldEdge = PreviousRawEdgeAt(texcoord);
+#endif
     float2 edge = PersistenceSMAADepthEdgeDetectionPS(texcoord, offset, depthTex);
+#if PERSISTENCE_EAGER_FETCH
+    if (!(any(edge > 0.0) || oldEdge)) discard;
+#else
     KeepCurrentOrPrevious(edge, texcoord);
+#endif
+#if PERSISTENCE_DEPTH_MASK
+    currentDepth = any(edge > 0.0) ? 1.0 : 0.0;
+#endif
     return edge;
 }

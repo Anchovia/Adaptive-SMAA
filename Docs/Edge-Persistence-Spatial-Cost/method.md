@@ -19,3 +19,16 @@
 6. [Yang, Liu, Salvi 2020 TAA survey](https://research.nvidia.com/labs/rtr/publication/yang2020survey/): distinguishes accumulation and history validation. Edge persistence is a selection heuristic, not proof of valid history/disocclusion or sufficient subpixel reconstruction. This task changes execution only.
 
 Accessed 2026-10-01. These are design references, not measured performance evidence for this GPU.
+
+## Capability and concrete alternatives
+
+The actual demo device reports `PSSpecifiedStencilRefSupported=0` (capture CSV), so the proposed two-bit shader-reference implementation is not used. Optional API support must not be assumed from GPU marketing generation.
+
+- F: unconditional previous-raw-edge/point-velocity fetch before current-edge evaluation; same coordinates, bounds, raw union and stencil. NVIDIA's control-flow guidance motivates testing whether independent loads outweigh the extra reads. It is not assumed faster.
+- U: first-pass shader exports current-edge 1/non-current 0 as depth, while retaining union stencil; weight pass still uses union stencil.
+- G: exact same first-pass export as U, but weight pass requires depth=1 as well. This removes previous-only weight invocations with no extra pass. The third pass remains original. The U/G pair isolates hardware weight rejection; E/U exposes the added depth-export cost. Given the old case-7 result, export is a risk and this is a controlled alternative, not a presumed fix.
+- Optional capture-only occlusion and pipeline statistics bracket pass 2. G samples must equal current raw mask count; E/F/U samples must equal union count. Temporal coverage and final RGB must be identical for E/F/U/G.
+
+The initial three-mode Bistro profile is preserved separately. It shows pass 1 as the principal increase; pass 2 is a smaller contributor. A capability probe created a default D3D11 device during this run's initial 30-second precondition, before measured frames; all later runs use no concurrent device probes.
+
+The technique pointer array had three elements for four input modes. Its size is corrected to four to remove an out-of-bounds constructor write; LumaRaw/current benchmark controls are verified against preserved hashes. No edge equation changes accompany this bounds correction.

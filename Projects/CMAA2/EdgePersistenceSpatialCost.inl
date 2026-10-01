@@ -53,6 +53,9 @@ public:
         const auto type=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
         m_modes={{"A-CurrentEdge-Stencil",type,true,0,true},
                  {"E-PreviousRawEdge-FirstStencil",type,true,7,true},
+                 {"F-EagerPreviousFetch",type,true,8,true},
+                 {"U-DepthMask-UnionWeights",type,true,9,true},
+                 {"G-DepthMask-CurrentWeights",type,true,10,true},
                  {"O-T2X-R",type,false,0,false}};
     }
     void Tick(AutoBenchTool& tool,float) override {
@@ -66,10 +69,11 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddText(std::string("Spatial pass profiling: ")+(m_profile?"On":"Off")+"\r\n");
-            tool.ReportAddText("Persistence cost audit. Direct base 304f749 + explicit renderer dependency 2d4d0cc. A=baseline6; S=storage; K=constant export; D=current depth; P=union prep/current stencil; B=case7; L=conservative depth; E=first-pass stencil union; O=native4.\r\n");
+            tool.ReportAddRowValues({"shader_stencil_reference_supported",m_parent.GetSMAA()->GetShaderStencilRefSupported()?"1":"0"});
+            tool.ReportAddText("Spatial cost experiment. A=case6; E=case8; F=eager previous fetch; U=first-pass current depth export with union weights; G=same export with current-only weights; O=native4.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60; camera/depth motion only.\r\n");
             tool.ReportAddText("Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.\r\n");
-            tool.ReportAddText(m_capture?"Capture: A/B/E/O 240 frames each. Test: all nine variants, 6 frames each. A/S/K/D/P expect baseline6; B/L/E expect case7; O expects native4. Trace readbacks and queries only on explicit diagnostic frames; no timing claim.\r\n":"Timing: all nine variants; PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 3 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
+            tool.ReportAddText(m_capture?"Capture: six variants 240 frames each. Test: six frames each. F/U/G must match E; A/O must match preserved controls. Trace readbacks and queries only on explicit diagnostic frames; no timing claim.\r\n":"Timing: all six variants; PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 3 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             m_output+=std::wstring(m_capture?(m_shortCapture?L"/test/":L"/capture/"):L"/timing/")+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -125,7 +129,7 @@ public:
             const bool inputs=s->SaveThinLineTraceInputs(ctx,prefix)&&s->SaveSpatialEdgeSnapshot(ctx,prefix,true,false);
             const bool coverage=s->SaveExecutionCoverage(ctx,prefix+L"-coverage.dds");
             const bool query=s->ExecutionQueryOK();m_failed=m_failed||!inputs||!coverage||!query;
-            tool.ReportAddRowValues({"trace",c.name,std::to_string(m_frame),std::to_string(s->GetResolveInvocations()),std::to_string(s->GetResolveSamples()),inputs&&coverage&&query?"PASS":"FAIL"});
+            tool.ReportAddRowValues({"trace",c.name,std::to_string(m_frame),std::to_string(s->GetResolveInvocations()),std::to_string(s->GetResolveSamples()),inputs&&coverage&&query?"PASS":"FAIL",std::to_string(s->GetWeightSamples()),std::to_string(s->GetWeightInvocations())});
         }
         if(!color->SaveToPNGFile(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d.png",m_frame))))m_failed=true;
     }
