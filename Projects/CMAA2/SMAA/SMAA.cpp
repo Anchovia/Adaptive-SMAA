@@ -37,6 +37,7 @@
 #include "AreaTex.h"
 #include "SearchTex.h"
 #include "SMAA.h"
+#include "Core/Misc/vaProfiler.h"
 using namespace std;
 
 using namespace VertexAsylum;
@@ -286,7 +287,9 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, int persistenceMode, bool previousValid) {
+              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, int persistenceMode, bool previousValid, vaRenderDeviceContext *profilingContext) {
+    std::unique_ptr<vaScopeTimer> passTimer;
+    if(profilingContext) passTimer.reset(new vaScopeTimer("SP_Prepare", profilingContext));
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -367,6 +370,7 @@ void SMAA::go(ID3D11DeviceContext * context,
     // And here we go!
     // The dedicated SMAA stencil must describe this frame, for every spatial route.
     if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
+    if(profilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer("SP_Edge", profilingContext));}
     // Only the new audit alternative binds previous raw edges during pass 1.
     if(persistenceMode==7) {
         ID3D11ShaderResourceView *oldRaw=previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
@@ -374,8 +378,10 @@ void SMAA::go(ID3D11DeviceContext * context,
     }
     edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil, persistenceMode==7);
     if(persistenceMode==7) {ID3D11ShaderResourceView *none=nullptr;context->PSSetShaderResources(10,1,&none);}
+    if(profilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer("SP_Weights", profilingContext));}
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
+    if(profilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer("SP_Neighborhood", profilingContext));}
     texturesInterface->SetResource_blendTex(context, *blendRT);
     ID3D11ShaderResourceView *previousEdges = (persistenceMode==1 || persistenceMode==5 || persistenceMode==6) && previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
     if(persistenceMode)context->PSSetShaderResources(10,1,&previousEdges);

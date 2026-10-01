@@ -34,6 +34,7 @@
 //#include <dxgi.h>
 //#include <d3d10.h>
 #include "RenderTarget.h"
+namespace VertexAsylum { class vaRenderDeviceContext; }
 
 /**
  * IMPORTANT NOTICE: please note that the documentation given in this file is
@@ -141,7 +142,8 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, int persistenceMode=0, bool previousValid=false); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, int persistenceMode=0, bool previousValid=false,
+                VertexAsylum::vaRenderDeviceContext *profilingContext=nullptr); // Optional diagnostic timestamps only.
 
         /**
          * This function perform a temporal resolve of two buffers. They must
