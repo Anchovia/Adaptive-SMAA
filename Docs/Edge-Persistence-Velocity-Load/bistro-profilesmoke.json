@@ -1,0 +1,1932 @@
+{
+  "validation": "PASS",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "ProfileSmoke",
+    "window": "hidden",
+    "arguments": [
+      "-smaaEdgeVelocityLoadProfileSmoke",
+      "bistro",
+      "C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/velocity-load-captures"
+    ],
+    "scene_bootstrap": 0,
+    "retry_reason": "",
+    "started_utc": "2026-10-01T04:54:45.0251763Z",
+    "completed_utc": "2026-10-01T04:55:24.2623233Z",
+    "executable_sha256": "5D8F29D1D41F2B15DEF47487C5579EEAAA4BCBAB1C72A721B14558441CF0D555",
+    "shader_sha256": {
+      "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "842843CC7516A409C6313395FDD2215A93E14C74E8638B105083AD01EB27CDBD",
+      "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "FBE5E16B760FF43BC77B6052254A07519AD336B8D0570C8E416FCA45FBD32A02",
+      "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+      "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479"
+    },
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20261001_135446\\20261001_135446_results.csv",
+    "report_sha256": "C1120D09BA10C4E2534023D2F93420DD883FD4EAD923EC6C3FF0E8A75ED269D8"
+  },
+  "classification": "case-9 velocity access only",
+  "profile_scopes": true,
+  "frames_per_run": 240,
+  "repeats": 1,
+  "means": {
+    "A-CurrentEdge-Stencil": {
+      "SF_Spatial": 0.106513067,
+      "SMAA": 0.1383168,
+      "SP_Edge": 0.027741867,
+      "SP_Neighborhood": 0.045892267,
+      "SP_Prepare": 0.008256,
+      "SP_Weights": 0.0245888,
+      "SR_CameraVelocity": 0.024192,
+      "SR_Resolve": 0.007573333,
+      "WallFrame": 2.998829167,
+      "WholeFrame": 2.482169867
+    },
+    "F-EagerPreviousFetch": {
+      "SF_Spatial": 0.1073792,
+      "SMAA": 0.1395584,
+      "SP_Edge": 0.0277632,
+      "SP_Neighborhood": 0.0450944,
+      "SP_Prepare": 0.0082816,
+      "SP_Weights": 0.02624,
+      "SR_CameraVelocity": 0.0241536,
+      "SR_Resolve": 0.008017067,
+      "WallFrame": 2.983363333,
+      "WholeFrame": 2.488969467
+    },
+    "L-VelocityIntegerLoad": {
+      "SF_Spatial": 0.107332267,
+      "SMAA": 0.1394688,
+      "SP_Edge": 0.028283733,
+      "SP_Neighborhood": 0.0454272,
+      "SP_Prepare": 0.008196267,
+      "SP_Weights": 0.0253952,
+      "SR_CameraVelocity": 0.024384,
+      "SR_Resolve": 0.0077184,
+      "WallFrame": 2.988715833,
+      "WholeFrame": 2.478041867
+    },
+    "O-T2X-R": {
+      "SF_Spatial": 0.103927467,
+      "SMAA": 0.161719467,
+      "SP_Edge": 0.027656533,
+      "SP_Neighborhood": 0.043080533,
+      "SP_Prepare": 0.008187733,
+      "SP_Weights": 0.0249344,
+      "SR_CameraVelocity": 0.0241152,
+      "SR_Resolve": 0.033646933,
+      "WallFrame": 2.996989167,
+      "WholeFrame": 2.4964596
+    }
+  },
+  "raw_runs": {
+    "A-CurrentEdge-Stencil": {
+      "SF_Spatial": {
+        "0": 0.106513067
+      },
+      "SMAA": {
+        "0": 0.1383168
+      },
+      "SP_Edge": {
+        "0": 0.027741867
+      },
+      "SP_Neighborhood": {
+        "0": 0.045892267
+      },
+      "SP_Prepare": {
+        "0": 0.008256
+      },
+      "SP_Weights": {
+        "0": 0.0245888
+      },
+      "SR_CameraVelocity": {
+        "0": 0.024192
+      },
+      "SR_Resolve": {
+        "0": 0.007573333
+      },
+      "WallFrame": {
+        "0": 2.998829167
+      },
+      "WholeFrame": {
+        "0": 2.482169867
+      }
+    },
+    "F-EagerPreviousFetch": {
+      "SF_Spatial": {
+        "0": 0.1073792
+      },
+      "SMAA": {
+        "0": 0.1395584
+      },
+      "SP_Edge": {
+        "0": 0.0277632
+      },
+      "SP_Neighborhood": {
+        "0": 0.0450944
+      },
+      "SP_Prepare": {
+        "0": 0.0082816
+      },
+      "SP_Weights": {
+        "0": 0.02624
+      },
+      "SR_CameraVelocity": {
+        "0": 0.0241536
+      },
+      "SR_Resolve": {
+        "0": 0.008017067
+      },
+      "WallFrame": {
+        "0": 2.983363333
+      },
+      "WholeFrame": {
+        "0": 2.488969467
+      }
+    },
+    "L-VelocityIntegerLoad": {
+      "SF_Spatial": {
+        "0": 0.107332267
+      },
+      "SMAA": {
+        "0": 0.1394688
+      },
+      "SP_Edge": {
+        "0": 0.028283733
+      },
+      "SP_Neighborhood": {
+        "0": 0.0454272
+      },
+      "SP_Prepare": {
+        "0": 0.008196267
+      },
+      "SP_Weights": {
+        "0": 0.0253952
+      },
+      "SR_CameraVelocity": {
+        "0": 0.024384
+      },
+      "SR_Resolve": {
+        "0": 0.0077184
+      },
+      "WallFrame": {
+        "0": 2.988715833
+      },
+      "WholeFrame": {
+        "0": 2.478041867
+      }
+    },
+    "O-T2X-R": {
+      "SF_Spatial": {
+        "0": 0.103927467
+      },
+      "SMAA": {
+        "0": 0.161719467
+      },
+      "SP_Edge": {
+        "0": 0.027656533
+      },
+      "SP_Neighborhood": {
+        "0": 0.043080533
+      },
+      "SP_Prepare": {
+        "0": 0.008187733
+      },
+      "SP_Weights": {
+        "0": 0.0249344
+      },
+      "SR_CameraVelocity": {
+        "0": 0.0241152
+      },
+      "SR_Resolve": {
+        "0": 0.033646933
+      },
+      "WallFrame": {
+        "0": 2.996989167
+      },
+      "WholeFrame": {
+        "0": 2.4964596
+      }
+    }
+  },
+  "distribution": {
+    "A-CurrentEdge-Stencil": {
+      "SF_Spatial": {
+        "0": {
+          "median_ms": 0.106496,
+          "p95_ms": 0.108544,
+          "p99_ms": 0.110592,
+          "sd_ms": 0.001672098,
+          "slowest_one_percent_equivalent_fps": 9042.24537037
+        }
+      },
+      "SMAA": {
+        "0": {
+          "median_ms": 0.139264,
+          "p95_ms": 0.141312,
+          "p99_ms": 0.14336,
+          "sd_ms": 0.002339425,
+          "slowest_one_percent_equivalent_fps": 6975.446428571
+        }
+      },
+      "SP_Edge": {
+        "0": {
+          "median_ms": 0.027648,
+          "p95_ms": 0.028672,
+          "p99_ms": 0.028672,
+          "sd_ms": 0.00047657,
+          "slowest_one_percent_equivalent_fps": 34877.232142857
+        }
+      },
+      "SP_Neighborhood": {
+        "0": {
+          "median_ms": 0.045056,
+          "p95_ms": 0.048128,
+          "p99_ms": 0.049152,
+          "sd_ms": 0.001768604,
+          "slowest_one_percent_equivalent_fps": 20345.052083333
+        }
+      },
+      "SP_Prepare": {
+        "0": {
+          "median_ms": 0.008192,
+          "p95_ms": 0.009216,
+          "p99_ms": 0.009216,
+          "sd_ms": 0.000247871,
+          "slowest_one_percent_equivalent_fps": 108506.944444444
+        }
+      },
+      "SP_Weights": {
+        "0": {
+          "median_ms": 0.024576,
+          "p95_ms": 0.027648,
+          "p99_ms": 0.027648,
+          "sd_ms": 0.001545871,
+          "slowest_one_percent_equivalent_fps": 35511.363636364
+        }
+      },
+      "SR_CameraVelocity": {
+        "0": {
+          "median_ms": 0.024576,
+          "p95_ms": 0.024576,
+          "p99_ms": 0.0256,
+          "sd_ms": 0.00055401,
+          "slowest_one_percent_equivalent_fps": 39062.5
+        }
+      },
+      "SR_Resolve": {
+        "0": {
+          "median_ms": 0.007168,
+          "p95_ms": 0.008192,
+          "p99_ms": 0.008192,
+          "sd_ms": 0.000631913,
+          "slowest_one_percent_equivalent_fps": 122070.3125
+        }
+      },
+      "WallFrame": {
+        "0": {
+          "median_ms": 2.9488,
+          "p95_ms": 3.2629,
+          "p99_ms": 3.4046,
+          "sd_ms": 0.128249889,
+          "slowest_one_percent_equivalent_fps": 284.010224368
+        }
+      },
+      "WholeFrame": {
+        "0": {
+          "median_ms": 2.433024,
+          "p95_ms": 2.762752,
+          "p99_ms": 2.812928,
+          "sd_ms": 0.11896278,
+          "slowest_one_percent_equivalent_fps": 355.501456134
+        }
+      }
+    },
+    "F-EagerPreviousFetch": {
+      "SF_Spatial": {
+        "0": {
+          "median_ms": 0.105472,
+          "p95_ms": 0.11264,
+          "p99_ms": 0.113664,
+          "sd_ms": 0.004595877,
+          "slowest_one_percent_equivalent_fps": 8797.86036036
+        }
+      },
+      "SMAA": {
+        "0": {
+          "median_ms": 0.136192,
+          "p95_ms": 0.146432,
+          "p99_ms": 0.146432,
+          "sd_ms": 0.005560629,
+          "slowest_one_percent_equivalent_fps": 6805.31358885
+        }
+      },
+      "SP_Edge": {
+        "0": {
+          "median_ms": 0.0256,
+          "p95_ms": 0.03072,
+          "p99_ms": 0.03072,
+          "sd_ms": 0.002998562,
+          "slowest_one_percent_equivalent_fps": 31502.016129032
+        }
+      },
+      "SP_Neighborhood": {
+        "0": {
+          "median_ms": 0.045056,
+          "p95_ms": 0.047104,
+          "p99_ms": 0.047104,
+          "sd_ms": 0.001455171,
+          "slowest_one_percent_equivalent_fps": 21229.619565217
+        }
+      },
+      "SP_Prepare": {
+        "0": {
+          "median_ms": 0.008192,
+          "p95_ms": 0.009216,
+          "p99_ms": 0.009216,
+          "sd_ms": 0.000289348,
+          "slowest_one_percent_equivalent_fps": 108506.944444444
+        }
+      },
+      "SP_Weights": {
+        "0": {
+          "median_ms": 0.0256,
+          "p95_ms": 0.028672,
+          "p99_ms": 0.028672,
+          "sd_ms": 0.001201201,
+          "slowest_one_percent_equivalent_fps": 34877.232142857
+        }
+      },
+      "SR_CameraVelocity": {
+        "0": {
+          "median_ms": 0.024576,
+          "p95_ms": 0.024576,
+          "p99_ms": 0.0256,
+          "sd_ms": 0.0005615,
+          "slowest_one_percent_equivalent_fps": 39062.5
+        }
+      },
+      "SR_Resolve": {
+        "0": {
+          "median_ms": 0.008192,
+          "p95_ms": 0.009216,
+          "p99_ms": 0.009216,
+          "sd_ms": 0.000881859,
+          "slowest_one_percent_equivalent_fps": 108506.944444444
+        }
+      },
+      "WallFrame": {
+        "0": {
+          "median_ms": 2.9347,
+          "p95_ms": 3.1972,
+          "p99_ms": 3.3036,
+          "sd_ms": 0.108510664,
+          "slowest_one_percent_equivalent_fps": 292.440415265
+        }
+      },
+      "WholeFrame": {
+        "0": {
+          "median_ms": 2.428832,
+          "p95_ms": 2.695168,
+          "p99_ms": 2.914304,
+          "sd_ms": 0.125770484,
+          "slowest_one_percent_equivalent_fps": 343.135101897
+        }
+      }
+    },
+    "L-VelocityIntegerLoad": {
+      "SF_Spatial": {
+        "0": {
+          "median_ms": 0.105472,
+          "p95_ms": 0.114688,
+          "p99_ms": 0.114688,
+          "sd_ms": 0.004733316,
+          "slowest_one_percent_equivalent_fps": 8719.308035714
+        }
+      },
+      "SMAA": {
+        "0": {
+          "median_ms": 0.136192,
+          "p95_ms": 0.147456,
+          "p99_ms": 0.147456,
+          "sd_ms": 0.005527229,
+          "slowest_one_percent_equivalent_fps": 6781.684027778
+        }
+      },
+      "SP_Edge": {
+        "0": {
+          "median_ms": 0.0256,
+          "p95_ms": 0.031744,
+          "p99_ms": 0.031744,
+          "sd_ms": 0.003231754,
+          "slowest_one_percent_equivalent_fps": 31502.016129032
+        }
+      },
+      "SP_Neighborhood": {
+        "0": {
+          "median_ms": 0.044032,
+          "p95_ms": 0.047104,
+          "p99_ms": 0.047104,
+          "sd_ms": 0.001515183,
+          "slowest_one_percent_equivalent_fps": 21001.344086022
+        }
+      },
+      "SP_Prepare": {
+        "0": {
+          "median_ms": 0.008192,
+          "p95_ms": 0.008192,
+          "p99_ms": 0.008192,
+          "sd_ms": 6.5961e-05,
+          "slowest_one_percent_equivalent_fps": 114889.705882353
+        }
+      },
+      "SP_Weights": {
+        "0": {
+          "median_ms": 0.0256,
+          "p95_ms": 0.027648,
+          "p99_ms": 0.027648,
+          "sd_ms": 0.00129931,
+          "slowest_one_percent_equivalent_fps": 35511.363636364
+        }
+      },
+      "SR_CameraVelocity": {
+        "0": {
+          "median_ms": 0.024576,
+          "p95_ms": 0.024576,
+          "p99_ms": 0.0256,
+          "sd_ms": 0.000470012,
+          "slowest_one_percent_equivalent_fps": 39062.5
+        }
+      },
+      "SR_Resolve": {
+        "0": {
+          "median_ms": 0.007168,
+          "p95_ms": 0.009216,
+          "p99_ms": 0.009216,
+          "sd_ms": 0.000829963,
+          "slowest_one_percent_equivalent_fps": 108506.944444444
+        }
+      },
+      "WallFrame": {
+        "0": {
+          "median_ms": 2.9342,
+          "p95_ms": 3.2073,
+          "p99_ms": 3.3321,
+          "sd_ms": 0.119975386,
+          "slowest_one_percent_equivalent_fps": 289.58647052
+        }
+      },
+      "WholeFrame": {
+        "0": {
+          "median_ms": 2.427904,
+          "p95_ms": 2.814976,
+          "p99_ms": 2.930688,
+          "sd_ms": 0.129682621,
+          "slowest_one_percent_equivalent_fps": 341.216806429
+        }
+      }
+    },
+    "O-T2X-R": {
+      "SF_Spatial": {
+        "0": {
+          "median_ms": 0.103424,
+          "p95_ms": 0.106496,
+          "p99_ms": 0.10752,
+          "sd_ms": 0.00136424,
+          "slowest_one_percent_equivalent_fps": 9300.595238095
+        }
+      },
+      "SMAA": {
+        "0": {
+          "median_ms": 0.159744,
+          "p95_ms": 0.167936,
+          "p99_ms": 0.16896,
+          "sd_ms": 0.004952479,
+          "slowest_one_percent_equivalent_fps": 5918.560606061
+        }
+      },
+      "SP_Edge": {
+        "0": {
+          "median_ms": 0.027648,
+          "p95_ms": 0.027648,
+          "p99_ms": 0.027648,
+          "sd_ms": 0.000131922,
+          "slowest_one_percent_equivalent_fps": 34877.232142857
+        }
+      },
+      "SP_Neighborhood": {
+        "0": {
+          "median_ms": 0.043008,
+          "p95_ms": 0.045056,
+          "p99_ms": 0.045056,
+          "sd_ms": 0.001264194,
+          "slowest_one_percent_equivalent_fps": 22194.602272727
+        }
+      },
+      "SP_Prepare": {
+        "0": {
+          "median_ms": 0.008192,
+          "p95_ms": 0.008192,
+          "p99_ms": 0.008192,
+          "sd_ms": 0.000114407,
+          "slowest_one_percent_equivalent_fps": 114889.705882353
+        }
+      },
+      "SP_Weights": {
+        "0": {
+          "median_ms": 0.024576,
+          "p95_ms": 0.026624,
+          "p99_ms": 0.027648,
+          "sd_ms": 0.001223455,
+          "slowest_one_percent_equivalent_fps": 36168.981481481
+        }
+      },
+      "SR_CameraVelocity": {
+        "0": {
+          "median_ms": 0.024576,
+          "p95_ms": 0.024576,
+          "p99_ms": 0.024576,
+          "sd_ms": 0.000526307,
+          "slowest_one_percent_equivalent_fps": 39062.5
+        }
+      },
+      "SR_Resolve": {
+        "0": {
+          "median_ms": 0.03072,
+          "p95_ms": 0.037888,
+          "p99_ms": 0.037888,
+          "sd_ms": 0.003717547,
+          "slowest_one_percent_equivalent_fps": 26393.581081081
+        }
+      },
+      "WallFrame": {
+        "0": {
+          "median_ms": 2.9417,
+          "p95_ms": 3.2282,
+          "p99_ms": 3.3721,
+          "sd_ms": 0.122343278,
+          "slowest_one_percent_equivalent_fps": 289.859273323
+        }
+      },
+      "WholeFrame": {
+        "0": {
+          "median_ms": 2.44736,
+          "p95_ms": 2.719744,
+          "p99_ms": 2.738144,
+          "sd_ms": 0.105522778,
+          "slowest_one_percent_equivalent_fps": 365.210887375
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "A-CurrentEdge-Stencil": {
+      "A-CurrentEdge-Stencil": {
+        "SF_Spatial": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "F-EagerPreviousFetch": {
+        "SF_Spatial": {
+          "delta_ms": 0.0008661329999999912,
+          "percent": 0.813170650695838,
+          "paired_percent": [
+            0.813170650695838
+          ],
+          "paired_delta_ms": [
+            0.0008661329999999912
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.0012416000000000094,
+          "percent": 0.8976494540070323,
+          "paired_percent": [
+            0.8976494540070323
+          ],
+          "paired_delta_ms": [
+            0.0012416000000000094
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 2.133299999999838e-05,
+          "percent": 0.07689821308709544,
+          "paired_percent": [
+            0.07689821308709544
+          ],
+          "paired_delta_ms": [
+            2.133299999999838e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": -0.0007978670000000007,
+          "percent": -1.7385652358380965,
+          "paired_percent": [
+            -1.7385652358380965
+          ],
+          "paired_delta_ms": [
+            -0.0007978670000000007
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 2.5600000000000622e-05,
+          "percent": 0.31007751937985883,
+          "paired_percent": [
+            0.31007751937985883
+          ],
+          "paired_delta_ms": [
+            2.5600000000000622e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0016511999999999985,
+          "percent": 6.715252472670485,
+          "paired_percent": [
+            6.715252472670485
+          ],
+          "paired_delta_ms": [
+            0.0016511999999999985
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": -3.840000000000093e-05,
+          "percent": -0.15873015873015817,
+          "paired_percent": [
+            -0.15873015873015817
+          ],
+          "paired_delta_ms": [
+            -3.840000000000093e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.00044373399999999945,
+          "percent": 5.859163990280103,
+          "paired_percent": [
+            5.859163990280103
+          ],
+          "paired_delta_ms": [
+            0.00044373399999999945
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": -0.015465834000000012,
+          "percent": -0.5157290775410162,
+          "paired_percent": [
+            -0.5157290775410162
+          ],
+          "paired_delta_ms": [
+            -0.015465834000000012
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": 0.006799599999999906,
+          "percent": 0.2739377385246433,
+          "paired_percent": [
+            0.2739377385246433
+          ],
+          "paired_delta_ms": [
+            0.006799599999999906
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "L-VelocityIntegerLoad": {
+        "SF_Spatial": {
+          "delta_ms": 0.0008191999999999922,
+          "percent": 0.7691075124144131,
+          "paired_percent": [
+            0.7691075124144131
+          ],
+          "paired_delta_ms": [
+            0.0008191999999999922
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.0011520000000000141,
+          "percent": 0.8328706274292053,
+          "paired_percent": [
+            0.8328706274292053
+          ],
+          "paired_delta_ms": [
+            0.0011520000000000141
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.0005418659999999985,
+          "percent": 1.953242728760829,
+          "paired_percent": [
+            1.953242728760829
+          ],
+          "paired_delta_ms": [
+            0.0005418659999999985
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": -0.00046506699999999956,
+          "percent": -1.0133885955121769,
+          "paired_percent": [
+            -1.0133885955121769
+          ],
+          "paired_delta_ms": [
+            -0.00046506699999999956
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": -5.9732999999999314e-05,
+          "percent": -0.7235101744185957,
+          "paired_percent": [
+            -0.7235101744185957
+          ],
+          "paired_delta_ms": [
+            -5.9732999999999314e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0008063999999999988,
+          "percent": 3.279541905257677,
+          "paired_percent": [
+            3.279541905257677
+          ],
+          "paired_delta_ms": [
+            0.0008063999999999988
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 0.00019199999999999773,
+          "percent": 0.7936507936507908,
+          "paired_percent": [
+            0.7936507936507908
+          ],
+          "paired_delta_ms": [
+            0.00019199999999999773
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.00014506700000000046,
+          "percent": 1.9154974434637984,
+          "paired_percent": [
+            1.9154974434637984
+          ],
+          "paired_delta_ms": [
+            0.00014506700000000046
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": -0.010113333999999696,
+          "percent": -0.33724275164753736,
+          "paired_percent": [
+            -0.33724275164753736
+          ],
+          "paired_delta_ms": [
+            -0.010113333999999696
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": -0.0041280000000001316,
+          "percent": -0.16630610398108425,
+          "paired_percent": [
+            -0.16630610398108425
+          ],
+          "paired_delta_ms": [
+            -0.0041280000000001316
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "O-T2X-R": {
+        "SF_Spatial": {
+          "delta_ms": -0.0025856000000000073,
+          "percent": -2.427495586058004,
+          "paired_percent": [
+            -2.427495586058004
+          ],
+          "paired_delta_ms": [
+            -0.0025856000000000073
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.023402667000000016,
+          "percent": 16.919612801915605,
+          "paired_percent": [
+            16.919612801915605
+          ],
+          "paired_delta_ms": [
+            0.023402667000000016
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": -8.533399999999941e-05,
+          "percent": -0.3076000616685226,
+          "paired_percent": [
+            -0.3076000616685226
+          ],
+          "paired_delta_ms": [
+            -8.533399999999941e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": -0.0028117340000000032,
+          "percent": -6.126814349790132,
+          "paired_percent": [
+            -6.126814349790132
+          ],
+          "paired_delta_ms": [
+            -0.0028117340000000032
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": -6.826699999999859e-05,
+          "percent": -0.8268774224805986,
+          "paired_percent": [
+            -0.8268774224805986
+          ],
+          "paired_delta_ms": [
+            -6.826699999999859e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.000345599999999998,
+          "percent": 1.4055179593961409,
+          "paired_percent": [
+            1.4055179593961409
+          ],
+          "paired_delta_ms": [
+            0.000345599999999998
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": -7.680000000000187e-05,
+          "percent": -0.31746031746032743,
+          "paired_percent": [
+            -0.31746031746032743
+          ],
+          "paired_delta_ms": [
+            -7.680000000000187e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.026073599999999995,
+          "percent": 344.28170529408914,
+          "paired_percent": [
+            344.28170529408914
+          ],
+          "paired_delta_ms": [
+            0.026073599999999995
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": -0.0018399999999996197,
+          "percent": -0.06135727970927318,
+          "paired_percent": [
+            -0.06135727970927318
+          ],
+          "paired_delta_ms": [
+            -0.0018399999999996197
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": 0.014289733000000027,
+          "percent": 0.5756952088565415,
+          "paired_percent": [
+            0.5756952088565415
+          ],
+          "paired_delta_ms": [
+            0.014289733000000027
+          ],
+          "delta_sd_ms": null
+        }
+      }
+    },
+    "F-EagerPreviousFetch": {
+      "A-CurrentEdge-Stencil": {
+        "SF_Spatial": {
+          "delta_ms": -0.0008661329999999912,
+          "percent": -0.806611522529499,
+          "paired_percent": [
+            -0.806611522529499
+          ],
+          "paired_delta_ms": [
+            -0.0008661329999999912
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": -0.0012416000000000094,
+          "percent": -0.8896633953957678,
+          "paired_percent": [
+            -0.8896633953957678
+          ],
+          "paired_delta_ms": [
+            -0.0012416000000000094
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": -2.133299999999838e-05,
+          "percent": -0.07683912517288949,
+          "paired_percent": [
+            -0.07683912517288949
+          ],
+          "paired_delta_ms": [
+            -2.133299999999838e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0007978670000000007,
+          "percent": 1.7693261247516245,
+          "paired_percent": [
+            1.7693261247516245
+          ],
+          "paired_delta_ms": [
+            0.0007978670000000007
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": -2.5600000000000622e-05,
+          "percent": -0.3091190108191699,
+          "paired_percent": [
+            -0.3091190108191699
+          ],
+          "paired_delta_ms": [
+            -2.5600000000000622e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": -0.0016511999999999985,
+          "percent": -6.292682926829263,
+          "paired_percent": [
+            -6.292682926829263
+          ],
+          "paired_delta_ms": [
+            -0.0016511999999999985
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 3.840000000000093e-05,
+          "percent": 0.15898251192369983,
+          "paired_percent": [
+            0.15898251192369983
+          ],
+          "paired_delta_ms": [
+            3.840000000000093e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": -0.00044373399999999945,
+          "percent": -5.534867053000802,
+          "paired_percent": [
+            -5.534867053000802
+          ],
+          "paired_delta_ms": [
+            -0.00044373399999999945
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.015465834000000012,
+          "percent": 0.5184026306459977,
+          "paired_percent": [
+            0.5184026306459977
+          ],
+          "paired_delta_ms": [
+            0.015465834000000012
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": -0.006799599999999906,
+          "percent": -0.27318936974327634,
+          "paired_percent": [
+            -0.27318936974327634
+          ],
+          "paired_delta_ms": [
+            -0.006799599999999906
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "F-EagerPreviousFetch": {
+        "SF_Spatial": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "L-VelocityIntegerLoad": {
+        "SF_Spatial": {
+          "delta_ms": -4.6932999999999e-05,
+          "percent": -0.04370771993086331,
+          "paired_percent": [
+            -0.04370771993086331
+          ],
+          "paired_delta_ms": [
+            -4.6932999999999e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": -8.959999999999524e-05,
+          "percent": -0.06420251306978875,
+          "paired_percent": [
+            -0.06420251306978875
+          ],
+          "paired_delta_ms": [
+            -8.959999999999524e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.0005205330000000001,
+          "percent": 1.874902748962648,
+          "paired_percent": [
+            1.874902748962648
+          ],
+          "paired_delta_ms": [
+            0.0005205330000000001
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.00033280000000000115,
+          "percent": 0.738007380073813,
+          "paired_percent": [
+            0.738007380073813
+          ],
+          "paired_delta_ms": [
+            0.00033280000000000115
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": -8.533299999999994e-05,
+          "percent": -1.0303926777434302,
+          "paired_percent": [
+            -1.0303926777434302
+          ],
+          "paired_delta_ms": [
+            -8.533299999999994e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": -0.0008447999999999997,
+          "percent": -3.219512195121954,
+          "paired_percent": [
+            -3.219512195121954
+          ],
+          "paired_delta_ms": [
+            -0.0008447999999999997
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 0.00023039999999999866,
+          "percent": 0.9538950715421324,
+          "paired_percent": [
+            0.9538950715421324
+          ],
+          "paired_delta_ms": [
+            0.00023039999999999866
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": -0.000298666999999999,
+          "percent": -3.7253898464363444,
+          "paired_percent": [
+            -3.7253898464363444
+          ],
+          "paired_delta_ms": [
+            -0.000298666999999999
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.005352500000000315,
+          "percent": 0.17941160370225084,
+          "paired_percent": [
+            0.17941160370225084
+          ],
+          "paired_delta_ms": [
+            0.005352500000000315
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": -0.010927600000000037,
+          "percent": -0.4390411431270502,
+          "paired_percent": [
+            -0.4390411431270502
+          ],
+          "paired_delta_ms": [
+            -0.010927600000000037
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "O-T2X-R": {
+        "SF_Spatial": {
+          "delta_ms": -0.0034517329999999985,
+          "percent": -3.214526649481464,
+          "paired_percent": [
+            -3.214526649481464
+          ],
+          "paired_delta_ms": [
+            -0.0034517329999999985
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.022161067000000007,
+          "percent": 15.879421804778504,
+          "paired_percent": [
+            15.879421804778504
+          ],
+          "paired_delta_ms": [
+            0.022161067000000007
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": -0.00010666699999999779,
+          "percent": -0.3842028296449862,
+          "paired_percent": [
+            -0.3842028296449862
+          ],
+          "paired_delta_ms": [
+            -0.00010666699999999779
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": -0.0020138670000000025,
+          "percent": -4.465891551944368,
+          "paired_percent": [
+            -4.465891551944368
+          ],
+          "paired_delta_ms": [
+            -0.0020138670000000025
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": -9.386699999999921e-05,
+          "percent": -1.1334403979907148,
+          "paired_percent": [
+            -1.1334403979907148
+          ],
+          "paired_delta_ms": [
+            -9.386699999999921e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": -0.0013056000000000005,
+          "percent": -4.975609756097565,
+          "paired_percent": [
+            -4.975609756097565
+          ],
+          "paired_delta_ms": [
+            -0.0013056000000000005
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": -3.840000000000093e-05,
+          "percent": -0.15898251192368873,
+          "paired_percent": [
+            -0.15898251192368873
+          ],
+          "paired_delta_ms": [
+            -3.840000000000093e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.025629865999999998,
+          "percent": 319.6913035652565,
+          "paired_percent": [
+            319.6913035652565
+          ],
+          "paired_delta_ms": [
+            0.025629865999999998
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.013625834000000392,
+          "percent": 0.4567272731846206,
+          "paired_percent": [
+            0.4567272731846206
+          ],
+          "paired_delta_ms": [
+            0.013625834000000392
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": 0.007490133000000121,
+          "percent": 0.3009331010005667,
+          "paired_percent": [
+            0.3009331010005667
+          ],
+          "paired_delta_ms": [
+            0.007490133000000121
+          ],
+          "delta_sd_ms": null
+        }
+      }
+    },
+    "O-T2X-R": {
+      "A-CurrentEdge-Stencil": {
+        "SF_Spatial": {
+          "delta_ms": 0.0025856000000000073,
+          "percent": 2.487888981264219,
+          "paired_percent": [
+            2.487888981264219
+          ],
+          "paired_delta_ms": [
+            0.0025856000000000073
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": -0.023402667000000016,
+          "percent": -14.471150217184437,
+          "paired_percent": [
+            -14.471150217184437
+          ],
+          "paired_delta_ms": [
+            -0.023402667000000016
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 8.533399999999941e-05,
+          "percent": 0.30854915907210234,
+          "paired_percent": [
+            0.30854915907210234
+          ],
+          "paired_delta_ms": [
+            8.533399999999941e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0028117340000000032,
+          "percent": 6.526692694354552,
+          "paired_percent": [
+            6.526692694354552
+          ],
+          "paired_delta_ms": [
+            0.0028117340000000032
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 6.826699999999859e-05,
+          "percent": 0.8337716923597638,
+          "paired_percent": [
+            0.8337716923597638
+          ],
+          "paired_delta_ms": [
+            6.826699999999859e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": -0.000345599999999998,
+          "percent": -1.386036960985615,
+          "paired_percent": [
+            -1.386036960985615
+          ],
+          "paired_delta_ms": [
+            -0.000345599999999998
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 7.680000000000187e-05,
+          "percent": 0.31847133757962887,
+          "paired_percent": [
+            0.31847133757962887
+          ],
+          "paired_delta_ms": [
+            7.680000000000187e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": -0.026073599999999995,
+          "percent": -77.4917583127116,
+          "paired_percent": [
+            -77.4917583127116
+          ],
+          "paired_delta_ms": [
+            -0.026073599999999995
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.0018399999999996197,
+          "percent": 0.061394949980475566,
+          "paired_percent": [
+            0.061394949980475566
+          ],
+          "paired_delta_ms": [
+            0.0018399999999996197
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": -0.014289733000000027,
+          "percent": -0.5723999298847038,
+          "paired_percent": [
+            -0.5723999298847038
+          ],
+          "paired_delta_ms": [
+            -0.014289733000000027
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "F-EagerPreviousFetch": {
+        "SF_Spatial": {
+          "delta_ms": 0.0034517329999999985,
+          "percent": 3.3212904149775957,
+          "paired_percent": [
+            3.3212904149775957
+          ],
+          "paired_delta_ms": [
+            0.0034517329999999985
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": -0.022161067000000007,
+          "percent": -13.703400964090495,
+          "paired_percent": [
+            -13.703400964090495
+          ],
+          "paired_delta_ms": [
+            -0.022161067000000007
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.00010666699999999779,
+          "percent": 0.38568464094901334,
+          "paired_percent": [
+            0.38568464094901334
+          ],
+          "paired_delta_ms": [
+            0.00010666699999999779
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0020138670000000025,
+          "percent": 4.674656648282416,
+          "paired_percent": [
+            4.674656648282416
+          ],
+          "paired_delta_ms": [
+            0.0020138670000000025
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 9.386699999999921e-05,
+          "percent": 1.1464345503205742,
+          "paired_percent": [
+            1.1464345503205742
+          ],
+          "paired_delta_ms": [
+            9.386699999999921e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0013056000000000005,
+          "percent": 5.236139630390135,
+          "paired_percent": [
+            5.236139630390135
+          ],
+          "paired_delta_ms": [
+            0.0013056000000000005
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 3.840000000000093e-05,
+          "percent": 0.15923566878981443,
+          "paired_percent": [
+            0.15923566878981443
+          ],
+          "paired_delta_ms": [
+            3.840000000000093e-05
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": -0.025629865999999998,
+          "percent": -76.17296352092478,
+          "paired_percent": [
+            -76.17296352092478
+          ],
+          "paired_delta_ms": [
+            -0.025629865999999998
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": -0.013625834000000392,
+          "percent": -0.45465075916973907,
+          "paired_percent": [
+            -0.45465075916973907
+          ],
+          "paired_delta_ms": [
+            -0.013625834000000392
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": -0.007490133000000121,
+          "percent": -0.3000302107833086,
+          "paired_percent": [
+            -0.3000302107833086
+          ],
+          "paired_delta_ms": [
+            -0.007490133000000121
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "L-VelocityIntegerLoad": {
+        "SF_Spatial": {
+          "delta_ms": 0.0034047999999999995,
+          "percent": 3.2761310347340533,
+          "paired_percent": [
+            3.2761310347340533
+          ],
+          "paired_delta_ms": [
+            0.0034047999999999995
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": -0.022250667000000002,
+          "percent": -13.758805549365306,
+          "paired_percent": [
+            -13.758805549365306
+          ],
+          "paired_delta_ms": [
+            -0.022250667000000002
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.0006271999999999979,
+          "percent": 2.267818601847149,
+          "paired_percent": [
+            2.267818601847149
+          ],
+          "paired_delta_ms": [
+            0.0006271999999999979
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0023466670000000037,
+          "percent": 5.447163339413663,
+          "paired_percent": [
+            5.447163339413663
+          ],
+          "paired_delta_ms": [
+            0.0023466670000000037
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 8.533999999999278e-06,
+          "percent": 0.10422909491552002,
+          "paired_percent": [
+            0.10422909491552002
+          ],
+          "paired_delta_ms": [
+            8.533999999999278e-06
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0004608000000000008,
+          "percent": 1.848049281314168,
+          "paired_percent": [
+            1.848049281314168
+          ],
+          "paired_delta_ms": [
+            0.0004608000000000008
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 0.0002687999999999996,
+          "percent": 1.1146496815286566,
+          "paired_percent": [
+            1.1146496815286566
+          ],
+          "paired_delta_ms": [
+            0.0002687999999999996
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": -0.025928532999999997,
+          "percent": -77.06061351862292,
+          "paired_percent": [
+            -77.06061351862292
+          ],
+          "paired_delta_ms": [
+            -0.025928532999999997
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": -0.008273334000000077,
+          "percent": -0.2760548516857586,
+          "paired_percent": [
+            -0.2760548516857586
+          ],
+          "paired_delta_ms": [
+            -0.008273334000000077
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": -0.018417733000000158,
+          "percent": -0.7377540978432129,
+          "paired_percent": [
+            -0.7377540978432129
+          ],
+          "paired_delta_ms": [
+            -0.018417733000000158
+          ],
+          "delta_sd_ms": null
+        }
+      },
+      "O-T2X-R": {
+        "SF_Spatial": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SMAA": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Edge": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Neighborhood": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Prepare": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SP_Weights": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_CameraVelocity": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "SR_Resolve": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "WallFrame": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        },
+        "WholeFrame": {
+          "delta_ms": 0.0,
+          "percent": 0.0,
+          "paired_percent": [
+            0.0
+          ],
+          "paired_delta_ms": [
+            0.0
+          ],
+          "delta_sd_ms": null
+        }
+      }
+    }
+  }
+}

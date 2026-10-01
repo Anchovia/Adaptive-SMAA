@@ -65,3 +65,16 @@
   raw RG·실제 temporal coverage가 ⑨와 같아야 채택한다.
 - 방법과 검증 결과는 `Docs/Edge-Persistence-Velocity-Load/`에 기록한다. 기존 ⑨ 및
   기본 모드는 보존하며 실패 결과도 기록한다.
+
+### 완료 결과
+
+- Release 빌드 및 셰이더 대조군 bytecode 검증 PASS. Bistro/Minecraft 각 240프레임의
+  L/⑨ RGB 불일치 0, 보존된 ⑥/⑨/④ RGB 불일치 0. 캡처 전용 전체 화면 입력 probe,
+  raw RG/current spatial/velocity/실제 coverage 및 비선택 출력 검증 PASS.
+- 두 장면의 원본 전체 프레임과 이동·전환·정지 연속 6프레임 ROI를 직접 확인했다.
+  기존 얇은 구조 결함도 그대로이므로 품질 개선으로 표현하지 않는다.
+- 4,800프레임 × 3회 clean 측정에서 L−⑨ 전체 AA는 Bistro +0.30%, Minecraft +0.56%.
+  반복 간 변동과 부호 변화가 있어 보편적인 악화율로 주장하지 않지만 개선 근거도 없다.
+  별도 세부 계측의 첫 edge 패스는 각각 +1.31%, +1.66%였다.
+- 정수 Load 교체는 속도 최적화로 채택하지 않는다. 기존 ⑨를 유지하고 이번 결과를
+  `Docs/Edge-Persistence-Velocity-Load/results-ko.md`에 독립 실험으로 보존한다.

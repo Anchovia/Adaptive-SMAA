@@ -1,0 +1,42 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1061
+Vsync:        OFF
+Fullscreen:   Windowed
+
+Spatial pass profiling: Off
+shader_stencil_reference_supported, 0, 
+Velocity-read experiment. A=case6; F=case9 point velocity; L=same case9 integer Load velocity; O=native4.
+Scene: bistro
+Ultra; fixed60; still60/move120/still60; camera/depth motion only.
+Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.
+Timing: four variants; PNG/query/readback Off; 30s precondition; 300 warmup; clean 4800 frames x 3, diagnostic Profile 960 x 3 (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.
+timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps
+capture_root, C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/velocity-load-captures/timing/bistro/20261001_135644/, 
+timing, A-CurrentEdge-Stencil, 0, SF_Spatial, 240, 0.107084800, 0.107520000, 0.109568000, 0.109568000, 0.001678249, 9126.752336449, 
+timing, A-CurrentEdge-Stencil, 0, SMAA, 240, 0.138709333, 0.139264000, 0.141312000, 0.142336000, 0.002233306, 7025.629496403, 
+timing, A-CurrentEdge-Stencil, 0, SR_CameraVelocity, 240, 0.024136533, 0.024576000, 0.024576000, 0.024576000, 0.000506836, 40690.104166667, 
+timing, A-CurrentEdge-Stencil, 0, SR_Resolve, 240, 0.007483733, 0.007168000, 0.008192000, 0.008192000, 0.000785391, 114889.705882353, 
+timing, A-CurrentEdge-Stencil, 0, WallFrame, 240, 3.012397083, 2.958100000, 3.282800000, 3.401400000, 0.131439980, 278.408062698, 
+timing, A-CurrentEdge-Stencil, 0, WholeFrame, 240, 2.493388667, 2.439168000, 2.727936000, 2.737088000, 0.110515322, 336.455641688, 
+timing, F-EagerPreviousFetch, 0, SF_Spatial, 240, 0.107541333, 0.106496000, 0.113664000, 0.113664000, 0.004608425, 8719.308035714, 
+timing, F-EagerPreviousFetch, 0, SMAA, 240, 0.139793067, 0.137216000, 0.146432000, 0.147456000, 0.005420890, 6758.217993080, 
+timing, F-EagerPreviousFetch, 0, SR_CameraVelocity, 240, 0.024341333, 0.024576000, 0.024576000, 0.025600000, 0.000505109, 39062.500000000, 
+timing, F-EagerPreviousFetch, 0, SR_Resolve, 240, 0.007910400, 0.008192000, 0.009216000, 0.009216000, 0.000792774, 108506.944444444, 
+timing, F-EagerPreviousFetch, 0, WallFrame, 240, 2.998150000, 2.949100000, 3.218800000, 3.358700000, 0.117243640, 290.082093233, 
+timing, F-EagerPreviousFetch, 0, WholeFrame, 240, 2.486677467, 2.447360000, 2.708480000, 2.716672000, 0.100235259, 359.757782280, 
+timing, L-VelocityIntegerLoad, 0, SF_Spatial, 240, 0.109081600, 0.111616000, 0.114688000, 0.116736000, 0.004913533, 8566.337719298, 
+timing, L-VelocityIntegerLoad, 0, SMAA, 240, 0.141098667, 0.141312000, 0.148480000, 0.148480000, 0.005683578, 6734.913793103, 
+timing, L-VelocityIntegerLoad, 0, SR_CameraVelocity, 240, 0.024204800, 0.024576000, 0.024576000, 0.025600000, 0.000550896, 39062.500000000, 
+timing, L-VelocityIntegerLoad, 0, SR_Resolve, 240, 0.007782400, 0.008192000, 0.009216000, 0.009216000, 0.000952375, 108506.944444444, 
+timing, L-VelocityIntegerLoad, 0, WallFrame, 240, 2.998433750, 2.946200000, 3.217400000, 3.270500000, 0.114517800, 288.005990524, 
+timing, L-VelocityIntegerLoad, 0, WholeFrame, 240, 2.515518800, 2.452480000, 2.726912000, 2.991104000, 0.134682816, 334.324717562, 
+timing, O-T2X-R, 0, SF_Spatial, 240, 0.104750933, 0.104448000, 0.106496000, 0.107520000, 0.001547330, 9300.595238095, 
+timing, O-T2X-R, 0, SMAA, 240, 0.163089067, 0.161792000, 0.168960000, 0.168960000, 0.004288253, 5918.560606061, 
+timing, O-T2X-R, 0, SR_CameraVelocity, 240, 0.024166400, 0.024576000, 0.024576000, 0.024576000, 0.000510290, 39859.693877551, 
+timing, O-T2X-R, 0, SR_Resolve, 240, 0.034141867, 0.030720000, 0.037888000, 0.037888000, 0.003695623, 26393.581081081, 
+timing, O-T2X-R, 0, WallFrame, 240, 3.016112917, 2.951000000, 3.243400000, 3.436200000, 0.131849577, 288.654437341, 
+timing, O-T2X-R, 0, WholeFrame, 240, 2.534035733, 2.467744000, 2.802688000, 2.847744000, 0.133933630, 343.981155336, 
+Aggregate: PASS
+

@@ -1,0 +1,60 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1061
+Vsync:        OFF
+Fullscreen:   Windowed
+
+Spatial pass profiling: Off
+shader_stencil_reference_supported, 0, 
+Velocity-read experiment. A=case6; F=case9 point velocity; L=same case9 integer Load velocity; O=native4.
+Scene: bistro
+Ultra; fixed60; still60/move120/still60; camera/depth motion only.
+Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.
+Capture: four variants 240 frames each. Test: six frames each. L must match F; A/F/O must match preserved controls. Trace readbacks and queries only on explicit diagnostic frames; no timing claim.
+timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps
+capture_root, C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/velocity-load-captures/test/bistro/20261001_134616/, 
+mode_check, A-CurrentEdge-Stencil, 0, TemporalOn, PASS, 
+trace, A-CurrentEdge-Stencil, 0, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, A-CurrentEdge-Stencil, 1, TemporalOn, PASS, 
+trace, A-CurrentEdge-Stencil, 1, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, A-CurrentEdge-Stencil, 2, TemporalOn, PASS, 
+trace, A-CurrentEdge-Stencil, 2, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, A-CurrentEdge-Stencil, 3, TemporalOn, PASS, 
+trace, A-CurrentEdge-Stencil, 3, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, A-CurrentEdge-Stencil, 4, TemporalOn, PASS, 
+trace, A-CurrentEdge-Stencil, 4, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, A-CurrentEdge-Stencil, 5, TemporalOn, PASS, 
+trace, A-CurrentEdge-Stencil, 5, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, F-EagerPreviousFetch, 0, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 0, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, F-EagerPreviousFetch, 1, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 1, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, F-EagerPreviousFetch, 2, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 2, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, F-EagerPreviousFetch, 3, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 3, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, F-EagerPreviousFetch, 4, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 4, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, F-EagerPreviousFetch, 5, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 5, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, L-VelocityIntegerLoad, 0, TemporalOn, PASS, 
+trace, L-VelocityIntegerLoad, 0, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, L-VelocityIntegerLoad, 1, TemporalOn, PASS, 
+trace, L-VelocityIntegerLoad, 1, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, L-VelocityIntegerLoad, 2, TemporalOn, PASS, 
+trace, L-VelocityIntegerLoad, 2, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, L-VelocityIntegerLoad, 3, TemporalOn, PASS, 
+trace, L-VelocityIntegerLoad, 3, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, L-VelocityIntegerLoad, 4, TemporalOn, PASS, 
+trace, L-VelocityIntegerLoad, 4, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, L-VelocityIntegerLoad, 5, TemporalOn, PASS, 
+trace, L-VelocityIntegerLoad, 5, 50111, 50111, PASS, 50111, 50111, 0, 0, 
+mode_check, O-T2X-R, 0, TemporalOn, PASS, 
+mode_check, O-T2X-R, 1, TemporalOn, PASS, 
+mode_check, O-T2X-R, 2, TemporalOn, PASS, 
+mode_check, O-T2X-R, 3, TemporalOn, PASS, 
+mode_check, O-T2X-R, 4, TemporalOn, PASS, 
+mode_check, O-T2X-R, 5, TemporalOn, PASS, 
+Aggregate: PASS
+
