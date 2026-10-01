@@ -49,3 +49,19 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 2026-10-01: ⑨ velocity 읽기 단독 실험
+
+- `experiment/edge-persistence-velocity-load`는 수정된 ⑥ `304f749`에서 분기했다.
+  명시적 의존성으로 `e54f0db`의 ⑨ 렌더러 파일과 비대화형 셰이더 오류 처리를 가져왔다.
+  이전의 측정 harness와 교수님 보고 자료는 누적하지 않고 독립 harness를 만들었다.
+- A=⑥, F=⑨(point velocity), L=⑨의 velocity만 정수 Load로 교체, O=④다.
+  내부 persistence mode 11은 실험 L이며 사용자 비교 번호 ⑩을 뜻하지 않는다.
+- 선택 영역, 이전 raw edge 좌표/경계, 공간 SMAA, temporal 혼합 및 history 규칙은 고정한다.
+  현재 전체 화면/zero-origin viewport에서만 동등성을 검증한다. 공식 Load/SV_Position 계약은
+  좌표 가설의 근거이며 속도 향상의 증거가 아니다.
+- 캡처 전용 전체 화면 probe로 point/Load velocity의 float bits와 현재 좌표를 비교한다.
+  성능 실행에서는 이 draw·target·staging·query가 모두 꺼져야 한다. 최종 출력·현재 공간 출력·
+  raw RG·실제 temporal coverage가 ⑨와 같아야 채택한다.
+- 방법과 검증 결과는 `Docs/Edge-Persistence-Velocity-Load/`에 기록한다. 기존 ⑨ 및
+  기본 모드는 보존하며 실패 결과도 기록한다.

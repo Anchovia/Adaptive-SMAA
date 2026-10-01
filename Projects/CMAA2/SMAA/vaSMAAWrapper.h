@@ -65,6 +65,12 @@ namespace VertexAsylum
         bool m_firstEdgeStencilEnabled = true;
         bool m_stencilUpstreamControl = false;
         bool m_executionDiagnostics = false;
+        bool m_spatialPassProfiling = false;
+        bool m_shaderStencilRefSupported=false;
+        uint64 m_weightSamples=~uint64(0),m_weightInvocations=~uint64(0);
+        uint64 m_velocityReadMismatches=~uint64(0),m_velocityCoordinateMismatches=~uint64(0);
+        int m_edgePersistenceMode = 0; // 0 baseline, 1 one-frame raw union, 2 current-only depth control
+        wstring m_thinLineTracePrefix;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
 
@@ -104,10 +110,27 @@ namespace VertexAsylum
         void SetStencilUpstreamControl(bool enabled){if(m_stencilUpstreamControl!=enabled){m_stencilUpstreamControl=enabled;ResetTemporalHistory();}}
         bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
         void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
+        void SetSpatialPassProfiling(bool enabled){m_spatialPassProfiling=enabled;}
+        bool GetShaderStencilRefSupported() const {return m_shaderStencilRefSupported;}
+        uint64 GetWeightSamples() const {return m_weightSamples;}
+        uint64 GetWeightInvocations() const {return m_weightInvocations;}
+        uint64 GetVelocityReadMismatches() const {return m_velocityReadMismatches;}
+        uint64 GetVelocityCoordinateMismatches() const {return m_velocityCoordinateMismatches;}
         bool ExecutionQueryOK() const {return m_executionQueryOK;}
         uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
         uint64 GetResolveSamples() const {return m_lastResolveSamples;}
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext&,const wstring&){return false;}
+        void SetEdgePersistenceMode(int mode) {
+            assert(mode>=0 && mode<=11);
+            if(m_edgePersistenceMode!=mode){m_edgePersistenceMode=mode;ResetTemporalHistory();}
+        }
+        int GetEdgePersistenceMode() const {return m_edgePersistenceMode;}
+        // Cost audit: 3=storage only, 4=constant depth export, 5=union preparation
+        // with baseline stencil resolve, 6=identical union with conservative depth,
+        // 7=identical union written by pass 1 into the existing stencil.
+        bool UsesPersistenceDepthGate() const {return m_edgePersistenceMode==1 || m_edgePersistenceMode==2 || m_edgePersistenceMode==6;}
+        void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}
+        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext&,const wstring&){return false;}
 
         void SetSpatialFirstEdgeEnabled(bool enabled) {
             if(m_spatialFirstEdgeEnabled!=enabled){m_spatialFirstEdgeEnabled=enabled;ResetTemporalHistory();}
