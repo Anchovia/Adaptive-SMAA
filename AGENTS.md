@@ -74,3 +74,27 @@
   따라서 양 장면 모두 ④보다 빨라졌다고 주장하지 않는다. 기존 ⑥ 대비 E는 여전히 느리다.
 - 이번 결과는 동일 출력의 비용 개선이다. 기존 ⑦의 얇은 선 단절/반짝임 문제 해결,
   새로운 품질 개선, 모든 GPU/장면 검증 또는 최적화 한계 도달을 주장하지 않는다.
+
+## 2026-10-01: 직전 raw edge 공간 비용 분리
+
+- `experiment/edge-persistence-spatial-cost`는 수정된 ⑥ `304f749`에서 직접 분기하고,
+  ⑦/⑧ 감사에 필요한 `a8eca21`/`9b9953e`/`24c26fb`만 명시적으로 가져왔다.
+  교수님 보고/추가 영상 작업은 상속하지 않았다. 기존 ①~⑧ 및 일반 실행 기본값은 보존한다.
+- 기준 문서는 `Docs/Edge-Persistence-Spatial-Cost/results-ko.md`와 `method.md`다.
+  A=⑥, E=⑧, F=이전 raw edge 선행 조회, U/G=1차 depth 표시의 union/current 공간
+  weight 대조, O=④다. F를 기존 ⑥ 또는 ⑧의 과거 수치와 혼동하지 않는다.
+- 원본 SMAA, Unity HDRP, Microsoft 기능 계약, NVIDIA shader 성능 지침과 TAA survey를
+  검토했다. 실제 D3D11 장치는 shader stencil reference 미지원이라 해당 경로는 제외했다.
+- F는 현재 edge가 없을 때만 이전 edge를 읽던 분기를 제거하고 조회를 앞당긴다. 실제
+  temporal 계산은 E와 동일한 union stencil 픽셀에서만 실행한다. 추가 pass/copy는 없다.
+- 두 장면 각 240프레임에서 F/U/G의 최종 RGB가 E와 같고, A/E/O도 보존된 출력과 같다.
+  raw RG/current spatial/temporal coverage 및 G의 현재-edge-only 2차 실행을 86개 trace로
+  검증했다. 이동·전환·정지 연속 6프레임을 직접 검사했으며 기존 선 단절은 해결하지 않았다.
+- clean 4,800프레임×3회에서 F는 E 대비 AA 시간이 Bistro -5.16%, Minecraft -3.46%다.
+  ④ 대비는 -14.24%/-0.12%지만 Minecraft 반복은 부호가 섞여 ④보다 빠르다고 단정하지
+  않는다. ⑥ 대비 남은 비용은 +0.71%/+4.41%다. F를 후속 비용 개선안으로 보존한다.
+- 별도 960프레임×3회 진단에서 주된 증가는 1차에 있었다. G의 2차 영역 제한은 정확하지만
+  전체 AA는 E 대비 -0.34%/+0.08%로 주요 개선안이 아니다. GPU 내부 stall은 미계측이다.
+- PNG 손상 1회와 재질 셰이더 기동 실패 1회는 제외 후 독립 재실행했다. 관련 제외 기록과
+  capture/timing 실행파일의 renderer source bridge를 보존한다. 기존 품질 결함이나
+  최종 Adaptive 8-case 완료와 이번 동일 출력 최적화를 혼동하지 않는다.

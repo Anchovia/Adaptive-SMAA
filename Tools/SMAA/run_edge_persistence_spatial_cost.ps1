@@ -1,7 +1,8 @@
 param(
     [ValidateSet('Test','Capture','Smoke','Benchmark','ProfileSmoke','ProfileBenchmark')][string]$Phase='Test',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
-    [string]$OutputRoot='C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/spatial-cost-captures'
+    [string]$OutputRoot='C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/spatial-cost-captures',
+    [string]$RetryReason=''
 )
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -13,7 +14,7 @@ $shaderHashes=@{}
 foreach($shaderPath in $shaderPaths){$shaderHashes[$shaderPath]=(Get-FileHash -LiteralPath (Join-Path $root $shaderPath)).Hash}
 $records=@()
 if(Test-Path -LiteralPath $receipt){$records=@(Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json)}
-if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase -and $_.executable_sha256 -eq $hash}).Count){throw 'Completed run already recorded for this binary'}
+if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase -and $_.executable_sha256 -eq $hash}).Count -and !$RetryReason){throw 'Completed run already recorded for this binary; explicit retry reason required'}
 if($Phase -like '*Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase.Replace('Benchmark','Smoke') -and $_.executable_sha256 -eq $hash}).Count){throw 'Same-binary smoke required'}
 if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count){throw 'Existing CMAA2 process'}
 $settings=Join-Path $root 'Projects/CMAA2/ApplicationSettings.xml'
@@ -34,6 +35,6 @@ $report=($pass -split 'report=',2)[1].Trim()
 if((Get-Content -LiteralPath $report -Raw) -notmatch 'Aggregate: PASS'){throw 'Aggregate PASS missing'}
 if((Get-FileHash -LiteralPath $exe).Hash -ne $hash){throw 'Executable changed'}
 foreach($shaderPath in $shaderPaths){if((Get-FileHash -LiteralPath (Join-Path $root $shaderPath)).Hash -ne $shaderHashes[$shaderPath]){throw 'Shader changed during execution'}}
-$records += [pscustomobject]@{scene=$Scene;phase=$Phase;window='hidden';arguments=$arguments;scene_bootstrap=$sceneIndex;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');executable_sha256=$hash;shader_sha256=$shaderHashes;report=$report;report_sha256=(Get-FileHash -LiteralPath $report).Hash}
+$records += [pscustomobject]@{scene=$Scene;phase=$Phase;window='hidden';arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');executable_sha256=$hash;shader_sha256=$shaderHashes;report=$report;report_sha256=(Get-FileHash -LiteralPath $report).Hash}
 ConvertTo-Json -InputObject @($records) -Depth 5 | Set-Content -LiteralPath $receipt -Encoding utf8
 Write-Output $pass

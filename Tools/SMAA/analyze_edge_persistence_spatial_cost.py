@@ -63,7 +63,9 @@ def main():
         result.update(capture_root=str(base),frames_per_mode=n,mismatched_frames=checks,output_hashes=hashes,trace_checks=trace_checks)
         print('PASS exact RGB/raw/current/coverage and actual pass2 counts',a.scene,a.phase)
     else:
-        profile=a.phase.startswith('Profile');n=240 if a.phase.endswith('Smoke') else 4800;reps=1 if n==240 else 3
+        profile=a.phase.startswith('Profile');n=240 if a.phase.endswith('Smoke') else (960 if profile else 4800);reps=1 if n==240 else 3
+        # Earlier three-mode diagnostic run used 4800, preserved independently.
+        if profile and 'F-EagerPreviousFetch' not in text and n!=240:n=4800
         data={};seen=set()
         for r in rows:
             if r[0]!='timing':continue

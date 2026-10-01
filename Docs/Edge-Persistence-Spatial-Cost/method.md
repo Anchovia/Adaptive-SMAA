@@ -5,8 +5,8 @@
 - A = case 6 current edge. E = case 8 first-pass union stencil. O = native case 4.
 - Preserve E's current OR camera-reprojected previous RAW edge, raw RG, spatial frame history, point history sampling, weights, pattern Off and output. No dilation or quality-algorithm change.
 - First add optional SP_Prepare / SP_Edge / SP_Weights / SP_Neighborhood GPU scopes. Final performance runs turn these diagnostic scopes off. Profile and clean timing must not be mixed.
-- Same-execution paired measurements, 300 warm-up + 4,800 frames x 3 alternating repeats, hidden, 1920x1061, Ultra, RTX 3060 Ti. Captures/readbacks/invocation diagnostics separate from timing. Fresh process per command.
-- Candidate design: distinguish current-edge spatial work from union temporal work with separate stencil bits, using hardware-supported shader stencil reference only if available. Preserve old E as explicit control. A same-export union-gated control isolates reduced pass-2 execution from the cost of exporting stencil.
+- Same-execution paired measurements: 300 warm-up + 4,800 frames x 3 alternating repeats for clean performance; final diagnostic per-pass profiles use 960 x 3. Hidden, 1920x1061, Ultra, RTX 3060 Ti. Captures/readbacks/invocation diagnostics separate from timing. Fresh process per command.
+- Initial candidate design: distinguish current-edge spatial work from union temporal work with separate stencil bits, using shader stencil reference only if supported. The device check rejected that route; the concrete U/G depth-mask alternative below replaces it. Preserve old E as an explicit control.
 - Accept only after raw RG, current spatial, actual temporal coverage and final RGB match E; native A/O hash bridge also required. Inspect six consecutive moving/transition/still frames. Output equality does not solve existing thin-line defects.
 
 ## Primary sources and limits
@@ -32,3 +32,9 @@ The actual demo device reports `PSSpecifiedStencilRefSupported=0` (capture CSV),
 The initial three-mode Bistro profile is preserved separately. It shows pass 1 as the principal increase; pass 2 is a smaller contributor. A capability probe created a default D3D11 device during this run's initial 30-second precondition, before measured frames; all later runs use no concurrent device probes.
 
 The technique pointer array had three elements for four input modes. Its size is corrected to four to remove an out-of-bounds constructor write; LumaRaw/current benchmark controls are verified against preserved hashes. No edge equation changes accompany this bounds correction.
+
+The first full Bistro capture (20261001_123345) completed its GPU harness but G/frame_00129.png failed PNG decoding. All 1,440 primary images plus auxiliary PNGs were scanned; only this file failed. That entire capture is excluded from formal output validation and preserved unchanged. A fresh full six-mode capture (20261001_124127) passed; no missing image was replaced from another run.
+
+Capture and final timing executables differ only in the diagnostic profile length (4,800 to 960) and its descriptive text. Renderer source hashes are identical; `capture-to-timing-source-bridge.json` records the exact bridge. Clean benchmarks remain 4,800 frames per repeat. Shader hashes are checked before and after every independent run.
+
+F intentionally removes a current-edge-dependent texture-fetch branch. It does not add full-screen temporal color blending: the temporal draw still uses the same union stencil as E. Previous raw edges are retained with the existing ping-pong targets; this experiment does not add a CopyResource, draw, or dispatch. Extra raw-edge/velocity reads and better scheduling are competing costs, so compiled control flow and paired GPU timing must be examined together.
