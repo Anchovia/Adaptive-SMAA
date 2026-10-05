@@ -2,7 +2,7 @@
    AA-Off, SMAA 1X, Temporal-only, 원본 SMAA T2X-R과 spatial 보정 유무에 따른 두 가지 edge-selective 구성을 독립 브랜치에서 구현·검증하였다. 실제 1차 패스의 edge를 사용하고, 공간 처리·temporal 처리·지터 조건을 명시하여 총 여섯 구성의 비교 기준을 정리하였다.
 
 2. Edge에 한정한 temporal 실행 및 비용 검증
-   검출된 edge의 stencil 정보를 이용하여 선택 픽셀에서만 camera/depth 기반 재투영과 T2X-R 결합을 수행하도록 구성하였다. Spatial SMAA를 유지하는 구현은 비선택 영역에 현재 spatial 결과를 보존하였다. 전체 AA 시간과 temporal 결합 시간을 분리하여, 선택 영역의 감소가 전체 처리 비용에 미치는 영향을 확인하였다.
+   검출된 edge의 stencil 정보를 이용하여 선택 픽셀에서만 history 색상 조회와 T2X-R 결합을 수행하도록 구성하였다. 재투영에는 camera/depth 기반 velocity를 사용했으며, spatial SMAA를 유지하는 구현은 비선택 영역에 현재 spatial 결과를 보존하였다. 전체 AA 시간과 temporal 결합 시간을 분리하여, 선택 영역의 감소가 전체 처리 비용에 미치는 영향을 확인하였다.
 
 3. Stencil 초기화 누락 수정 및 기준선 재측정
    CMAA2 데모의 SMAA 통합 코드에서 매 프레임 stencil 초기화가 누락된 점을 확인하고, 관련 공간 처리 경로를 수정하였다. 이는 SMAA 알고리즘 자체의 결함과 구분되는 통합 문제이다. 검사한 두 장면의 출력은 수정 전과 동일했으며, 수정된 독립 기준선으로 여섯 구성의 성능을 다시 비교하였다.
