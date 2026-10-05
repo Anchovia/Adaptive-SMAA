@@ -1,7 +1,7 @@
 #include <map>
 #include <cmath>
 
-// Single hypothesis: selected history RGB filtering; point alpha is preserved.
+// Single hypothesis: resolved RGB feedback; spatial velocity alpha is preserved.
 class BenchItemEdgeResolvedRGBFeedback : public AutoBenchToolWorkItem {
     struct Mode {const char *name; bool selected, previousRaw, bilinearRGB, feedback;};
     std::vector<Mode> m_modes;
@@ -118,6 +118,14 @@ public:
         ok=ok&&s->GetFirstEdgeStencilEnabled()&&s->GetSpatialFirstEdgeEnabled()==c.selected&&!s->GetStencilUpstreamControl()&&s->GetTemporalSamplePatternEnabled()==!c.selected;
         ok=ok&&s->GetPreviousRawEdgesEnabled()==c.previousRaw&&s->GetBilinearHistoryRGBEnabled()==c.bilinearRGB&&s->GetResolvedRGBFeedbackEnabled()==c.feedback;
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.selected?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),
+            std::to_string(int(m_parent.Settings().CurrentAAOption)),
+            std::to_string(s->GetTemporalModeEnabled()),std::to_string(s->GetTemporalReprojectionEnabled()),
+            std::to_string(s->GetFirstEdgeStencilEnabled()),std::to_string(s->GetSpatialFirstEdgeEnabled()),
+            std::to_string(s->GetStencilUpstreamControl()),std::to_string(s->GetTemporalSamplePatternEnabled()),
+            std::to_string(s->GetPreviousRawEdgesEnabled()),std::to_string(s->GetBilinearHistoryRGBEnabled()),
+            std::to_string(s->GetResolvedRGBFeedbackEnabled()),
+            vaStringTools::Format("%.6f",jitter.x),vaStringTools::Format("%.6f",jitter.y),"FAIL"});
         m_failed=m_failed||!ok;if(!m_capture||m_frame<0)return;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),"TemporalOn",ok?"PASS":"FAIL"});
         if(m_captureFrames==240&&c.selected&&TraceFrame()) {
