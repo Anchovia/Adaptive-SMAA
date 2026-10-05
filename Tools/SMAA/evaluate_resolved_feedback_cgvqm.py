@@ -56,14 +56,26 @@ def main():
         for case,mode in [(4,MODES[0]),(10,MODES[1])]:
             source=next(x for x in sources if x['scene']==scene and x['case']==case and x['window']==window)
             record=source['record'];validate(record,start,end)
-            bridge=record['native_full_window_bridge']
-            assert bridge['validation']=='PASS' and abs(bridge['score_difference'])<=bridge['tolerance']<=0.00002
+            bridge=record.get('native_full_window_bridge')
+            if case==4:
+                assert bridge and bridge['validation']=='PASS' and abs(bridge['score_difference'])<=bridge['tolerance']<=0.00002
+            # Case10 has official bounded chunks, not a full-window model bridge.
+            # Verify each chunk and its current pixels instead of inventing a bridge.
+            chunks=record['official_chunk_results'];assert len(chunks)==(end-start)//60
+            for first,chunk in zip(range(start,end,60),chunks):
+                validate(chunk,first,first+60)
+                assert chunk['test_sequence']['pixel_sha256']==stream(capture/mode,first,first+60)
+                assert chunk['reference_sequence']['pixel_sha256']==stream(reference,first,first+60)
+            pooled=sum(c['results']['CGVQM-2']['score_higher_is_better'] for c in chunks)/len(chunks)
+            assert abs(pooled-record['results']['CGVQM-2']['score_higher_is_better'])<1e-7
             assert record['test_sequence']['pixel_sha256']==stream(capture/mode,start,end)
             assert record['reference_sequence']['pixel_sha256']==refhash
             records[str(case)]=dict(score=record['results']['CGVQM-2']['score_higher_is_better'],reuse='Existing official score; current decoded RGB/reference hash verified; model not rerun',record=record)
         out=ROOT/'tmp/edge-resolved-rgb-feedback/cgvqm'/scene/window
         record=evaluate(sequence,reference,out,scene,start,end)
-        record['native_full_window_bridge']=records['4']['record']['native_full_window_bridge']
+        record['native_full_window_bridge']=None
+        record['native_control_pooling_bridge']=records['4']['record']['native_full_window_bridge']
+        record['bridge_scope']='Case4 validates bounded pooling against its native full-window invocation. Case11 itself has no full-window model rerun.'
         for key in ['torch','cuda_runtime','device']:assert record['runtime'][key]==records['4']['record']['runtime'][key]
         records['11']=dict(score=record['results']['CGVQM-2']['score_higher_is_better'],reuse=False,record=record)
         (out/'CGVQM-Results.json').write_text(json.dumps(record,indent=2)+'\n')
