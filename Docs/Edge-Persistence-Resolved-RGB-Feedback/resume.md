@@ -1,5 +1,21 @@
 # ⑪ GPU 검증 재개 지점
 
+## 2026-10-06 취침 전 추가 승인과 진행 작업
+
+사용자가 성능 측정 보류를 해제하고 아래 작업을 모두 이어서 진행하도록 승인했다.
+⑪의 두 scene eligible Smoke와 정식 Benchmark를 완료했다. 장면별 benchmark.json을 따른다.
+
+1.⑪ 저장 진단50 ROI frame의 실패 위치 추적 완료: `failure-trace.json`과 report의
+단계별 추적을 따른다. 선택·weight·feedback 검증 PASS와 품질 gate 미통과를 구분한다.
+2.⑪ scene별 정식 Benchmark, 보조 CGVQM 및 비교 자료를 마무리한다.
+3. 논문과 공개 구현을 조사해 얇은 선 소실·반짝임에 적합한 방법을 선정한다. TSCMAA
+또는 기존 선택 구조에 미리 한정하지 않는다. **⑫는 새 독립 브랜치에서 구현**하고
+속도·품질을 기존 방식과 비교하며 원본 연속 frame·GIF를 제공한다.
+4.C·D의 불필요한 임시 자료를 정리한다. 유효한 원본 capture·reference·재현 자료는
+보존한다. 초기 여유 공간은C 약34GiB/D 약67GiB였다.
+
+아래 '게임 중 보류'는 이전 실행의 배경 기록이며 현재 작업 중단 지시가 아니다.
+
 사용자가 게임 실행 중이라고 알려 GPU 작업을 보류했다. 진행 중이던 Bistro benchmark의
 해당 CMAA2 PID만 종료했으며, 부분 timing은 사용하지 않는다. 관련 Smoke도 정식 성능
 결과로 해석하지 않고 새 idle-GPU Smoke 뒤에만 Benchmark를 허용한다.
