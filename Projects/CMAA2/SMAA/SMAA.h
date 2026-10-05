@@ -141,7 +141,7 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, bool previousRawEdges=false, bool previousValid=false); // Selects the S2x or 4x pass (either 0 or 1).
 
         /**
          * This function perform a temporal resolve of two buffers. They must
@@ -275,7 +275,7 @@ class SMAA {
 
         void loadAreaTex();
         void loadSearchTex();
-        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false);
+        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, bool previousRawEdges=false);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
         void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr);
 
@@ -286,6 +286,7 @@ class SMAA {
         FullscreenTriangle *triangle;
 
         RenderTarget *edgesRT;
+        RenderTarget *previousRawEdgesRT = nullptr;
         RenderTarget *blendRT;
 
         ID3D11Texture2D *areaTex;
@@ -312,11 +313,12 @@ class SMAA {
         SMAATexturesInterface *         texturesInterface;
         SMAATechniqueManagerInterface * techniqueManagerInterface;
 
-        SMAATechniqueInterface *        edgeDetectionTechniques[3];
+        SMAATechniqueInterface *        edgeDetectionTechniques[4];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        spatialFirstEdgeTechnique;
         SMAATechniqueInterface *exactEdgeTechniques[4];
+        SMAATechniqueInterface *eagerPersistenceEdgeTechniques[4];
         SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
