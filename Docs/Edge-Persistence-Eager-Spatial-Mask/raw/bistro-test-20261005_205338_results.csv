@@ -1,0 +1,60 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1061
+Vsync:        OFF
+Fullscreen:   Windowed
+
+Spatial pass profiling: Off
+shader_stencil_reference_supported, 0, 
+Eager/spatial-mask interaction. F=case9; H=eager fetch plus depth metadata with union weights; J=same metadata with current-only weights; O=native4.
+Scene: bistro
+Ultra; fixed60; still60/move120/still60; camera/depth motion only.
+Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.
+Capture: four variants 240 frames each. Test: six frames each. H/J must match F; F/O must match preserved controls. Trace readbacks and queries only on explicit diagnostic frames; no timing claim.
+timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps
+capture_root, C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/eager-spatial-mask-captures/test/bistro/20261005_205338/, 
+mode_check, F-EagerPreviousFetch, 0, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 0, 50111, 50111, PASS, 50111, 50111, 
+mode_check, F-EagerPreviousFetch, 1, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 1, 50111, 50111, PASS, 50111, 50111, 
+mode_check, F-EagerPreviousFetch, 2, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 2, 50111, 50111, PASS, 50111, 50111, 
+mode_check, F-EagerPreviousFetch, 3, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 3, 50111, 50111, PASS, 50111, 50111, 
+mode_check, F-EagerPreviousFetch, 4, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 4, 50111, 50111, PASS, 50111, 50111, 
+mode_check, F-EagerPreviousFetch, 5, TemporalOn, PASS, 
+trace, F-EagerPreviousFetch, 5, 50111, 50111, PASS, 50111, 50111, 
+mode_check, H-EagerDepth-UnionWeights, 0, TemporalOn, PASS, 
+trace, H-EagerDepth-UnionWeights, 0, 50111, 50111, PASS, 50111, 50111, 
+mode_check, H-EagerDepth-UnionWeights, 1, TemporalOn, PASS, 
+trace, H-EagerDepth-UnionWeights, 1, 50111, 50111, PASS, 50111, 50111, 
+mode_check, H-EagerDepth-UnionWeights, 2, TemporalOn, PASS, 
+trace, H-EagerDepth-UnionWeights, 2, 50111, 50111, PASS, 50111, 50111, 
+mode_check, H-EagerDepth-UnionWeights, 3, TemporalOn, PASS, 
+trace, H-EagerDepth-UnionWeights, 3, 50111, 50111, PASS, 50111, 50111, 
+mode_check, H-EagerDepth-UnionWeights, 4, TemporalOn, PASS, 
+trace, H-EagerDepth-UnionWeights, 4, 50111, 50111, PASS, 50111, 50111, 
+mode_check, H-EagerDepth-UnionWeights, 5, TemporalOn, PASS, 
+trace, H-EagerDepth-UnionWeights, 5, 50111, 50111, PASS, 50111, 50111, 
+mode_check, J-EagerDepth-CurrentWeights, 0, TemporalOn, PASS, 
+trace, J-EagerDepth-CurrentWeights, 0, 50111, 50111, PASS, 50111, 50111, 
+mode_check, J-EagerDepth-CurrentWeights, 1, TemporalOn, PASS, 
+trace, J-EagerDepth-CurrentWeights, 1, 50111, 50111, PASS, 50111, 50111, 
+mode_check, J-EagerDepth-CurrentWeights, 2, TemporalOn, PASS, 
+trace, J-EagerDepth-CurrentWeights, 2, 50111, 50111, PASS, 50111, 50111, 
+mode_check, J-EagerDepth-CurrentWeights, 3, TemporalOn, PASS, 
+trace, J-EagerDepth-CurrentWeights, 3, 50111, 50111, PASS, 50111, 50111, 
+mode_check, J-EagerDepth-CurrentWeights, 4, TemporalOn, PASS, 
+trace, J-EagerDepth-CurrentWeights, 4, 50111, 50111, PASS, 50111, 50111, 
+mode_check, J-EagerDepth-CurrentWeights, 5, TemporalOn, PASS, 
+trace, J-EagerDepth-CurrentWeights, 5, 50111, 50111, PASS, 50111, 50111, 
+mode_check, O-T2X-R, 0, TemporalOn, PASS, 
+mode_check, O-T2X-R, 1, TemporalOn, PASS, 
+mode_check, O-T2X-R, 2, TemporalOn, PASS, 
+mode_check, O-T2X-R, 3, TemporalOn, PASS, 
+mode_check, O-T2X-R, 4, TemporalOn, PASS, 
+mode_check, O-T2X-R, 5, TemporalOn, PASS, 
+Aggregate: PASS
+

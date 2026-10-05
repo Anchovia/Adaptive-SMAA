@@ -1,0 +1,58 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1061
+Vsync:        OFF
+Fullscreen:   Windowed
+
+Spatial pass profiling: On
+shader_stencil_reference_supported, 0, 
+Eager/spatial-mask interaction. F=case9; H=eager fetch plus depth metadata with union weights; J=same metadata with current-only weights; O=native4.
+Scene: bistro
+Ultra; fixed60; still60/move120/still60; camera/depth motion only.
+Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.
+Timing: four variants; PNG/query/readback Off; 30s precondition; 300 warmup; clean 4800 frames x 3, diagnostic Profile 960 x 3 (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.
+timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps
+capture_root, C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/eager-spatial-mask-captures/timing/bistro/20261005_210404/, 
+timing, F-EagerPreviousFetch, 0, SF_Spatial, 240, 0.104712533, 0.104448000, 0.110592000, 0.110592000, 0.004443884, 9042.245370370, 
+timing, F-EagerPreviousFetch, 0, SMAA, 240, 0.136021333, 0.134144000, 0.142336000, 0.143360000, 0.005406121, 6950.622775801, 
+timing, F-EagerPreviousFetch, 0, SP_Edge, 240, 0.027195733, 0.024576000, 0.030720000, 0.030720000, 0.003071419, 32552.083333333, 
+timing, F-EagerPreviousFetch, 0, SP_Neighborhood, 240, 0.044561067, 0.044032000, 0.046080000, 0.047104000, 0.001408284, 21229.619565217, 
+timing, F-EagerPreviousFetch, 0, SP_Prepare, 240, 0.007842133, 0.008192000, 0.008192000, 0.008192000, 0.000485651, 122070.312500000, 
+timing, F-EagerPreviousFetch, 0, SP_Weights, 240, 0.025049600, 0.024576000, 0.027648000, 0.027648000, 0.001465642, 34877.232142857, 
+timing, F-EagerPreviousFetch, 0, SR_CameraVelocity, 240, 0.023552000, 0.023552000, 0.024576000, 0.024576000, 0.000536990, 40690.104166667, 
+timing, F-EagerPreviousFetch, 0, SR_Resolve, 240, 0.007688533, 0.007168000, 0.009216000, 0.009216000, 0.000836049, 108506.944444444, 
+timing, F-EagerPreviousFetch, 0, WallFrame, 240, 2.923022917, 2.886800000, 3.157800000, 3.224200000, 0.107594253, 296.252407051, 
+timing, F-EagerPreviousFetch, 0, WholeFrame, 240, 2.391462133, 2.367488000, 2.644992000, 2.647040000, 0.085513225, 377.780464217, 
+timing, H-EagerDepth-UnionWeights, 0, SF_Spatial, 240, 0.104883200, 0.104448000, 0.110592000, 0.112640000, 0.004577869, 8877.840909091, 
+timing, H-EagerDepth-UnionWeights, 0, SMAA, 240, 0.136093867, 0.134144000, 0.142336000, 0.144384000, 0.005540807, 6925.975177305, 
+timing, H-EagerDepth-UnionWeights, 0, SP_Edge, 240, 0.027477333, 0.025600000, 0.030720000, 0.030720000, 0.002860895, 32552.083333333, 
+timing, H-EagerDepth-UnionWeights, 0, SP_Neighborhood, 240, 0.044484267, 0.044032000, 0.046080000, 0.046080000, 0.001382058, 21701.388888889, 
+timing, H-EagerDepth-UnionWeights, 0, SP_Prepare, 240, 0.007936000, 0.008192000, 0.008192000, 0.008192000, 0.000443405, 122070.312500000, 
+timing, H-EagerDepth-UnionWeights, 0, SP_Weights, 240, 0.024977067, 0.024576000, 0.027648000, 0.028672000, 0.001425629, 34877.232142857, 
+timing, H-EagerDepth-UnionWeights, 0, SR_CameraVelocity, 240, 0.023492267, 0.023552000, 0.024576000, 0.024576000, 0.000580706, 40690.104166667, 
+timing, H-EagerDepth-UnionWeights, 0, SR_Resolve, 240, 0.007718400, 0.007168000, 0.009216000, 0.009216000, 0.000929301, 108506.944444444, 
+timing, H-EagerDepth-UnionWeights, 0, WallFrame, 240, 2.924720417, 2.877700000, 3.173000000, 3.250000000, 0.115994646, 292.598715492, 
+timing, H-EagerDepth-UnionWeights, 0, WholeFrame, 240, 2.399737467, 2.367488000, 2.628608000, 2.643968000, 0.093830041, 376.252167212, 
+timing, J-EagerDepth-CurrentWeights, 0, SF_Spatial, 240, 0.104554667, 0.104448000, 0.110592000, 0.110592000, 0.004140766, 9000.576036866, 
+timing, J-EagerDepth-CurrentWeights, 0, SMAA, 240, 0.135731200, 0.135168000, 0.142336000, 0.142336000, 0.004948774, 7000.448028674, 
+timing, J-EagerDepth-CurrentWeights, 0, SP_Edge, 240, 0.027404800, 0.024576000, 0.030720000, 0.030720000, 0.003148878, 32552.083333333, 
+timing, J-EagerDepth-CurrentWeights, 0, SP_Neighborhood, 240, 0.044492800, 0.044032000, 0.046080000, 0.047104000, 0.001410558, 21229.619565217, 
+timing, J-EagerDepth-CurrentWeights, 0, SP_Prepare, 240, 0.007982933, 0.008192000, 0.008192000, 0.008192000, 0.000412766, 122070.312500000, 
+timing, J-EagerDepth-CurrentWeights, 0, SP_Weights, 240, 0.024669867, 0.024576000, 0.027648000, 0.027648000, 0.001515934, 36168.981481481, 
+timing, J-EagerDepth-CurrentWeights, 0, SR_CameraVelocity, 240, 0.023419733, 0.023552000, 0.023552000, 0.024576000, 0.000433419, 40690.104166667, 
+timing, J-EagerDepth-CurrentWeights, 0, SR_Resolve, 240, 0.007726933, 0.007168000, 0.009216000, 0.009216000, 0.000860546, 108506.944444444, 
+timing, J-EagerDepth-CurrentWeights, 0, WallFrame, 240, 2.996651667, 2.937200000, 3.265200000, 3.435900000, 0.150994167, 275.447947224, 
+timing, J-EagerDepth-CurrentWeights, 0, WholeFrame, 240, 2.430561600, 2.376704000, 2.634752000, 2.656256000, 0.115898652, 363.575018615, 
+timing, O-T2X-R, 0, SF_Spatial, 240, 0.101171200, 0.101376000, 0.103424000, 0.104448000, 0.001454777, 9574.142156863, 
+timing, O-T2X-R, 0, SMAA, 240, 0.158152533, 0.157696000, 0.162816000, 0.164864000, 0.004461210, 6046.826625387, 
+timing, O-T2X-R, 0, SP_Edge, 240, 0.026824533, 0.026624000, 0.027648000, 0.027648000, 0.000406365, 36168.981481481, 
+timing, O-T2X-R, 0, SP_Neighborhood, 240, 0.041954133, 0.041984000, 0.043008000, 0.044032000, 0.001161529, 22710.755813953, 
+timing, O-T2X-R, 0, SP_Prepare, 240, 0.008000000, 0.008192000, 0.008192000, 0.008192000, 0.000399680, 122070.312500000, 
+timing, O-T2X-R, 0, SP_Weights, 240, 0.024328533, 0.023552000, 0.026624000, 0.026624000, 0.001475033, 36168.981481481, 
+timing, O-T2X-R, 0, SR_CameraVelocity, 240, 0.023513600, 0.023552000, 0.023552000, 0.024576000, 0.000353876, 40690.104166667, 
+timing, O-T2X-R, 0, SR_Resolve, 240, 0.033408000, 0.030720000, 0.037888000, 0.037888000, 0.003782250, 26393.581081081, 
+timing, O-T2X-R, 0, WallFrame, 240, 2.926713750, 2.885100000, 3.183500000, 3.263600000, 0.115887688, 295.216024326, 
+timing, O-T2X-R, 0, WholeFrame, 240, 2.433641200, 2.391040000, 2.696192000, 2.801664000, 0.111954646, 356.930738304, 
+Aggregate: PASS
+

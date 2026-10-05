@@ -63,3 +63,19 @@
 - 기존 장치에서 미지원했던 shader stencil reference를 사용하지 않는다. 기존 SMAA 전용
   DSV의 depth 표시를 재사용하며 scene depth 및 temporal 규칙은 변경하지 않는다.
 - 방법과 검증·실패 기록은 `Docs/Edge-Persistence-Eager-Spatial-Mask/`에 보존한다.
+
+### 결합 실험 결과
+
+- Release 빌드, 보존 shader DXBC, Bistro/Minecraft 240-frame RGB bridge와 조건별
+  43-frame raw/current/velocity/coverage 및 실제 weight/temporal sample query가 PASS다.
+  H/J는 F와 RGB mismatch 0이며 원본 전체 PNG와 이동/전환/정지 연속 프레임을 직접 확인했다.
+- Clean 4,800-frame×3회에서 J−F 전체 AA는 Bistro +0.770%, Minecraft +0.982%다.
+  두 장면의 세 반복 모두 증가했다. 표시 비용을 지불한 H 대비 J는 줄었지만 기본 ⑨보다
+  빨라지지 않았으므로 채택하지 않는다. F/⑨를 유지하며 H/J는 negative-result 설정이다.
+- 대표 f131의 2차 passing samples는 Bistro 69,519→52,848, Minecraft
+  652,244→520,091로 감소하고 temporal 합집합은 유지됐다. Passing sample 감소를
+  같은 비율의 shader invocation/시간 감소 또는 품질 개선으로 해석하지 않는다.
+- 상세는 `Docs/Edge-Persistence-Eager-Spatial-Mask/results-ko.md`다. 기존 얇은 선
+  소실/단절 문제는 그대로다. 이 조합의 실패를 모든 최적화가 불가능하다는 결론으로
+  확대하지 않는다. 본 측정 11개 명령은 같은 binary/shader hash의 독립 프로세스에서
+  정상 완료했으며 실패/재시도는 없다.
