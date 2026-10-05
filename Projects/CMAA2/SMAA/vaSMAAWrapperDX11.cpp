@@ -103,6 +103,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_executionCoverage;
+        bool m_thinLineRawSaved=false;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -127,6 +128,13 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext &ctx,const wstring &prefix) override {
+            return m_thinLineRawSaved && !m_thinLineTracePrefix.empty() && m_thinLineTracePrefix==prefix
+                && m_temporalHistoryValid
+                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-current.dds")
+                && m_temporalHistory[GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-previous.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx,prefix+L"-velocity.dds");
+        }
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {
             return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);
         }
@@ -441,6 +449,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_previousViewProjValid = true;
     }
 
+    // Capture-only input snapshot; never enabled by a timing command.
+    m_thinLineRawSaved=false;
+    if(!m_thinLineTracePrefix.empty())
+        m_thinLineRawSaved=inputColor->SaveToDDSFile(deviceContext,m_thinLineTracePrefix+L"-raw.dds");
     SetGlobalStates( deviceContext );
 
     if( inputColor->GetArrayCount() == 1 )
@@ -467,7 +479,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
-                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl() );
+                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid );
             }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
@@ -641,7 +653,16 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     string vsVersion = "vs_4_0";
     string psVersion = "ps_4_1";
 
-    if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
+    if(name.substr(0,16)=="EagerPersistence") {
+        shaderMacros.push_back({"PERSISTENCE_EAGER_FETCH","1"});
+        const string entry=name.substr(5);
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
+        tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
        || name=="NeighborhoodRetainPS" || name=="FirstEdgeStencilPS" || name=="FirstEdgeStencilCoveragePS") {
         const bool edge=name.substr(0,5)=="Exact";
         const bool retain=name=="NeighborhoodRetainPS";

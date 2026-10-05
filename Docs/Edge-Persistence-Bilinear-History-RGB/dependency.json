@@ -1,0 +1,21 @@
+{
+  "base": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "source_case9": "e54f0db17ee09ae71a13294ed5b9161e066ec0b5",
+  "source_shader_sha256": "5f589e667d8c284d65c794d04dff76c2397bc4f7ef243e3bece3dde29031cb79",
+  "minimal_port": [
+    "raw-edge ping-pong",
+    "eager first-pass history edge fetch",
+    "existing union stencil gate",
+    "capture-only raw/current/previous/velocity snapshots",
+    "four-element edge technique array correction"
+  ],
+  "excluded": [
+    "shader stencil-ref extension",
+    "SV_Depth exports",
+    "depth-gated weights",
+    "old cost/profile harnesses",
+    "prior speed ablations",
+    "prior quality analyzer and media"
+  ],
+  "status": "Pending new-binary RGB bridge verification"
+}
