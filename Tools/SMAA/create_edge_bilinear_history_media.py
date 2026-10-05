@@ -11,7 +11,7 @@ from edge_quality_inputs import sha
 def main():
     media=ROOT/'tmp/edge-bilinear-history-rgb-media';media.mkdir(parents=True,exist_ok=True)
     font=ImageFont.truetype('C:/Windows/Fonts/consola.ttf',12);records=[]
-    short_labels=['4 Original ON','6 Current OFF','9 Previous OFF','New Linear OFF']
+    short_labels=['4 Original ON','6 Current OFF','9 Previous OFF','10 Linear OFF']
     for scene in ['bistro','minecraft']:
         q=json.loads((DOC/f'{scene}-capture.json').read_text());capture=Path(q['capture_root'])
         sheets(capture,Path(q['reference_root']),scene,media)

@@ -12,7 +12,7 @@ from edge_quality_inputs import sha, ph, rgb, dds, edges, linear, encoded, recon
 MODES = ['O-T2X-R', 'O-ET2X-R-CurrentEdge-Point',
          'O-ET2X-R-PreviousRawEdge-Point', 'ABL-ET2X-R-PreviousRawEdge-BilinearRGB']
 LABELS = ['4 Native T2X-R\nPattern ON', '6 Current edge\nPoint / OFF',
-          '9 Previous edge\nPoint / OFF', 'New PreviousEdge\nBilinearRGB / OFF', 'SS reference\nSpatial proxy']
+          '9 Previous edge\nPoint / OFF', '10 PreviousEdge\nBilinearRGB / OFF', 'SS reference\nSpatial proxy']
 ROIS = {'bistro': {'chair': (1230,582,1358,670), 'chairs-wide': (1190,530,1478,722)},
         'minecraft': {'wall-seam': (956,524,1020,620), 'seam-wide': (902,472,1088,666)}}
 WINDOWS = {'move': range(130,136), 'before': range(127,133), 'after': range(133,139),

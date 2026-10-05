@@ -1,0 +1,42 @@
+[
+  {
+    "attempt": "120-frame monolithic CGVQM-2 evaluation",
+    "scene": "bistro",
+    "case": 4,
+    "first_frame": 60,
+    "last_frame": 179,
+    "status": "Excluded; no score",
+    "reason": "Official model CPU padding allocation failed: requested 2933452800 bytes with insufficient available commit.",
+    "retained_log": "tmp/edge-bilinear-quality-review/bistro/moving/case-4/run.log",
+    "resolution": "Use unmodified official 60-frame invocations, preserve30-frame patch boundaries, verify mean aggregation against native full-window scores."
+  },
+  {
+    "attempt": "Direct capture directory passed to strict PNG adapter",
+    "scene": "bistro",
+    "case": 6,
+    "status": "Excluded before inference; no score",
+    "reason": "Capture directory also contains diagnostic PNG frame_00000-current.png, rejected by the numbered final-frame collector.",
+    "resolution": "Copy only original numbered final PNGs byte-for-byte into a dedicated input directory; validate SHA-256."
+  },
+  {
+    "attempt": "Only frames60-219 copied into strict adapter input",
+    "scene": "bistro",
+    "case": 6,
+    "status": "Excluded before inference; no score",
+    "reason": "The existing adapter requires the complete test/reference index sets to match before selecting its window; reference-only indices0-59/220-239 remained.",
+    "resolution": "Prepare all240 matching final-frame indices, then request the evaluation window."
+  },
+  {
+    "attempt": "Minecraft case9 transition CGVQM provenance check",
+    "scene": "minecraft",
+    "case": 9,
+    "first_frame": 160,
+    "last_frame": 219,
+    "status": "Excluded after inference; score not adopted",
+    "recorded_rgb_stream_sha256": "e88b52e6ad2cfcdb43afaefb7eda76581d4dab9ee3e134d8c87b5f334aca178f",
+    "verified_source_and_copy_rgb_stream_sha256": "166bd4222f502ecc5032dd8ca7dbd067dcc6643b6b9bdbd4fff066dac970d987",
+    "reason": "Adapter metadata hash did not match the unchanged original/copy stream. Independent reads through both environments subsequently produced the expected hash. Cause not established.",
+    "archive": "tmp/edge-bilinear-quality-review/excluded/minecraft-case9-transition-provenance-1",
+    "resolution": "Preserve the excluded result separately and rerun the official model in a new process; require matching input hashes."
+  }
+]
