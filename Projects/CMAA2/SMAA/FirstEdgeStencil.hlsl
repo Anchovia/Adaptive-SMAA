@@ -34,3 +34,55 @@ void FirstEdgeStencilCoveragePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
     visible = DX10_SMAAResolvePS(p, uv);
     coverage = 1.0;
 }
+
+// RGB-only sampler experiment. Point alpha and native weight remain unchanged.
+float4 BilinearHistoryRGBResolve(float2 uv, out float historyWeight) {
+#if SMAA_REPROJECTION
+    float2 velocity = -SMAA_DECODE_VELOCITY(SMAASamplePoint(velocityTex, uv).rg);
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float4 previous = SMAASamplePoint(colorTexPrev, uv + velocity);
+    float delta = abs(current.a * current.a - previous.a * previous.a) / 5.0;
+    float weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    previous.rgb = SMAASampleLevelZero(colorTexPrev, uv + velocity).rgb;
+    historyWeight = weight;
+    return lerp(current, previous, weight);
+#else
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float4 previous = SMAASamplePoint(colorTexPrev, uv);
+    previous.rgb = SMAASampleLevelZero(colorTexPrev, uv).rgb;
+    historyWeight = 0.5;
+    return lerp(current, previous, 0.5);
+#endif
+}
+
+[earlydepthstencil]
+float4 BilinearHistoryRGBPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float weight;
+    return BilinearHistoryRGBResolve(uv, weight);
+}
+
+// R32 weight and coverage are capture-only. Production has one color target.
+[earlydepthstencil]
+void BilinearHistoryRGBCoveragePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
+                                out float4 visible : SV_TARGET0, out float coverage : SV_TARGET1,
+                                out float weight : SV_TARGET2) {
+    visible = BilinearHistoryRGBResolve(uv, weight);
+    coverage = 1.0;
+}
+
+[earlydepthstencil]
+void FirstEdgeStencilWeightCoveragePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0,
+                                     out float4 visible : SV_TARGET0, out float coverage : SV_TARGET1,
+                                     out float weight : SV_TARGET2) {
+    visible = DX10_SMAAResolvePS(p, uv);
+#if SMAA_REPROJECTION
+    float2 velocity = -SMAA_DECODE_VELOCITY(SMAASamplePoint(velocityTex, uv).rg);
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float4 previous = SMAASamplePoint(colorTexPrev, uv + velocity);
+    float delta = abs(current.a * current.a - previous.a * previous.a) / 5.0;
+    weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+#else
+    weight = 0.5;
+#endif
+    coverage = 1.0;
+}
