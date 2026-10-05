@@ -1,0 +1,42 @@
+[
+  {
+    "classification": "excluded failed capture; not quality evidence",
+    "scene": "minecraft",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20261006_035744\\20261006_035744_results.csv",
+    "report_sha256": "5197d176d66f81164e2fcdb91679b0aa4f1c7a77d92efea5c884ea521965b1fd",
+    "binary_sha256": "5ED45D67BF6B010391B6B3171C4110F88A7D9209221C587BA557CA5E8016731D",
+    "failed_checks": {
+      "mode": "O-T2X-R",
+      "frames": [
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106
+      ]
+    },
+    "observed": "Failed native4 mode checks and RGB differences from preserved native4 output; history remains affected after checks recover. Entire run excluded.",
+    "cause": "Not conclusively identifiable: old harness combined flags without storing failed state. Unblocked AA keyboard shortcuts during AutoBench found by code audit; this is a possible cause, not proven event attribution.",
+    "repair": "Disable interactive AA shortcuts only while AutoBench active; add failure-only state rows. No AA formulas/shaders changed.",
+    "retry": "new-binary clean Test and Capture, full native4/case10 RGB bridge"
+  }
+]

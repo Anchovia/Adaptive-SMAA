@@ -1224,7 +1224,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
 
     // keyboard-based selection
     {
-        if (m_application.HasFocus() && !vaInputMouseBase::GetCurrent()->IsCaptured()
+        if (!m_autoBench->IsActive() && m_application.HasFocus() && !vaInputMouseBase::GetCurrent()->IsCaptured()
 #ifdef VA_IMGUI_INTEGRATION_ENABLED
             && !ImGui::GetIO().WantCaptureKeyboard
 #endif

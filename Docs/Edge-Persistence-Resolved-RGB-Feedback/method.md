@@ -43,3 +43,9 @@ timeline 경계마다 동일 reset을 적용한다. 전체 AA와 spatial/camera/
 still190–195를 직접 열고 선 단절·출현/소멸·잔상·흐림을 검사한다. 긴720-frame 경로도
 presentation 자료로 제공하되 새품질 reference로 사용하지 않는다. 사용자 검토 전
 품질 성공이나 기본 채택으로 판정하지 않는다.
+
+자동 실험 중 AA 단축키 입력으로 mode가 바뀔 수 있는 sample 제어 경로를 차단했다.
+이는 AutoBench 활성 중에만 적용되는 실행 격리이며 AA 알고리즘 변경은 아니다.
+초기 Minecraft capture의 native④ f83–106 mode check 실패 실행은 전부 제외했다.
+기존 실패 로그는 개별 설정을 저장하지 않아 실제 입력 원인을 단정하지 않는다.
+제외 내역과 새 binary 재검증은 excluded-runs.json 및 실행 receipt로 추적한다.
