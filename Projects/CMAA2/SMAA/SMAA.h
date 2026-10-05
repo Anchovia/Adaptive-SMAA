@@ -141,7 +141,7 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, bool previousRawEdges=false, bool previousValid=false); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, bool previousRawEdges=false, bool previousValid=false, ID3D11RenderTargetView *feedbackRTV=nullptr); // Selects the S2x or 4x pass (either 0 or 1).
 
         /**
          * This function perform a temporal resolve of two buffers. They must
@@ -149,7 +149,7 @@ class SMAA {
          */
         void reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage=nullptr, bool bilinearHistoryRGB=false, ID3D11RenderTargetView *weight=nullptr);
+            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage=nullptr, bool bilinearHistoryRGB=false, ID3D11RenderTargetView *weight=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr);
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -277,7 +277,7 @@ class SMAA {
         void loadSearchTex();
         void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, bool previousRawEdges=false);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
-        void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr);
+        void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr);
 
         ID3D11Device *device;
         int width, height;
@@ -321,6 +321,7 @@ class SMAA {
         SMAATechniqueInterface *eagerPersistenceEdgeTechniques[4];
         SMAATechniqueInterface *bilinearHistoryRGBTechnique, *bilinearHistoryRGBCoverageTechnique, *firstEdgeWeightCoverageTechnique;
         SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
+        SMAATechniqueInterface *neighborhoodFeedbackSeedTechnique, *resolvedRGBFeedbackTechnique, *resolvedRGBFeedbackCoverageTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 

@@ -247,6 +247,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     bilinearHistoryRGBTechnique=techniqueManagerInterface->CreateTechnique("BilinearHistoryRGBPS",defines);
     bilinearHistoryRGBCoverageTechnique=techniqueManagerInterface->CreateTechnique("BilinearHistoryRGBCoveragePS",defines);
     firstEdgeWeightCoverageTechnique=techniqueManagerInterface->CreateTechnique("FirstEdgeStencilWeightCoveragePS",defines);
+    neighborhoodFeedbackSeedTechnique=techniqueManagerInterface->CreateTechnique("NeighborhoodFeedbackSeedPS",defines);
+    resolvedRGBFeedbackTechnique=techniqueManagerInterface->CreateTechnique("ResolvedRGBFeedbackPS",defines);
+    resolvedRGBFeedbackCoverageTechnique=techniqueManagerInterface->CreateTechnique("ResolvedRGBFeedbackCoveragePS",defines);
     const char *persistenceKinds[] = {"Luma", "LumaRaw", "Color", "Depth"};
     for(int i=0;i<4;++i)
         eagerPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerPersistence")+persistenceKinds[i]+"EdgePS").c_str(),defines);
@@ -282,7 +285,7 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, bool previousRawEdges, bool previousValid) {
+              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, bool previousRawEdges, bool previousValid, ID3D11RenderTargetView *feedbackRTV) {
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -372,7 +375,7 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
     texturesInterface->SetResource_blendTex(context, *blendRT);
-    neighborhoodBlendingPass(context, dstRTV, dsv, retainRTV);
+    neighborhoodBlendingPass(context, dstRTV, dsv, retainRTV, feedbackRTV);
 
     // Reset external inputs, to avoid warnings:
     // V(colorTexGammaVariable->SetResource(nullptr));
@@ -417,7 +420,7 @@ void SMAA::reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11Shader
 
 void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool bilinearHistoryRGB, ID3D11RenderTargetView *weight) {
+    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool bilinearHistoryRGB, ID3D11RenderTargetView *weight, ID3D11RenderTargetView *feedbackRTV) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -429,10 +432,17 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
     // No edge SRV: the first pass's exact stencil is the gate.
-    (bilinearHistoryRGB ? (coverage ? bilinearHistoryRGBCoverageTechnique : bilinearHistoryRGBTechnique) :
-        weight ? firstEdgeWeightCoverageTechnique : coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
-    ID3D11RenderTargetView *targets[3] = {output, coverage, weight};
-    context->OMSetRenderTargets(weight ? 3 : coverage ? 2 : 1, targets, dsv);
+    if(feedbackRTV) {
+        assert(bilinearHistoryRGB && feedbackRTV!=output);
+        (coverage ? resolvedRGBFeedbackCoverageTechnique : resolvedRGBFeedbackTechnique)->ApplyStates(context);
+        ID3D11RenderTargetView *targets[4] = {output, feedbackRTV, coverage, weight};
+        context->OMSetRenderTargets(coverage ? 4 : 2, targets, dsv);
+    } else {
+        (bilinearHistoryRGB ? (coverage ? bilinearHistoryRGBCoverageTechnique : bilinearHistoryRGBTechnique) :
+            weight ? firstEdgeWeightCoverageTechnique : coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
+        ID3D11RenderTargetView *targets[3] = {output, coverage, weight};
+        context->OMSetRenderTargets(weight ? 3 : coverage ? 2 : 1, targets, dsv);
+    }
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
     texturesInterface->SetResource_colorTex(context, nullptr);
@@ -696,18 +706,19 @@ void SMAA::blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11D
 }
 
 
-void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV) {
+void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV, ID3D11RenderTargetView *feedbackRTV) {
     //HRESULT hr;
 
     // PerfEventScope perfEvent(L"SMAA: Neighborhood Blending Pass");
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    (retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
+    (feedbackRTV ? neighborhoodFeedbackSeedTechnique : retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
     
     // Do the final pass!
-    ID3D11RenderTargetView *targets[2] = {dstRTV, retainRTV};
-    context->OMSetRenderTargets(retainRTV ? 2 : 1, targets, dsv);
+    assert(!feedbackRTV || (retainRTV && feedbackRTV!=dstRTV && feedbackRTV!=retainRTV));
+    ID3D11RenderTargetView *targets[3] = {dstRTV, retainRTV, feedbackRTV};
+    context->OMSetRenderTargets(feedbackRTV ? 3 : retainRTV ? 2 : 1, targets, dsv);
     triangle->draw( context );
     context->OMSetRenderTargets(0, nullptr, nullptr);
 }

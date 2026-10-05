@@ -101,6 +101,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_viewColorIgnoreSRGB1          = nullptr;
 
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
+        shared_ptr<vaTexture>       m_feedbackCurrentSpatial;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_executionCoverage;
         bool m_thinLineRawSaved=false;
@@ -132,9 +133,12 @@ namespace VertexAsylum
         virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext &ctx,const wstring &prefix) override {
             return m_thinLineRawSaved && !m_thinLineTracePrefix.empty() && m_thinLineTracePrefix==prefix
                 && m_temporalHistoryValid
-                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-current.dds")
+                && (GetResolvedRGBFeedbackEnabled()?m_feedbackCurrentSpatial:m_temporalHistory[1-GetTemporalFrameIndex()])->SaveToDDSFile(ctx,prefix+L"-current.dds")
                 && m_temporalHistory[GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-previous.dds")
                 && m_temporalVelocity->SaveToDDSFile(ctx,prefix+L"-velocity.dds");
+        }
+        virtual bool SaveResolvedHistoryDiagnostic(vaRenderDeviceContext &ctx,const wstring &path) override {
+            return m_temporalHistoryValid && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,path);
         }
         virtual bool SaveHistoryWeightDiagnostic(vaRenderDeviceContext &ctx,const wstring &path) override {
             return m_historyWeightDiagnostic && m_executionDiagnostics && m_historyWeightDiagnostic->SaveToDDSFile(ctx,path);
@@ -162,9 +166,10 @@ namespace VertexAsylum
             for(UINT y=0;y<desc.Height;++y) out.write(static_cast<const char*>(mapped.pData)+y*mapped.RowPitch,desc.Width*2);
             ok=out.good();out.close();dc->Unmap(stage,0);stage->Release();
             }
-            ok=ok && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToPNGFile(ctx,path+L"-current.png");
+            const auto spatial=GetResolvedRGBFeedbackEnabled()?m_feedbackCurrentSpatial:m_temporalHistory[1-GetTemporalFrameIndex()];
+            ok=ok && spatial->SaveToPNGFile(ctx,path+L"-current.png");
             if(probe) ok=ok && m_externalInputColor->SaveToDDSFile(ctx,path+L"-input.dds")
-                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,path+L"-spatial.dds")
+                && spatial->SaveToDDSFile(ctx,path+L"-spatial.dds")
                 && m_temporalVelocity->SaveToDDSFile(ctx,path+L"-velocity.dds");
             return ok;
         }
@@ -313,6 +318,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_viewColorIgnoreSRGB1 = nullptr;
     m_temporalHistory[0] = nullptr;
     m_temporalHistory[1] = nullptr;
+    m_feedbackCurrentSpatial = nullptr;
     m_temporalVelocity = nullptr;
     m_executionCoverage = nullptr;
     m_historyWeightDiagnostic = nullptr;
@@ -332,6 +338,7 @@ void vaSMAAWrapperDX11::ResetTemporalHistory( )
     {
         m_temporalHistory[0] = nullptr;
         m_temporalHistory[1] = nullptr;
+        m_feedbackCurrentSpatial = nullptr;
     }
 }
 
@@ -344,7 +351,8 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
     assert( inputColor->GetArrayCount() == 1 || inputColor->GetArrayCount() == 2 ); // only 1 or 2 samples supported
     if( m_smaa == nullptr || m_smaa->getPreset( ) != m_settings.Preset || m_smaa->getWidth( ) != inputColor->GetSizeX( ) || m_smaa->getHeight( ) != inputColor->GetSizeY( ) || inputColor->GetArrayCount() != m_sampleCount || m_externalInputColor != inputColor
         || m_smaaReprojectionEnabled != smaaProjection
-        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr))) )
+        || (GetTemporalModeEnabled( ) && (m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
+            || (GetResolvedRGBFeedbackEnabled() && m_feedbackCurrentSpatial==nullptr))) )
     {
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
@@ -387,10 +395,15 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                     historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
                     vaTextureFlags::None, inputColor->GetContentsType() );
             }
+            if(GetResolvedRGBFeedbackEnabled())
+                m_feedbackCurrentSpatial = vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    historyBindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
+                    vaTextureFlags::None, inputColor->GetContentsType() );
             if( smaaProjection )
                 m_temporalVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
                     historyBindFlags, vaResourceAccessFlags::Default );
-            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr) )
+            if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || (smaaProjection && m_temporalVelocity == nullptr)
+                || (GetResolvedRGBFeedbackEnabled() && m_feedbackCurrentSpatial==nullptr) )
                 return false;
         }
     }
@@ -467,6 +480,14 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
         if( GetTemporalModeEnabled( ) )
         {
+            // This controlled ablation supports only case 10's selected setup.
+            const bool feedback=GetResolvedRGBFeedbackEnabled();
+            if(feedback && (!GetSpatialFirstEdgeEnabled() || !GetFirstEdgeStencilEnabled() ||
+                !GetPreviousRawEdgesEnabled() || !GetBilinearHistoryRGBEnabled() ||
+                GetTemporalSamplePatternEnabled() || !GetTemporalReprojectionEnabled() || GetStencilUpstreamControl())) {
+                VA_LOG_ERROR("Resolved RGB feedback requires case10 selected Pattern-Off camera-R configuration");
+                return vaDrawResultFlags::UnspecifiedError;
+            }
             assert( m_temporalHistory[0] != nullptr && m_temporalHistory[1] != nullptr );
             assert( m_smaa->getFrameIndex( ) == GetTemporalFrameIndex( ) );
 
@@ -475,7 +496,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             shared_ptr<vaTexture> & currentHistory = m_temporalHistory[currentIndex];
             shared_ptr<vaTexture> & previousHistory = m_temporalHistory[previousIndex];
 
-            vaTextureDX11 * currentHistoryDX11 = currentHistory->SafeCast<vaTextureDX11*>( );
+            const auto currentSpatial=feedback?m_feedbackCurrentSpatial:currentHistory;
+            vaTextureDX11 * currentHistoryDX11 = currentSpatial->SafeCast<vaTextureDX11*>( );
             ID3D11RenderTargetView * currentHistoryRTV = currentHistoryDX11->GetRTV( );
             ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
@@ -484,10 +506,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
-                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid );
+                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,
+                    feedback?currentHistory->SafeCast<vaTextureDX11*>()->GetRTV():nullptr );
             }
 
-            ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
+            ID3D11ShaderResourceView * currentHistorySRV = currentSpatial->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentHistorySRV;
             ID3D11Query *statsQuery=nullptr, *samplesQuery=nullptr;
             ID3D11RenderTargetView *coverageRTV=nullptr;
@@ -518,7 +541,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
-                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,GetBilinearHistoryRGBEnabled(),weightRTV);
+                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,GetBilinearHistoryRGBEnabled(),weightRTV,
+                        feedback?currentHistory->SafeCast<vaTextureDX11*>()->GetRTV():nullptr);
                 else if(GetSpatialFirstEdgeEnabled())
                     m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else
@@ -673,6 +697,15 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
         for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
         tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="NeighborhoodFeedbackSeedPS" || name=="ResolvedRGBFeedbackPS" || name=="ResolvedRGBFeedbackCoveragePS") {
+        const bool seed=name=="NeighborhoodFeedbackSeedPS";
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,seed?"DX10_SMAANeighborhoodBlendingVS":"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/ResolvedRGBFeedback.hlsl","ps_5_0",name,shaderMacros,true);
+        tech->DSS=seed?m_DisableDepthStencil:m_DisableDepthUseStencil;
+        tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=seed?0:1;
     }
     else if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
        || name=="NeighborhoodRetainPS" || name=="FirstEdgeStencilPS" || name=="FirstEdgeStencilCoveragePS"
