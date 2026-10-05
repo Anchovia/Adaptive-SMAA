@@ -7,6 +7,7 @@ class BenchItemEdgeBilinearHistoryRGB : public AutoBenchToolWorkItem {
     std::vector<Mode> m_modes;
     bool m_capture,m_minecraft,m_test,m_smoke,m_started=false,m_done=false,m_failed=false,m_rendered=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats;
+    int m_captureFrames=240; float m_startTime=2.0f;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
     std::map<std::string,std::vector<double>> m_samples;
@@ -52,10 +53,11 @@ class BenchItemEdgeBilinearHistoryRGB : public AutoBenchToolWorkItem {
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemEdgeBilinearHistoryRGB(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output,bool test):
+    BenchItemEdgeBilinearHistoryRGB(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output,bool test,int captureFrames=240,float startTime=2.0f):
         AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_test(test),m_smoke(smoke),
         m_measureFrames(smoke?240:4800),m_repeats(smoke?1:6),m_output(output) {
-        if(capture)m_modes.push_back({"O-ET2X-R-CurrentEdge-Point",true,false,false});
+        m_captureFrames=captureFrames;m_startTime=startTime;
+        if(capture&&captureFrames==240)m_modes.push_back({"O-ET2X-R-CurrentEdge-Point",true,false,false});
         m_modes.push_back({"O-ET2X-R-PreviousRawEdge-Point",true,true,false});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-BilinearRGB",true,true,true});
         m_modes.push_back({"O-T2X-R",false,false,false});
@@ -70,10 +72,11 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
+            tool.ReportAddRowValues({"presentation_timeline",std::to_string(m_capture?m_captureFrames:240),"60",std::to_string(m_capture?m_captureFrames-120:120),"60","60fps",std::to_string(m_capture?m_startTime:2.0f)});
             tool.ReportAddText("History RGB sampler experiment. Original spatial SMAA; camera/depth reprojection only.\r\n");
-            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60; native paired pattern On; selected pattern Off.\r\n");
+            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; capture timeline defined by presentation_timeline; timing still60/move120/still60; native paired pattern On; selected pattern Off.\r\n");
             tool.ReportAddText("Point alpha, native adaptive 0..0.5 weight, spatial-frame history, raw-edge union and nonselected current output are fixed. No dilation, clipping, feedback change or extra draw.\r\n");
-            tool.ReportAddText(m_capture?"Capture: case6, case9, RGB-only bilinear and native4; 240 frames (Test6). Selected trace frames save raw/current/previous/velocity/edge/coverage/R32 weight. No timing claim.\r\n":"Timing: case9, RGB-only bilinear and native4; PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats (Smoke240 x1). History reset at each 240-frame loop.\r\n");
+            tool.ReportAddText(m_capture?"Capture: case9, RGB-only bilinear and native4; optional presentation length (default240 includes case6, Test6). Selected trace frames save raw/current/previous/velocity/edge/coverage/R32 weight. No timing claim.\r\n":"Timing: case9, RGB-only bilinear and native4; PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats (Smoke240 x1). History reset at each 240-frame loop.\r\n");
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             m_output+=std::wstring(m_capture?(m_test?L"/test/":L"/capture/"):L"/timing/")+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -94,7 +97,7 @@ public:
                     m_samples["WallFrame"].push_back((now-m_lastTick)*1000.0);
                 }
                 ++m_frame;
-                if(m_frame>=(m_capture?(m_test?6:240):m_measureFrames)) {
+                if(m_frame>=(m_capture?(m_test?6:m_captureFrames):m_measureFrames)) {
                     if(!m_capture)for(auto& kv:m_samples)Summarize(tool,kv.first,kv.second);
                     if(++m_slot==int(m_modes.size())){m_slot=0;++m_run;}
                     if(m_run==(m_capture?1:m_repeats)){Finish(tool);return;}Configure();
@@ -102,11 +105,11 @@ public:
             }
         }
         const auto c=Current();auto s=m_parent.GetSMAA();
-        const bool diagnostic=m_capture&&c.selected&&TraceFrame();
+        const bool diagnostic=m_capture&&m_captureFrames==240&&c.selected&&TraceFrame();
         s->SetExecutionDiagnostics(diagnostic);s->SetThinLineTracePrefix(diagnostic?Prefix():L"");
-        m_lastTick=now;const int phase=m_frame<0?0:m_frame%240;
+        m_lastTick=now;const int phase=m_frame<0?0:m_frame%(m_capture?m_captureFrames:240);
         if(m_frame>=0&&phase==0)s->ResetTemporalHistory();
-        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f);
+        m_parent.GetFlythroughCameraController()->SetPlayTime((m_capture?m_startTime:2.0f)+float(vaMath::Clamp(phase-60,0,m_capture?m_captureFrames-120:120))/60.0f);
     }
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
@@ -117,7 +120,7 @@ public:
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.selected?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         m_failed=m_failed||!ok;if(!m_capture||m_frame<0)return;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),"TemporalOn",ok?"PASS":"FAIL"});
-        if(c.selected&&TraceFrame()) {
+        if(m_captureFrames==240&&c.selected&&TraceFrame()) {
             const auto prefix=Prefix();
             const bool inputs=s->SaveThinLineTraceInputs(ctx,prefix)&&s->SaveSpatialEdgeSnapshot(ctx,prefix,true,false);
             const bool coverage=s->SaveExecutionCoverage(ctx,prefix+L"-coverage.dds");
@@ -139,8 +142,9 @@ static void QueueEdgeBilinearHistoryRGB(CMAA2Sample& parent,AutoBenchTool& tool)
         const bool benchmark=_wcsicmp(p.first.c_str(),L"smaaEdgeBilinearHistoryRGBBenchmark")==0;
         const bool smoke=_wcsicmp(p.first.c_str(),L"smaaEdgeBilinearHistoryRGBSmoke")==0;
         if(!capture&&!benchmark&&!smoke)continue;
-        std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
+        std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;int frames=240;float startTime=2.0f;input>>frames>>startTime;
+        if(frames<120||frames>1440||!std::isfinite(startTime)||startTime<0){VA_LOG_ERROR("Invalid presentation timeline");return;}
         if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");return;}
-        tool.AddTask(std::make_shared<BenchItemEdgeBilinearHistoryRGB>(parent,capture,scene==L"minecraft",smoke,output,test));return;
+        tool.AddTask(std::make_shared<BenchItemEdgeBilinearHistoryRGB>(parent,capture,scene==L"minecraft",smoke,output,test,frames,startTime));return;
     }
 }
