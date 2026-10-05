@@ -1,0 +1,27 @@
+{
+  "case": 11,
+  "semantic_id": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+  "branch": "experiment/edge-persistence-resolved-rgb-feedback",
+  "base": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "minimal_dependencies": [
+    "3992640",
+    "96c495a"
+  ],
+  "source_dependencies": [
+    "5ee133a",
+    "da293fe"
+  ],
+  "spatial": "Original SMAA Ultra",
+  "reprojection": "camera/depth only",
+  "sample_pattern": "Off",
+  "coverage": "current + reprojected previous raw edge",
+  "rgb_sampler": "bilinear",
+  "alpha_sampler": "point",
+  "history_weight": "native adaptive 0..0.5",
+  "history_rgb": "resolved output",
+  "history_alpha": "current spatial velocity alpha",
+  "production_additional_draws": 0,
+  "production_additional_fullscreen_copies": 0,
+  "extra_color_texture": true,
+  "status": "implementation pending validation"
+}
