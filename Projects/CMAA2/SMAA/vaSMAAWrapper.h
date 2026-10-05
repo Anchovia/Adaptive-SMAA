@@ -67,6 +67,7 @@ namespace VertexAsylum
         bool m_executionDiagnostics = false;
         bool m_previousRawEdgesEnabled = false;
         bool m_bilinearHistoryRGBEnabled = false;
+        bool m_resolvedRGBFeedbackEnabled = false;
         wstring m_thinLineTracePrefix;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
@@ -111,6 +112,11 @@ namespace VertexAsylum
         bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
         void SetBilinearHistoryRGBEnabled(bool enabled){if(m_bilinearHistoryRGBEnabled!=enabled){m_bilinearHistoryRGBEnabled=enabled;ResetTemporalHistory();}}
         bool GetBilinearHistoryRGBEnabled() const {return m_bilinearHistoryRGBEnabled;}
+        void SetResolvedRGBFeedbackEnabled(bool enabled) {
+            if(m_resolvedRGBFeedbackEnabled!=enabled){m_resolvedRGBFeedbackEnabled=enabled;ResetTemporalHistory();}
+        }
+        bool GetResolvedRGBFeedbackEnabled() const {return m_resolvedRGBFeedbackEnabled;}
+        virtual bool SaveResolvedHistoryDiagnostic(vaRenderDeviceContext&,const wstring&){return false;}
         virtual bool SaveHistoryWeightDiagnostic(vaRenderDeviceContext&,const wstring&){return false;}
         void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}
         virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext&,const wstring&){return false;}
