@@ -1,0 +1,73 @@
+{
+  "validation": "PASS",
+  "case_order": [
+    4,
+    6,
+    9,
+    10
+  ],
+  "measured_windows": 16,
+  "accepted_official_model_invocations": 24,
+  "original_pngs_hash_checked": 1920,
+  "rgb_hash_mismatch": 0,
+  "native_bridges": [
+    {
+      "scene": "bistro",
+      "window": "moving",
+      "score_difference": -3.814697265625e-06,
+      "tolerance": 2e-05,
+      "validation": "PASS"
+    },
+    {
+      "scene": "bistro",
+      "window": "transition",
+      "score_difference": 0.0,
+      "tolerance": 2e-05,
+      "validation": "PASS"
+    },
+    {
+      "scene": "minecraft",
+      "window": "moving",
+      "score_difference": 0.0,
+      "tolerance": 2e-05,
+      "validation": "PASS"
+    },
+    {
+      "scene": "minecraft",
+      "window": "transition",
+      "score_difference": 0.0,
+      "tolerance": 2e-05,
+      "validation": "PASS"
+    }
+  ],
+  "algorithm_changed": false,
+  "performance_rerun": false,
+  "storage_policy": "Original capture/reference PNGs and test FFV1 retained; temporary PNG copies and redundant encoded reference copies removed after validation",
+  "adoption_decision": "Pending user review of GIF, original frames and measured results",
+  "visual_limitations": [
+    "Case10 thin-line disappearance remains",
+    "No independent object-motion/disocclusion ghosting evaluation",
+    "Native4 pattern On; 6/9/10 Off",
+    "Supersample spatial proxy is not temporal ground truth"
+  ],
+  "score_table": [
+    "| 구성 | Bistro 이동 | Bistro 전환 | Minecraft 이동 | Minecraft 전환 |",
+    "|---|---:|---:|---:|---:|",
+    "| ④ 원본 SMAA T2X-R | 96.191235 | 96.719254 | 93.911362 | 94.905739 |",
+    "| ⑥ 현재 edge 선택 | 96.173374 | 95.911629 | 95.234108 | 94.894165 |",
+    "| ⑨ 현재+직전 raw edge 선택 | 96.237839 | 95.941154 | 95.293442 | 94.901237 |",
+    "| ⑩ ⑨+history RGB bilinear | 96.356331 | 95.980339 | 95.965633 | 95.196068 |"
+  ],
+  "spatial_error_table": [
+    "| 장면 | 구성 | 이동 전체 RGB MAE ↓ | 이동 전체 PSNR dB ↑ | 얇은 선 ROI MAE ↓ |",
+    "|---|---|---:|---:|---:|",
+    "| bistro | 4 | 0.734975 | 40.3768 | 4.381512 |",
+    "| bistro | 6 | 0.682871 | 40.1358 | 5.807495 |",
+    "| bistro | 9 | 0.678393 | 40.3729 | 5.684190 |",
+    "| bistro | 10 | 0.657544 | 40.8588 | 5.492582 |",
+    "| minecraft | 4 | 1.987355 | 34.3516 | 1.626500 |",
+    "| minecraft | 6 | 1.599557 | 34.9934 | 1.398820 |",
+    "| minecraft | 9 | 1.631267 | 35.2242 | 1.399701 |",
+    "| minecraft | 10 | 1.440077 | 36.0783 | 1.265436 |"
+  ]
+}

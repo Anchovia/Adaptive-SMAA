@@ -1,0 +1,24 @@
+{
+  "case_order": [4, 6, 9, 10],
+  "assigned_by_user": "2026-10-06",
+  "case_10": {
+    "semantic_id": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+    "branch": "experiment/edge-persistence-bilinear-history-rgb",
+    "name": "Original SMAA + current/previous raw-edge selective temporal + bilinear history RGB",
+    "spatial": "Original SMAA Ultra",
+    "reprojection": "camera/depth only",
+    "sample_pattern": "Off",
+    "history_rgb": "Bilinear",
+    "history_alpha": "Point",
+    "history_weight": "Original point-alpha adaptive 0..0.5",
+    "history_feedback": "Previous spatial frame",
+    "additional_render_passes": 0
+  },
+  "comparison": {
+    "4": "Native SMAA T2X-R; sample pattern On",
+    "6": "Current first-pass raw edge; sample pattern Off; point RGB/alpha",
+    "9": "Current and reprojected previous raw-edge union; sample pattern Off; point RGB/alpha"
+  },
+  "scope": "Intermediate quality ablation; separate from the final Original/Adaptive eight-case matrix",
+  "adoption": "Pending user review"
+}
