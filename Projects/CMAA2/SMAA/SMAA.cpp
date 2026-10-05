@@ -37,6 +37,7 @@
 #include "AreaTex.h"
 #include "SearchTex.h"
 #include "SMAA.h"
+#include "Core/Misc/vaProfiler.h"
 using namespace std;
 
 using namespace VertexAsylum;
@@ -244,6 +245,23 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     neighborhoodRetainTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodRetainPS", defines);
     firstEdgeStencilTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilPS", defines);
     firstEdgeStencilCoverageTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilCoveragePS", defines);
+    persistenceEdgeTechniques[INPUT_LUMA] = techniqueManagerInterface->CreateTechnique("PersistenceLumaEdgePS", defines);
+    persistenceEdgeTechniques[INPUT_LUMA_RAW] = techniqueManagerInterface->CreateTechnique("PersistenceLumaRawEdgePS", defines);
+    persistenceEdgeTechniques[INPUT_COLOR] = techniqueManagerInterface->CreateTechnique("PersistenceColorEdgePS", defines);
+    persistenceEdgeTechniques[INPUT_DEPTH] = techniqueManagerInterface->CreateTechnique("PersistenceDepthEdgePS", defines);
+    const char *kinds[] = {"Luma", "LumaRaw", "Color", "Depth"};
+    for(int i=0;i<4;++i) {
+        eagerPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerPersistence")+kinds[i]+"EdgePS").c_str(),defines);
+        depthPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("DepthPersistence")+kinds[i]+"EdgePS").c_str(),defines);
+        eagerDepthPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerDepthPersistence")+kinds[i]+"EdgePS").c_str(),defines);
+    }
+    currentDepthWeightsTechnique=techniqueManagerInterface->CreateTechnique("CurrentDepthWeights",defines);
+    neighborhoodPersistenceTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodPersistencePS", defines);
+    neighborhoodCurrentDepthTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodCurrentDepthPS", defines);
+    neighborhoodConstantDepthTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodConstantDepthPS", defines);
+    neighborhoodConservativeDepthTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodConservativeDepthPS", defines);
+    firstEdgeDepthTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeDepthPS", defines);
+    firstEdgeDepthCoverageTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeDepthCoveragePS", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -257,6 +275,7 @@ SMAA::~SMAA() {
     //SAFE_RELEASE(effect);
     SAFE_DELETE(triangle);
     SAFE_DELETE(edgesRT);
+    SAFE_DELETE(previousRawEdgesRT);
     SAFE_DELETE(blendRT);
     SAFE_RELEASE(areaTex);
     SAFE_RELEASE(areaTexSRV);
@@ -275,7 +294,9 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil) {
+              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, int persistenceMode, bool previousValid, vaRenderDeviceContext *profilingContext, bool countWeights) {
+    std::unique_ptr<vaScopeTimer> passTimer;
+    if(profilingContext) passTimer.reset(new vaScopeTimer("SP_Prepare", profilingContext));
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -300,6 +321,15 @@ void SMAA::go(ID3D11DeviceContext * context,
     // Reset the render target:
     context->OMSetRenderTargets(0, nullptr, nullptr);
 
+    // Swap raw first-pass edge targets, never the union. Invalid history uses current-only.
+    if(persistenceMode) {
+        assert(retainRTV != nullptr);
+        if(!previousRawEdgesRT) {
+            ID3D11RenderTargetView *view=*edgesRT; D3D11_RENDER_TARGET_VIEW_DESC desc;view->GetDesc(&desc);
+            previousRawEdgesRT=new RenderTarget(device,width,height,desc.Format);
+        }
+        std::swap(edgesRT,previousRawEdgesRT);
+    }
     // Setup the viewport and the vertex layout:
     edgesRT->setViewport(context);
     
@@ -347,11 +377,46 @@ void SMAA::go(ID3D11DeviceContext * context,
     // And here we go!
     // The dedicated SMAA stencil must describe this frame, for every spatial route.
     if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
-    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil);
+    if(profilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer("SP_Edge", profilingContext));}
+    // Only the new audit alternative binds previous raw edges during pass 1.
+    if(persistenceMode>=7) {
+        ID3D11ShaderResourceView *oldRaw=previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
+        context->PSSetShaderResources(10,1,&oldRaw);
+    }
+    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil, persistenceMode);
+    if(persistenceMode>=7) {ID3D11ShaderResourceView *none=nullptr;context->PSSetShaderResources(10,1,&none);}
+    if(profilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer("SP_Weights", profilingContext));}
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
-    blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
+    ID3D11Query *weightCount=nullptr,*weightStats=nullptr;
+    lastWeightSamples=lastWeightInvocations=~UINT64(0);
+    if(countWeights) {
+        D3D11_QUERY_DESC q={D3D11_QUERY_OCCLUSION,0};
+        HRESULT a=device->CreateQuery(&q,&weightCount);
+        q.Query=D3D11_QUERY_PIPELINE_STATISTICS;
+        HRESULT b=device->CreateQuery(&q,&weightStats);
+        if(SUCCEEDED(a)&&SUCCEEDED(b)){context->Begin(weightCount);context->Begin(weightStats);}
+        else {SAFE_RELEASE(weightCount);SAFE_RELEASE(weightStats);}
+    }
+    blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex, persistenceMode==10 || persistenceMode==13);
+    if(weightCount){context->End(weightCount);context->End(weightStats);}
+    if(profilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer("SP_Neighborhood", profilingContext));}
     texturesInterface->SetResource_blendTex(context, *blendRT);
-    neighborhoodBlendingPass(context, dstRTV, dsv, retainRTV);
+    ID3D11ShaderResourceView *previousEdges = (persistenceMode==1 || persistenceMode==5 || persistenceMode==6) && previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
+    if(persistenceMode)context->PSSetShaderResources(10,1,&previousEdges);
+    neighborhoodBlendingPass(context, dstRTV, dsv, retainRTV, (persistenceMode==1 || persistenceMode==5 || persistenceMode==6) && !previousValid ? 2 : persistenceMode);
+    if(persistenceMode){previousEdges=nullptr;context->PSSetShaderResources(10,1,&previousEdges);}
+
+    if(weightCount) {
+        UINT64 samples=0;D3D11_QUERY_DATA_PIPELINE_STATISTICS stats={};
+        HRESULT a=S_FALSE,b=S_FALSE;const ULONGLONG deadline=GetTickCount64()+5000;
+        while((a==S_FALSE||b==S_FALSE)&&GetTickCount64()<deadline) {
+            if(a==S_FALSE)a=context->GetData(weightCount,&samples,sizeof(samples),0);
+            if(b==S_FALSE)b=context->GetData(weightStats,&stats,sizeof(stats),0);
+            if(a==S_FALSE||b==S_FALSE)Sleep(0);
+        }
+        if(a==S_OK&&b==S_OK){lastWeightSamples=samples;lastWeightInvocations=stats.PSInvocations;}
+        SAFE_RELEASE(weightCount);SAFE_RELEASE(weightStats);
+    }
 
     // Reset external inputs, to avoid warnings:
     // V(colorTexGammaVariable->SetResource(nullptr));
@@ -396,7 +461,7 @@ void SMAA::reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11Shader
 
 void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage) {
+    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool depthGate) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -408,7 +473,7 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
     // No edge SRV: the first pass's exact stencil is the gate.
-    (coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
+    (depthGate ? (coverage ? firstEdgeDepthCoverageTechnique : firstEdgeDepthTechnique) : (coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique))->ApplyStates(context);
     ID3D11RenderTargetView *targets[2] = {output, coverage};
     context->OMSetRenderTargets(coverage ? 2 : 1, targets, dsv);
     triangle->draw(context);
@@ -575,14 +640,14 @@ void SMAA::loadSearchTex() {
 }
 
 
-void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil) {
+void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil, int persistenceMode) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Edge Detection Pass");
 
     // Select the technique accordingly:
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
-    (exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
+    ((persistenceMode==12 || persistenceMode==13) ? eagerDepthPersistenceEdgeTechniques[int(input)] : persistenceMode>=9 ? depthPersistenceEdgeTechniques[int(input)] : persistenceMode==8 ? eagerPersistenceEdgeTechniques[int(input)] : persistenceMode==7 ? persistenceEdgeTechniques[int(input)] : exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
 
     // Do it!
     context->OMSetRenderTargets(1, *edgesRT, dsv);
@@ -591,7 +656,7 @@ void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilV
 }
 
 
-void SMAA::blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex) {
+void SMAA::blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex, bool currentDepthGate) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Blending Weights Calculation Pass");
@@ -665,7 +730,7 @@ void SMAA::blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11D
 
     // Setup the technique (again):
     // V(blendingWeightCalculationTechnique->GetPassByIndex(0)->Apply(0));
-    blendingWeightCalculationTechnique->ApplyStates( context );
+    (currentDepthGate ? currentDepthWeightsTechnique : blendingWeightCalculationTechnique)->ApplyStates( context );
 
     // And here we go!
     context->OMSetRenderTargets(1, *blendRT, dsv);
@@ -674,14 +739,18 @@ void SMAA::blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11D
 }
 
 
-void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV) {
+void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV, int persistenceMode) {
     //HRESULT hr;
 
     // PerfEventScope perfEvent(L"SMAA: Neighborhood Blending Pass");
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    (retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
+    (persistenceMode==1 || persistenceMode==5 ? neighborhoodPersistenceTechnique :
+     persistenceMode==2 ? neighborhoodCurrentDepthTechnique :
+     persistenceMode==4 ? neighborhoodConstantDepthTechnique :
+     persistenceMode==6 ? neighborhoodConservativeDepthTechnique :
+     retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
     
     // Do the final pass!
     ID3D11RenderTargetView *targets[2] = {dstRTV, retainRTV};

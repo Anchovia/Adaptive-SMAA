@@ -49,3 +49,17 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 2026-10-05: ⑨ 선행 조회와 현재 edge spatial 처리 결합
+
+- `experiment/edge-persistence-eager-spatial-mask`는 수정된 ⑥ `304f749`에서 분기하고
+  명시한 `e54f0db` 렌더러 의존성만 가져온 독립 결합 실험이다.
+- F=기존 ⑨, H=⑨+현재 edge depth 표시/union weights, J=같은 표시/current-only weights,
+  O=원본 ④다. H/J의 temporal coverage는 F와 같은 current+previous raw edge 합집합이다.
+- 내부 mode 12/13은 H/J 설정이다. 사용자 비교 case 번호를 새로 확정하지 않는다.
+- 표시 비용 H−F, 2차 실행 제한 J−H, 전체 개선 J−F를 구분한다. J의 전체 AA 시간이
+  반복 측정에서 감소해야 채택한다. 먼저 raw RG/current spatial/velocity/coverage/final RGB
+  및 실제 2차 passing samples를 검증하고 원본 연속 프레임을 직접 확인한다.
+- 기존 장치에서 미지원했던 shader stencil reference를 사용하지 않는다. 기존 SMAA 전용
+  DSV의 depth 표시를 재사용하며 scene depth 및 temporal 규칙은 변경하지 않는다.
+- 방법과 검증·실패 기록은 `Docs/Edge-Persistence-Eager-Spatial-Mask/`에 보존한다.

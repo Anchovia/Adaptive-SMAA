@@ -77,8 +77,10 @@ namespace VertexAsylum
 
         // States used by the effect passes
         ID3D11DepthStencilState *   m_DisableDepthStencil           = nullptr;
+        ID3D11DepthStencilState * m_DepthReplaceStencil=nullptr, *m_CurrentDepthWeights=nullptr;
         ID3D11DepthStencilState *   m_DisableDepthReplaceStencil    = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthUseStencil        = nullptr;
+        ID3D11DepthStencilState *   m_UseSelectionDepth = nullptr;
         ID3D11BlendState *          m_Blend                         = nullptr;
         ID3D11BlendState *          m_NoBlending                    = nullptr;
 
@@ -103,6 +105,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_executionCoverage;
+        bool m_thinLineRawSaved=false;
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -127,6 +130,13 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext &ctx,const wstring &prefix) override {
+            return m_thinLineRawSaved && !m_thinLineTracePrefix.empty() && m_thinLineTracePrefix==prefix
+                && m_temporalHistoryValid
+                && m_temporalHistory[1-GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-current.dds")
+                && m_temporalHistory[GetTemporalFrameIndex()]->SaveToDDSFile(ctx,prefix+L"-previous.dds")
+                && m_temporalVelocity->SaveToDDSFile(ctx,prefix+L"-velocity.dds");
+        }
         virtual bool SaveExecutionCoverage(vaRenderDeviceContext &ctx,const wstring &path) override {
             return m_executionCoverage && m_executionCoverage->SaveToDDSFile(ctx,path);
         }
@@ -220,6 +230,8 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
     params; // unreferenced
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
+    D3D11_FEATURE_DATA_D3D11_OPTIONS2 options={};
+    m_shaderStencilRefSupported=SUCCEEDED(device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2,&options,sizeof(options)))&&options.PSSpecifiedStencilRefSupported;
     m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
     HRESULT hr;
     {
@@ -234,6 +246,8 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
         desc.StencilEnable              = TRUE;
         desc.FrontFace.StencilPassOp    = D3D11_STENCIL_OP_REPLACE;
         V( device->CreateDepthStencilState( &desc, &m_DisableDepthReplaceStencil ) );
+        desc.DepthEnable=TRUE;desc.DepthFunc=D3D11_COMPARISON_ALWAYS;
+        V(device->CreateDepthStencilState(&desc,&m_DepthReplaceStencil));
     }
     {
         CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
@@ -241,6 +255,14 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
         desc.StencilEnable              = TRUE;
         desc.FrontFace.StencilFunc      = D3D11_COMPARISON_EQUAL;
         V( device->CreateDepthStencilState( &desc, &m_DisableDepthUseStencil ) );
+        desc.DepthEnable=TRUE;desc.DepthFunc=D3D11_COMPARISON_EQUAL;desc.DepthWriteMask=D3D11_DEPTH_WRITE_MASK_ZERO;
+        V(device->CreateDepthStencilState(&desc,&m_CurrentDepthWeights));
+    }
+    {
+        CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+        desc.DepthEnable=TRUE;desc.DepthFunc=D3D11_COMPARISON_EQUAL;
+        desc.DepthWriteMask=D3D11_DEPTH_WRITE_MASK_ZERO;desc.StencilEnable=FALSE;
+        V(device->CreateDepthStencilState(&desc,&m_UseSelectionDepth));
     }
     {
         CD3D11_BLEND_DESC desc = CD3D11_BLEND_DESC( CD3D11_DEFAULT( ) );
@@ -277,7 +299,9 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
     CleanupTemporaryResources();
     // Reset( );
 
+    SAFE_RELEASE( m_UseSelectionDepth );
     SAFE_RELEASE( m_DisableDepthStencil        );
+    SAFE_RELEASE(m_DepthReplaceStencil);SAFE_RELEASE(m_CurrentDepthWeights);
     SAFE_RELEASE( m_DisableDepthReplaceStencil );
     SAFE_RELEASE( m_DisableDepthUseStencil     );
     SAFE_RELEASE( m_Blend                      );
@@ -441,6 +465,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_previousViewProjValid = true;
     }
 
+    // Diagnostic readback before spatial processing; no extra draw.
+    m_thinLineRawSaved=false;
+    if(!m_thinLineTracePrefix.empty())
+        m_thinLineRawSaved=inputColor->SaveToDDSFile(deviceContext,m_thinLineTracePrefix+L"-raw.dds");
     SetGlobalStates( deviceContext );
 
     if( inputColor->GetArrayCount() == 1 )
@@ -467,7 +495,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentHistoryRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
-                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl() );
+                    (GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled()) ? dstRT->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr, GetStencilUpstreamControl(), GetEdgePersistenceMode(), m_temporalHistoryValid, m_spatialPassProfiling ? &deviceContext : nullptr, m_executionDiagnostics );
+                m_weightSamples=m_smaa->lastWeightSamples;m_weightInvocations=m_smaa->lastWeightInvocations;
             }
 
             ID3D11ShaderResourceView * currentHistorySRV = currentHistory->SafeCast<vaTextureDX11*>( )->GetSRV( );
@@ -494,7 +523,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
-                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV);
+                    m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,UsesPersistenceDepthGate());
                 else if(GetSpatialFirstEdgeEnabled())
                     m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else
@@ -641,7 +670,52 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     string vsVersion = "vs_4_0";
     string psVersion = "ps_4_1";
 
-    if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
+    if(name.substr(0,21)=="EagerDepthPersistence") {
+        // Same case-9 eager fetch, with current-edge depth metadata for the A/B gate.
+        shaderMacros.push_back({"PERSISTENCE_EAGER_FETCH","1"});
+        shaderMacros.push_back({"PERSISTENCE_DEPTH_MASK","1"});
+        const string entry=name.substr(10);
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
+        tech->DSS=m_DepthReplaceStencil;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name.substr(0,16)=="EagerPersistence" || name.substr(0,16)=="DepthPersistence") {
+        const bool eager=name.substr(0,5)=="Eager";
+        shaderMacros.push_back({eager?"PERSISTENCE_EAGER_FETCH":"PERSISTENCE_DEPTH_MASK","1"});
+        const string entry=name.substr(5);
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
+        tech->DSS=eager?m_DisableDepthReplaceStencil:m_DepthReplaceStencil;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="CurrentDepthWeights") {
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAABlendingWeightCalculationVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(shaderFileName,psVersion,"DX10_SMAABlendingWeightCalculationPS",shaderMacros,true);
+        tech->DSS=m_CurrentDepthWeights;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="PersistenceLumaEdgePS" || name=="PersistenceLumaRawEdgePS" || name=="PersistenceColorEdgePS" || name=="PersistenceDepthEdgePS") {
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",name,shaderMacros,true);
+        tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="NeighborhoodPersistencePS" || name=="NeighborhoodConstantDepthPS" || name=="NeighborhoodConservativeDepthPS" || name=="NeighborhoodCurrentDepthPS" || name=="FirstEdgeDepthPS" || name=="FirstEdgeDepthCoveragePS") {
+        const bool retain=name.substr(0,12)=="Neighborhood";
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,retain?"DX10_SMAANeighborhoodBlendingVS":"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
+        const string entry=retain?name:name=="FirstEdgeDepthPS"?"FirstEdgeStencilPS":"FirstEdgeStencilCoveragePS";
+        tech->PS->CreateShaderFromFile(L"SMAA/FirstEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
+        tech->DSS=retain?m_DisableDepthStencil:m_UseSelectionDepth;
+        tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=0;
+    }
+    else if(name=="ExactLumaEdgePS" || name=="ExactLumaRawEdgePS" || name=="ExactColorEdgePS" || name=="ExactDepthEdgePS"
        || name=="NeighborhoodRetainPS" || name=="FirstEdgeStencilPS" || name=="FirstEdgeStencilCoveragePS") {
         const bool edge=name.substr(0,5)=="Exact";
         const bool retain=name=="NeighborhoodRetainPS";

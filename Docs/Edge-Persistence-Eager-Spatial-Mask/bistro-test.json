@@ -1,0 +1,185 @@
+{
+  "validation": "PASS",
+  "receipt": {
+    "scene": "bistro",
+    "phase": "Test",
+    "window": "hidden",
+    "arguments": [
+      "-smaaEdgeEagerSpatialMaskTest",
+      "bistro",
+      "C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/tmp/eager-spatial-mask-captures"
+    ],
+    "scene_bootstrap": 0,
+    "retry_reason": "",
+    "started_utc": "2026-10-05T11:53:36.2733894Z",
+    "completed_utc": "2026-10-05T11:53:47.3936312Z",
+    "executable_sha256": "B4F19E776462F6C8803CD51F74EDC5DE1EB65F56540A6447838F6453B8F1964E",
+    "shader_sha256": {
+      "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "842843CC7516A409C6313395FDD2215A93E14C74E8638B105083AD01EB27CDBD",
+      "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+      "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "7D7DA4DD633AD65ADACBF33003BACE2C84DF4C6056693E880132C7F54951754E",
+      "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479"
+    },
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20261005_205338\\20261005_205338_results.csv",
+    "report_sha256": "AB4A17E37B1803940E6ED28FB4763CD1B4443C4CF18F015930EDA7FB68A94A36"
+  },
+  "classification": "case-9 eager fetch and current-only spatial weights interaction",
+  "capture_root": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\eager-spatial-mask-captures\\test\\bistro\\20261005_205338",
+  "frames_per_mode": 6,
+  "output_hashes": {
+    "F-EagerPreviousFetch": [
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70"
+    ],
+    "H-EagerDepth-UnionWeights": [
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70"
+    ],
+    "J-EagerDepth-CurrentWeights": [
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70",
+      "f250c9605e86ccbbf4919685d2e707ee9e108b080caccb787fd82e987a0f7a70"
+    ],
+    "O-T2X-R": [
+      "d65410358dd9f8e8cae5ab18b91c9e533b81d0ea7467bbd9cd15df9d8b2a71d2",
+      "8a6bcb77213b99271a3a259c76d91546001872eb2e0e0de6a9ee345cc459b261",
+      "8a6bcb77213b99271a3a259c76d91546001872eb2e0e0de6a9ee345cc459b261",
+      "8a6bcb77213b99271a3a259c76d91546001872eb2e0e0de6a9ee345cc459b261",
+      "8a6bcb77213b99271a3a259c76d91546001872eb2e0e0de6a9ee345cc459b261",
+      "8a6bcb77213b99271a3a259c76d91546001872eb2e0e0de6a9ee345cc459b261"
+    ]
+  },
+  "mismatched_frames": {
+    "H-EagerDepth-UnionWeights_vs_F": 0,
+    "J-EagerDepth-CurrentWeights_vs_F": 0,
+    "F-EagerPreviousFetch_preserved": 0,
+    "O-T2X-R_preserved": 0
+  },
+  "trace_checks": [
+    {
+      "frame": 0,
+      "current_count": 50111,
+      "union_count": 50111,
+      "weights": {
+        "F-EagerPreviousFetch": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "H-EagerDepth-UnionWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "J-EagerDepth-CurrentWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        }
+      }
+    },
+    {
+      "frame": 1,
+      "current_count": 50111,
+      "union_count": 50111,
+      "weights": {
+        "F-EagerPreviousFetch": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "H-EagerDepth-UnionWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "J-EagerDepth-CurrentWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "current_count": 50111,
+      "union_count": 50111,
+      "weights": {
+        "F-EagerPreviousFetch": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "H-EagerDepth-UnionWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "J-EagerDepth-CurrentWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "current_count": 50111,
+      "union_count": 50111,
+      "weights": {
+        "F-EagerPreviousFetch": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "H-EagerDepth-UnionWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "J-EagerDepth-CurrentWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        }
+      }
+    },
+    {
+      "frame": 4,
+      "current_count": 50111,
+      "union_count": 50111,
+      "weights": {
+        "F-EagerPreviousFetch": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "H-EagerDepth-UnionWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "J-EagerDepth-CurrentWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        }
+      }
+    },
+    {
+      "frame": 5,
+      "current_count": 50111,
+      "union_count": 50111,
+      "weights": {
+        "F-EagerPreviousFetch": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "H-EagerDepth-UnionWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        },
+        "J-EagerDepth-CurrentWeights": {
+          "samples": 50111,
+          "ps_invocations": 50111
+        }
+      }
+    }
+  ]
+}
