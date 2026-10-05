@@ -244,6 +244,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     neighborhoodRetainTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodRetainPS", defines);
     firstEdgeStencilTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilPS", defines);
     firstEdgeStencilCoverageTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilCoveragePS", defines);
+    const char *persistenceKinds[] = {"Luma", "LumaRaw", "Color", "Depth"};
+    for(int i=0;i<4;++i)
+        eagerPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerPersistence")+persistenceKinds[i]+"EdgePS").c_str(),defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -257,6 +260,7 @@ SMAA::~SMAA() {
     //SAFE_RELEASE(effect);
     SAFE_DELETE(triangle);
     SAFE_DELETE(edgesRT);
+    SAFE_DELETE(previousRawEdgesRT);
     SAFE_DELETE(blendRT);
     SAFE_RELEASE(areaTex);
     SAFE_RELEASE(areaTexSRV);
@@ -275,7 +279,7 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil) {
+              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, bool previousRawEdges, bool previousValid) {
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -300,6 +304,15 @@ void SMAA::go(ID3D11DeviceContext * context,
     // Reset the render target:
     context->OMSetRenderTargets(0, nullptr, nullptr);
 
+    // Case9 dependency: ping-pong raw RG, never the temporal union.
+    if(previousRawEdges) {
+        assert(retainRTV != nullptr);
+        if(!previousRawEdgesRT) {
+            ID3D11RenderTargetView *view=*edgesRT; D3D11_RENDER_TARGET_VIEW_DESC desc;view->GetDesc(&desc);
+            previousRawEdgesRT=new RenderTarget(device,width,height,desc.Format);
+        }
+        std::swap(edgesRT,previousRawEdgesRT);
+    }
     // Setup the viewport and the vertex layout:
     edgesRT->setViewport(context);
     
@@ -347,7 +360,12 @@ void SMAA::go(ID3D11DeviceContext * context,
     // And here we go!
     // The dedicated SMAA stencil must describe this frame, for every spatial route.
     if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
-    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil);
+    if(previousRawEdges) {
+        ID3D11ShaderResourceView *oldRaw=previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
+        context->PSSetShaderResources(10,1,&oldRaw);
+    }
+    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil, previousRawEdges);
+    if(previousRawEdges) {ID3D11ShaderResourceView *none=nullptr;context->PSSetShaderResources(10,1,&none);}
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
     texturesInterface->SetResource_blendTex(context, *blendRT);
@@ -575,14 +593,14 @@ void SMAA::loadSearchTex() {
 }
 
 
-void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil) {
+void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil, bool previousRawEdges) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Edge Detection Pass");
 
     // Select the technique accordingly:
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
-    (exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
+    (previousRawEdges ? eagerPersistenceEdgeTechniques[int(input)] : exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
 
     // Do it!
     context->OMSetRenderTargets(1, *edgesRT, dsv);

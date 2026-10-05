@@ -65,6 +65,8 @@ namespace VertexAsylum
         bool m_firstEdgeStencilEnabled = true;
         bool m_stencilUpstreamControl = false;
         bool m_executionDiagnostics = false;
+        bool m_previousRawEdgesEnabled = false;
+        wstring m_thinLineTracePrefix;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
 
@@ -104,6 +106,10 @@ namespace VertexAsylum
         void SetStencilUpstreamControl(bool enabled){if(m_stencilUpstreamControl!=enabled){m_stencilUpstreamControl=enabled;ResetTemporalHistory();}}
         bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
         void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
+        void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
+        bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
+        void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}
+        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext&,const wstring&){return false;}
         bool ExecutionQueryOK() const {return m_executionQueryOK;}
         uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
         uint64 GetResolveSamples() const {return m_lastResolveSamples;}
