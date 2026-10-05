@@ -1,0 +1,113 @@
+{
+  "validation": "PASS",
+  "compiler": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\fxc.exe",
+  "fxc_sha256": "ced7c1f95e4dffb614971826625e70da6d24aff1b4f2a3ae5952939c9547d7e6",
+  "new_entry_compile_checks": 10,
+  "native_point_control_byte_exact_checks": 4,
+  "records": [
+    {
+      "entry": "FirstEdgeStencilPS",
+      "reprojection": 0,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "a0846cc29e1cfd6c11f4e55f375e449c91114673501634c304914b4d967948b1",
+      "baseline_byte_exact": true
+    },
+    {
+      "entry": "FirstEdgeStencilCoveragePS",
+      "reprojection": 0,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "58a6e869c0be0509a6dcd9b44301128d55f5e524a575f99bec53afa61960fbb4",
+      "baseline_byte_exact": true
+    },
+    {
+      "entry": "FirstEdgeStencilWeightCoveragePS",
+      "reprojection": 0,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v1.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "ced84139370d73bcfc48359ec2e4210d4e75874d67538b89164f2a0a3b3ffd48"
+    },
+    {
+      "entry": "BilinearHistoryRGBPS",
+      "reprojection": 0,
+      "samples": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyz, v1.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r0.w, v1.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "1ca60defea51e875fc8c22c3285ff5e70ba8f5d03ac18b002b7f3f7bf5aa6a5c"
+    },
+    {
+      "entry": "BilinearHistoryRGBCoveragePS",
+      "reprojection": 0,
+      "samples": [
+        "sample_l_indexable(texture2d)(float,float,float,float) r0.xyz, v1.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r0.w, v1.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "c5999bea4e669b8f27ee35dd1325d98123bd3b44c7b30ec6026fe6e4c7383d9a"
+    },
+    {
+      "entry": "FirstEdgeStencilPS",
+      "reprojection": 1,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "db6d14c164014a492d137773565ec31391fef94d9a13f03cc9f2d4dd996e4c1d",
+      "baseline_byte_exact": true
+    },
+    {
+      "entry": "FirstEdgeStencilCoveragePS",
+      "reprojection": 1,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "b0ea306f8f178250cce732ead40eaa7b1be01912560f51f734d53d9b71b805d6",
+      "baseline_byte_exact": true
+    },
+    {
+      "entry": "FirstEdgeStencilWeightCoveragePS",
+      "reprojection": 1,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r0.xyzw, r0.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "7276191d7e1ba4f88daf1f9b645b0ec83cb77cbb7e4612193bf52c7090a62549"
+    },
+    {
+      "entry": "BilinearHistoryRGBPS",
+      "reprojection": 1,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r1.w, r0.xyxx, t4.xyzw, s1",
+        "sample_l_indexable(texture2d)(float,float,float,float) r1.xyz, r0.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "b3bc2110ea2d1ddcfbc1b149b4527c3ccca3638d157b937e47b23c5ff2db2a88"
+    },
+    {
+      "entry": "BilinearHistoryRGBCoveragePS",
+      "reprojection": 1,
+      "samples": [
+        "sample_indexable(texture2d)(float,float,float,float) r0.xy, v1.xyxx, t7.xyzw, s1",
+        "sample_l_indexable(texture2d)(float,float,float,float) r1.xyz, r0.xyxx, t4.xyzw, s0, l(0.000000)",
+        "sample_indexable(texture2d)(float,float,float,float) r1.w, r0.xyxx, t4.xyzw, s1",
+        "sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t2.xyzw, s1"
+      ],
+      "bytecode_sha256": "a7539f7763828d5b08d0ab539345062ffa68a255fb221868327b07e14fab9d08"
+    }
+  ],
+  "interpretation": "R path: original3 fetch instructions vs RGB-only bilinear4; capture weight witness does not add fetch instructions. No new rendering pass."
+}
