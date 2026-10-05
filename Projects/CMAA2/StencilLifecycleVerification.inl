@@ -6,6 +6,7 @@ class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
     std::vector<Mode> m_modes;
     bool m_capture,m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames=4800,m_repeats=6;
+    int m_captureFrames=240; float m_startTime=2.0f;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
     std::map<std::string,std::vector<double>> m_samples;
@@ -37,10 +38,11 @@ class BenchItemStencilLifecycle : public AutoBenchToolWorkItem {
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_output(output){
+    BenchItemStencilLifecycle(CMAA2Sample& parent,bool capture,bool minecraft,bool smoke,std::wstring output,int captureFrames=240,float startTime=2.0f):AutoBenchToolWorkItem(parent),m_capture(capture),m_minecraft(minecraft),m_output(output){
+        m_captureFrames=captureFrames;m_startTime=startTime;
         m_measureFrames=smoke?240:4800;m_repeats=smoke?1:6;
         m_modes={{"ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,true},{"O-T2X-R",CMAA2Sample::AAType::SMAA_T2x_Reprojected,false}};
-        if(capture)m_modes.push_back({"ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R-Repeat",CMAA2Sample::AAType::SMAA_T2x_Reprojected,true});
+        if(capture&&captureFrames==240)m_modes.push_back({"ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R-Repeat",CMAA2Sample::AAType::SMAA_T2x_Reprojected,true});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -52,10 +54,11 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
+            tool.ReportAddRowValues({"presentation_timeline",std::to_string(m_capture?m_captureFrames:240),"60",std::to_string(m_capture?m_captureFrames-120:120),"60","60fps",std::to_string(m_capture?m_startTime:2.0f)});
             tool.ReportAddText("Stencil lifecycle refresh; independent case 5; target ABL-FirstEdge-TemporalOnly-Stencil-PatternOff-R; base ba1761d6a79bbbd84f720fc097e24b726587472f.\r\n");
-            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60; camera/depth motion only.\r\n");
+            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; capture timeline defined by presentation_timeline; timing still60/move120/still60; camera/depth motion only.\r\n");
             tool.ReportAddText("Native pattern On; selective pattern Off. Spatial-frame history; no new filtering/dilation. Required stencil clears included in total SMAA GPU scope; AA-Off has zero AA work by definition.\r\n");
-            tool.ReportAddText(m_capture?"Capture: target/control + target repeat; 240 frames each; no timing claim.\r\n":"Timing: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
+            tool.ReportAddText(m_capture?"Capture: target/control; optional presentation length (default240 includes target repeat); no timing claim.\r\n":"Timing: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats (Smoke 240 x 1). Mode resources recreated; history reset at every 240-frame loop boundary.\r\n");
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             m_output+=L"/case5/"+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -81,16 +84,16 @@ public:
                     m_samples["WallFrame"].push_back((now-m_lastTick)*1000.0);
                 }
                 ++m_frame;
-                if(m_frame>=(m_capture?240:m_measureFrames)){
+                if(m_frame>=(m_capture?m_captureFrames:m_measureFrames)){
                     if(!m_capture)for(auto& kv:m_samples)Summarize(tool,kv.first,kv.second);
                     if(++m_slot==int(m_modes.size())){m_slot=0;++m_run;}
                     if(m_run==(m_capture?1:m_repeats)){Finish(tool);return;}Configure();
                 }
             }
         }
-        m_lastTick=now;const int phase=m_frame<0?0:m_frame%240;
+        m_lastTick=now;const int phase=m_frame<0?0:m_frame%(m_capture?m_captureFrames:240);
         if(m_frame>=0&&phase==0)m_parent.GetSMAA()->ResetTemporalHistory();
-        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f);
+        m_parent.GetFlythroughCameraController()->SetPlayTime((m_capture?m_startTime:2.0f)+float(vaMath::Clamp(phase-60,0,m_capture?m_captureFrames-120:120))/60.0f);
     }
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
@@ -111,8 +114,9 @@ static void QueueStencilLifecycleVerification(CMAA2Sample& parent,AutoBenchTool&
         const bool capture=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleCapture")==0;
         const bool benchmark=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleBenchmark")==0;
         const bool smoke=_wcsicmp(p.first.c_str(),L"smaaStencilLifecycleSmoke")==0;
-        if(!capture&&!benchmark&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
+        if(!capture&&!benchmark&&!smoke)continue;std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;int frames=240;float startTime=2.0f;input>>frames>>startTime;
+        if(frames<120||frames>1440||!std::isfinite(startTime)||startTime<0){VA_LOG_ERROR("Invalid presentation timeline");return;}
         if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");return;}
-        tool.AddTask(std::make_shared<BenchItemStencilLifecycle>(parent,capture,scene==L"minecraft",smoke,output));return;
+        tool.AddTask(std::make_shared<BenchItemStencilLifecycle>(parent,capture,scene==L"minecraft",smoke,output,frames,startTime));return;
     }
 }
