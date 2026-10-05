@@ -244,6 +244,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     neighborhoodRetainTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodRetainPS", defines);
     firstEdgeStencilTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilPS", defines);
     firstEdgeStencilCoverageTechnique = techniqueManagerInterface->CreateTechnique("FirstEdgeStencilCoveragePS", defines);
+    bilinearHistoryRGBTechnique=techniqueManagerInterface->CreateTechnique("BilinearHistoryRGBPS",defines);
+    bilinearHistoryRGBCoverageTechnique=techniqueManagerInterface->CreateTechnique("BilinearHistoryRGBCoveragePS",defines);
+    firstEdgeWeightCoverageTechnique=techniqueManagerInterface->CreateTechnique("FirstEdgeStencilWeightCoveragePS",defines);
     const char *persistenceKinds[] = {"Luma", "LumaRaw", "Color", "Depth"};
     for(int i=0;i<4;++i)
         eagerPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerPersistence")+persistenceKinds[i]+"EdgePS").c_str(),defines);
@@ -414,7 +417,7 @@ void SMAA::reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11Shader
 
 void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage) {
+    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool bilinearHistoryRGB, ID3D11RenderTargetView *weight) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -426,9 +429,10 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
     // No edge SRV: the first pass's exact stencil is the gate.
-    (coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
-    ID3D11RenderTargetView *targets[2] = {output, coverage};
-    context->OMSetRenderTargets(coverage ? 2 : 1, targets, dsv);
+    (bilinearHistoryRGB ? (coverage ? bilinearHistoryRGBCoverageTechnique : bilinearHistoryRGBTechnique) :
+        weight ? firstEdgeWeightCoverageTechnique : coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
+    ID3D11RenderTargetView *targets[3] = {output, coverage, weight};
+    context->OMSetRenderTargets(weight ? 3 : coverage ? 2 : 1, targets, dsv);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
     texturesInterface->SetResource_colorTex(context, nullptr);
