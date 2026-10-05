@@ -1,0 +1,34 @@
+{
+  "case": 12,
+  "semantic_id": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+  "branch": "experiment/edge-history-adaptive-validation",
+  "base": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "dependencies": [
+    "3992640",
+    "96c495a",
+    "b793b74",
+    "573ecfa",
+    "cd8844d"
+  ],
+  "selection": "current OR camera-reprojected previous raw SMAA edge",
+  "spatial": "Original SMAA Ultra",
+  "sample_pattern": "Off",
+  "reprojection": "camera/depth only",
+  "method": "Playdead rounded 3x3 RGB bounds + center clipping + normalized-luma adaptive feedback",
+  "variants": {
+    "ValidatedRGB": [
+      0.88,
+      0.97
+    ],
+    "ResponsiveRGB": [
+      0.05,
+      0.97
+    ],
+    "ClippedRGB": "native 0..0.5 after clipping"
+  },
+  "extra_production_draws": 0,
+  "extra_production_fullscreen_copies": 0,
+  "extra_neighborhood_reads": true,
+  "binary_sha256": "8fee7e7c8bd8b5608f49ccc1d9a0fba7e65a0c9a91fa11238216c860ea10af2f",
+  "status": "Two-scene seed/reset tests passed; quality capture in progress; no adoption conclusion"
+}

@@ -1845,6 +1845,7 @@ protected:
 #include "FirstEdgeStencilVerification.inl"
 #include "EdgeBilinearHistoryRGB.inl"
 #include "EdgeResolvedRGBFeedback.inl"
+#include "EdgeValidatedRGBFeedback.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
@@ -1852,7 +1853,7 @@ void AutoBenchTool::Tick(float deltaTime)
     if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueStencilLifecycleVerification(m_parent,*this);}
     static bool spatialEdgeCommandParsed=false;
     if(!spatialEdgeCommandParsed){spatialEdgeCommandParsed=true;QueueSpatialFirstEdgeVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);
-    QueueFirstEdgeStencilVerification(m_parent,*this);QueueEdgeBilinearHistoryRGB(m_parent,*this);QueueEdgeResolvedRGBFeedback(m_parent,*this);}
+    QueueFirstEdgeStencilVerification(m_parent,*this);QueueEdgeBilinearHistoryRGB(m_parent,*this);QueueEdgeResolvedRGBFeedback(m_parent,*this);QueueEdgeValidatedRGBFeedback(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)
