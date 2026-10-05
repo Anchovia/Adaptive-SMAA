@@ -1,0 +1,4475 @@
+{
+  "validation": "PASS",
+  "case": 6,
+  "scene": "bistro",
+  "baseline": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "capture": "D:\\SMAAResearchCaptures\\history-contribution-20260930\\case6\\bistro\\20260930_230348",
+  "source_capture_receipt": {
+    "case": 6,
+    "scene": "bistro",
+    "arguments": [
+      "-smaaHistoryContributionCapture",
+      "bistro",
+      "D:/SMAAResearchCaptures/history-contribution-20260930"
+    ],
+    "window": "hidden",
+    "timeout_seconds": 600,
+    "started_utc": "2026-09-30T14:03:46.9763649Z",
+    "completed_utc": "2026-09-30T14:05:25.6310419Z",
+    "executable_sha256": "A6F7612C062A6EC15847C52C5BAEE24EEFD93713CEB7D6381A8692FBBD9FE984",
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260930_230348\\20260930_230348_results.csv",
+    "report_sha256": "225E12E829B9FB5570ED32E2E0F222CCB3B5EBB5DD2A5820FF77B2C9A14444ED",
+    "bootstrap_scene_index": 0,
+    "scope": "GPU native history weight/current-color capture; no timing claim"
+  },
+  "verified_final_rgb_frames": 720,
+  "unchanged_coverage_frames": 120,
+  "nonselected_current_mismatch_pixels": 0,
+  "weight_cpu_probes": [
+    {
+      "frame": 100,
+      "safe_pixels": 48960,
+      "selected_pixels": 50610,
+      "maximum_weight_error": 4.842877388000488e-08,
+      "mean_weight_error": 8.264727235918201e-10,
+      "tolerance": 2e-06,
+      "arithmetic": "DXBC mul + fused mad alpha delta",
+      "near_point_sample_boundary_excluded": 1650
+    },
+    {
+      "frame": 179,
+      "safe_pixels": 54501,
+      "selected_pixels": 55776,
+      "maximum_weight_error": 2.9802322387695312e-08,
+      "mean_weight_error": 9.39439415148513e-10,
+      "tolerance": 2e-06,
+      "arithmetic": "DXBC mul + fused mad alpha delta",
+      "near_point_sample_boundary_excluded": 1275
+    },
+    {
+      "frame": 180,
+      "safe_pixels": 54801,
+      "selected_pixels": 56074,
+      "maximum_weight_error": 2.9802322387695312e-08,
+      "mean_weight_error": 9.712769477587813e-10,
+      "tolerance": 2e-06,
+      "arithmetic": "DXBC mul + fused mad alpha delta",
+      "near_point_sample_boundary_excluded": 1273
+    },
+    {
+      "frame": 190,
+      "safe_pixels": 56074,
+      "selected_pixels": 56074,
+      "maximum_weight_error": 0.0,
+      "mean_weight_error": 0.0,
+      "tolerance": 2e-06,
+      "arithmetic": "DXBC mul + fused mad alpha delta",
+      "near_point_sample_boundary_excluded": 0
+    }
+  ],
+  "phases_frame_means": {
+    "moving": {
+      "selected": 53389.1,
+      "coverage_percent": 2.6208127159912036,
+      "weight_mean": 0.4772568646818399,
+      "weight_p10": 0.3789548519998789,
+      "weight_median": 0.49995774440467355,
+      "weight_p90": 0.49998715370893476,
+      "weight_zero_percent": 0.06328596191521188,
+      "weight_below_0_05_percent": 0.08632006512973889,
+      "changed_selected_percent": 67.2550647579674,
+      "delta_mean_max_rgb_level": 3.9240035740611554,
+      "delta_p95_max_rgb_level": 15.9625,
+      "delta_max_rgb_level": 134.325
+    },
+    "transition": {
+      "selected": 56074.0,
+      "coverage_percent": 2.752611530003142,
+      "weight_mean": 0.4664914146065712,
+      "weight_p10": 0.43686396181583403,
+      "weight_median": 0.4684277310967445,
+      "weight_p90": 0.4842149972915649,
+      "weight_zero_percent": 0.9640831758034027,
+      "weight_below_0_05_percent": 1.269394015051539,
+      "changed_selected_percent": 6.751970610265007,
+      "delta_mean_max_rgb_level": 0.377497592467097,
+      "delta_p95_max_rgb_level": 1.5,
+      "delta_max_rgb_level": 12.5
+    },
+    "late_still": {
+      "selected": 56074.0,
+      "coverage_percent": 2.752611530003141,
+      "weight_mean": 0.5,
+      "weight_p10": 0.5,
+      "weight_median": 0.5,
+      "weight_p90": 0.5,
+      "weight_zero_percent": 0.0,
+      "weight_below_0_05_percent": 0.0,
+      "changed_selected_percent": 0.0,
+      "delta_mean_max_rgb_level": 0.0,
+      "delta_p95_max_rgb_level": 0.0,
+      "delta_max_rgb_level": 0.0
+    }
+  },
+  "frames": [
+    {
+      "frame": 100,
+      "full": {
+        "selected": 50610,
+        "coverage_percent": 2.48438972667295,
+        "weight_mean": 0.47996577620506287,
+        "weight_p10": 0.3915347456932068,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.05137324639399329,
+        "weight_below_0_05_percent": 0.08693934005137324,
+        "changed_selected_percent": 65.81505631298162,
+        "delta_mean_max_rgb_level": 3.8909899229401304,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 121
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8574,
+          "coverage_percent": 15.50564236111111,
+          "weight_mean": 0.48959511518478394,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 65.2787497084208,
+          "delta_mean_max_rgb_level": 3.1393748542104034,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 82
+        }
+      },
+      "weight_sha256": "567f49e1d23316d8d3c575e5d0b077af8fc4e375c06e8805336eeca95d582f57",
+      "current_rgb_sha256": "4977626332395af1ea17ac42ba1db2ff605ebcbcbd0c80640c3ec602888a6efe",
+      "coverage_sha256": "ac34b8f5dda78fe5b987b8bcfbe46d0ec5cc13355f23ce3eb3ddbf6dcd10bd40"
+    },
+    {
+      "frame": 101,
+      "full": {
+        "selected": 50507,
+        "coverage_percent": 2.4793335689601004,
+        "weight_mean": 0.4783608317375183,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.0296988536242501,
+        "weight_below_0_05_percent": 0.06533747797335022,
+        "changed_selected_percent": 66.52741204189519,
+        "delta_mean_max_rgb_level": 4.265626546815293,
+        "delta_p95_max_rgb_level": 18.0,
+        "delta_max_rgb_level": 154
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8734,
+          "coverage_percent": 15.794994212962962,
+          "weight_mean": 0.48973631858825684,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 64.19738951225096,
+          "delta_mean_max_rgb_level": 3.1210212960842685,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 73
+        }
+      },
+      "weight_sha256": "670ceff3e34f00a523cb4668a2548b737e5f1dca5e67e7e51c74769d1f590a8f",
+      "current_rgb_sha256": "70e7569d5d88161e3ce889ec49685c1da8b1d9e48537df6fc79360c50ef7a324",
+      "coverage_sha256": "e0da74ec6f653e87b5337a7dcfe24da23940c0806ba483468bd625794a4b91b9"
+    },
+    {
+      "frame": 102,
+      "full": {
+        "selected": 50779,
+        "coverage_percent": 2.49268575243481,
+        "weight_mean": 0.4777798652648926,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.037417042478189805,
+        "weight_below_0_05_percent": 0.13391362571141616,
+        "changed_selected_percent": 67.66970598081883,
+        "delta_mean_max_rgb_level": 4.141653045550326,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 131
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8598,
+          "coverage_percent": 15.54904513888889,
+          "weight_mean": 0.49023526906967163,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.770644335892065,
+          "delta_mean_max_rgb_level": 3.1223540358222843,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 89
+        }
+      },
+      "weight_sha256": "68cf4e50b8d017c689090e6699c35d899875dfbaf47290b8487086bcc5c9a416",
+      "current_rgb_sha256": "a185012696baaba731694b2aaaebe72a767083687874137d87b463447b8bd733",
+      "coverage_sha256": "5815b225e32dea5fdee2aad866d7582f341552456172fe32b5a9705571149f74"
+    },
+    {
+      "frame": 103,
+      "full": {
+        "selected": 50696,
+        "coverage_percent": 2.4886113729186303,
+        "weight_mean": 0.4791117012500763,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.047341013097680296,
+        "weight_below_0_05_percent": 0.11835253274420073,
+        "changed_selected_percent": 66.29714375887644,
+        "delta_mean_max_rgb_level": 3.882180053653148,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 150
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8663,
+          "coverage_percent": 15.666594328703704,
+          "weight_mean": 0.4890446364879608,
+          "weight_p10": 0.4999380111694336,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.869329331640316,
+          "delta_mean_max_rgb_level": 3.0549463234445344,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 74
+        }
+      },
+      "weight_sha256": "9df03a57a67176b68620a1015e7a919af798f76bfbdbff6c081697ecda28cd56",
+      "current_rgb_sha256": "0100007d01390be2c920fb69b3adc2d97240577208204e2e9b8bbb6cf82c0ec3",
+      "coverage_sha256": "a6f0c4fed9bee396072db74b42b563699a5c47d4b277b4debbd8a372aa7394a2"
+    },
+    {
+      "frame": 104,
+      "full": {
+        "selected": 51097,
+        "coverage_percent": 2.50829602576186,
+        "weight_mean": 0.47768282890319824,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.03914124116875746,
+        "weight_below_0_05_percent": 0.12133784762314813,
+        "changed_selected_percent": 67.34054836878877,
+        "delta_mean_max_rgb_level": 4.249114429418557,
+        "delta_p95_max_rgb_level": 18.0,
+        "delta_max_rgb_level": 129
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8896,
+          "coverage_percent": 16.087962962962962,
+          "weight_mean": 0.48837709426879883,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.95008992805755,
+          "delta_mean_max_rgb_level": 3.054743705035971,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 86
+        }
+      },
+      "weight_sha256": "5effe97aea31378ebc9c7e5f161cc7f115f4f171f3004ce760c2b2d02bbc7044",
+      "current_rgb_sha256": "8c078385e856e3c7c6beeb15680e4b813df84843f15d107952edcc89de8eb1ca",
+      "coverage_sha256": "824e5f2966fff677e9b1c4d0fa336f3ac0cb7bc92f59acaa079ebeee73f283f2"
+    },
+    {
+      "frame": 105,
+      "full": {
+        "selected": 51288,
+        "coverage_percent": 2.5176720075400563,
+        "weight_mean": 0.4777187407016754,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.048744345655903916,
+        "weight_below_0_05_percent": 0.14233348931523943,
+        "changed_selected_percent": 67.19310559975042,
+        "delta_mean_max_rgb_level": 3.828614880673842,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 139
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8808,
+          "coverage_percent": 15.928819444444445,
+          "weight_mean": 0.48905736207962036,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 65.9741144414169,
+          "delta_mean_max_rgb_level": 3.192665758401453,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 82
+        }
+      },
+      "weight_sha256": "039cc2f6b811a925820f316d88cb990425d87b4105f8b113176e6733c1d4c651",
+      "current_rgb_sha256": "4dc3507b1e296ae68c85b6d3633590e1a29a278d672a8eaa6c06d28eef0aaab3",
+      "coverage_sha256": "0164ced4bb6ca0417e01787de4030477693be71058199ac339f1431be5574b0c"
+    },
+    {
+      "frame": 106,
+      "full": {
+        "selected": 51468,
+        "coverage_percent": 2.5265080113100846,
+        "weight_mean": 0.4789228141307831,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.04468796145177586,
+        "weight_below_0_05_percent": 0.08743296805782234,
+        "changed_selected_percent": 67.36613041112925,
+        "delta_mean_max_rgb_level": 4.2013095515660215,
+        "delta_p95_max_rgb_level": 18.0,
+        "delta_max_rgb_level": 135
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8732,
+          "coverage_percent": 15.791377314814813,
+          "weight_mean": 0.48989421129226685,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.08978469995419,
+          "delta_mean_max_rgb_level": 2.9011681172698123,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 69
+        }
+      },
+      "weight_sha256": "c4be1c3d68f269381ce2c6e081374cb6bc8447100250cf72ace326d506daa03a",
+      "current_rgb_sha256": "bd1ed593115d73467955ad025d8faff9bee09f803a857ccf862c7f70bdc0b38b",
+      "coverage_sha256": "c226492a560c364de29d0659b2ac764f0eb03466ba74fe4263eb645b421bd26a"
+    },
+    {
+      "frame": 107,
+      "full": {
+        "selected": 51179,
+        "coverage_percent": 2.512321316368206,
+        "weight_mean": 0.47809115052223206,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.03517067547236171,
+        "weight_below_0_05_percent": 0.11918951132300357,
+        "changed_selected_percent": 67.32253463334571,
+        "delta_mean_max_rgb_level": 4.108990015436019,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 157
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8875,
+          "coverage_percent": 16.04998553240741,
+          "weight_mean": 0.4894140064716339,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.71549295774648,
+          "delta_mean_max_rgb_level": 3.0460845070422535,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 74
+        }
+      },
+      "weight_sha256": "eb68e574f99c82ac5fd4772709f767559ba2bdde0a42da4aa85f001fd1ba9959",
+      "current_rgb_sha256": "09902f8871a028c6ae8a3df8255bebc1177943f018305d4e444882f085bd9abb",
+      "coverage_sha256": "dc646c422d91447d98d18b0e3e8f086e755b2cc3fd78384a105af5cc846d8711"
+    },
+    {
+      "frame": 108,
+      "full": {
+        "selected": 51311,
+        "coverage_percent": 2.5188010524662268,
+        "weight_mean": 0.4772558808326721,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.05846699538110736,
+        "weight_below_0_05_percent": 0.12083179045428855,
+        "changed_selected_percent": 67.71647405039855,
+        "delta_mean_max_rgb_level": 4.416129095125801,
+        "delta_p95_max_rgb_level": 18.0,
+        "delta_max_rgb_level": 141
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8790,
+          "coverage_percent": 15.89626736111111,
+          "weight_mean": 0.48946478962898254,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.845278725824805,
+          "delta_mean_max_rgb_level": 2.9128555176336746,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 71
+        }
+      },
+      "weight_sha256": "42f0112a6e3e0dd123b2bd002b4f186ba00771e3760a84e5e055db20441e2a00",
+      "current_rgb_sha256": "f2f9530c7f6e2cbacfccb88a8f8ebd2099886f6e1d686833db4569e917f70015",
+      "coverage_sha256": "398318ff338d5b630f10bbfb3b1d80dc4738579fbb159cad50f212ac353feb08"
+    },
+    {
+      "frame": 109,
+      "full": {
+        "selected": 51634,
+        "coverage_percent": 2.534656770342444,
+        "weight_mean": 0.4775799512863159,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.0755316264476895,
+        "weight_below_0_05_percent": 0.11620250222721462,
+        "changed_selected_percent": 67.67246388038889,
+        "delta_mean_max_rgb_level": 4.324650424139133,
+        "delta_p95_max_rgb_level": 18.0,
+        "delta_max_rgb_level": 129
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8908,
+          "coverage_percent": 16.10966435185185,
+          "weight_mean": 0.4883734881877899,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 64.27929950606197,
+          "delta_mean_max_rgb_level": 3.1725415356982487,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 83
+        }
+      },
+      "weight_sha256": "84588c9b28465741073187b3741d540ff8bfbebe7f668d93d4a76d1ef4f1ba79",
+      "current_rgb_sha256": "1587b7e8d98265a5036b67f370ac29e27324c3b82b99c18cc2dc948552a4e6cb",
+      "coverage_sha256": "39e7fe30aaf566932732bc984d124ed4d2f58d5b4f571fcf62de7439c0293452"
+    },
+    {
+      "frame": 110,
+      "full": {
+        "selected": 51994,
+        "coverage_percent": 2.552328777882501,
+        "weight_mean": 0.4780442714691162,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.09808824095087895,
+        "weight_below_0_05_percent": 0.14040081547870908,
+        "changed_selected_percent": 67.730892026003,
+        "delta_mean_max_rgb_level": 4.098876793476171,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 122
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8974,
+          "coverage_percent": 16.22902199074074,
+          "weight_mean": 0.4883275032043457,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.683975930465785,
+          "delta_mean_max_rgb_level": 3.1786271450858035,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 69
+        }
+      },
+      "weight_sha256": "c54b7cf6da9693d283febb8f309485d3dfab114bcd562dfdfccf7291942b94a9",
+      "current_rgb_sha256": "04de38793a07e5a8fbd5e3e94c197c12861daff12feced1db7c495926179206b",
+      "coverage_sha256": "d963f60a324a6453c7f95d9392719a9a2d2e5f99a5821d409c1e6164c6190701"
+    },
+    {
+      "frame": 111,
+      "full": {
+        "selected": 52107,
+        "coverage_percent": 2.5578758246936855,
+        "weight_mean": 0.4776199758052826,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.06525035024085056,
+        "weight_below_0_05_percent": 0.11322854894735832,
+        "changed_selected_percent": 66.60909282821885,
+        "delta_mean_max_rgb_level": 4.0469418696144475,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 153
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8960,
+          "coverage_percent": 16.203703703703702,
+          "weight_mean": 0.48936352133750916,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.56026785714286,
+          "delta_mean_max_rgb_level": 3.1776785714285714,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 64
+        }
+      },
+      "weight_sha256": "a049657e44b32a9217c6dbd35d681f024a1237ed49454f7c39a9f52826c55965",
+      "current_rgb_sha256": "9511dd0bb0ada2af2bb9f4deede22a597458efb21ad1a0d50d03c92ad1ac9b78",
+      "coverage_sha256": "d708796018cd5e722cd88ed53d99e31017f196ab7389ce56426c4b96abbd8a54"
+    },
+    {
+      "frame": 112,
+      "full": {
+        "selected": 51991,
+        "coverage_percent": 2.5521815111530004,
+        "weight_mean": 0.4778333902359009,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.07501298301629128,
+        "weight_below_0_05_percent": 0.14617914639072146,
+        "changed_selected_percent": 67.6155488449924,
+        "delta_mean_max_rgb_level": 4.496374372487546,
+        "delta_p95_max_rgb_level": 19.0,
+        "delta_max_rgb_level": 134
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8782,
+          "coverage_percent": 15.881799768518517,
+          "weight_mean": 0.4887621998786926,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.71919836028239,
+          "delta_mean_max_rgb_level": 2.9390799362332043,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 82
+        }
+      },
+      "weight_sha256": "ef839efd490a918f5d165fbf8a53d60e029f0ba3ce54da788bf8f8eff66aa76d",
+      "current_rgb_sha256": "af9fab32513470d14177ae949a5ff425b42af24753a13cb069a932567876275a",
+      "coverage_sha256": "9650d3d58a4d8e08d00ac463387dc33610e653426c03824d91e0d7fd12bf2d6b"
+    },
+    {
+      "frame": 113,
+      "full": {
+        "selected": 52234,
+        "coverage_percent": 2.5641101162425386,
+        "weight_mean": 0.4777964651584625,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.03063138951640694,
+        "weight_below_0_05_percent": 0.10912432515219972,
+        "changed_selected_percent": 67.04445380403568,
+        "delta_mean_max_rgb_level": 4.032296971321362,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 151
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9091,
+          "coverage_percent": 16.44061053240741,
+          "weight_mean": 0.48849260807037354,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 64.32735672643274,
+          "delta_mean_max_rgb_level": 3.1733582664173356,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 95
+        }
+      },
+      "weight_sha256": "6faed43042034ee28984dcbe9c07201de4997895fc08a246f2ecf6b84d84f5a7",
+      "current_rgb_sha256": "37528140db3e87352bdbaac7c510c9f85c450518923050e0483ac822f7511b02",
+      "coverage_sha256": "777f54dc634fdfc05a9f94d2bc94c08d37ce1698e968c792ba9df8941f8be041"
+    },
+    {
+      "frame": 114,
+      "full": {
+        "selected": 52231,
+        "coverage_percent": 2.5639628495130378,
+        "weight_mean": 0.47835981845855713,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.049778866956405196,
+        "weight_below_0_05_percent": 0.11870345197296625,
+        "changed_selected_percent": 67.8390228025502,
+        "delta_mean_max_rgb_level": 4.151959564243457,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 132
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9036,
+          "coverage_percent": 16.341145833333336,
+          "weight_mean": 0.48948222398757935,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 64.02169101372289,
+          "delta_mean_max_rgb_level": 3.1323594510845507,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 75
+        }
+      },
+      "weight_sha256": "365193d0c0ef44bb2819d64f237cba4748358b613275e51fb1b8eff5774c11f6",
+      "current_rgb_sha256": "578ad27f96c7cf8dc895ed6310e3ba2e227f4dfcb9212df9a4ac2e79a0f28272",
+      "coverage_sha256": "0cca232796d626c0b25d25c2c2d65b91593cb0a91b7a7a65f9ece56a5b780cb1"
+    },
+    {
+      "frame": 115,
+      "full": {
+        "selected": 52106,
+        "coverage_percent": 2.5578267357838516,
+        "weight_mean": 0.4762384295463562,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.05565577860515104,
+        "weight_below_0_05_percent": 0.10171573331286224,
+        "changed_selected_percent": 68.46812267301272,
+        "delta_mean_max_rgb_level": 4.322592407784132,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 138
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8946,
+          "coverage_percent": 16.178385416666664,
+          "weight_mean": 0.48964545130729675,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.27967806841046,
+          "delta_mean_max_rgb_level": 3.0083836351441984,
+          "delta_p95_max_rgb_level": 12.75,
+          "delta_max_rgb_level": 81
+        }
+      },
+      "weight_sha256": "cc29d488323de219c3ac6732a490c810d5a2f9e4c016437a7a3e47f88618b501",
+      "current_rgb_sha256": "addcdaae37b0d180bc51f14ee90ececaaf6401f3479130a34387f967eb0544d1",
+      "coverage_sha256": "6354a5d22af405ccfe73a6f08317fe17781505c1ef3068fc605606f89b43515c"
+    },
+    {
+      "frame": 116,
+      "full": {
+        "selected": 52207,
+        "coverage_percent": 2.5627847156770343,
+        "weight_mean": 0.4768379330635071,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.04980175072308311,
+        "weight_below_0_05_percent": 0.07470262608462466,
+        "changed_selected_percent": 67.61928477024153,
+        "delta_mean_max_rgb_level": 4.2389717853927635,
+        "delta_p95_max_rgb_level": 18.0,
+        "delta_max_rgb_level": 130
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8938,
+          "coverage_percent": 16.163917824074073,
+          "weight_mean": 0.4886738657951355,
+          "weight_p10": 0.44117647409439087,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.8887894383531,
+          "delta_mean_max_rgb_level": 3.1305661221749834,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 81
+        }
+      },
+      "weight_sha256": "7fc74c093ed049cd1495679bf57059a21963c91b96d2f45e29587135baea78e7",
+      "current_rgb_sha256": "92b7e9bdf8eafc340e92e4b53bea2c33b2b5fda72c6692965380a8c0d07446bf",
+      "coverage_sha256": "2b6cbb63468e6f449c35e4cbb100de90aba2af4a061d94e28a4e23fd0043070c"
+    },
+    {
+      "frame": 117,
+      "full": {
+        "selected": 51931,
+        "coverage_percent": 2.549236176562991,
+        "weight_mean": 0.4786209762096405,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.03273574550846315,
+        "weight_below_0_05_percent": 0.06162022683946006,
+        "changed_selected_percent": 68.35801351793727,
+        "delta_mean_max_rgb_level": 4.135429704800601,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 124
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8893,
+          "coverage_percent": 16.08253761574074,
+          "weight_mean": 0.48970842361450195,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.19577195547059,
+          "delta_mean_max_rgb_level": 3.0548746204880244,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 87
+        }
+      },
+      "weight_sha256": "fc2370e633ed982baee6849af94368819358d9ad19c202d74a5e0ce5c293a0d9",
+      "current_rgb_sha256": "ea3a92c066602ca9b6972d2b568fb52632fbaf3fc7a01296db23772791feb8b2",
+      "coverage_sha256": "8bbe9089c6cfcc639e0ecae50541c08dd3abd29c7b4fd8be1f8f9839e290be25"
+    },
+    {
+      "frame": 118,
+      "full": {
+        "selected": 52206,
+        "coverage_percent": 2.562735626767201,
+        "weight_mean": 0.4780249297618866,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.03447879554074244,
+        "weight_below_0_05_percent": 0.08428150021070376,
+        "changed_selected_percent": 67.915565260698,
+        "delta_mean_max_rgb_level": 4.131862238056929,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 129
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8844,
+          "coverage_percent": 15.99392361111111,
+          "weight_mean": 0.4893445074558258,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.01944821347807,
+          "delta_mean_max_rgb_level": 2.9252600633197647,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 88
+        }
+      },
+      "weight_sha256": "e301a7266b1f9ff3f579bbb67b5604923027000aad1e843bd57ecfe146ba2a5b",
+      "current_rgb_sha256": "cb42d76710f87334fdd172cc9a33a23670b4e02daa84e10474258ee23718c503",
+      "coverage_sha256": "e367f328b3fa1c6111ea797bade0cd885106b6b2e4710ea7bf3c2354cfa4c661"
+    },
+    {
+      "frame": 119,
+      "full": {
+        "selected": 52327,
+        "coverage_percent": 2.568675384857053,
+        "weight_mean": 0.4768182635307312,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.045865423204082024,
+        "weight_below_0_05_percent": 0.08408660920748372,
+        "changed_selected_percent": 67.72220842012727,
+        "delta_mean_max_rgb_level": 4.110917881781872,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 132
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8927,
+          "coverage_percent": 16.14402488425926,
+          "weight_mean": 0.48944324254989624,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.58843956536351,
+          "delta_mean_max_rgb_level": 3.0672118292819537,
+          "delta_p95_max_rgb_level": 12.699999999998909,
+          "delta_max_rgb_level": 93
+        }
+      },
+      "weight_sha256": "ae90e3cad23c12affc40a0ff41a83b857be1ec1e65e727310a789d26f06d7560",
+      "current_rgb_sha256": "839e3b8d79e23dccb55ea20936acc033ebc3387d4fd32560d22c7c21d6b84f41",
+      "coverage_sha256": "bdd7d8b64e147a978eed5433072c9e76db0bef8eeeea3a0a828ebb877f26d74c"
+    },
+    {
+      "frame": 120,
+      "full": {
+        "selected": 52065,
+        "coverage_percent": 2.5558140904806783,
+        "weight_mean": 0.4776996672153473,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.05185825410544512,
+        "weight_below_0_05_percent": 0.0825890713531163,
+        "changed_selected_percent": 68.23777969845386,
+        "delta_mean_max_rgb_level": 4.038586382406607,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 132
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9023,
+          "coverage_percent": 16.31763599537037,
+          "weight_mean": 0.48839685320854187,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.936606450182865,
+          "delta_mean_max_rgb_level": 3.17300232738557,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 85
+        }
+      },
+      "weight_sha256": "cb55fb102cc403255b3d52533d4cb5568dd0137a7b8a81206386e9b9a5572028",
+      "current_rgb_sha256": "320c754fd94de1384435895da5c44d2a436e765d92050f81291daaaf6acd6aab",
+      "coverage_sha256": "8eb2bf5909990ab19b24fde265a24d413a1c7d75651ce6fac62bd0524cd943b6"
+    },
+    {
+      "frame": 121,
+      "full": {
+        "selected": 52418,
+        "coverage_percent": 2.573142475651901,
+        "weight_mean": 0.476123571395874,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.053416765233316794,
+        "weight_below_0_05_percent": 0.0934793391583044,
+        "changed_selected_percent": 68.64626654965852,
+        "delta_mean_max_rgb_level": 4.298485253157312,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 162
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 8963,
+          "coverage_percent": 16.209129050925927,
+          "weight_mean": 0.48961153626441956,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.29354010933839,
+          "delta_mean_max_rgb_level": 3.0561196028115587,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 78
+        }
+      },
+      "weight_sha256": "2d2d3d9519cde7cd4fb7d0371cd17dbabea88fa8b26cd1c3f52ef55747b38d2c",
+      "current_rgb_sha256": "898b585bc1cd2c5497a9dde285de7cf520a334f43fc20697463b7ec8b697af57",
+      "coverage_sha256": "c0878e657610044dcacb244e62a89fd9cbabc75f95279a7db7fa2b6614b44b3f"
+    },
+    {
+      "frame": 122,
+      "full": {
+        "selected": 52837,
+        "coverage_percent": 2.593710728872133,
+        "weight_mean": 0.47718673944473267,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.08895281715464542,
+        "weight_below_0_05_percent": 0.15897950299979183,
+        "changed_selected_percent": 67.45840982644738,
+        "delta_mean_max_rgb_level": 3.8975339250903724,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 136
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9071,
+          "coverage_percent": 16.404441550925927,
+          "weight_mean": 0.4893239736557007,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.47381766067688,
+          "delta_mean_max_rgb_level": 3.10583177157976,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 93
+        }
+      },
+      "weight_sha256": "5bfa51b04427f437493f798c51cc7237b1a27f00b5e6b2ef637f7a71f12fcc89",
+      "current_rgb_sha256": "2721da6f382aa1ddf749e8da65fc222690ebe8465294081f6f9fbdce33db786e",
+      "coverage_sha256": "eecb86b46fc0e3b303b3903093fe51d03f70a32ba53c69457628b59912dde28c"
+    },
+    {
+      "frame": 123,
+      "full": {
+        "selected": 52891,
+        "coverage_percent": 2.5963615300031417,
+        "weight_mean": 0.4773832857608795,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.03403225501503092,
+        "weight_below_0_05_percent": 0.0831899567034089,
+        "changed_selected_percent": 67.58427709818305,
+        "delta_mean_max_rgb_level": 4.279329186440037,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 150
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9162,
+          "coverage_percent": 16.569010416666664,
+          "weight_mean": 0.48922643065452576,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.46452739576511,
+          "delta_mean_max_rgb_level": 3.0734555773848506,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 74
+        }
+      },
+      "weight_sha256": "047d29bd12fb98231e43821e1e4873058f646c29d2be975410db375891a8ebac",
+      "current_rgb_sha256": "0eba2341052a1b6b4cc5ecd5fdc1f06f13feb040933fc3953b7ea36c0b7b0d3e",
+      "coverage_sha256": "6fc1ba9dd5103bfad8ecec86e3e7eab1c672030e62cd9f9c76e5da9d5dd082a1"
+    },
+    {
+      "frame": 124,
+      "full": {
+        "selected": 52388,
+        "coverage_percent": 2.571669808356896,
+        "weight_mean": 0.47891727089881897,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.041994349851110946,
+        "weight_below_0_05_percent": 0.06680919294494923,
+        "changed_selected_percent": 67.11460639841185,
+        "delta_mean_max_rgb_level": 3.7526532793769567,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 142
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9062,
+          "coverage_percent": 16.38816550925926,
+          "weight_mean": 0.4903818964958191,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.39924961377179,
+          "delta_mean_max_rgb_level": 2.776539395276981,
+          "delta_p95_max_rgb_level": 11.0,
+          "delta_max_rgb_level": 75
+        }
+      },
+      "weight_sha256": "e92f4b16902bc62cba5a88ee1085c283463ff6674360d52d00c84134a7af3342",
+      "current_rgb_sha256": "66fdc20c95d2905e78e647ffedf8ce96a47d6dd8f3743c62d899a84873b1663e",
+      "coverage_sha256": "929ff3aa575d7b12ab3a124b2cf9a61361a060de08a1ed3ed0a170f0f8e68dc3"
+    },
+    {
+      "frame": 125,
+      "full": {
+        "selected": 52464,
+        "coverage_percent": 2.5754005655042413,
+        "weight_mean": 0.4763178527355194,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.06671241232082951,
+        "weight_below_0_05_percent": 0.11627020433058859,
+        "changed_selected_percent": 67.53392802683746,
+        "delta_mean_max_rgb_level": 4.227050930161635,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 156
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9103,
+          "coverage_percent": 16.462311921296298,
+          "weight_mean": 0.4896417558193207,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.265187300889814,
+          "delta_mean_max_rgb_level": 2.9573766890036253,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 84
+        }
+      },
+      "weight_sha256": "a7ff46e618188b3b74460cf3221f6fc713fa71cde5f3a20bfc2b9456f0982d2f",
+      "current_rgb_sha256": "019ac1687525ed12cc9e1b6aed8f8720d974f4e77f6b3ac90da7eda2be86042f",
+      "coverage_sha256": "bc42af8223e65c647fc4d3b3582267d8cc2f946b88def61e226963dade813891"
+    },
+    {
+      "frame": 126,
+      "full": {
+        "selected": 52959,
+        "coverage_percent": 2.599699575871819,
+        "weight_mean": 0.47678229212760925,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.049094582601635225,
+        "weight_below_0_05_percent": 0.0698653675484809,
+        "changed_selected_percent": 67.40875016522216,
+        "delta_mean_max_rgb_level": 3.7844558998470514,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 119
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9127,
+          "coverage_percent": 16.505714699074073,
+          "weight_mean": 0.48935508728027344,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.18615098060699,
+          "delta_mean_max_rgb_level": 2.9310835981154817,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 80
+        }
+      },
+      "weight_sha256": "b2b56de8f827c5eb9d1be9b5fe016dbfa4710c596fe360ec5bb0230219cca5de",
+      "current_rgb_sha256": "11801b2a8eb948760e52a29a4bef9c6a68050b9605d9c853fccc420ee6de5228",
+      "coverage_sha256": "ae599ab8eb41ffad7fce861e866c80182dae71d87b016963639103221598d285"
+    },
+    {
+      "frame": 127,
+      "full": {
+        "selected": 52785,
+        "coverage_percent": 2.5911581055607917,
+        "weight_mean": 0.4769915044307709,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.04925641754286255,
+        "weight_below_0_05_percent": 0.06820119352088662,
+        "changed_selected_percent": 69.01771336553946,
+        "delta_mean_max_rgb_level": 4.293909254523065,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 132
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9140,
+          "coverage_percent": 16.529224537037038,
+          "weight_mean": 0.48865702748298645,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 64.97811816192561,
+          "delta_mean_max_rgb_level": 3.189387308533917,
+          "delta_p95_max_rgb_level": 14.0,
+          "delta_max_rgb_level": 76
+        }
+      },
+      "weight_sha256": "7e52f1486665247985c557022fee529ec9c8d6a7835071fde9b8d626f8ec45f4",
+      "current_rgb_sha256": "0b4265fae1a8e5cd42f555657d2f78aaa0d1f9f48bc24a7c32323fee3a34ffa3",
+      "coverage_sha256": "7ffa97e88640d41940dc5ebd6f723378691668a314db3f6fabbb1428259f70c3"
+    },
+    {
+      "frame": 128,
+      "full": {
+        "selected": 52637,
+        "coverage_percent": 2.583892946905435,
+        "weight_mean": 0.47796982526779175,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.0474951080038756,
+        "weight_below_0_05_percent": 0.06459334688527082,
+        "changed_selected_percent": 66.56534376959173,
+        "delta_mean_max_rgb_level": 3.734768318863157,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 114
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9155,
+          "coverage_percent": 16.55635127314815,
+          "weight_mean": 0.48980504274368286,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.343528126706715,
+          "delta_mean_max_rgb_level": 2.7899508465319496,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 68
+        }
+      },
+      "weight_sha256": "47504ab2fc77b00739b6d1afbe0eca166e31bb9ff15e0da29aa5622f704b3c5f",
+      "current_rgb_sha256": "14231116aca535852c92eac77c4aa33bf2ba31a26796d58c9df3dffb5f8edb19",
+      "coverage_sha256": "fb28f69143da2d7adc740f67c1ea9b287ed8d02f3f756daa4b73dad5bfd4db3b"
+    },
+    {
+      "frame": 129,
+      "full": {
+        "selected": 52701,
+        "coverage_percent": 2.5870346371347783,
+        "weight_mean": 0.4779551923274994,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.055027418834557223,
+        "weight_below_0_05_percent": 0.08159237965124001,
+        "changed_selected_percent": 67.25489079903608,
+        "delta_mean_max_rgb_level": 3.9580083869376295,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 156
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9154,
+          "coverage_percent": 16.554542824074073,
+          "weight_mean": 0.48944246768951416,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.3602796591654,
+          "delta_mean_max_rgb_level": 3.012562814070352,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 84
+        }
+      },
+      "weight_sha256": "5fb78bc042ae402ad4290ff7d5874a151efe93db4819a8791e15c5dc8214b0f6",
+      "current_rgb_sha256": "2cdd2d7a53c3edf6ec9a8aa81f7031539c9ccdf26f7f546ffb6ab126d99c3679",
+      "coverage_sha256": "90b1d6be2a8989f58fb31df04633360f97224db685d1c7e7ba4e5c35ec19bebd"
+    },
+    {
+      "frame": 130,
+      "full": {
+        "selected": 52642,
+        "coverage_percent": 2.5841383914546023,
+        "weight_mean": 0.47669681906700134,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.030393981991565674,
+        "weight_below_0_05_percent": 0.05128984461076707,
+        "changed_selected_percent": 67.80897382318301,
+        "delta_mean_max_rgb_level": 3.952908324151818,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 163
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9305,
+          "coverage_percent": 16.82761863425926,
+          "weight_mean": 0.48949453234672546,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.095110155830206,
+          "delta_mean_max_rgb_level": 2.8728640515851693,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 81
+        }
+      },
+      "weight_sha256": "e38636caf4d2e914b7843db912a993eb6b02eeddbfcf165a14e573d1122274f5",
+      "current_rgb_sha256": "bfa7bceac197f95da6b7bb137d0bb9f580b0a05e0c326f97a39c63696cdb4ef8",
+      "coverage_sha256": "7e96fcbde7597c32a627a86dc231b7134fa0e19b2464e8e62361176897033ce9"
+    },
+    {
+      "frame": 131,
+      "full": {
+        "selected": 52848,
+        "coverage_percent": 2.5942507068803016,
+        "weight_mean": 0.4769735634326935,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.07379654859218891,
+        "weight_below_0_05_percent": 0.10974871329094762,
+        "changed_selected_percent": 67.54465637299425,
+        "delta_mean_max_rgb_level": 4.133874508023009,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 143
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9251,
+          "coverage_percent": 16.72996238425926,
+          "weight_mean": 0.4894021153450012,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.031023673116415,
+          "delta_mean_max_rgb_level": 3.0474543292617016,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 80
+        }
+      },
+      "weight_sha256": "42928191655287c934b75a3c1d24d6692058a8fa305adcb5a55e07fd612200c8",
+      "current_rgb_sha256": "2ef1ad56507eafb36f8174550d3048d1b667fa0f8ae7571a3bd69d42a4839354",
+      "coverage_sha256": "700ed27d7487c0a6a8af5bec64c80d7f049a7432b2dfa155e929112e65704728"
+    },
+    {
+      "frame": 132,
+      "full": {
+        "selected": 53082,
+        "coverage_percent": 2.6057375117813386,
+        "weight_mean": 0.47782179713249207,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.13187144418070157,
+        "weight_below_0_05_percent": 0.15636185524283186,
+        "changed_selected_percent": 67.02837119927659,
+        "delta_mean_max_rgb_level": 3.9825741305904074,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 130
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9308,
+          "coverage_percent": 16.83304398148148,
+          "weight_mean": 0.4892261326313019,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.505371723248814,
+          "delta_mean_max_rgb_level": 2.846476149548775,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 95
+        }
+      },
+      "weight_sha256": "c032dbe362aaed18385d1ba45f5a78e183a851993d5892156e32b4a1a57a4d9a",
+      "current_rgb_sha256": "da0cb0fec479b1c6799aa2a67c9b9c88dd6c676074e757a679fa7ef1cdf9a5bd",
+      "coverage_sha256": "3330cbec2aa1f25b5d154db51c0c5f72a5e9889aab5e49657f755d9f92208707"
+    },
+    {
+      "frame": 133,
+      "full": {
+        "selected": 52938,
+        "coverage_percent": 2.5986687087653157,
+        "weight_mean": 0.4781723916530609,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.10578412482526729,
+        "weight_below_0_05_percent": 0.11145113151233518,
+        "changed_selected_percent": 68.40643771959651,
+        "delta_mean_max_rgb_level": 3.973705088972005,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 138
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9229,
+          "coverage_percent": 16.69017650462963,
+          "weight_mean": 0.4881887137889862,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.83140101852855,
+          "delta_mean_max_rgb_level": 3.2117239137501357,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 76
+        }
+      },
+      "weight_sha256": "101829f325789498453252077b95470107a07a72ae9de26ca7912a25c32109c9",
+      "current_rgb_sha256": "c1a07fd3a3ea67566df67fcfa099a5e826f3ba422a347a57effe9389efadda3a",
+      "coverage_sha256": "425999a77a56da39bcfe6fd05340221c1d41583dda53a29450af8824ae6e6662"
+    },
+    {
+      "frame": 134,
+      "full": {
+        "selected": 52969,
+        "coverage_percent": 2.600190464970154,
+        "weight_mean": 0.4777534008026123,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.09439483471464442,
+        "weight_below_0_05_percent": 0.09439483471464442,
+        "changed_selected_percent": 66.79944873416527,
+        "delta_mean_max_rgb_level": 3.8756064868130418,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 128
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9288,
+          "coverage_percent": 16.796875,
+          "weight_mean": 0.490594744682312,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.34926787252368,
+          "delta_mean_max_rgb_level": 2.811477174849268,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 80
+        }
+      },
+      "weight_sha256": "faa0c085ed71cdddf605166b7209998b41f2e326d1ae9c18bdc803f03e2f144f",
+      "current_rgb_sha256": "b2b0f88247d358888bc8cc8535a1347afb7837e33a09ec0fcfaa1ad9ba57b570",
+      "coverage_sha256": "2430783a6aee93c72d3eaf3c693d0cb371ea3defbdc8d8cc8f963159d030a05a"
+    },
+    {
+      "frame": 135,
+      "full": {
+        "selected": 53165,
+        "coverage_percent": 2.609811891297518,
+        "weight_mean": 0.4772243797779083,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.1184990125082291,
+        "weight_below_0_05_percent": 0.12978463274710808,
+        "changed_selected_percent": 67.05915545941879,
+        "delta_mean_max_rgb_level": 3.8221574344023326,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 117
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9271,
+          "coverage_percent": 16.76613136574074,
+          "weight_mean": 0.48950424790382385,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.428109157588175,
+          "delta_mean_max_rgb_level": 2.8272031064610075,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 68
+        }
+      },
+      "weight_sha256": "fe1712375e9a3e86d852a806c5ac4835092ae519bf11a5cfb53fad82a7e9f8a5",
+      "current_rgb_sha256": "39c1ec33b40192a290538b3f03acf780d7ad4e36c3c6dcb63cb5ff827554a98c",
+      "coverage_sha256": "648f33521f73715d88bd82c460553bdaea7511da780cd56e031ab0324e604085"
+    },
+    {
+      "frame": 136,
+      "full": {
+        "selected": 53168,
+        "coverage_percent": 2.6099591580270185,
+        "weight_mean": 0.4772534966468811,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.11096900391212759,
+        "weight_below_0_05_percent": 0.12037315678603672,
+        "changed_selected_percent": 67.47855853144749,
+        "delta_mean_max_rgb_level": 3.897269034005417,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 125
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9283,
+          "coverage_percent": 16.78783275462963,
+          "weight_mean": 0.4892655909061432,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.95195518690079,
+          "delta_mean_max_rgb_level": 2.920499838414306,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 78
+        }
+      },
+      "weight_sha256": "90828500735cfee7443ba84683daad29ff3d485c08d52525a13ae24f5c77020a",
+      "current_rgb_sha256": "fc9d649f441d37fd950a36a763bdc8337885e633d01d598e8333267507268130",
+      "coverage_sha256": "9109401770ec555867b88382426a4835c9bcdaeb45972aeedc6a9f4b69e157a7"
+    },
+    {
+      "frame": 137,
+      "full": {
+        "selected": 52828,
+        "coverage_percent": 2.593268928683632,
+        "weight_mean": 0.47673705220222473,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.10032558491708941,
+        "weight_below_0_05_percent": 0.10032558491708941,
+        "changed_selected_percent": 66.83009010373286,
+        "delta_mean_max_rgb_level": 3.9197395320663286,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 119
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9306,
+          "coverage_percent": 16.829427083333336,
+          "weight_mean": 0.4894988536834717,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.508059316569955,
+          "delta_mean_max_rgb_level": 3.114119922630561,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 76
+        }
+      },
+      "weight_sha256": "e87ce6f9fb41e5caa9e0bd08e3fca64916e39deec4410d37c4a8177f0fee91cc",
+      "current_rgb_sha256": "4a88576bacd0c6a08a814b131daaa3397f2754b21283b98b91f7073a94579227",
+      "coverage_sha256": "99e71f716725a230ea47691f6d099007ed51de0fd0e4efba1f1a3de5a893c556"
+    },
+    {
+      "frame": 138,
+      "full": {
+        "selected": 52944,
+        "coverage_percent": 2.5989632422243165,
+        "weight_mean": 0.4783133268356323,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.08499546690843154,
+        "weight_below_0_05_percent": 0.08688425506195226,
+        "changed_selected_percent": 68.07948020550015,
+        "delta_mean_max_rgb_level": 3.905843910546993,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 157
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9322,
+          "coverage_percent": 16.85836226851852,
+          "weight_mean": 0.4894854426383972,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.57240935421583,
+          "delta_mean_max_rgb_level": 2.9015232782664664,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 88
+        }
+      },
+      "weight_sha256": "836736f1c0140d090cd126963e8028ea03813cb107803e42aa3da2b965b164c2",
+      "current_rgb_sha256": "1ed5e94a1337901e4d3d40fe1ef99649919b1bf595d40ef9974358cf3d83717a",
+      "coverage_sha256": "992be232dcdd3ca8aafbe99c664e799a1523385d7149106fb3c206fed536c10d"
+    },
+    {
+      "frame": 139,
+      "full": {
+        "selected": 53295,
+        "coverage_percent": 2.6161934495758716,
+        "weight_mean": 0.4769982397556305,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.14072614691809737,
+        "weight_below_0_05_percent": 0.14260249554367202,
+        "changed_selected_percent": 67.57294305281921,
+        "delta_mean_max_rgb_level": 3.8021765644056664,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 127
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9441,
+          "coverage_percent": 17.073567708333336,
+          "weight_mean": 0.4891868531703949,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 60.80923630971296,
+          "delta_mean_max_rgb_level": 2.8137909119796634,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 83
+        }
+      },
+      "weight_sha256": "1e107997719ddc4ca648d77ea80592ceb36036168c55425844f23c34201c8953",
+      "current_rgb_sha256": "90ff1ab85d1bd0b8b595426210ef862bfb3b364376df091b4a32c295f2e332be",
+      "coverage_sha256": "48f1ab8e2fb0494b0f8e1ad761d259e5a278cf8bfd21bb8cf91baf0cc51c5afa"
+    },
+    {
+      "frame": 140,
+      "full": {
+        "selected": 53282,
+        "coverage_percent": 2.615555293748036,
+        "weight_mean": 0.476274698972702,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.10885477271874179,
+        "weight_below_0_05_percent": 0.1182388048496678,
+        "changed_selected_percent": 67.58567621335536,
+        "delta_mean_max_rgb_level": 4.041909087496715,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 134
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9387,
+          "coverage_percent": 16.975911458333336,
+          "weight_mean": 0.4888252317905426,
+          "weight_p10": 0.4544354975223541,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.180355811228296,
+          "delta_mean_max_rgb_level": 2.7125812293597527,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 134
+        }
+      },
+      "weight_sha256": "bafa0859e829290e5302fad65d68c761371771ed5dfc4d4913168b45a09af316",
+      "current_rgb_sha256": "0029745ddf7080058cff8a5deed6828ee5a7d945ef76f78c03c0230da22d095b",
+      "coverage_sha256": "f62f07ac5f8cddd4bb0bc026de33cc0e066db9ec76df363df63f243001e33114"
+    },
+    {
+      "frame": 141,
+      "full": {
+        "selected": 53232,
+        "coverage_percent": 2.613100848256362,
+        "weight_mean": 0.47690778970718384,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.08829275623685001,
+        "weight_below_0_05_percent": 0.09204989480012023,
+        "changed_selected_percent": 67.98542230237452,
+        "delta_mean_max_rgb_level": 3.8316426209798617,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 137
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9440,
+          "coverage_percent": 17.07175925925926,
+          "weight_mean": 0.48819780349731445,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 63.10381355932203,
+          "delta_mean_max_rgb_level": 3.123199152542373,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 83
+        }
+      },
+      "weight_sha256": "64e7c1158cb46842aae95305fc3c9fe8728aa435012dd57ad7ea01214bed1f05",
+      "current_rgb_sha256": "78a0029bc19b12cfc891e490b4c4d88ca8218cd0f7625858e0e836408b1ce866",
+      "coverage_sha256": "0e4b2a5b6667d0a8f1d6110a66e6abfe6bbc801768690542a4a45c0d96bac228"
+    },
+    {
+      "frame": 142,
+      "full": {
+        "selected": 53656,
+        "coverage_percent": 2.633914546025762,
+        "weight_mean": 0.4778650403022766,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.06336663187714328,
+        "weight_below_0_05_percent": 0.0764127031459669,
+        "changed_selected_percent": 67.23758759504996,
+        "delta_mean_max_rgb_level": 4.018916803339795,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 129
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9660,
+          "coverage_percent": 17.469618055555554,
+          "weight_mean": 0.48973193764686584,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.77018633540373,
+          "delta_mean_max_rgb_level": 2.8779503105590063,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 84
+        }
+      },
+      "weight_sha256": "e88292b031594ca99a7363488f4db226ed63fc8e3003ebc26ae4b7a4d3ee4688",
+      "current_rgb_sha256": "e6f347fff414e5bc9472289a7f8a869e959e3cf6ec5dbcad61fb2ee87c2e39b7",
+      "coverage_sha256": "b0be6b97c30785d56c4feec0f763ed89215c33c22c5777bb22007c1b84111336"
+    },
+    {
+      "frame": 143,
+      "full": {
+        "selected": 53385,
+        "coverage_percent": 2.620611451460886,
+        "weight_mean": 0.47860077023506165,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.0861665261777653,
+        "weight_below_0_05_percent": 0.09927882363959914,
+        "changed_selected_percent": 66.82026786550529,
+        "delta_mean_max_rgb_level": 3.803034560269739,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 126
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9635,
+          "coverage_percent": 17.424406828703702,
+          "weight_mean": 0.48807382583618164,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.0965230928905,
+          "delta_mean_max_rgb_level": 2.89901401141671,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 74
+        }
+      },
+      "weight_sha256": "8466e91f58dcfff5d3d5c15d338e34211c33a25f7d173c1d9e5c2d71d66d2130",
+      "current_rgb_sha256": "52885779cf70a842382aae7b68c51a0b6acbcaed0d2650fdd5c688544ef6b167",
+      "coverage_sha256": "412c5090538aa09dd8b50c92f80e29cfa11eeceecc51bfdfa41b4764367f0f6b"
+    },
+    {
+      "frame": 144,
+      "full": {
+        "selected": 53163,
+        "coverage_percent": 2.609713713477851,
+        "weight_mean": 0.4773462414741516,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.09593138084758196,
+        "weight_below_0_05_percent": 0.13167052273197524,
+        "changed_selected_percent": 66.55568722607829,
+        "delta_mean_max_rgb_level": 3.7383894814062413,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 107
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9462,
+          "coverage_percent": 17.11154513888889,
+          "weight_mean": 0.48964154720306396,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 60.44176706827309,
+          "delta_mean_max_rgb_level": 2.735151130839146,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 88
+        }
+      },
+      "weight_sha256": "1655d729eb62b28fe0e74368c8a03d6c26cbf7f158385379d54d20b051893270",
+      "current_rgb_sha256": "c085e60d61c29f938f2fd2c4e2826e6725d942f8560a396473a211e0af9b8354",
+      "coverage_sha256": "82add3665cd0d90025dc7cc0ffa4c10e2c59aada353faec7c2315d60ac63fcf4"
+    },
+    {
+      "frame": 145,
+      "full": {
+        "selected": 53329,
+        "coverage_percent": 2.6178624725102106,
+        "weight_mean": 0.4763268232345581,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.0637551801083838,
+        "weight_below_0_05_percent": 0.08438185602580209,
+        "changed_selected_percent": 68.11115903167132,
+        "delta_mean_max_rgb_level": 4.082375443004744,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 133
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9367,
+          "coverage_percent": 16.93974247685185,
+          "weight_mean": 0.48872604966163635,
+          "weight_p10": 0.4544354975223541,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.81274687733532,
+          "delta_mean_max_rgb_level": 2.9925269563360732,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 83
+        }
+      },
+      "weight_sha256": "d9a707b29ace1b6358f6bc4f90669d53d9e6d71c5a160b2e18a01903c7b23db3",
+      "current_rgb_sha256": "166fa9f7a031629dcfef8a977e7e2a2536be7c3c0bc710f757e073cc9f21991d",
+      "coverage_sha256": "4bd81a142f5da455a847aa6f6c66083ef8cf3bea2fba31b8b68b698c81903326"
+    },
+    {
+      "frame": 146,
+      "full": {
+        "selected": 53675,
+        "coverage_percent": 2.634847235312598,
+        "weight_mean": 0.47823867201805115,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.08756404285048905,
+        "weight_below_0_05_percent": 0.12296227293898464,
+        "changed_selected_percent": 66.23754075454123,
+        "delta_mean_max_rgb_level": 3.6359757801583603,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 142
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9521,
+          "coverage_percent": 17.21824363425926,
+          "weight_mean": 0.4896954894065857,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 60.95998319504253,
+          "delta_mean_max_rgb_level": 2.8835206385883834,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 89
+        }
+      },
+      "weight_sha256": "e5c3936c4a5fac0766f3cad1fd705c65e5c2908bd14147757d287bb86ed40ae8",
+      "current_rgb_sha256": "e701ead6fa4358fd8277a842bdc476324e149f9f43868f3d43fb28b63d4cfd02",
+      "coverage_sha256": "c0d78ada22406a3a7f8b1aa06f90d4725c3930e4f24ffca364a506b8bc0a250f"
+    },
+    {
+      "frame": 147,
+      "full": {
+        "selected": 53309,
+        "coverage_percent": 2.6168806943135405,
+        "weight_mean": 0.4773441255092621,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.08628936952484571,
+        "weight_below_0_05_percent": 0.12193063085032547,
+        "changed_selected_percent": 67.80843759965485,
+        "delta_mean_max_rgb_level": 3.9796844810444765,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 117
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9611,
+          "coverage_percent": 17.381004050925927,
+          "weight_mean": 0.4885167181491852,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.6781812506503,
+          "delta_mean_max_rgb_level": 3.1570075954635315,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 83
+        }
+      },
+      "weight_sha256": "c6e94c7b74373526ab8ed5f486c5b4984a9cc67dac7f83d6606abdade050440a",
+      "current_rgb_sha256": "df798286494e1e45bed21ab89485810251edb7d3091f2fc6c126534554c0846c",
+      "coverage_sha256": "b771f88789ad3bed6743f62fde7b082a56c9fa3f8e9c5fc75c727684da79ad21"
+    },
+    {
+      "frame": 148,
+      "full": {
+        "selected": 53525,
+        "coverage_percent": 2.627483898837575,
+        "weight_mean": 0.47756490111351013,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.13825315273236805,
+        "weight_below_0_05_percent": 0.1588042970574498,
+        "changed_selected_percent": 66.75758991125642,
+        "delta_mean_max_rgb_level": 3.7314525922466135,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 149
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9543,
+          "coverage_percent": 17.25802951388889,
+          "weight_mean": 0.48870986700057983,
+          "weight_p10": 0.4544354975223541,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.19218275175521,
+          "delta_mean_max_rgb_level": 3.0433825840930524,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 101
+        }
+      },
+      "weight_sha256": "a54bd4d12cb2602ea250c0906cc8d7dbd8ddb8f0cb0e559629bb6b42a897974b",
+      "current_rgb_sha256": "1ee00f1177816cb21bf10a07137f094a4663651ba7394e1f03db2d7aaad28b5a",
+      "coverage_sha256": "5aa4ba0f729a8bd6fb78d4d6dedaf3e96519e3899b12ac670b02c61e8cb3e81c"
+    },
+    {
+      "frame": 149,
+      "full": {
+        "selected": 53231,
+        "coverage_percent": 2.6130517593465283,
+        "weight_mean": 0.47798091173171997,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.09956604234374707,
+        "weight_below_0_05_percent": 0.11083766977888823,
+        "changed_selected_percent": 67.95664180646615,
+        "delta_mean_max_rgb_level": 3.73291878792433,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 131
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9565,
+          "coverage_percent": 17.29781539351852,
+          "weight_mean": 0.4890281856060028,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.0977522216414,
+          "delta_mean_max_rgb_level": 2.9702038682697336,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 84
+        }
+      },
+      "weight_sha256": "e41248332dcccc8cdfa000372a3290a59da0bace9a8913d299671270096a36db",
+      "current_rgb_sha256": "e82197c094235642ce22f5f67019357b3cfd0aabda166817e1ce95b7960226af",
+      "coverage_sha256": "fb4a509f4f7d6694b3256046fb8ff4e2576a690831b54db0ca85d53fa5a9037f"
+    },
+    {
+      "frame": 150,
+      "full": {
+        "selected": 53653,
+        "coverage_percent": 2.6337672792962614,
+        "weight_mean": 0.47703272104263306,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.09691909119713715,
+        "weight_below_0_05_percent": 0.10810206325834529,
+        "changed_selected_percent": 66.80334743630365,
+        "delta_mean_max_rgb_level": 3.7111065550854567,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 126
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9568,
+          "coverage_percent": 17.30324074074074,
+          "weight_mean": 0.48930832743644714,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 59.855769230769226,
+          "delta_mean_max_rgb_level": 2.794732441471572,
+          "delta_p95_max_rgb_level": 12.649999999999636,
+          "delta_max_rgb_level": 72
+        }
+      },
+      "weight_sha256": "34ac0eb6017be3d9a4e8be028a110151c93518425867456677f0f9d2b7897265",
+      "current_rgb_sha256": "47c3ecf80ccb525360b7e9a55dc7350ca9d08a9284ca9d56a90450ce43667a17",
+      "coverage_sha256": "c240324bf94c181aba629489e5d538068beec5fc370756fda514bf2fe05ff061"
+    },
+    {
+      "frame": 151,
+      "full": {
+        "selected": 53391,
+        "coverage_percent": 2.6209059849198866,
+        "weight_mean": 0.4761020541191101,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.12548931467850388,
+        "weight_below_0_05_percent": 0.13110823921634732,
+        "changed_selected_percent": 66.87082092487498,
+        "delta_mean_max_rgb_level": 3.77134723080669,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 124
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9637,
+          "coverage_percent": 17.42802372685185,
+          "weight_mean": 0.4881362318992615,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.301546124312544,
+          "delta_mean_max_rgb_level": 3.0325827539690775,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 74
+        }
+      },
+      "weight_sha256": "c3cbb63d57f5c45b024e09a7b1a40d3bab8cd9c8fb76b408b4be4dc8893a179b",
+      "current_rgb_sha256": "3ef54c5d8e7366315c231b4fd0aee8dc1f0b59179a94756776f53d9591437abe",
+      "coverage_sha256": "2b78df8cfc376f63e997d58b1539b0b3b07509998cb869e5980dda392b26b02d"
+    },
+    {
+      "frame": 152,
+      "full": {
+        "selected": 53929,
+        "coverage_percent": 2.6473158184103047,
+        "weight_mean": 0.47783324122428894,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.05933727678985333,
+        "weight_below_0_05_percent": 0.05933727678985333,
+        "changed_selected_percent": 67.13456581802,
+        "delta_mean_max_rgb_level": 3.834374826160322,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 118
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9420,
+          "coverage_percent": 17.03559027777778,
+          "weight_mean": 0.4888934791088104,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.57112526539278,
+          "delta_mean_max_rgb_level": 2.984288747346072,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 73
+        }
+      },
+      "weight_sha256": "25b938683013a35a6c2f1edf3799a5e5a3a2b712889da37cc442d0bb0861cf54",
+      "current_rgb_sha256": "207a8f4dc39320e8c6e1298e42777c32f1beacadfc449ce80cc59899c7d761d6",
+      "coverage_sha256": "4dc52d8037b1a1d5d272a129b440f67f111ef17303481ddb45aa8a55035f02f7"
+    },
+    {
+      "frame": 153,
+      "full": {
+        "selected": 53509,
+        "coverage_percent": 2.6266984762802386,
+        "weight_mean": 0.4776349663734436,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.0803603132183371,
+        "weight_below_0_05_percent": 0.0803603132183371,
+        "changed_selected_percent": 67.12889420471323,
+        "delta_mean_max_rgb_level": 3.664785363209927,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 124
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9491,
+          "coverage_percent": 17.163990162037038,
+          "weight_mean": 0.48843178153038025,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.35286060478348,
+          "delta_mean_max_rgb_level": 2.9966283847855864,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 115
+        }
+      },
+      "weight_sha256": "3bb232e975d4b21a4d60efb0a8a1538c2a46496bc3010886cc1ab34aadedec73",
+      "current_rgb_sha256": "9d70baf7c101e16e5e49c5a30e3c993a0242d3aded8efe126dce1a9abbd35acd",
+      "coverage_sha256": "51754e730a69c39697dd51b129804aa5713cb60e004abd7657e7c38c3b98e91d"
+    },
+    {
+      "frame": 154,
+      "full": {
+        "selected": 54323,
+        "coverage_percent": 2.6666568488847,
+        "weight_mean": 0.47660937905311584,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.05706606777976179,
+        "weight_below_0_05_percent": 0.05706606777976179,
+        "changed_selected_percent": 68.07981886125583,
+        "delta_mean_max_rgb_level": 3.85376359921212,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 117
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9694,
+          "coverage_percent": 17.531105324074073,
+          "weight_mean": 0.4881373941898346,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.79079843201981,
+          "delta_mean_max_rgb_level": 2.978956055291933,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 107
+        }
+      },
+      "weight_sha256": "bc5f638beba4a4a86065d42a4ee37b9a314ce60ee1313268059972e91b37f3b5",
+      "current_rgb_sha256": "d1096b704e0e37da962ba21ea9d2fff14c2f043ebe30581ab4edd9bbff97d8a7",
+      "coverage_sha256": "8f593bc737057b4745c440ac48668c5f1f63a1c721fa50fd7a8a23c77ae09d17"
+    },
+    {
+      "frame": 155,
+      "full": {
+        "selected": 54375,
+        "coverage_percent": 2.6692094721960413,
+        "weight_mean": 0.476460725069046,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.09195402298850575,
+        "weight_below_0_05_percent": 0.09379310344827586,
+        "changed_selected_percent": 67.54022988505747,
+        "delta_mean_max_rgb_level": 3.6391172413793105,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 123
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9455,
+          "coverage_percent": 17.09888599537037,
+          "weight_mean": 0.48646414279937744,
+          "weight_p10": 0.40819036960601807,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.199894235854046,
+          "delta_mean_max_rgb_level": 3.0445267054468537,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 83
+        }
+      },
+      "weight_sha256": "ff32413059a220b1aca9ef7a2c2d0b358d1d743408ff222d5bf1f4e2f97ed4cf",
+      "current_rgb_sha256": "1ad5f28c2937d7b53e828a0b3acd54fc569dcb4b1512498f25bfb93fc79a10d7",
+      "coverage_sha256": "f0171bc31ca68dcc5e7c16c53a25cff4d13f569a1badf7725a3eceb75d709dc4"
+    },
+    {
+      "frame": 156,
+      "full": {
+        "selected": 54358,
+        "coverage_percent": 2.668374960728872,
+        "weight_mean": 0.4766804277896881,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.08830346959049265,
+        "weight_below_0_05_percent": 0.09198278082342985,
+        "changed_selected_percent": 67.76555428823724,
+        "delta_mean_max_rgb_level": 3.8975679752750283,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 135
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9425,
+          "coverage_percent": 17.04463252314815,
+          "weight_mean": 0.4889734983444214,
+          "weight_p10": 0.49995023012161255,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 61.49602122015915,
+          "delta_mean_max_rgb_level": 2.9573474801061006,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 76
+        }
+      },
+      "weight_sha256": "04e9f1bea8cb6364f4a21a5c7c7d3b4f96b9a678c852369717ec2f4c53c2043e",
+      "current_rgb_sha256": "9cc34ac3926809559b0980f22c751a691712c26c8858cb2cb0509fe27a264b96",
+      "coverage_sha256": "06faaa9c98d572d47692ab98bec5741f1319daad24af501e49d11711e206340b"
+    },
+    {
+      "frame": 157,
+      "full": {
+        "selected": 53740,
+        "coverage_percent": 2.638038014451775,
+        "weight_mean": 0.47672730684280396,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.10420543356903611,
+        "weight_below_0_05_percent": 0.10420543356903611,
+        "changed_selected_percent": 66.49423148492743,
+        "delta_mean_max_rgb_level": 3.6174916263490884,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 121
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9452,
+          "coverage_percent": 17.09346064814815,
+          "weight_mean": 0.48770639300346375,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 62.19847651290732,
+          "delta_mean_max_rgb_level": 3.0472915785019046,
+          "delta_p95_max_rgb_level": 13.0,
+          "delta_max_rgb_level": 66
+        }
+      },
+      "weight_sha256": "cf4bdcd4b267bc7ced51c974ecf46c419fffa65dc131b8f570e91afadbe0777d",
+      "current_rgb_sha256": "c5d769a4a279bf11eff84649d9f6d304c29039517db4165dee689e3e576e1e84",
+      "coverage_sha256": "2cdc3ca9a45f2ce0300d2f42cdc9e03a6ccb62610a07d8547321e062126e4820"
+    },
+    {
+      "frame": 158,
+      "full": {
+        "selected": 54546,
+        "coverage_percent": 2.677603675777568,
+        "weight_mean": 0.4763049781322479,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999856650829315,
+        "weight_zero_percent": 0.0751659150075166,
+        "weight_below_0_05_percent": 0.0751659150075166,
+        "changed_selected_percent": 67.68782312176879,
+        "delta_mean_max_rgb_level": 3.8944743885894475,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 152
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9574,
+          "coverage_percent": 17.314091435185187,
+          "weight_mean": 0.4874499440193176,
+          "weight_p10": 0.42107996344566345,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 60.559849592646756,
+          "delta_mean_max_rgb_level": 3.178086484228118,
+          "delta_p95_max_rgb_level": 14.0,
+          "delta_max_rgb_level": 74
+        }
+      },
+      "weight_sha256": "d39e6f8532fb353edddcb69893047fc6f872362c2371aeb56385ee9e1537264d",
+      "current_rgb_sha256": "fbff8e2ed60d48524df5566ec2a796f45fb3a9392a7384361ce9871ca4005a33",
+      "coverage_sha256": "cd87599371f5d0ae2781e0d09f70eb48ec8e16503adce5fc7bb90a1b38dc2fe6"
+    },
+    {
+      "frame": 159,
+      "full": {
+        "selected": 55033,
+        "coverage_percent": 2.701509974866478,
+        "weight_mean": 0.47692346572875977,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.07450075409299875,
+        "weight_below_0_05_percent": 0.07450075409299875,
+        "changed_selected_percent": 66.47284356658733,
+        "delta_mean_max_rgb_level": 3.8402413097595987,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 131
+      },
+      "roi": {
+        "bistro-chairs-moving": {
+          "selected": 9929,
+          "coverage_percent": 17.95609085648148,
+          "weight_mean": 0.48795998096466064,
+          "weight_p10": 0.4303990602493286,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.49999284744262695,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 60.51968979756269,
+          "delta_mean_max_rgb_level": 2.8434887702689093,
+          "delta_p95_max_rgb_level": 12.0,
+          "delta_max_rgb_level": 72
+        }
+      },
+      "weight_sha256": "2aa82f4f1f5ce97498069f6bd72e550df353dcc352b0044c388e64a4ee492b50",
+      "current_rgb_sha256": "1fe67015d273b883e896ffbb0da9c3fe62807b52f1054f625c5f14f5449e49ab",
+      "coverage_sha256": "26df9b5a61e31fc723bed4b380298dbb5ff3db2b8560870b5d7b6e6f4c7a15a8"
+    },
+    {
+      "frame": 160,
+      "full": {
+        "selected": 54540,
+        "coverage_percent": 2.6773091423185673,
+        "weight_mean": 0.47801515460014343,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.07334066740007333,
+        "weight_below_0_05_percent": 0.07334066740007333,
+        "changed_selected_percent": 66.7986798679868,
+        "delta_mean_max_rgb_level": 3.696919691969197,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 123
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7139,
+          "coverage_percent": 12.910517939814813,
+          "weight_mean": 0.47652268409729004,
+          "weight_p10": 0.3915347456932068,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.4999900758266449,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 79.03067656534529,
+          "delta_mean_max_rgb_level": 8.238128589438297,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 123
+        }
+      },
+      "weight_sha256": "de73bba5baf9ba421929224e743c20f42b60fc9f455e3b69e7037816a6c33d03",
+      "current_rgb_sha256": "7cf6cb4b73f9c245815509c1dcf4f47218c28d1923f36feec8cea88804f1d005",
+      "coverage_sha256": "aa19a402967b91c9741726c26d2f48542d0088f6ddadd1fa76dcf300ff4c5945"
+    },
+    {
+      "frame": 161,
+      "full": {
+        "selected": 54190,
+        "coverage_percent": 2.6601280238768457,
+        "weight_mean": 0.4752316176891327,
+        "weight_p10": 0.3684666156768799,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.06827828012548441,
+        "weight_below_0_05_percent": 0.06827828012548441,
+        "changed_selected_percent": 67.20428123269976,
+        "delta_mean_max_rgb_level": 3.897342683151873,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 148
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7144,
+          "coverage_percent": 12.919560185185187,
+          "weight_mean": 0.4672003984451294,
+          "weight_p10": 0.33362191915512085,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 81.74692049272116,
+          "delta_mean_max_rgb_level": 8.642497200447929,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 148
+        }
+      },
+      "weight_sha256": "d9cfad15e027d224f883fe8f5786aa769390bb01d9640b22de3412627ec55661",
+      "current_rgb_sha256": "9917344ad0209cc36f9f77168896ccc689fbfea653c8e9a4dcb6135718411f80",
+      "coverage_sha256": "e02fafe674438a2180a0df6e5517d64e841fba47eaaacc3b32b05d44aeedaa74"
+    },
+    {
+      "frame": 162,
+      "full": {
+        "selected": 54343,
+        "coverage_percent": 2.6676386270813697,
+        "weight_mean": 0.478009968996048,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.4999602735042572,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.06992620944739893,
+        "weight_below_0_05_percent": 0.07176637285390942,
+        "changed_selected_percent": 66.33421047789044,
+        "delta_mean_max_rgb_level": 3.654454115525459,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 162
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7114,
+          "coverage_percent": 12.865306712962962,
+          "weight_mean": 0.47537925839424133,
+          "weight_p10": 0.3794476389884949,
+          "weight_median": 0.4999723732471466,
+          "weight_p90": 0.4999900758266449,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 80.64380095586168,
+          "delta_mean_max_rgb_level": 8.328226033174023,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 162
+        }
+      },
+      "weight_sha256": "460b6c3d438c88b8d4f03122dd5328f8b25b8b7923edd8fd1da01b1cf214dfc9",
+      "current_rgb_sha256": "b2d6e9a3aea21963352a9f1c2c4053a0c4fde8ecab57c09c0454d0dbf01ff63d",
+      "coverage_sha256": "fa8cbb78dba6e74fd7b0ba32db982ad77307c263c03811cea8622960414f1233"
+    },
+    {
+      "frame": 163,
+      "full": {
+        "selected": 55054,
+        "coverage_percent": 2.7025408419729815,
+        "weight_mean": 0.4754762053489685,
+        "weight_p10": 0.3684666156768799,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.02906237512260689,
+        "weight_below_0_05_percent": 0.030878773567769826,
+        "changed_selected_percent": 67.43560867511897,
+        "delta_mean_max_rgb_level": 4.015475714752788,
+        "delta_p95_max_rgb_level": 17.0,
+        "delta_max_rgb_level": 130
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7104,
+          "coverage_percent": 12.847222222222221,
+          "weight_mean": 0.46806755661964417,
+          "weight_p10": 0.3421598970890045,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 81.15146396396396,
+          "delta_mean_max_rgb_level": 9.306024774774775,
+          "delta_p95_max_rgb_level": 36.0,
+          "delta_max_rgb_level": 130
+        }
+      },
+      "weight_sha256": "b0ed8aeb291f0d82e1e803a82c8807822501210662807aae6115ac2b8bdb4e9a",
+      "current_rgb_sha256": "310918894f897e5218456a6fa241c51c8cba006187e10a4c0524da7a5c415553",
+      "coverage_sha256": "f9118b6a0c9fb78ef3f794a8cbc31d216a5101e5da075adbcc166dfc2c953313"
+    },
+    {
+      "frame": 164,
+      "full": {
+        "selected": 55485,
+        "coverage_percent": 2.7236981621112157,
+        "weight_mean": 0.4757798910140991,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.03424348923132378,
+        "weight_below_0_05_percent": 0.037848067045147336,
+        "changed_selected_percent": 66.70811931152564,
+        "delta_mean_max_rgb_level": 3.7292241146255747,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 127
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7504,
+          "coverage_percent": 13.570601851851851,
+          "weight_mean": 0.4666884243488312,
+          "weight_p10": 0.3235294222831726,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 79.26439232409382,
+          "delta_mean_max_rgb_level": 8.857142857142858,
+          "delta_p95_max_rgb_level": 38.0,
+          "delta_max_rgb_level": 127
+        }
+      },
+      "weight_sha256": "abe5f58351fffb64a393eb25103a552f942221cc940a6b415476e9db2172444a",
+      "current_rgb_sha256": "fc853fd7803efc9163d291b936c635ca343fd00f1ed52c57f81029e1bd24c767",
+      "coverage_sha256": "a31a7e4681c767418c9bda9cfb38ee52bbe9cba8f6393365a83a6304c0b081d2"
+    },
+    {
+      "frame": 165,
+      "full": {
+        "selected": 55615,
+        "coverage_percent": 2.7300797203895697,
+        "weight_mean": 0.47710251808166504,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.06652881416883934,
+        "weight_below_0_05_percent": 0.0701249662860739,
+        "changed_selected_percent": 65.75923761575115,
+        "delta_mean_max_rgb_level": 3.7291378225298932,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 128
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7317,
+          "coverage_percent": 13.232421875,
+          "weight_mean": 0.47065016627311707,
+          "weight_p10": 0.36079809069633484,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 80.78447451141179,
+          "delta_mean_max_rgb_level": 8.476698100314337,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 128
+        }
+      },
+      "weight_sha256": "f9d6e9cc5ba4bb6532d7b5c954d3276e4b7bc7a68cc0c1bbfacd3a4393143ee5",
+      "current_rgb_sha256": "1092d3d80851a31c3af30fa3d4f2254a969b23421cc652d59ab21b5b5e5adb03",
+      "coverage_sha256": "34ccef29057fcd99db95247601af98c773cbe2813328821f67f520cbb85e4fa6"
+    },
+    {
+      "frame": 166,
+      "full": {
+        "selected": 55663,
+        "coverage_percent": 2.732435988061577,
+        "weight_mean": 0.47733306884765625,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.048506189030415175,
+        "weight_below_0_05_percent": 0.048506189030415175,
+        "changed_selected_percent": 67.39485834396277,
+        "delta_mean_max_rgb_level": 3.8172933546521026,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 156
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7319,
+          "coverage_percent": 13.236038773148149,
+          "weight_mean": 0.47096124291419983,
+          "weight_p10": 0.36079809069633484,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 80.62576854761579,
+          "delta_mean_max_rgb_level": 9.049460308785353,
+          "delta_p95_max_rgb_level": 36.0,
+          "delta_max_rgb_level": 156
+        }
+      },
+      "weight_sha256": "e0663e829260e2fde5eb3d8214ffb88fd5333f643d7ad54c2b64c4301e663ae9",
+      "current_rgb_sha256": "c2cfe407329498b06f9c2d4fdc7affae3de67d606b7e13ed69544ded9fbe9422",
+      "coverage_sha256": "049459c710d7889a0b6a01bc9937e49284dfbd4132f6f1aa684e67cd826016f2"
+    },
+    {
+      "frame": 167,
+      "full": {
+        "selected": 55307,
+        "coverage_percent": 2.7149603361608547,
+        "weight_mean": 0.47816595435142517,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.05605077115012566,
+        "weight_below_0_05_percent": 0.05605077115012566,
+        "changed_selected_percent": 66.29721373424702,
+        "delta_mean_max_rgb_level": 3.6272262100638257,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 111
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7287,
+          "coverage_percent": 13.178168402777779,
+          "weight_mean": 0.47049450874328613,
+          "weight_p10": 0.35118693113327026,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 83.66954851104707,
+          "delta_mean_max_rgb_level": 8.483600933168656,
+          "delta_p95_max_rgb_level": 32.0,
+          "delta_max_rgb_level": 111
+        }
+      },
+      "weight_sha256": "deb78cdc48f5449ec56539a3b3e6554d544505fbb76909436989816394909c94",
+      "current_rgb_sha256": "f308d304ff5862e6e2800929fff6137c6b038b03e856d08a0f6d968dc8648f91",
+      "coverage_sha256": "09bec60f16c9dff06402ab7f3691b279e9b526a181eeb48cd7ebd65e0ec79c72"
+    },
+    {
+      "frame": 168,
+      "full": {
+        "selected": 55762,
+        "coverage_percent": 2.737295790135093,
+        "weight_mean": 0.4761718809604645,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.0663534306516983,
+        "weight_below_0_05_percent": 0.0663534306516983,
+        "changed_selected_percent": 67.10304508446613,
+        "delta_mean_max_rgb_level": 3.780047344069438,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 135
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7459,
+          "coverage_percent": 13.489221643518517,
+          "weight_mean": 0.46963465213775635,
+          "weight_p10": 0.3511869013309479,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 81.60611342002949,
+          "delta_mean_max_rgb_level": 9.07467488939536,
+          "delta_p95_max_rgb_level": 38.099999999999454,
+          "delta_max_rgb_level": 118
+        }
+      },
+      "weight_sha256": "0926fd733f38c2be2eb50633bdee1a6b657a1ec37d0eacb5d0382aa780a8c3d3",
+      "current_rgb_sha256": "37511d7142ea96dfa1e8e252feadeccacd0a8a5f97b170daa147bfc064c27f3a",
+      "coverage_sha256": "99284ffbd89e464f9d7e87103c475be178dffda6948476efd67b75f8b0975d26"
+    },
+    {
+      "frame": 169,
+      "full": {
+        "selected": 54990,
+        "coverage_percent": 2.699399151743638,
+        "weight_mean": 0.47744986414909363,
+        "weight_p10": 0.3853318393230438,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.05091834879068922,
+        "weight_below_0_05_percent": 0.05091834879068922,
+        "changed_selected_percent": 66.8303327877796,
+        "delta_mean_max_rgb_level": 3.637843244226223,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 112
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7160,
+          "coverage_percent": 12.948495370370368,
+          "weight_mean": 0.47409573197364807,
+          "weight_p10": 0.3794476389884949,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 80.3072625698324,
+          "delta_mean_max_rgb_level": 8.24050279329609,
+          "delta_p95_max_rgb_level": 32.0,
+          "delta_max_rgb_level": 112
+        }
+      },
+      "weight_sha256": "9d3fa72ede47041adbd36a4441db0f5d3192cfa285c316ba48b7d4cedd1008b4",
+      "current_rgb_sha256": "a284773ff15279a3b602a21d1172b7f303bf8fa3ac318b4afadc67c3597ba2f2",
+      "coverage_sha256": "b9aff1bfcc8fe666bab990023ee784b9480c1cb0fdee32da4c0d907b12f7eb09"
+    },
+    {
+      "frame": 170,
+      "full": {
+        "selected": 55506,
+        "coverage_percent": 2.7247290292177193,
+        "weight_mean": 0.476724237203598,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.03423053363600331,
+        "weight_below_0_05_percent": 0.03423053363600331,
+        "changed_selected_percent": 66.96213022015638,
+        "delta_mean_max_rgb_level": 3.8169206932583863,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 127
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7337,
+          "coverage_percent": 13.268590856481483,
+          "weight_mean": 0.4710350036621094,
+          "weight_p10": 0.36079809069633484,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 81.34114760801417,
+          "delta_mean_max_rgb_level": 8.223524601335695,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 127
+        }
+      },
+      "weight_sha256": "d0e86c201dd1e48fae4173d27908e48140777fe5e52457e6a0360edbdf134686",
+      "current_rgb_sha256": "24e46d46e0e1666fd439e131c7807f52cab6ea53fea2dd4bd8f82ebf16923523",
+      "coverage_sha256": "f2d98ff4e0abc42575b3d77b02d4cf771eaf149490ffd3d2b48daa787e8fd6dc"
+    },
+    {
+      "frame": 171,
+      "full": {
+        "selected": 55520,
+        "coverage_percent": 2.7254162739553878,
+        "weight_mean": 0.47676020860671997,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.010806916426512969,
+        "weight_below_0_05_percent": 0.014409221902017292,
+        "changed_selected_percent": 67.25324207492795,
+        "delta_mean_max_rgb_level": 3.834510086455331,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 135
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7302,
+          "coverage_percent": 13.20529513888889,
+          "weight_mean": 0.4668324887752533,
+          "weight_p10": 0.33362191915512085,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 84.00438236099698,
+          "delta_mean_max_rgb_level": 9.394412489728841,
+          "delta_p95_max_rgb_level": 36.0,
+          "delta_max_rgb_level": 135
+        }
+      },
+      "weight_sha256": "e277151d67a1c614ed863d7d130abdff769c74145c2f5239c1d06c7ee5d81b38",
+      "current_rgb_sha256": "9ec91ad20b41d5c8e33771681365659eb67b1464950559925f98880649de17c9",
+      "coverage_sha256": "29f2c9579f8d159cea66d04ed368716a2d9c2760d87eae5d6bd185ef6bb18239"
+    },
+    {
+      "frame": 172,
+      "full": {
+        "selected": 55888,
+        "coverage_percent": 2.7434809927741126,
+        "weight_mean": 0.47734981775283813,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.014314342971657599,
+        "weight_below_0_05_percent": 0.014314342971657599,
+        "changed_selected_percent": 66.25572573718867,
+        "delta_mean_max_rgb_level": 3.6347695390781563,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 127
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7387,
+          "coverage_percent": 13.359013310185187,
+          "weight_mean": 0.4704589545726776,
+          "weight_p10": 0.3711240887641907,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 83.06484364423989,
+          "delta_mean_max_rgb_level": 8.581832949776635,
+          "delta_p95_max_rgb_level": 33.69999999999982,
+          "delta_max_rgb_level": 127
+        }
+      },
+      "weight_sha256": "37be5a56871921b2ef35f6b53ab212a6496b12967be66bb1fbc3fe8ce38ccbb8",
+      "current_rgb_sha256": "bcb2fc3f6740ba64fdd41059ddd40f60573a6b7a844f6ea86d27c441f37cb9c5",
+      "coverage_sha256": "6bca8bb6ab0d86df76492f946ed654f29f7e45fecfbcfcb9c5790ab10b5d664f"
+    },
+    {
+      "frame": 173,
+      "full": {
+        "selected": 55584,
+        "coverage_percent": 2.728557964184731,
+        "weight_mean": 0.47607752680778503,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.023388025331030515,
+        "weight_below_0_05_percent": 0.026986183074265976,
+        "changed_selected_percent": 67.29454519286125,
+        "delta_mean_max_rgb_level": 3.758401698330455,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 131
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7207,
+          "coverage_percent": 13.033492476851851,
+          "weight_mean": 0.4693366587162018,
+          "weight_p10": 0.36079809069633484,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 84.95906757319273,
+          "delta_mean_max_rgb_level": 9.55335090883863,
+          "delta_p95_max_rgb_level": 37.0,
+          "delta_max_rgb_level": 131
+        }
+      },
+      "weight_sha256": "139e0ea0c160513d5f78cdf47fb9c585077b66ef7a50b4ac6ea169a92085a29c",
+      "current_rgb_sha256": "5debc0074ad89964e6f71f9d59d3ada574bdec6abb6d2480ffc6d12820b08215",
+      "coverage_sha256": "fd19bceafc0f69c67c94ed5df897b8fcbb3ff940934dce2e306b1996c11f66ed"
+    },
+    {
+      "frame": 174,
+      "full": {
+        "selected": 55896,
+        "coverage_percent": 2.7438737040527803,
+        "weight_mean": 0.4760339856147766,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.02325747817375125,
+        "weight_below_0_05_percent": 0.02325747817375125,
+        "changed_selected_percent": 66.8366251610133,
+        "delta_mean_max_rgb_level": 3.670674109059682,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 140
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7326,
+          "coverage_percent": 13.248697916666666,
+          "weight_mean": 0.46732133626937866,
+          "weight_p10": 0.3346683979034424,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 81.73628173628174,
+          "delta_mean_max_rgb_level": 8.343161343161343,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 140
+        }
+      },
+      "weight_sha256": "941b76339c5c12b0b4c5fbca7df2fd5943370e09e3420c965aa32e72c49dbb6a",
+      "current_rgb_sha256": "527225bcab4557f6dab642075641a39ffd92a7626936ff0dac43d79925aa4dc6",
+      "coverage_sha256": "79743e0c183a7c0b03a3e736ff10efc45c1bc05fefa8838a517a80ea96841a3b"
+    },
+    {
+      "frame": 175,
+      "full": {
+        "selected": 55435,
+        "coverage_percent": 2.7212437166195413,
+        "weight_mean": 0.47601208090782166,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.028862631911247407,
+        "weight_below_0_05_percent": 0.03066654640570037,
+        "changed_selected_percent": 66.89095336881032,
+        "delta_mean_max_rgb_level": 3.935239469649139,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 135
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7227,
+          "coverage_percent": 13.069661458333334,
+          "weight_mean": 0.4646792411804199,
+          "weight_p10": 0.3235293924808502,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 84.58558184585581,
+          "delta_mean_max_rgb_level": 9.981043309810433,
+          "delta_p95_max_rgb_level": 38.0,
+          "delta_max_rgb_level": 135
+        }
+      },
+      "weight_sha256": "68164628750416960d8552a31e229524a08ffc01a74f434d101c037878e3a94c",
+      "current_rgb_sha256": "b34b99266b78cde4b20302c5b7df77b7489f9f4a6f83a089241543b94a138fa8",
+      "coverage_sha256": "f2ab1975f3060b6dd0cab9776501eb0b2dd6bb0d055a4c269614ad8082a96d20"
+    },
+    {
+      "frame": 176,
+      "full": {
+        "selected": 55947,
+        "coverage_percent": 2.7463772384542886,
+        "weight_mean": 0.4772093892097473,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.01787405937762525,
+        "weight_below_0_05_percent": 0.019661465315387778,
+        "changed_selected_percent": 66.58623339946736,
+        "delta_mean_max_rgb_level": 3.655155772427476,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 152
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7397,
+          "coverage_percent": 13.377097800925927,
+          "weight_mean": 0.4744740426540375,
+          "weight_p10": 0.3794476389884949,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 81.62768690009463,
+          "delta_mean_max_rgb_level": 8.338515614438286,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 152
+        }
+      },
+      "weight_sha256": "a7c607902bce899015b3186ff3bc624036e705c3f912c13426e06765c690e2a7",
+      "current_rgb_sha256": "5e4a21af55266c785f7cf195e54e5cb25570de11fe0fa0101f7583d0e572666e",
+      "coverage_sha256": "e638757ddecd81fc9683c92853001cf7d88a9613b8b76639db5fc609f92b822f"
+    },
+    {
+      "frame": 177,
+      "full": {
+        "selected": 55775,
+        "coverage_percent": 2.7379339459629284,
+        "weight_mean": 0.475553959608078,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.014343343792021514,
+        "weight_below_0_05_percent": 0.014343343792021514,
+        "changed_selected_percent": 66.38278798744957,
+        "delta_mean_max_rgb_level": 3.6975168086060064,
+        "delta_p95_max_rgb_level": 16.0,
+        "delta_max_rgb_level": 131
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7378,
+          "coverage_percent": 13.342737268518517,
+          "weight_mean": 0.4621492922306061,
+          "weight_p10": 0.31213271617889404,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 83.11195445920305,
+          "delta_mean_max_rgb_level": 9.012469503930605,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 131
+        }
+      },
+      "weight_sha256": "231559b9f34eada74033104316bad50c63d90836c4f4ffcda310a72862cfa856",
+      "current_rgb_sha256": "c34f1b7f6a53ddd88528e064d9050110a51c4421a3e10a611cb49ceddfbf741b",
+      "coverage_sha256": "03c6b3db046741809364efa81ad6523894129090fe763743f07453d3e831d8e8"
+    },
+    {
+      "frame": 178,
+      "full": {
+        "selected": 56281,
+        "coverage_percent": 2.7627729343386744,
+        "weight_mean": 0.4757283627986908,
+        "weight_p10": 0.3794476389884949,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.01243758995042732,
+        "weight_below_0_05_percent": 0.01243758995042732,
+        "changed_selected_percent": 67.37620156002913,
+        "delta_mean_max_rgb_level": 3.722428528277749,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 152
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7365,
+          "coverage_percent": 13.319227430555555,
+          "weight_mean": 0.4726000428199768,
+          "weight_p10": 0.3794476389884949,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 85.22742701968771,
+          "delta_mean_max_rgb_level": 8.472640868974882,
+          "delta_p95_max_rgb_level": 31.0,
+          "delta_max_rgb_level": 152
+        }
+      },
+      "weight_sha256": "d455728fa4503be79e9336f42b30f9e54ca56e20675edcbed7c1f439e3dde0fe",
+      "current_rgb_sha256": "f3ff21f700b6df36c35cc7c6eb4188a2c555b457398ed2f397894c78b6bb2e60",
+      "coverage_sha256": "1676150584c30c25dad5af1fe6c9f3e7f4cacf4cc9d4983d0ef1a084c691cd3e"
+    },
+    {
+      "frame": 179,
+      "full": {
+        "selected": 55776,
+        "coverage_percent": 2.737983034872762,
+        "weight_mean": 0.4756685793399811,
+        "weight_p10": 0.37383759021759033,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.014343086632243257,
+        "weight_below_0_05_percent": 0.014343086632243257,
+        "changed_selected_percent": 66.39414802065404,
+        "delta_mean_max_rgb_level": 3.683017785427424,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 131
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7306,
+          "coverage_percent": 13.212528935185187,
+          "weight_mean": 0.46323806047439575,
+          "weight_p10": 0.31213271617889404,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 82.78127566383795,
+          "delta_mean_max_rgb_level": 8.74500410621407,
+          "delta_p95_max_rgb_level": 32.0,
+          "delta_max_rgb_level": 131
+        }
+      },
+      "weight_sha256": "d03e27ffcd09524c83189cc1a0f691cca9a28057a3858f7b2cf4cd57fd386734",
+      "current_rgb_sha256": "88b23b4f6bb059e390b9ff6efc8e40cec7490812a8747b1ccb224ec06175cdee",
+      "coverage_sha256": "4eddeea7dcf75ddc57cf045f1da3629639c32b117d34556b668f8ee916d5bab0"
+    },
+    {
+      "frame": 180,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.47458580136299133,
+        "weight_p10": 0.3684665858745575,
+        "weight_median": 0.49995750188827515,
+        "weight_p90": 0.4999900758266449,
+        "weight_zero_percent": 0.016050219352997823,
+        "weight_below_0_05_percent": 0.017833577058886472,
+        "changed_selected_percent": 67.51970610265006,
+        "delta_mean_max_rgb_level": 3.7749759246709704,
+        "delta_p95_max_rgb_level": 15.0,
+        "delta_max_rgb_level": 125
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.4639255106449127,
+          "weight_p10": 0.33362194895744324,
+          "weight_median": 0.4999690055847168,
+          "weight_p90": 0.4999801218509674,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 82.1078431372549,
+          "delta_mean_max_rgb_level": 8.873774509803921,
+          "delta_p95_max_rgb_level": 33.0,
+          "delta_max_rgb_level": 125
+        }
+      },
+      "weight_sha256": "633b6e9f2f42d7d68f21be8731a7332eabf7d606d1db33a034c52681b03ec1fb",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 181,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.19032834470272064,
+        "weight_p10": 0.00017303228378295898,
+        "weight_median": 0.18431980907917023,
+        "weight_p90": 0.3421598970890045,
+        "weight_zero_percent": 9.62478153868103,
+        "weight_below_0_05_percent": 12.676106573456503,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.28700685501098633,
+          "weight_p10": 0.21062646806240082,
+          "weight_median": 0.3158532381057739,
+          "weight_p90": 0.3421598970890045,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.013616557734204794,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "b13a315fae782c32c80947f4b881284e4e21bedaa7e5ff6f3334d1cbcb90f8e3",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 182,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 183,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 184,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 185,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 186,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 187,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 188,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 189,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 190,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 191,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 192,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 193,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 194,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 195,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 196,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 197,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 198,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 199,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 200,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 201,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 202,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 203,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 204,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 205,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 206,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 207,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 208,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 209,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 210,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 211,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 212,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 213,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 214,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 215,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 216,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 217,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 218,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    },
+    {
+      "frame": 219,
+      "full": {
+        "selected": 56074,
+        "coverage_percent": 2.7526115300031417,
+        "weight_mean": 0.5,
+        "weight_p10": 0.5,
+        "weight_median": 0.5,
+        "weight_p90": 0.5,
+        "weight_zero_percent": 0.0,
+        "weight_below_0_05_percent": 0.0,
+        "changed_selected_percent": 0.0,
+        "delta_mean_max_rgb_level": 0.0,
+        "delta_p95_max_rgb_level": 0.0,
+        "delta_max_rgb_level": 0
+      },
+      "roi": {
+        "bistro-window-stop": {
+          "selected": 7344,
+          "coverage_percent": 13.28125,
+          "weight_mean": 0.5,
+          "weight_p10": 0.5,
+          "weight_median": 0.5,
+          "weight_p90": 0.5,
+          "weight_zero_percent": 0.0,
+          "weight_below_0_05_percent": 0.0,
+          "changed_selected_percent": 0.0,
+          "delta_mean_max_rgb_level": 0.0,
+          "delta_p95_max_rgb_level": 0.0,
+          "delta_max_rgb_level": 0
+        }
+      },
+      "weight_sha256": "c835348783abb6fa491f97921d9639bb0cfadc1e4de786cd1b882d52f70f3b60",
+      "current_rgb_sha256": "9a99efc061046066075c2386b3807bc7288d7822b66c940f99337679fb991154",
+      "coverage_sha256": "ce08189d5a91506d29185f023d7b4476bf5efee4fc9f283dbd22d20acc7c6b26"
+    }
+  ],
+  "clips": [
+    {
+      "clip": {
+        "id": "bistro-chairs-moving",
+        "scene": "bistro",
+        "title": "Bistro · 의자 다리 / 이동",
+        "start": 100,
+        "end": 160,
+        "roi": [
+          1190,
+          530,
+          1478,
+          722
+        ],
+        "fps": 30
+      },
+      "data": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\history-contribution-20260930\\bistro-chairs-moving-case6.npz",
+      "sha256": "e6795b7c242be23275bcce40ad5795d13b1255fe66d457dc5106647738888314"
+    },
+    {
+      "clip": {
+        "id": "bistro-window-stop",
+        "scene": "bistro",
+        "title": "Bistro · 창살 / 이동 → 정지",
+        "start": 160,
+        "end": 220,
+        "roi": [
+          880,
+          430,
+          1168,
+          622
+        ],
+        "fps": 15
+      },
+      "data": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\Captures\\history-contribution-20260930\\bistro-window-stop-case6.npz",
+      "sha256": "01c76885245dbb79e243ab9ebb637a8ddccae0a305e27942bb81e13f4535c565"
+    }
+  ],
+  "scope": "Actual native GPU weight. Delta is max absolute RGB channel difference after 8-bit storage, in 0..255 levels. Neither weight nor delta is a quality or anti-flicker score. No timing result."
+}
