@@ -1,0 +1,2890 @@
+{
+  "date": "2026-10-06",
+  "branch": "experiment/edge-persistence-resolved-rgb-feedback",
+  "implementation_commit": "b793b74",
+  "verified_capture_executable_sha256": "6369C6621C9389D65E4BD125B6BDE2A7A9DFFB52F966F542DEF007D3C0D95677",
+  "scope": "direct static original-frame inspection in listed windows; no claim of all 240 frames visually inspected; no real-time playback viewing",
+  "new_gpu_execution": false,
+  "case11_performance": "deferred while user is gaming",
+  "case11_cgvqm": "not executed",
+  "comparison": {
+    "4": "O-T2X-R: Original spatial SMAA, full-screen original T2X-R, paired pattern On, spatial history",
+    "11": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB: Original spatial SMAA, current+reprojected previous raw edge, pattern Off, resolved RGB feedback; alpha-based weight 0..0.5; camera/depth reprojection only"
+  },
+  "quality_gate": "NOT_PASSED: unresolved moving thin-line attenuation/disappearance and reappearance",
+  "implementation_correctness": "Previously verified feedback RGB, spatial alpha and nonselected current output remain PASS; correctness and quality are distinct",
+  "observations": [
+    {
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "frames": [
+        124,
+        135
+      ],
+      "finding": "Case11 seam segments become very faint and reappear. At f129 the lower seam segment is clearer in case4 than in case11; case11 regains a visible lower segment at f130. This is changing structure visibility, not just a fixed sharpness difference."
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        124,
+        155
+      ],
+      "finding": "Case4 also loses seam contrast at f127/f132. Case11 retains some segments better in parts of f150-155. No universal frame-by-frame ranking or perfect case4 stability is claimed."
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1230,
+        582,
+        1358,
+        670
+      ],
+      "frames": [
+        126,
+        131
+      ],
+      "finding": "Case11 thin chair-leg pixel steps and contrast variations remain; consistent stabilization versus case4 is not confirmed. No claim that the entire chair leg vanishes in these reviewed frames."
+    },
+    {
+      "scene": "both",
+      "finding": "Window/leaf fine-detail variability remains. The reviewed output alone does not establish quantitative ghost-trail reduction."
+    }
+  ],
+  "causal_limit": "Cases differ in pattern, coverage, sampler and history topology; final-output comparison cannot isolate selection, jitter, reprojection or weight as the cause.",
+  "next_diagnostic": "Match failed line locations to saved current-spatial, selection, reprojected history and visible output before proposing another AA change.",
+  "full_frame_views": [
+    {
+      "scene": "bistro",
+      "case": 4,
+      "frame": 130,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\media\\bistro-O-T2X-R-full-f130.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00130.png",
+      "decoded_rgb_sha256": "ec589858f4da9a72376b3dd6e37eca7a299b8053f6ee7b548392b69134530b5e",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "bistro",
+      "case": 4,
+      "frame": 180,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-case4-full-f180.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00180.png",
+      "decoded_rgb_sha256": "9c6915b4f9b10c064991a1e2cef3c38b6cbcda09952f5700a31eedda990f77b8",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "bistro",
+      "case": 11,
+      "frame": 130,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\media\\bistro-ABL-ET2X-R-PreviousRawEdge-ResolvedRGB-full-f130.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+      "decoded_rgb_sha256": "118abeeb6e821885911a51cb1b8d844145b851a40de819d940f4a77e5e9f610f",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "bistro",
+      "case": 11,
+      "frame": 180,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-case11-full-f180.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00180.png",
+      "decoded_rgb_sha256": "df73b96168804fe70fe2bc23514283afa632deb1bdea403f0224edba56e3ed45",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "minecraft",
+      "case": 4,
+      "frame": 130,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\media\\minecraft-O-T2X-R-full-f130.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00130.png",
+      "decoded_rgb_sha256": "44cfefd7ff824a351cfdcbba4a4591156abe133cad7373a2571e6de13162d5cb",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "minecraft",
+      "case": 4,
+      "frame": 180,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-case4-full-f180.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00180.png",
+      "decoded_rgb_sha256": "69f7d66a84ac8f07ab14774ae4dc50bb1439e20006521d4dedbf8ab74b010415",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "minecraft",
+      "case": 11,
+      "frame": 130,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\media\\minecraft-ABL-ET2X-R-PreviousRawEdge-ResolvedRGB-full-f130.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+      "decoded_rgb_sha256": "a71158aa36cecfdf6bf32ff879b625412469b158b4f9c4bd9d958e558c733a73",
+      "source_copy_hash_bridge": "PASS"
+    },
+    {
+      "scene": "minecraft",
+      "case": 11,
+      "frame": 180,
+      "viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-case11-full-f180.png",
+      "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00180.png",
+      "decoded_rgb_sha256": "8e0d6d8c66154110d3f8a922e897c9a0befb7a2dc0151fd47671c448d97d9306",
+      "source_copy_hash_bridge": "PASS"
+    }
+  ],
+  "roi_sheet_views": [
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        126,
+        127
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00126.png",
+          "decoded_rgb_sha256": "fa0864f1500c094e15c2389c76a54559a313fe306327a7061854c8d9b14077a5"
+        },
+        {
+          "case": 11,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00126.png",
+          "decoded_rgb_sha256": "ce8340a884ab1309afa63057f230236983b2cb898d149c8a6a453be3ed92600e"
+        },
+        {
+          "case": 4,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00127.png",
+          "decoded_rgb_sha256": "d3e0de6fd223318a960391457cd2b653d9217f82f875c60dca3fc21c2aba6607"
+        },
+        {
+          "case": 11,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00127.png",
+          "decoded_rgb_sha256": "9941ec920d2783358583bab59c1494584debfe204e41f913488d6d1ab3189a12"
+        }
+      ],
+      "sha256": "b2c92486e8b8d34ce6be98d337d1722a95d02625bf290b3f81c06c3c86bf1c30",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-moving-pair0.png",
+      "directly_viewed_file_sha256": "f4ce41393c62567a6c8218e18ea4f4cd81859f21042e1066ad16897634aa0f76"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        128,
+        129
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "1e55995d42508d8e7b5709f74040bef547d3f532e4493f0cbc455fd88302f3f0"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "d92f91613718d8d95f1421ecc421c6182408bb937c2127e0a68f7f2f5f1fbce6"
+        },
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "5a7084921aad119d24f712694d117353624b8b4785b164b6c6b1525aee285ec8"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "b8b193da7a2e111ba58d751588b6a54962aebcbf1d37e485e5cb8f921e9a4c1a"
+        }
+      ],
+      "sha256": "8e921b7db4ac25ed63c244f8ff1c742385fa9913cbf3a090fc98a6ac72ed6515",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-moving-pair1.png",
+      "directly_viewed_file_sha256": "56c351eafa98f93070f6f969de9f6b25c4f02b6e12cc9bb204c604d664500891"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        130,
+        131
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "ec589858f4da9a72376b3dd6e37eca7a299b8053f6ee7b548392b69134530b5e"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "118abeeb6e821885911a51cb1b8d844145b851a40de819d940f4a77e5e9f610f"
+        },
+        {
+          "case": 4,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00131.png",
+          "decoded_rgb_sha256": "75255f9af14aeeb9f9f5b3ccfa12211c53fc2a86779c96d109114ecdad2b964c"
+        },
+        {
+          "case": 11,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00131.png",
+          "decoded_rgb_sha256": "516fc02167e3d16f5bba6cf9485714c33ec1ce2070a53c363e5e9cf62ab0f866"
+        }
+      ],
+      "sha256": "b797c2654c245517d2df22de50b6a93ee418b852477bef95a7277f1ed37a08f7",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-moving-pair2.png",
+      "directly_viewed_file_sha256": "9ab0978dae73f93aa32e7b10ac93a48601ae51e2104a9fdba6a8f98386230a42"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        150,
+        151
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-later-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00150.png",
+          "decoded_rgb_sha256": "1dec7cc9e9d3779529d62f2f3147f0bd7ce7293aa253202ddf141c304436b43f"
+        },
+        {
+          "case": 11,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00150.png",
+          "decoded_rgb_sha256": "f6282e0479e98ea26b0d7c68011ba95958a816dc8cef235fd9e87ed79c324a6d"
+        },
+        {
+          "case": 4,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00151.png",
+          "decoded_rgb_sha256": "b903712c1a836b2cdd83a2dda5e0dba12245f5b860a82b7ca8640a6d2205d57c"
+        },
+        {
+          "case": 11,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00151.png",
+          "decoded_rgb_sha256": "4e67be3358ccc03577162c16c663722c919599860937de32ac96403025cc45cb"
+        }
+      ],
+      "sha256": "e470f37d57170871b4934fe0d38b18b80faf14c5724a374f8a90e14539a5e0c4",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-later-moving-pair0.png",
+      "directly_viewed_file_sha256": "9ba04a0871da212d8f472288eb2e8a67c9ed12b257e4221c64b6d3095a375254"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        152,
+        153
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-later-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00152.png",
+          "decoded_rgb_sha256": "2d013b7e93f0e8e7408821084a8eb89bf4ab671b02c23e19dcb3bcf0a9de4dc9"
+        },
+        {
+          "case": 11,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00152.png",
+          "decoded_rgb_sha256": "0b74c8536df151188569445da1e2ad1d3fb20507809d04898fca6d40d1476760"
+        },
+        {
+          "case": 4,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00153.png",
+          "decoded_rgb_sha256": "d2c517def3cb8e4ef4f519fec51f10ee0888399916db9c31ba4debcd7f4d6ccc"
+        },
+        {
+          "case": 11,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00153.png",
+          "decoded_rgb_sha256": "8fc412a1995d7e5c90d54dfd5e523514ee7581ec440e72a1d43aa1561aac76cb"
+        }
+      ],
+      "sha256": "d0cdfb03ba21be02d6e6dc7ef31981571fbe5f1c8d005abcc127e79571953a15",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-later-moving-pair1.png",
+      "directly_viewed_file_sha256": "ebc6744d433de6dd240300b70577073de1beada4b17e3beff4a275d6d6350a06"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        154,
+        155
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-later-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00154.png",
+          "decoded_rgb_sha256": "61523bfa7ded5e275db9b3eb3ca060a6728864d02ce54433c1a3f786b19bad39"
+        },
+        {
+          "case": 11,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00154.png",
+          "decoded_rgb_sha256": "732b6c71c3971ebe0ad9070cec83cf79fe77bf0c039b37cd381905a524d80165"
+        },
+        {
+          "case": 4,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00155.png",
+          "decoded_rgb_sha256": "8551210723e100e95e3acc3e3b427bf3e64a14b7a452699cfe532019fdb89f17"
+        },
+        {
+          "case": 11,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00155.png",
+          "decoded_rgb_sha256": "5775468c8ea06a7ef59d6b08f53cc648e5194e8633f1ceedbb30d63dbbd2cf73"
+        }
+      ],
+      "sha256": "33d58d2a74dd4c675817c7bea20172f9bbccecfa5f0c9d9f01da4b09167e61af",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-later-moving-pair2.png",
+      "directly_viewed_file_sha256": "2d1f7179f8f00847bd1aaeb6ff2fef130b22f2fd662a92548cc9b6a69dc66915"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        178,
+        179
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-transition-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00178.png",
+          "decoded_rgb_sha256": "cccaa75934bac1402d3d1af5944d420521e2742ec78260e0dd7377a7ad55fc21"
+        },
+        {
+          "case": 11,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00178.png",
+          "decoded_rgb_sha256": "818d00d2e41d119bc3c85acada56d620230649f04c1d65db707eeab49ddda181"
+        },
+        {
+          "case": 4,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00179.png",
+          "decoded_rgb_sha256": "c10727fb686b67b1cd8139586bc522b2cfd9d438ccb0aba33b373981709f31fe"
+        },
+        {
+          "case": 11,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00179.png",
+          "decoded_rgb_sha256": "1dd42400b8b900945a8f43e432ac44978aa11b416bed82e304017e252b860ba1"
+        }
+      ],
+      "sha256": "da480a38f3272b6b23ebed2fb6065882c59e50ec781675bcd8e35de21694bf81",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-transition-pair0.png",
+      "directly_viewed_file_sha256": "60832d86680ab8f7d8e79ebc4a108d35ea8e34aed6d4fed082e22977e8762e8b"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        180,
+        181
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-transition-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00180.png",
+          "decoded_rgb_sha256": "9c6915b4f9b10c064991a1e2cef3c38b6cbcda09952f5700a31eedda990f77b8"
+        },
+        {
+          "case": 11,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00180.png",
+          "decoded_rgb_sha256": "df73b96168804fe70fe2bc23514283afa632deb1bdea403f0224edba56e3ed45"
+        },
+        {
+          "case": 4,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00181.png",
+          "decoded_rgb_sha256": "9cb291f704345e0937e7fdcece5033b07a0fc7207cbfe505431ffaad994a932c"
+        },
+        {
+          "case": 11,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00181.png",
+          "decoded_rgb_sha256": "89bb5917af771c631bf421e76b533834e4a2fb2a457489795b1262419c8ef4d4"
+        }
+      ],
+      "sha256": "0ae786aaea823deab954ecf0a27ccae8159656c50b864ff49ff8a9f1300bf3e8",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-transition-pair1.png",
+      "directly_viewed_file_sha256": "3adf26eeedc4a7d6664c314aa2d84426871ccf124e6ad1a489f0de9fca8a8034"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        182,
+        183
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-transition-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00182.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00182.png",
+          "decoded_rgb_sha256": "5476f1d1a962cd3bc89498c2c93deb220af8b184dd4c80eee69de37c2a86aeb4"
+        },
+        {
+          "case": 4,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00183.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00183.png",
+          "decoded_rgb_sha256": "9dc5069dda2e6c7dcda207d27d414ff4d8cf858894bf0a5f478f23da2c5e516f"
+        }
+      ],
+      "sha256": "d117fa107cc7c838a18e3752605321e329bbf2a3220b0bc320fe6179c8ec557b",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-transition-pair2.png",
+      "directly_viewed_file_sha256": "eb2e73abaa03d436e38d63930a9e83db57585bbb72a674362d0f2e61cd960b00"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        190,
+        191
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-still-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00190.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00190.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        },
+        {
+          "case": 4,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00191.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00191.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        }
+      ],
+      "sha256": "2d99db17cc33e429be0fd7c436bffdb29fde5036bfc600f2c5da34caf6b86c43",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-still-pair0.png",
+      "directly_viewed_file_sha256": "22cad74f74fda55e484705096027546e845f8a35b153114cd9c830a84a095906"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        192,
+        193
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-still-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00192.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00192.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        },
+        {
+          "case": 4,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00193.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00193.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        }
+      ],
+      "sha256": "b62b51dddb55a12dbb3b53890d66fc39bfc9cc9d73a170e733a841407fd28ad9",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-still-pair1.png",
+      "directly_viewed_file_sha256": "8b9e3302fb2dcd78bc1a27b40cc7722e6ad6594b26babafc97659dbab76a6749"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        194,
+        195
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-chairs-still-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00194.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00194.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        },
+        {
+          "case": 4,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00195.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00195.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        }
+      ],
+      "sha256": "3d1075ec58bc7c229a88f11095d1a34abaf958ff6664e3f2e957e592c9a3fffe",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-chairs-still-pair2.png",
+      "directly_viewed_file_sha256": "cf503d1b84e009e7cac1ac0acc0da062646249376717ec7492711255afd52873"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        126,
+        127
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00126.png",
+          "decoded_rgb_sha256": "fa0864f1500c094e15c2389c76a54559a313fe306327a7061854c8d9b14077a5"
+        },
+        {
+          "case": 11,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00126.png",
+          "decoded_rgb_sha256": "ce8340a884ab1309afa63057f230236983b2cb898d149c8a6a453be3ed92600e"
+        },
+        {
+          "case": 4,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00127.png",
+          "decoded_rgb_sha256": "d3e0de6fd223318a960391457cd2b653d9217f82f875c60dca3fc21c2aba6607"
+        },
+        {
+          "case": 11,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00127.png",
+          "decoded_rgb_sha256": "9941ec920d2783358583bab59c1494584debfe204e41f913488d6d1ab3189a12"
+        }
+      ],
+      "sha256": "0a3868f871924aed2a4d080c167929faa29ffd6aee13b113d311d78dc884b2db",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-windows-moving-pair0.png",
+      "directly_viewed_file_sha256": "19de247c37d0e658451ad5fd8acca9bfb9f11e2898bfed040de1cc144352804e"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        128,
+        129
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "1e55995d42508d8e7b5709f74040bef547d3f532e4493f0cbc455fd88302f3f0"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "d92f91613718d8d95f1421ecc421c6182408bb937c2127e0a68f7f2f5f1fbce6"
+        },
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "5a7084921aad119d24f712694d117353624b8b4785b164b6c6b1525aee285ec8"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "b8b193da7a2e111ba58d751588b6a54962aebcbf1d37e485e5cb8f921e9a4c1a"
+        }
+      ],
+      "sha256": "92f351a8ff46d6a6a7e25625ee5e54947ae3073013818734dd3a6dcac106a9fa",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-windows-moving-pair1.png",
+      "directly_viewed_file_sha256": "a22b47bd3cce6e7012b28dab5f8940ee0a4356fe3ba47df0bf44de2ab1620b98"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        130,
+        131
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "ec589858f4da9a72376b3dd6e37eca7a299b8053f6ee7b548392b69134530b5e"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "118abeeb6e821885911a51cb1b8d844145b851a40de819d940f4a77e5e9f610f"
+        },
+        {
+          "case": 4,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00131.png",
+          "decoded_rgb_sha256": "75255f9af14aeeb9f9f5b3ccfa12211c53fc2a86779c96d109114ecdad2b964c"
+        },
+        {
+          "case": 11,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00131.png",
+          "decoded_rgb_sha256": "516fc02167e3d16f5bba6cf9485714c33ec1ce2070a53c363e5e9cf62ab0f866"
+        }
+      ],
+      "sha256": "61ac9c489205ba91f96de669bcf5e1d804a6b0faf0f6dd75d131b23e46338e3d",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-windows-moving-pair2.png",
+      "directly_viewed_file_sha256": "079b5283a2a4a194f6267a02a6d4a3a14809c69d47f62ec81e3d15459b25206b"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        150,
+        151
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-later-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00150.png",
+          "decoded_rgb_sha256": "1dec7cc9e9d3779529d62f2f3147f0bd7ce7293aa253202ddf141c304436b43f"
+        },
+        {
+          "case": 11,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00150.png",
+          "decoded_rgb_sha256": "f6282e0479e98ea26b0d7c68011ba95958a816dc8cef235fd9e87ed79c324a6d"
+        },
+        {
+          "case": 4,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00151.png",
+          "decoded_rgb_sha256": "b903712c1a836b2cdd83a2dda5e0dba12245f5b860a82b7ca8640a6d2205d57c"
+        },
+        {
+          "case": 11,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00151.png",
+          "decoded_rgb_sha256": "4e67be3358ccc03577162c16c663722c919599860937de32ac96403025cc45cb"
+        }
+      ],
+      "sha256": "c860d1e879d13e9122df8aa1ac326d35237e9ed2565a0ce750f2e86339f33311",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-later-moving-pair0.png",
+      "directly_viewed_file_sha256": "c860d1e879d13e9122df8aa1ac326d35237e9ed2565a0ce750f2e86339f33311"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        152,
+        153
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-later-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00152.png",
+          "decoded_rgb_sha256": "2d013b7e93f0e8e7408821084a8eb89bf4ab671b02c23e19dcb3bcf0a9de4dc9"
+        },
+        {
+          "case": 11,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00152.png",
+          "decoded_rgb_sha256": "0b74c8536df151188569445da1e2ad1d3fb20507809d04898fca6d40d1476760"
+        },
+        {
+          "case": 4,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00153.png",
+          "decoded_rgb_sha256": "d2c517def3cb8e4ef4f519fec51f10ee0888399916db9c31ba4debcd7f4d6ccc"
+        },
+        {
+          "case": 11,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00153.png",
+          "decoded_rgb_sha256": "8fc412a1995d7e5c90d54dfd5e523514ee7581ec440e72a1d43aa1561aac76cb"
+        }
+      ],
+      "sha256": "c6eef71d5a7759fe706a05d1aa4d27415ea42b2e384e88de8b84a27e4bb5bfe3",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-later-moving-pair1.png",
+      "directly_viewed_file_sha256": "c6eef71d5a7759fe706a05d1aa4d27415ea42b2e384e88de8b84a27e4bb5bfe3"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        154,
+        155
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-later-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00154.png",
+          "decoded_rgb_sha256": "61523bfa7ded5e275db9b3eb3ca060a6728864d02ce54433c1a3f786b19bad39"
+        },
+        {
+          "case": 11,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00154.png",
+          "decoded_rgb_sha256": "732b6c71c3971ebe0ad9070cec83cf79fe77bf0c039b37cd381905a524d80165"
+        },
+        {
+          "case": 4,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00155.png",
+          "decoded_rgb_sha256": "8551210723e100e95e3acc3e3b427bf3e64a14b7a452699cfe532019fdb89f17"
+        },
+        {
+          "case": 11,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00155.png",
+          "decoded_rgb_sha256": "5775468c8ea06a7ef59d6b08f53cc648e5194e8633f1ceedbb30d63dbbd2cf73"
+        }
+      ],
+      "sha256": "70c8f89c9da768e3ad1f649d342f5b1df3afc0f7b4661fcbf3b0c918fd394e12",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-later-moving-pair2.png",
+      "directly_viewed_file_sha256": "70c8f89c9da768e3ad1f649d342f5b1df3afc0f7b4661fcbf3b0c918fd394e12"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        178,
+        179
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-transition-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00178.png",
+          "decoded_rgb_sha256": "cccaa75934bac1402d3d1af5944d420521e2742ec78260e0dd7377a7ad55fc21"
+        },
+        {
+          "case": 11,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00178.png",
+          "decoded_rgb_sha256": "818d00d2e41d119bc3c85acada56d620230649f04c1d65db707eeab49ddda181"
+        },
+        {
+          "case": 4,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00179.png",
+          "decoded_rgb_sha256": "c10727fb686b67b1cd8139586bc522b2cfd9d438ccb0aba33b373981709f31fe"
+        },
+        {
+          "case": 11,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00179.png",
+          "decoded_rgb_sha256": "1dd42400b8b900945a8f43e432ac44978aa11b416bed82e304017e252b860ba1"
+        }
+      ],
+      "sha256": "21a3e1fa14fb5600f9891233ad9590913e8c67b46718e49392fc721fa086f4e6",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-windows-transition-pair0.png",
+      "directly_viewed_file_sha256": "1e2f77f744323b6223d72d1dbf902e3c6bc3a2672128e9170271067e10ed623b"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        180,
+        181
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-transition-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00180.png",
+          "decoded_rgb_sha256": "9c6915b4f9b10c064991a1e2cef3c38b6cbcda09952f5700a31eedda990f77b8"
+        },
+        {
+          "case": 11,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00180.png",
+          "decoded_rgb_sha256": "df73b96168804fe70fe2bc23514283afa632deb1bdea403f0224edba56e3ed45"
+        },
+        {
+          "case": 4,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00181.png",
+          "decoded_rgb_sha256": "9cb291f704345e0937e7fdcece5033b07a0fc7207cbfe505431ffaad994a932c"
+        },
+        {
+          "case": 11,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00181.png",
+          "decoded_rgb_sha256": "89bb5917af771c631bf421e76b533834e4a2fb2a457489795b1262419c8ef4d4"
+        }
+      ],
+      "sha256": "94ace2fc17b413feffd640d606ab1c2723b514376eaeb398c80d16b92d7209b1",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-windows-transition-pair1.png",
+      "directly_viewed_file_sha256": "514a089c2609a67b04631962789ce358406796eda04e4c4422a042d6cbb43452"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        182,
+        183
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-transition-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00182.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00182.png",
+          "decoded_rgb_sha256": "5476f1d1a962cd3bc89498c2c93deb220af8b184dd4c80eee69de37c2a86aeb4"
+        },
+        {
+          "case": 4,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00183.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00183.png",
+          "decoded_rgb_sha256": "9dc5069dda2e6c7dcda207d27d414ff4d8cf858894bf0a5f478f23da2c5e516f"
+        }
+      ],
+      "sha256": "df1f213e15186dcb4a67e78f7160357bf0c2d5c5b40d21a9d442aec4be9890f6",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\bistro-windows-transition-pair2.png",
+      "directly_viewed_file_sha256": "6530d43d196abfdc88946c78a15902d1cdae45a0b10ca71c28e1bf2dffb4eab9"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        190,
+        191
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-still-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00190.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00190.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        },
+        {
+          "case": 4,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00191.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00191.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        }
+      ],
+      "sha256": "6220e73e2a31f87d44e8b50d6d025b24e10230cfff242aef2f979aa815d7f7f0",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-still-pair0.png",
+      "directly_viewed_file_sha256": "6220e73e2a31f87d44e8b50d6d025b24e10230cfff242aef2f979aa815d7f7f0"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        192,
+        193
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-still-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00192.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00192.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        },
+        {
+          "case": 4,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00193.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00193.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        }
+      ],
+      "sha256": "99ae1cec756c101885c078b65adb8e5787e03a2e4302a6e6ee1059777f602e49",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-still-pair1.png",
+      "directly_viewed_file_sha256": "99ae1cec756c101885c078b65adb8e5787e03a2e4302a6e6ee1059777f602e49"
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "frames": [
+        194,
+        195
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-still-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00194.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00194.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        },
+        {
+          "case": 4,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00195.png",
+          "decoded_rgb_sha256": "ae6ac73f58a4ee3871ba9028f2ab98ae2b2622ca264267fa129dc5d1e3d5fd2e"
+        },
+        {
+          "case": 11,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00195.png",
+          "decoded_rgb_sha256": "4c9822ceb4e5649647b88cca745d2947bd7c60ec1c8415a6d68468fe4f9dc3fe"
+        }
+      ],
+      "sha256": "8e8c9fcbc1bc4e1357602b31c242f625437f82582c962382ed86d5aceec3007c",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-windows-still-pair2.png",
+      "directly_viewed_file_sha256": "8e8c9fcbc1bc4e1357602b31c242f625437f82582c962382ed86d5aceec3007c"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        126,
+        127
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00126.png",
+          "decoded_rgb_sha256": "e095232f72c4e19752579d6fca8a123015f8e0e5748aaf676f2eb36895f53d66"
+        },
+        {
+          "case": 11,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00126.png",
+          "decoded_rgb_sha256": "4cc95bcddd8358e35bd97a4f55032b966caf6ac1fd324f9f87b908ac1dfed75a"
+        },
+        {
+          "case": 4,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00127.png",
+          "decoded_rgb_sha256": "86af7a0422cf435fa4c3b89670459cf416a6718ef81724bdd6cf37038095710f"
+        },
+        {
+          "case": 11,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00127.png",
+          "decoded_rgb_sha256": "4bf2321f921293490c8008e5ce71b36c28124351d77543eff2df294e8602ebb4"
+        }
+      ],
+      "sha256": "969d5df7abfbd2ece4cfced760e0a424e8452dc61b2ccfa3b1353779b03d3a61",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-moving-pair0.png",
+      "directly_viewed_file_sha256": "69d49ac6c53994a1f9a44b0588bbebbe1b0df7547fefef5ef6da68f061c87465"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        128,
+        129
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "66f95404668a35a07ed9e2926e12b2d5745cb178de6b1df8a3a497a7a72d6ab0"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "8a6e510fcbce3cc8e79689cafa24fd021c0bc491a89f6f8bce4e889f51b77f8c"
+        },
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "fe93abde0a12937ee9c227008fb6899b6ebdc720fc97de5c182516f0d932a0d1"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "cc3af24455b05ccd87c8ccdea4253f4cf728da2b9d7930342139c83a83ef5158"
+        }
+      ],
+      "sha256": "fa1b239ff318bbf66575f4aa8cfb7e2e047d81d09fe55c2e442b000c17e6d4b3",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-moving-pair1.png",
+      "directly_viewed_file_sha256": "3d9fe1b013a617ddae8743f9c660df239798727419c94ec68d0ba268c85c52c0"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        130,
+        131
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "44cfefd7ff824a351cfdcbba4a4591156abe133cad7373a2571e6de13162d5cb"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "a71158aa36cecfdf6bf32ff879b625412469b158b4f9c4bd9d958e558c733a73"
+        },
+        {
+          "case": 4,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00131.png",
+          "decoded_rgb_sha256": "b6d10fbecc5ed8f70ae5621640e53f2517c27cf1d3b8f580d91c045be4e662f7"
+        },
+        {
+          "case": 11,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00131.png",
+          "decoded_rgb_sha256": "66257fc93d36f35fce033c49f0d50385223132eb24bcc07f396c54dc32bc0060"
+        }
+      ],
+      "sha256": "ce8e6a95b70229a596241680221c6408ea0e28992638c686fef51ae0b06156a8",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-moving-pair2.png",
+      "directly_viewed_file_sha256": "798c9e9ccc53d342ce6d3280676ad4aeee3767df6aa35da99dd5c34a661e85bb"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        150,
+        151
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-later-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00150.png",
+          "decoded_rgb_sha256": "962b1566c43ac733d1ff7b90631fe9e18f473b9709d27f53e55c5da42c804be2"
+        },
+        {
+          "case": 11,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00150.png",
+          "decoded_rgb_sha256": "8f1e70ab5d45ebd77d35550227f21a7fac64cff7ffed4f63e1c66593b87d1b64"
+        },
+        {
+          "case": 4,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00151.png",
+          "decoded_rgb_sha256": "bef8f3ee01bb343f3db9ec09617ca9f6ac10c2f441d1bbc0e83696b9889c80a4"
+        },
+        {
+          "case": 11,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00151.png",
+          "decoded_rgb_sha256": "7be0ce7804453a4b5b911bfdd1f999794482b49115bad2186ff0c302c66b3118"
+        }
+      ],
+      "sha256": "7ac768c490fcbd4ef7e0dcd818fcde09555dbe709cb8da09bee96c37191cadd2",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-later-moving-pair0.png",
+      "directly_viewed_file_sha256": "e4bce08833e00978d035c0256fb4d7c6d07d7301ad68c42f4a008588e925027a"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        152,
+        153
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-later-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00152.png",
+          "decoded_rgb_sha256": "fd3809e07086162a0155f1908988e7b3407b4000a091d7d4ed8bb1bdbfe29f6b"
+        },
+        {
+          "case": 11,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00152.png",
+          "decoded_rgb_sha256": "34a6aca8a8e32fb17e354cbfb21044b09ef7ce63d90fe468e2d6b62654dc624d"
+        },
+        {
+          "case": 4,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00153.png",
+          "decoded_rgb_sha256": "c8847051991f58b8ee379416e7ab9b2c44e30b6d27fd5a21a797e13f7d37af92"
+        },
+        {
+          "case": 11,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00153.png",
+          "decoded_rgb_sha256": "95f9ea711b15e53187339a1f9473dad76ab2e236ed77c57e64a6892f2c059dae"
+        }
+      ],
+      "sha256": "3541db371880d260b4279c9d87d063133661bb84b39527de16f1d0d476139aab",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-later-moving-pair1.png",
+      "directly_viewed_file_sha256": "7eefb8b094fa06256e84f933f1e30929912a7ec5c3c51a5a8542337828867b0a"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        154,
+        155
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-later-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00154.png",
+          "decoded_rgb_sha256": "850c2754c5604eb8b2e101f17067b9d84f73a1f60fe2afb66c1030e47b9894e3"
+        },
+        {
+          "case": 11,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00154.png",
+          "decoded_rgb_sha256": "d61f90d20bf319c3e7fcf146e70e8a9b06dd53871d458a3ea377e03634d57e60"
+        },
+        {
+          "case": 4,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00155.png",
+          "decoded_rgb_sha256": "81fb209a470b1fc5dc1533bcc879274d9bf45cbb36e48a3089fc7b106e9d3149"
+        },
+        {
+          "case": 11,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00155.png",
+          "decoded_rgb_sha256": "67db67fdcb0f6b27bab6e93ed53a7d45b07f58448c1dc038d4077f6019d11547"
+        }
+      ],
+      "sha256": "aa1c5c522550f65c36c1b6f7298eba20d6069aadb04a4f93a75c93faa2e12eb2",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-later-moving-pair2.png",
+      "directly_viewed_file_sha256": "e26eb3377ed3565c2cb34b7f5ecd1a02cc8fa390ee1ea8f9a9683adb557d954b"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        178,
+        179
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-transition-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00178.png",
+          "decoded_rgb_sha256": "c5dbe5622f99742591f076f5aa67acfb475a5e595985d60c198e04c275162171"
+        },
+        {
+          "case": 11,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00178.png",
+          "decoded_rgb_sha256": "489bbf7721b095992ad6a74626b86dcfd12d9ab60882c608c6c7ec95e48430a7"
+        },
+        {
+          "case": 4,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00179.png",
+          "decoded_rgb_sha256": "7f99e8d2c3696109f666c872bed7ecf0b788eb7c023315af68fcc915f55b48d2"
+        },
+        {
+          "case": 11,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00179.png",
+          "decoded_rgb_sha256": "3a3e1ef799432c06f1c4ea7d01599b12492b8c66c45d7c58edc21a9e230b2c2e"
+        }
+      ],
+      "sha256": "35fb47c5209021ccf6ab93f712a8d755430abbb2e722ec5a2942b7243c87b344",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-transition-pair0.png",
+      "directly_viewed_file_sha256": "d9075490b2f92e0b408963d42de801a26c19264c2ff5876cc43c042d17fd83fc"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        180,
+        181
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-transition-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00180.png",
+          "decoded_rgb_sha256": "69f7d66a84ac8f07ab14774ae4dc50bb1439e20006521d4dedbf8ab74b010415"
+        },
+        {
+          "case": 11,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00180.png",
+          "decoded_rgb_sha256": "8e0d6d8c66154110d3f8a922e897c9a0befb7a2dc0151fd47671c448d97d9306"
+        },
+        {
+          "case": 4,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00181.png",
+          "decoded_rgb_sha256": "c735d35920e292892e8769402a5bc8f2f2d48513010058a118a26d628bb3689d"
+        },
+        {
+          "case": 11,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00181.png",
+          "decoded_rgb_sha256": "6baf8396093a3f8b47cc65827a978faed8c8d0f01549e865ea4452fb59094086"
+        }
+      ],
+      "sha256": "ad55b1673e910e7d3277d997bd618c721448c110d2e74addf5b23735b69cd8d9",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-transition-pair1.png",
+      "directly_viewed_file_sha256": "6e4545fdd254d447968981b900c41e65e513e842913d110537fe183d3415df64"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        182,
+        183
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-transition-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00182.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00182.png",
+          "decoded_rgb_sha256": "8b90347611f8038480422c6051e5cd50f2c04c02ec9c40c48f8b32745047d398"
+        },
+        {
+          "case": 4,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00183.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00183.png",
+          "decoded_rgb_sha256": "c1e52ecd21ad132ae3bd583face5a778c3f8d3b2b29b8aafcce88c5d027bbf29"
+        }
+      ],
+      "sha256": "4584019b9373e722a6fafc2904c6cd9d81110861d870c9258608f2444c1d57f7",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-transition-pair2.png",
+      "directly_viewed_file_sha256": "34bda1182f3afcd2e4247dccc5f2f9b4e25356f46bc56e8e312ea04cbd0fd7b1"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        190,
+        191
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-still-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00190.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00190.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        },
+        {
+          "case": 4,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00191.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00191.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        }
+      ],
+      "sha256": "c492d9d429f589780810687dc3153cf3d7b9e0b83fd1c750a00dc7c723dec919",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-still-pair0.png",
+      "directly_viewed_file_sha256": "62ceddbacc669cfe511bf8df52ee73791e90e0cf1c23b8190d3da3cacdbca096"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        192,
+        193
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-still-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00192.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00192.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        },
+        {
+          "case": 4,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00193.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00193.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        }
+      ],
+      "sha256": "9022d0a08784325fc0e5792164e35033603c9c82b6c608d6188beab05dbddd15",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-still-pair1.png",
+      "directly_viewed_file_sha256": "d3b30132c93646a701a26253cbe235fecce2a993122dca2d501f2b18267101e0"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        194,
+        195
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-seams-still-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00194.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00194.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        },
+        {
+          "case": 4,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00195.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00195.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        }
+      ],
+      "sha256": "ff17999f0cb87d19f26e2af7ffd0af91f1b092e32f928fa09077a386a4cee3a6",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-seams-still-pair2.png",
+      "directly_viewed_file_sha256": "a8d78b55f583b927ba954c4c1c433c5e70d239bfc7ecaacee0ece403763a8f7f"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        126,
+        127
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00126.png",
+          "decoded_rgb_sha256": "e095232f72c4e19752579d6fca8a123015f8e0e5748aaf676f2eb36895f53d66"
+        },
+        {
+          "case": 11,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00126.png",
+          "decoded_rgb_sha256": "4cc95bcddd8358e35bd97a4f55032b966caf6ac1fd324f9f87b908ac1dfed75a"
+        },
+        {
+          "case": 4,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00127.png",
+          "decoded_rgb_sha256": "86af7a0422cf435fa4c3b89670459cf416a6718ef81724bdd6cf37038095710f"
+        },
+        {
+          "case": 11,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00127.png",
+          "decoded_rgb_sha256": "4bf2321f921293490c8008e5ce71b36c28124351d77543eff2df294e8602ebb4"
+        }
+      ],
+      "sha256": "d5bf3bd6e50e2b2c5df6cce506675f93f7c6342aa63bdd09ae733299e5715cfd",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-leaves-moving-pair0.png",
+      "directly_viewed_file_sha256": "72d44fd66bc690e48150e5dff807a2bf11024b3e8d65479a86ec5fa73457b82c"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        128,
+        129
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "66f95404668a35a07ed9e2926e12b2d5745cb178de6b1df8a3a497a7a72d6ab0"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "8a6e510fcbce3cc8e79689cafa24fd021c0bc491a89f6f8bce4e889f51b77f8c"
+        },
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "fe93abde0a12937ee9c227008fb6899b6ebdc720fc97de5c182516f0d932a0d1"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "cc3af24455b05ccd87c8ccdea4253f4cf728da2b9d7930342139c83a83ef5158"
+        }
+      ],
+      "sha256": "be5cbf362c00cff5a8d2655b08911f2edeb3bc1cebeee8ec8dc581ae52d2c5d4",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-leaves-moving-pair1.png",
+      "directly_viewed_file_sha256": "d69d15937b259efcaed226aa5750ada8b3103674276aa52c4ee667c415eb6dc1"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        130,
+        131
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "44cfefd7ff824a351cfdcbba4a4591156abe133cad7373a2571e6de13162d5cb"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "a71158aa36cecfdf6bf32ff879b625412469b158b4f9c4bd9d958e558c733a73"
+        },
+        {
+          "case": 4,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00131.png",
+          "decoded_rgb_sha256": "b6d10fbecc5ed8f70ae5621640e53f2517c27cf1d3b8f580d91c045be4e662f7"
+        },
+        {
+          "case": 11,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00131.png",
+          "decoded_rgb_sha256": "66257fc93d36f35fce033c49f0d50385223132eb24bcc07f396c54dc32bc0060"
+        }
+      ],
+      "sha256": "bf43a750e6e90f0c3e5a19f61df309e314bac154f45331b570deaee8eb935b58",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-leaves-moving-pair2.png",
+      "directly_viewed_file_sha256": "b096c9e382cf113ce7b8156ebd1d35a49d384f3f31ce43739edfacab58b542f5"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        150,
+        151
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-later-moving-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00150.png",
+          "decoded_rgb_sha256": "962b1566c43ac733d1ff7b90631fe9e18f473b9709d27f53e55c5da42c804be2"
+        },
+        {
+          "case": 11,
+          "frame": 150,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00150.png",
+          "decoded_rgb_sha256": "8f1e70ab5d45ebd77d35550227f21a7fac64cff7ffed4f63e1c66593b87d1b64"
+        },
+        {
+          "case": 4,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00151.png",
+          "decoded_rgb_sha256": "bef8f3ee01bb343f3db9ec09617ca9f6ac10c2f441d1bbc0e83696b9889c80a4"
+        },
+        {
+          "case": 11,
+          "frame": 151,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00151.png",
+          "decoded_rgb_sha256": "7be0ce7804453a4b5b911bfdd1f999794482b49115bad2186ff0c302c66b3118"
+        }
+      ],
+      "sha256": "7f85a9e6505600d4a37058b7814e18974b7ac836b4d8752b77a6b90086b956ed",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-later-moving-pair0.png",
+      "directly_viewed_file_sha256": "7f85a9e6505600d4a37058b7814e18974b7ac836b4d8752b77a6b90086b956ed"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        152,
+        153
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-later-moving-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00152.png",
+          "decoded_rgb_sha256": "fd3809e07086162a0155f1908988e7b3407b4000a091d7d4ed8bb1bdbfe29f6b"
+        },
+        {
+          "case": 11,
+          "frame": 152,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00152.png",
+          "decoded_rgb_sha256": "34a6aca8a8e32fb17e354cbfb21044b09ef7ce63d90fe468e2d6b62654dc624d"
+        },
+        {
+          "case": 4,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00153.png",
+          "decoded_rgb_sha256": "c8847051991f58b8ee379416e7ab9b2c44e30b6d27fd5a21a797e13f7d37af92"
+        },
+        {
+          "case": 11,
+          "frame": 153,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00153.png",
+          "decoded_rgb_sha256": "95f9ea711b15e53187339a1f9473dad76ab2e236ed77c57e64a6892f2c059dae"
+        }
+      ],
+      "sha256": "dd1246a3c96555357642c67182f0577c27c5ce759079f06af9c921a3c601995f",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-later-moving-pair1.png",
+      "directly_viewed_file_sha256": "dd1246a3c96555357642c67182f0577c27c5ce759079f06af9c921a3c601995f"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        154,
+        155
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-later-moving-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00154.png",
+          "decoded_rgb_sha256": "850c2754c5604eb8b2e101f17067b9d84f73a1f60fe2afb66c1030e47b9894e3"
+        },
+        {
+          "case": 11,
+          "frame": 154,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00154.png",
+          "decoded_rgb_sha256": "d61f90d20bf319c3e7fcf146e70e8a9b06dd53871d458a3ea377e03634d57e60"
+        },
+        {
+          "case": 4,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00155.png",
+          "decoded_rgb_sha256": "81fb209a470b1fc5dc1533bcc879274d9bf45cbb36e48a3089fc7b106e9d3149"
+        },
+        {
+          "case": 11,
+          "frame": 155,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00155.png",
+          "decoded_rgb_sha256": "67db67fdcb0f6b27bab6e93ed53a7d45b07f58448c1dc038d4077f6019d11547"
+        }
+      ],
+      "sha256": "a3fab1c34294b03348c6849eaea68de4cb9ea166710f268d908c3ec84744a84d",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-later-moving-pair2.png",
+      "directly_viewed_file_sha256": "a3fab1c34294b03348c6849eaea68de4cb9ea166710f268d908c3ec84744a84d"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        178,
+        179
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-transition-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00178.png",
+          "decoded_rgb_sha256": "c5dbe5622f99742591f076f5aa67acfb475a5e595985d60c198e04c275162171"
+        },
+        {
+          "case": 11,
+          "frame": 178,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00178.png",
+          "decoded_rgb_sha256": "489bbf7721b095992ad6a74626b86dcfd12d9ab60882c608c6c7ec95e48430a7"
+        },
+        {
+          "case": 4,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00179.png",
+          "decoded_rgb_sha256": "7f99e8d2c3696109f666c872bed7ecf0b788eb7c023315af68fcc915f55b48d2"
+        },
+        {
+          "case": 11,
+          "frame": 179,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00179.png",
+          "decoded_rgb_sha256": "3a3e1ef799432c06f1c4ea7d01599b12492b8c66c45d7c58edc21a9e230b2c2e"
+        }
+      ],
+      "sha256": "5177f5774590293971aa027c4164ba570a9c0d4aea34f1e39c4281d53b063fc7",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-leaves-transition-pair0.png",
+      "directly_viewed_file_sha256": "bf3365f1d749ce385e48ba4d12ec0b8276df2311f0b4b5fd46aba8fdad33c3fc"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        180,
+        181
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-transition-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00180.png",
+          "decoded_rgb_sha256": "69f7d66a84ac8f07ab14774ae4dc50bb1439e20006521d4dedbf8ab74b010415"
+        },
+        {
+          "case": 11,
+          "frame": 180,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00180.png",
+          "decoded_rgb_sha256": "8e0d6d8c66154110d3f8a922e897c9a0befb7a2dc0151fd47671c448d97d9306"
+        },
+        {
+          "case": 4,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00181.png",
+          "decoded_rgb_sha256": "c735d35920e292892e8769402a5bc8f2f2d48513010058a118a26d628bb3689d"
+        },
+        {
+          "case": 11,
+          "frame": 181,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00181.png",
+          "decoded_rgb_sha256": "6baf8396093a3f8b47cc65827a978faed8c8d0f01549e865ea4452fb59094086"
+        }
+      ],
+      "sha256": "ba2ec35c0afebc0ca2552cda6bb5c8265d7cc8ba4af097f82cef602901f438c0",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-leaves-transition-pair1.png",
+      "directly_viewed_file_sha256": "9cc9f8a93dc234200808a63a5d82d23a57465e2231a4927c8c3b3f8e1c3db72f"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        182,
+        183
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-transition-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00182.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 182,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00182.png",
+          "decoded_rgb_sha256": "8b90347611f8038480422c6051e5cd50f2c04c02ec9c40c48f8b32745047d398"
+        },
+        {
+          "case": 4,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00183.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 183,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00183.png",
+          "decoded_rgb_sha256": "c1e52ecd21ad132ae3bd583face5a778c3f8d3b2b29b8aafcce88c5d027bbf29"
+        }
+      ],
+      "sha256": "197615537a0d67545e9b880e550959887eef52ca1ec534709ee6d5a2877ab3d2",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\case11-vs4-frame-review\\minecraft-leaves-transition-pair2.png",
+      "directly_viewed_file_sha256": "420f28855641ed361134bcfa1c34a5a8364bf3e554b2b7cde373346ee450a2d9"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        190,
+        191
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-still-pair0.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00190.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 190,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00190.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        },
+        {
+          "case": 4,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00191.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 191,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00191.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        }
+      ],
+      "sha256": "8d4133ffe97d309013e2eb7a6310d27a0e6438f6a6625fc3e4d6d09e60dae726",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-still-pair0.png",
+      "directly_viewed_file_sha256": "8d4133ffe97d309013e2eb7a6310d27a0e6438f6a6625fc3e4d6d09e60dae726"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        192,
+        193
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-still-pair1.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00192.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 192,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00192.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        },
+        {
+          "case": 4,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00193.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 193,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00193.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        }
+      ],
+      "sha256": "9a66c814cce2c0ba546a14862000d69a83c3464c3f8c4362fdb67cf436d41e5a",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-still-pair1.png",
+      "directly_viewed_file_sha256": "9a66c814cce2c0ba546a14862000d69a83c3464c3f8c4362fdb67cf436d41e5a"
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "frames": [
+        194,
+        195
+      ],
+      "scale": 2,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-still-pair2.png",
+      "sources": [
+        {
+          "case": 4,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00194.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 194,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00194.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        },
+        {
+          "case": 4,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00195.png",
+          "decoded_rgb_sha256": "648dc95d8b1ba5cabf4be16131a6258acf87558c9c1a5851188222cd559a59a7"
+        },
+        {
+          "case": 11,
+          "frame": 195,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00195.png",
+          "decoded_rgb_sha256": "c4022ed1639c16d278a5561a86019e46ce3e4051fb6c342b9a512a4982b68250"
+        }
+      ],
+      "sha256": "cff3c35aa96aa5fcb3f1b0eb2b241d8808efcb2f3a228b0e5e7971a7443d2ad8",
+      "directly_viewed_file": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-leaves-still-pair2.png",
+      "directly_viewed_file_sha256": "cff3c35aa96aa5fcb3f1b0eb2b241d8808efcb2f3a228b0e5e7971a7443d2ad8"
+    }
+  ],
+  "detail_sheet_views": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-detail-124-126.png",
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "frames": [
+        124,
+        125,
+        126
+      ],
+      "scale": 4,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 124,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00124.png",
+          "decoded_rgb_sha256": "220aa42fd993873eb23f83d998e93ab092f740f025592b708db7835257b5d6ce"
+        },
+        {
+          "case": 4,
+          "frame": 125,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00125.png",
+          "decoded_rgb_sha256": "4cee4e995abcb30ae8304d74924cc863af8a2b437d9a91c95a9f526bc7789595"
+        },
+        {
+          "case": 4,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00126.png",
+          "decoded_rgb_sha256": "e095232f72c4e19752579d6fca8a123015f8e0e5748aaf676f2eb36895f53d66"
+        },
+        {
+          "case": 11,
+          "frame": 124,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00124.png",
+          "decoded_rgb_sha256": "5e248c17bc3b0d1c5b99d449f346c1b8dd6e5046a53803aba407c760765da9e2"
+        },
+        {
+          "case": 11,
+          "frame": 125,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00125.png",
+          "decoded_rgb_sha256": "6500e3eaffb167f54dfdf5d254bc5383eac8a5c0b5882fdc5db59457b5f3870e"
+        },
+        {
+          "case": 11,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00126.png",
+          "decoded_rgb_sha256": "4cc95bcddd8358e35bd97a4f55032b966caf6ac1fd324f9f87b908ac1dfed75a"
+        }
+      ],
+      "sha256": "f15bef3ea886cbd07281c699ad0d7589971348f53d62cb0667578020cc9a3dcd"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-detail-127-129.png",
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "frames": [
+        127,
+        128,
+        129
+      ],
+      "scale": 4,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00127.png",
+          "decoded_rgb_sha256": "86af7a0422cf435fa4c3b89670459cf416a6718ef81724bdd6cf37038095710f"
+        },
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "66f95404668a35a07ed9e2926e12b2d5745cb178de6b1df8a3a497a7a72d6ab0"
+        },
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "fe93abde0a12937ee9c227008fb6899b6ebdc720fc97de5c182516f0d932a0d1"
+        },
+        {
+          "case": 11,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00127.png",
+          "decoded_rgb_sha256": "4bf2321f921293490c8008e5ce71b36c28124351d77543eff2df294e8602ebb4"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "8a6e510fcbce3cc8e79689cafa24fd021c0bc491a89f6f8bce4e889f51b77f8c"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "cc3af24455b05ccd87c8ccdea4253f4cf728da2b9d7930342139c83a83ef5158"
+        }
+      ],
+      "sha256": "1f9240a4d7fc99444e3bd739bfd5dc4b1874675f968348c724f678d7024242a5"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-detail-130-132.png",
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "frames": [
+        130,
+        131,
+        132
+      ],
+      "scale": 4,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "44cfefd7ff824a351cfdcbba4a4591156abe133cad7373a2571e6de13162d5cb"
+        },
+        {
+          "case": 4,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00131.png",
+          "decoded_rgb_sha256": "b6d10fbecc5ed8f70ae5621640e53f2517c27cf1d3b8f580d91c045be4e662f7"
+        },
+        {
+          "case": 4,
+          "frame": 132,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00132.png",
+          "decoded_rgb_sha256": "2ec99704831c57309c87b80237c4f5c97155d6d149ced87cb739840ac34f5d40"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "a71158aa36cecfdf6bf32ff879b625412469b158b4f9c4bd9d958e558c733a73"
+        },
+        {
+          "case": 11,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00131.png",
+          "decoded_rgb_sha256": "66257fc93d36f35fce033c49f0d50385223132eb24bcc07f396c54dc32bc0060"
+        },
+        {
+          "case": 11,
+          "frame": 132,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00132.png",
+          "decoded_rgb_sha256": "51ffe3ce4dfab7861121e32447374cae5eccc7fb0e4ba74090ef3891ae01a3e4"
+        }
+      ],
+      "sha256": "b3acea4a91fc6ad098b714ad3598e069b33d8fc94990ce5be025c7e1a423a85e"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-detail-133-135.png",
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "frames": [
+        133,
+        134,
+        135
+      ],
+      "scale": 4,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 133,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00133.png",
+          "decoded_rgb_sha256": "b087cec88022de0708d4a310c85caaad7af40c5f9464f366598d9f1636835bef"
+        },
+        {
+          "case": 4,
+          "frame": 134,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00134.png",
+          "decoded_rgb_sha256": "a287a2a041ff9fb9912a5f262c49491c9ba200e4211f790d2b7e0718f9c92eeb"
+        },
+        {
+          "case": 4,
+          "frame": 135,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00135.png",
+          "decoded_rgb_sha256": "fecbd1530d9f3075907d6f66764d0ac9ade97a6c3661f8e78acc993717877d40"
+        },
+        {
+          "case": 11,
+          "frame": 133,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00133.png",
+          "decoded_rgb_sha256": "21fdd524e7e6d1add28103d55ef3e1228201687ff8c752e666e2d7b20ce72470"
+        },
+        {
+          "case": 11,
+          "frame": 134,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00134.png",
+          "decoded_rgb_sha256": "bf1ac5f8e94787b544df409ee8961795b211d9a6ac2fbe07fa531bfbed776d5c"
+        },
+        {
+          "case": 11,
+          "frame": 135,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00135.png",
+          "decoded_rgb_sha256": "c4ff3adc1f8211570bd8ae2541607720781b687a786de4fe26793be88ec912e1"
+        }
+      ],
+      "sha256": "0ba1acb3320502c5803fc4f2828ee433c71b7e9b0bc35e5c790b7f9a0400b4b5"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-detail-126-128.png",
+      "scene": "bistro",
+      "roi": [
+        1230,
+        582,
+        1358,
+        670
+      ],
+      "frames": [
+        126,
+        127,
+        128
+      ],
+      "scale": 3,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00126.png",
+          "decoded_rgb_sha256": "fa0864f1500c094e15c2389c76a54559a313fe306327a7061854c8d9b14077a5"
+        },
+        {
+          "case": 4,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00127.png",
+          "decoded_rgb_sha256": "d3e0de6fd223318a960391457cd2b653d9217f82f875c60dca3fc21c2aba6607"
+        },
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "1e55995d42508d8e7b5709f74040bef547d3f532e4493f0cbc455fd88302f3f0"
+        },
+        {
+          "case": 11,
+          "frame": 126,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00126.png",
+          "decoded_rgb_sha256": "ce8340a884ab1309afa63057f230236983b2cb898d149c8a6a453be3ed92600e"
+        },
+        {
+          "case": 11,
+          "frame": 127,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00127.png",
+          "decoded_rgb_sha256": "9941ec920d2783358583bab59c1494584debfe204e41f913488d6d1ab3189a12"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "d92f91613718d8d95f1421ecc421c6182408bb937c2127e0a68f7f2f5f1fbce6"
+        }
+      ],
+      "sha256": "c2c8eb04b2e69a56fa34acc367750e4cd837bdb317752e9b02620883ff3ddd2f"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-detail-129-131.png",
+      "scene": "bistro",
+      "roi": [
+        1230,
+        582,
+        1358,
+        670
+      ],
+      "frames": [
+        129,
+        130,
+        131
+      ],
+      "scale": 3,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "5a7084921aad119d24f712694d117353624b8b4785b164b6c6b1525aee285ec8"
+        },
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "ec589858f4da9a72376b3dd6e37eca7a299b8053f6ee7b548392b69134530b5e"
+        },
+        {
+          "case": 4,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\O-T2X-R\\frame_00131.png",
+          "decoded_rgb_sha256": "75255f9af14aeeb9f9f5b3ccfa12211c53fc2a86779c96d109114ecdad2b964c"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "b8b193da7a2e111ba58d751588b6a54962aebcbf1d37e485e5cb8f921e9a4c1a"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "118abeeb6e821885911a51cb1b8d844145b851a40de819d940f4a77e5e9f610f"
+        },
+        {
+          "case": 11,
+          "frame": 131,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\bistro\\20261006_041111\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00131.png",
+          "decoded_rgb_sha256": "516fc02167e3d16f5bba6cf9485714c33ec1ce2070a53c363e5e9cf62ab0f866"
+        }
+      ],
+      "sha256": "0761c12a4fe52aa2f84f84ee30e9ec8e8fba7a646846a429b25d2c690f45230c"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-detail-128-130.png",
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "frames": [
+        128,
+        129,
+        130
+      ],
+      "scale": 4,
+      "filter": "nearest",
+      "color_adjustment": false,
+      "sources": [
+        {
+          "case": 4,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00128.png",
+          "decoded_rgb_sha256": "66f95404668a35a07ed9e2926e12b2d5745cb178de6b1df8a3a497a7a72d6ab0"
+        },
+        {
+          "case": 4,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00129.png",
+          "decoded_rgb_sha256": "fe93abde0a12937ee9c227008fb6899b6ebdc720fc97de5c182516f0d932a0d1"
+        },
+        {
+          "case": 4,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\O-T2X-R\\frame_00130.png",
+          "decoded_rgb_sha256": "44cfefd7ff824a351cfdcbba4a4591156abe133cad7373a2571e6de13162d5cb"
+        },
+        {
+          "case": 11,
+          "frame": 128,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00128.png",
+          "decoded_rgb_sha256": "8a6e510fcbce3cc8e79689cafa24fd021c0bc491a89f6f8bce4e889f51b77f8c"
+        },
+        {
+          "case": 11,
+          "frame": 129,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00129.png",
+          "decoded_rgb_sha256": "cc3af24455b05ccd87c8ccdea4253f4cf728da2b9d7930342139c83a83ef5158"
+        },
+        {
+          "case": 11,
+          "frame": 130,
+          "source": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures\\capture\\minecraft\\20261006_040701\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB\\frame_00130.png",
+          "decoded_rgb_sha256": "a71158aa36cecfdf6bf32ff879b625412469b158b4f9c4bd9d958e558c733a73"
+        }
+      ],
+      "sha256": "18c7528113adfa362241442dbe148339d18d4e6a513f8ab94abecc4cdac75377"
+    }
+  ],
+  "stable_full_frame_diagnostic": [
+    {
+      "scene": "bistro",
+      "case": 4,
+      "frames": [
+        190,
+        195
+      ],
+      "scope": "full-frame RGB",
+      "consecutive_changed_pixel_counts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "consecutive_max_abs_rgb": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": "bistro",
+      "case": 11,
+      "frames": [
+        190,
+        195
+      ],
+      "scope": "full-frame RGB",
+      "consecutive_changed_pixel_counts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "consecutive_max_abs_rgb": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "case": 4,
+      "frames": [
+        190,
+        195
+      ],
+      "scope": "full-frame RGB",
+      "consecutive_changed_pixel_counts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "consecutive_max_abs_rgb": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "case": 11,
+      "frames": [
+        190,
+        195
+      ],
+      "scope": "full-frame RGB",
+      "consecutive_changed_pixel_counts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "consecutive_max_abs_rgb": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "provided_gifs": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\minecraft-4-vs-11-f120-195-slow.gif",
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "frames": [
+        120,
+        195
+      ],
+      "source_frame_count": 76,
+      "playback_fps": 25,
+      "total_duration_ms": 3040,
+      "scale": 2,
+      "lossy_palette": true,
+      "viewed_as_playback_by_assistant": false,
+      "sha256": "84c2e071a1692753337a08577c911b76048a3659975cc04c7b74b02c5d954349"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\bistro-4-vs-11-f120-195-slow.gif",
+      "scene": "bistro",
+      "roi": [
+        1190,
+        530,
+        1478,
+        722
+      ],
+      "frames": [
+        120,
+        195
+      ],
+      "source_frame_count": 76,
+      "playback_fps": 25,
+      "total_duration_ms": 3040,
+      "scale": 2,
+      "lossy_palette": true,
+      "viewed_as_playback_by_assistant": false,
+      "sha256": "e9bb36eb7e0e87e41f050f76392a2de4b2446fcba8c66d47fc1380e61ab579f2"
+    }
+  ],
+  "gallery": "C:\\Users\\USER\\Desktop\\research\\Deliverables\\SMAA_4_11_FrameReview_20261006\\comparison.html"
+}
