@@ -17,7 +17,7 @@ foreach($shaderPath in $shaderPaths){$shaderHashes[$shaderPath]=(Get-FileHash -L
 $records=@()
 if(Test-Path -LiteralPath $receipt){$records=@(Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json)}
 if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase -and $_.frames -eq $Frames -and $_.start_time -eq $StartTime -and $_.executable_sha256 -eq $hash}).Count -and !$RetryReason){throw 'Completed run already recorded; explicit retry reason required'}
-if($Phase -eq 'Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq 'Smoke' -and $_.executable_sha256 -eq $hash}).Count){throw 'Same-binary smoke required'}
+if($Phase -eq 'Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq 'Smoke' -and $_.executable_sha256 -eq $hash -and $_.performance_eligible -ne $false}).Count){throw 'Same-binary eligible smoke required; repeat excluded smoke after concurrent GPU load ends'}
 if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count){throw 'Existing CMAA2 process; no new run started'}
 $settings=Join-Path $root 'Projects/CMAA2/ApplicationSettings.xml'
 $content=[System.IO.File]::ReadAllText($settings)

@@ -38,5 +38,27 @@
     "cause": "Not conclusively identifiable: old harness combined flags without storing failed state. Unblocked AA keyboard shortcuts during AutoBench found by code audit; this is a possible cause, not proven event attribution.",
     "repair": "Disable interactive AA shortcuts only while AutoBench active; add failure-only state rows. No AA formulas/shaders changed.",
     "retry": "new-binary clean Test and Capture, full native4/case10 RGB bridge"
+  },
+  {
+    "classification": "performance excluded: concurrent game GPU load reported by user",
+    "scene": "bistro",
+    "phase": "Benchmark",
+    "pid": 32704,
+    "binary_sha256": "6369C6621C9389D65E4BD125B6BDE2A7A9DFFB52F966F542DEF007D3C0D95677",
+    "observed": "User reported actively gaming during running performance command. Only the identified experiment CMAA2 PID32704 was terminated; subsequent Minecraft benchmark did not start.",
+    "result": "No completed benchmark receipt; partial output not used.",
+    "retry": "Await idle GPU confirmation; repeat same-binary smoke and paired benchmarks in fresh processes.",
+    "related_smoke_reports": [
+      {
+        "scene": "bistro",
+        "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20261006_041429\\20261006_041429_results.csv",
+        "report_sha256": "20287530F558FC1DB53492610658E9F118D146B7BEB254BC289F8AF663A59F11"
+      },
+      {
+        "scene": "minecraft",
+        "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20261006_041510\\20261006_041510_results.csv",
+        "report_sha256": "6975AD4094FF1FBEC4445F7D172660C1B5468E0322BF4C745EA7E8E636313B84"
+      }
+    ]
   }
 ]

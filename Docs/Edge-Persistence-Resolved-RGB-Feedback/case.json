@@ -23,5 +23,29 @@
   "production_additional_draws": 0,
   "production_additional_fullscreen_copies": 0,
   "extra_color_texture": true,
-  "status": "implementation pending validation"
+  "status": "GPU correctness verified; lossless frame inspection and 240-frame CPU GIF/MP4 complete; idle-GPU performance, case11 CGVQM and 720-frame capture deferred during user gaming",
+  "implementation_commit": "b793b74",
+  "input_isolation_commit": "573ecfa",
+  "binary_sha256": "6369C6621C9389D65E4BD125B6BDE2A7A9DFFB52F966F542DEF007D3C0D95677",
+  "core_validation": {
+    "two_scene_seed_reset": "PASS",
+    "native4_case10_control_rgb_bridge": {
+      "frames": 960,
+      "mismatch": 0
+    },
+    "trace_frames_per_scene": 43,
+    "history_chain_checks_per_scene": 38,
+    "feedback_rgb_spatial_alpha_and_nonselected_output": "PASS"
+  },
+  "adoption": "Not adopted; limited/unconfirmed visual gain. User review and idle-GPU timing pending",
+  "presentation": {
+    "source_frames": 240,
+    "source_fps": 60,
+    "mp4_seconds": 4,
+    "slow_gif_seconds": 9.6,
+    "gifs": 4,
+    "crop_mp4": 4,
+    "overview_mp4": 2,
+    "gallery": "C:/Users/USER/Desktop/research/Deliverables/SMAA_4_10_11_Feedback_20261006/comparison.html"
+  }
 }
