@@ -8,7 +8,7 @@ from analyze_case14_quality import ROOT,DOC,MODES,load
 from edge_quality_inputs import sha
 FONT=ImageFont.truetype('C:/Windows/Fonts/consola.ttf',14)
 SMALL=ImageFont.truetype('C:/Windows/Fonts/consola.ttf',11)
-LABELS=['4 T2X-R','13 adaptive 0..0.5','14 fixed history 0.8']
+LABELS=['4 T2X-R','13 w<=0.5','14 w=0.8']
 DETAIL=['Spatial ON / Full T / Pattern ON','Spatial ON / Edge T / Pattern OFF','Spatial ON / Edge T / Pattern OFF']
 FRAME_COUNT=720
 ROIS={'bistro':[('chairs','의자·테이블의 얇은 선',(1230,546,1358,706)),('thin-chair','가는 의자 구조',(1230,582,1358,670)),('windows','창살과 반복 경계',(950,460,1110,588))],
@@ -94,7 +94,7 @@ def make(scene,out,frames):
  # Lossless consecutive frames supplement the lossy playback formats.
  result['inspection_sheets']=[]
  for name,_,box in specs:
-  for phase,start in ([('moving',130),('late-moving',480),('transition',658),('still',700)] if frames==720 else [('moving',130),('transition',178),('still',190)]):
+  for phase,start in ([('moving',130),('late-moving',480),('transition',658),('still',700)] if frames==720 else [('moving',130),('transition',178),('post-stop',190),('settled',210)]):
    for pair in range(3):
     fs=[start+pair*2,start+pair*2+1];views=[compose(images(f),f,box) for f in fs]
     sheet=Image.new('RGB',(views[0].width,views[0].height*2),(18,20,23))

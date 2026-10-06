@@ -1,4 +1,4 @@
-"""Validate completed same-process 4-mode benchmarks; report paired run deltas."""
+"""Validate completed same-process 3-mode benchmarks; report paired run deltas."""
 import argparse,csv,json,math,statistics
 from pathlib import Path
 from edge_quality_inputs import sha

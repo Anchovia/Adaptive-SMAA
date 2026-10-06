@@ -9,10 +9,10 @@ ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/'Docs/Edge-History-Fixed-Weight-080'
 CONTROL_DOC=ROOT/'Docs/Edge-History-Catmull-Rom-Reconstruction'
 MODES=['O-T2X-R','ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB','ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080']
-LABELS=['4 Native / On','13 adaptive / Off','14 fixed 0.8 / Off']
+LABELS=['4 J On','13 w<=0.5','14 w=0.8']
 ROIS={'bistro':{'chairs':(1230,546,1358,706),'thin-chair':(1230,582,1358,670),'windows':(950,460,1110,588)},
       'minecraft':{'seams':(932,512,1060,672),'thin-seam':(956,524,1020,620),'leaves':(1420,590,1580,718),'grass-seam':(1450,665,1552,719)}}
-WINDOWS={'move':range(126,132),'transition':range(178,184),'still':range(190,196)}
+WINDOWS={'move':range(126,132),'transition':range(178,184),'post-stop':range(190,196),'settled':range(210,216)}
 def load(p):return json.loads(Path(p).read_text(encoding='utf-8-sig'))
 def latest(scene,phase,frames=240):
     return next(r for r in reversed(load(ROOT/'tmp/edge-fixed-weight-rgb-feedback-runs.json')) if r['scene']==scene and r['phase']==phase and r['frames']==frames)
@@ -63,7 +63,7 @@ def sheets(capture,scene,dest):
                     for col,mode in enumerate(MODES):
                         with Image.open(capture/mode/f'frame_{f:05d}.png') as im:crop=im.crop(box).resize((width,height),Image.Resampling.NEAREST)
                         x=8+col*(width+8);y=52+row*(height+24)
-                        draw.text((x,y),f'f{f} / {name}',fill='white',font=font);sheet.paste(crop,(x,y+20))
+                        draw.text((x,y),f'f{f}',fill='white',font=font);sheet.paste(crop,(x,y+20))
                 p=dest/f'{scene}-{name}-{phase}-pair{pair}.png';sheet.save(p)
                 made.append(dict(path=str(p),frames=fs,roi=box,scale=2,filter='nearest',tone_adjustment=False))
     for f in [130,180,195]:
