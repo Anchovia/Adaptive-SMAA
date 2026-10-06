@@ -69,6 +69,7 @@ namespace VertexAsylum
         bool m_bilinearHistoryRGBEnabled = false;
         bool m_resolvedRGBFeedbackEnabled = false;
         bool m_catmullRomHistoryRGBEnabled = false;
+        bool m_fixedHistoryWeight080Enabled = false;
         wstring m_thinLineTracePrefix;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;
@@ -121,6 +122,10 @@ namespace VertexAsylum
             if(m_catmullRomHistoryRGBEnabled!=enabled){m_catmullRomHistoryRGBEnabled=enabled;ResetTemporalHistory();}
         }
         bool GetCatmullRomHistoryRGBEnabled() const {return m_catmullRomHistoryRGBEnabled;}
+        void SetFixedHistoryWeight080Enabled(bool enabled) {
+            if(m_fixedHistoryWeight080Enabled!=enabled){m_fixedHistoryWeight080Enabled=enabled;ResetTemporalHistory();}
+        }
+        bool GetFixedHistoryWeight080Enabled() const {return m_fixedHistoryWeight080Enabled;}
         virtual bool SaveResolvedHistoryDiagnostic(vaRenderDeviceContext&,const wstring&){return false;}
         virtual bool SaveHistoryWeightDiagnostic(vaRenderDeviceContext&,const wstring&){return false;}
         void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}

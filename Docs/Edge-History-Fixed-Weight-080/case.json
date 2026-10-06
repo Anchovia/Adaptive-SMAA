@@ -1,0 +1,23 @@
+{
+  "case": 14,
+  "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+  "branch": "experiment/edge-history-fixed-weight-080",
+  "base": "ebe68da448c79fb468dc55684d744a5eaf854788",
+  "independent_variable": "native adaptive 0..0.5 history weight replaced with fixed 0.8",
+  "spatial": "Original SMAA Ultra",
+  "coverage": "current OR reprojected previous raw spatial edge",
+  "reprojection": "camera/depth only",
+  "paired_sample_pattern": "Off",
+  "history_rgb_sampler": "normalized five-fetch Catmull-Rom approximation unchanged from case13",
+  "history_alpha_sampler": "point",
+  "history_feedback": "resolved RGB / current spatial alpha",
+  "history_weight": 0.8,
+  "nonselected_history_weight": 0,
+  "new_production_passes": 0,
+  "new_production_copies": 0,
+  "new_production_textures_vs_case13": 0,
+  "weight_source": "Intel TSCMAA document 0.8; recovered active source coefficient about 0.789473712 is not used here",
+  "clipping": false,
+  "default_enabled": false,
+  "status": "implementation; verification and quality/performance pending"
+}

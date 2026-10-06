@@ -149,7 +149,7 @@ class SMAA {
          */
         void reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage=nullptr, bool bilinearHistoryRGB=false, ID3D11RenderTargetView *weight=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr, bool catmullRomHistoryRGB=false);
+            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage=nullptr, bool bilinearHistoryRGB=false, ID3D11RenderTargetView *weight=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr, bool catmullRomHistoryRGB=false, bool fixedHistoryWeight080=false);
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -323,6 +323,7 @@ class SMAA {
         SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
         SMAATechniqueInterface *neighborhoodFeedbackSeedTechnique, *resolvedRGBFeedbackTechnique, *resolvedRGBFeedbackCoverageTechnique;
         SMAATechniqueInterface *catmullRomRGBFeedbackTechnique, *catmullRomRGBFeedbackCoverageTechnique;
+        SMAATechniqueInterface *fixedWeightRGBFeedbackTechnique, *fixedWeightRGBFeedbackCoverageTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 

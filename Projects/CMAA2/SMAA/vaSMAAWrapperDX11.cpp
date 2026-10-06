@@ -482,6 +482,10 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         {
             // This controlled ablation supports only case 10's selected setup.
             const bool feedback=GetResolvedRGBFeedbackEnabled();
+            if(GetFixedHistoryWeight080Enabled() && (!feedback || !GetCatmullRomHistoryRGBEnabled())) {
+                VA_LOG_ERROR("Case14 fixed weight requires case13 selected Catmull-Rom RGB feedback");
+                return vaDrawResultFlags::UnspecifiedError;
+            }
             if(GetCatmullRomHistoryRGBEnabled() && !feedback) {
                 VA_LOG_ERROR("Case13 Catmull-Rom RGB requires resolved RGB feedback");
                 return vaDrawResultFlags::UnspecifiedError;
@@ -546,7 +550,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if(GetSpatialFirstEdgeEnabled() && GetFirstEdgeStencilEnabled())
                     m_smaa->reprojectFirstEdgeStencil(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV(),depthDSV,coverageRTV,GetBilinearHistoryRGBEnabled(),weightRTV,
-                        feedback?currentHistory->SafeCast<vaTextureDX11*>()->GetRTV():nullptr,GetCatmullRomHistoryRGBEnabled());
+                        feedback?currentHistory->SafeCast<vaTextureDX11*>()->GetRTV():nullptr,GetCatmullRomHistoryRGBEnabled(),GetFixedHistoryWeight080Enabled());
                 else if(GetSpatialFirstEdgeEnabled())
                     m_smaa->reprojectSpatialFirstEdges(dx11Context,currentHistorySRV,previousHistorySRV,velocitySRV,dstRT->SafeCast<vaTextureDX11*>()->GetRTV());
                 else
@@ -699,6 +703,13 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
         tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
         tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
+        for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
+        tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
+    }
+    else if(name=="FixedWeightRGBFeedbackPS" || name=="FixedWeightRGBFeedbackCoveragePS") {
+        tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
+        tech->PS->CreateShaderFromFile(L"SMAA/FixedWeightRGBFeedback.hlsl","ps_5_0",name,shaderMacros,true);
+        tech->DSS=m_DisableDepthUseStencil;tech->BS=m_NoBlending;
         for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
         tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
     }
