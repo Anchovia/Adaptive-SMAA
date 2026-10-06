@@ -1,0 +1,1989 @@
+{
+  "validation": "PASS",
+  "classification": "paired clean benchmark; intermediate fixed history weight ablation",
+  "receipt": {
+    "scene": "minecraft",
+    "phase": "Benchmark",
+    "frames": 240,
+    "start_time": 2.0,
+    "window": "hidden",
+    "arguments": [
+      "-smaaEdgeFixedWeightRGBFeedbackBenchmark",
+      "minecraft",
+      "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-fixed-weight-rgb-feedback\\captures",
+      "240",
+      "2"
+    ],
+    "scene_bootstrap": 2,
+    "retry_reason": "",
+    "started_utc": "2026-10-06T08:07:29.3735260Z",
+    "completed_utc": "2026-10-06T08:09:54.4421560Z",
+    "executable_sha256": "F93A18EE3A332864D393B2548192DEDA4981782EEA07FE37077A9D97A8D90FF3",
+    "shader_sha256": {
+      "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+      "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+      "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+      "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+      "Projects/CMAA2/SMAA/FixedWeightRGBFeedback.hlsl": "A6E98EC7503F501EC506971F8E85952D59C0AFC25547F071E8DBDE517741E803",
+      "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+      "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+      "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C"
+    },
+    "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_170730\\20261006_170730_results.csv",
+    "report_sha256": "61DEC30F932EC736311561EF14079094FBFCCAE120C83E9531931716A257DDA0"
+  },
+  "repeats": 6,
+  "warmup_frames_per_mode": 300,
+  "measurement_frames_per_mode_per_run": 4800,
+  "mode_order": "forward/reverse on alternating run",
+  "diagnostics": "PNG/readback/query Off",
+  "stats": "Mean of six run means; paired percent per matching run. Unadjusted Student t interval df5; one process per scene, no multi-session independence claim.",
+  "summary": [
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "metric": "SF_Spatial",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.18758474666666666,
+      "run_mean_sample_stddev_ms": 0.0008565253626030375,
+      "p95_ms_mean": 0.24200533333333332,
+      "p99_ms_mean": 0.24388266666666666,
+      "native4_paired_percent": 12.227867170004615,
+      "native4_paired_percent_95_interval": [
+        12.01802855130995,
+        12.43770578869928
+      ],
+      "native4_per_run_percent": [
+        12.048522085941539,
+        12.326059736295193,
+        12.034643456375838,
+        12.33481206893794,
+        12.529885244311423,
+        12.093280428165754
+      ],
+      "case13_paired_percent": 0.0,
+      "case13_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "case13_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "metric": "SF_Spatial",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.18769311983333334,
+      "run_mean_sample_stddev_ms": 0.0006766558105927793,
+      "p95_ms_mean": 0.242688,
+      "p99_ms_mean": 0.244736,
+      "native4_paired_percent": 12.29486500099184,
+      "native4_paired_percent_95_interval": [
+        11.535750391168921,
+        13.053979610814757
+      ],
+      "native4_per_run_percent": [
+        13.103478165253811,
+        11.623541950038652,
+        13.131095997123676,
+        11.720347541523445,
+        12.54409944852728,
+        11.646626903484169
+      ],
+      "case13_paired_percent": 0.06032239915055859,
+      "case13_paired_percent_95_interval": [
+        -0.7068026199066618,
+        0.827447418207779
+      ],
+      "case13_per_run_percent": [
+        0.9415171745889905,
+        -0.6254272498348423,
+        0.9786727631036607,
+        -0.5469938624523718,
+        0.0126314926785831,
+        -0.39846592318066865
+      ]
+    },
+    {
+      "mode": "O-T2X-R",
+      "metric": "SF_Spatial",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.16714631116666667,
+      "run_mean_sample_stddev_ms": 0.000701622091801395,
+      "p95_ms_mean": 0.208896,
+      "p99_ms_mean": 0.21213866666666667,
+      "native4_paired_percent": 0.0,
+      "native4_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "native4_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "case13_paired_percent": -10.895335636998247,
+      "case13_paired_percent_95_interval": [
+        -11.061833780100992,
+        -10.728837493895503
+      ],
+      "case13_per_run_percent": [
+        -10.752950473278243,
+        -10.973464007580025,
+        -10.7418947256809,
+        -10.9804003244945,
+        -11.134717872597166,
+        -10.788586418358648
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "metric": "SMAA",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.24642474666666667,
+      "run_mean_sample_stddev_ms": 0.0012582663637568387,
+      "p95_ms_mean": 0.3191466666666667,
+      "p99_ms_mean": 0.32221866666666665,
+      "native4_paired_percent": 9.141906552334733,
+      "native4_paired_percent_95_interval": [
+        8.854249273820122,
+        9.429563830849345
+      ],
+      "native4_per_run_percent": [
+        8.723956740376227,
+        9.331189676833173,
+        8.888596721757969,
+        9.417205918812899,
+        9.289112962236757,
+        9.201377293991374
+      ],
+      "case13_paired_percent": 0.0,
+      "case13_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "case13_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "metric": "SMAA",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.24661134233333334,
+      "run_mean_sample_stddev_ms": 0.0009367198787688114,
+      "p95_ms_mean": 0.31982933333333335,
+      "p99_ms_mean": 0.3229013333333333,
+      "native4_paired_percent": 9.226455142877194,
+      "native4_paired_percent_95_interval": [
+        8.534001944908715,
+        9.918908340845674
+      ],
+      "native4_per_run_percent": [
+        9.85510384853525,
+        8.611111065632237,
+        10.04090119613663,
+        8.72561117836299,
+        9.529614694958566,
+        8.596388873637494
+      ],
+      "case13_paired_percent": 0.07899696125719391,
+      "case13_paired_percent_95_interval": [
+        -0.7804496541732872,
+        0.938443576687675
+      ],
+      "case13_per_run_percent": [
+        1.040384421310292,
+        -0.6586213991902734,
+        1.0582416424404162,
+        -0.6320712859027688,
+        0.22006010132491483,
+        -0.5540117124394173
+      ]
+    },
+    {
+      "mode": "O-T2X-R",
+      "metric": "SMAA",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.22578286216666665,
+      "run_mean_sample_stddev_ms": 0.0007068881723351769,
+      "p95_ms_mean": 0.27357866666666664,
+      "p99_ms_mean": 0.2768213333333333,
+      "native4_paired_percent": 0.0,
+      "native4_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "native4_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "case13_paired_percent": -8.375683059156898,
+      "case13_paired_percent_95_interval": [
+        -8.617514656229822,
+        -8.133851462083975
+      ],
+      "case13_per_run_percent": [
+        -8.023950748231423,
+        -8.534792042796568,
+        -8.163018892116803,
+        -8.606695665214147,
+        -8.499577597858698,
+        -8.42606340872375
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "metric": "SR_CameraVelocity",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.023850097666666667,
+      "run_mean_sample_stddev_ms": 7.323707201319989e-05,
+      "p95_ms_mean": 0.024576,
+      "p99_ms_mean": 0.024576,
+      "native4_paired_percent": 0.16857919640909658,
+      "native4_paired_percent_95_interval": [
+        -0.1056478856457101,
+        0.44280627846390325
+      ],
+      "native4_per_run_percent": [
+        -0.2727495283039283,
+        0.416678821517813,
+        -0.01073825503354886,
+        0.22739620953720063,
+        0.3368557894970703,
+        0.3140321412399727
+      ],
+      "case13_paired_percent": 0.0,
+      "case13_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "case13_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "metric": "SR_CameraVelocity",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.023841599999999998,
+      "run_mean_sample_stddev_ms": 7.570027954769991e-05,
+      "p95_ms_mean": 0.024576,
+      "p99_ms_mean": 0.024576,
+      "native4_paired_percent": 0.1328255675729769,
+      "native4_paired_percent_95_interval": [
+        -0.12255728987260836,
+        0.3882084250185621
+      ],
+      "native4_per_run_percent": [
+        -0.06369889373956106,
+        0.2433622199948582,
+        0.18255033557046385,
+        0.41092211855027205,
+        -0.24906070471997221,
+        0.2728783297818005
+      ],
+      "case13_paired_percent": -0.03525509650777655,
+      "case13_paired_percent_95_interval": [
+        -0.3603605239863306,
+        0.28985033097077756
+      ],
+      "case13_per_run_percent": [
+        0.20962237861326116,
+        -0.1725974246081452,
+        0.1933093486548687,
+        0.18310952489415389,
+        -0.5839494267652401,
+        -0.04102497983555775
+      ]
+    },
+    {
+      "mode": "O-T2X-R",
+      "metric": "SR_CameraVelocity",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.0238099555,
+      "run_mean_sample_stddev_ms": 3.5946984306058574e-05,
+      "p95_ms_mean": 0.024576,
+      "p99_ms_mean": 0.024576,
+      "native4_paired_percent": 0.0,
+      "native4_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "native4_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "case13_paired_percent": -0.1677281931698693,
+      "case13_paired_percent_95_interval": [
+        -0.44158367186087516,
+        0.10612728552113654
+      ],
+      "case13_per_run_percent": [
+        0.2734954859517913,
+        -0.4149498135249341,
+        0.01073940825859765,
+        -0.22688029235220508,
+        -0.3357248807993152,
+        -0.31304906655315046
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "metric": "SR_Resolve",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.03496924466666666,
+      "run_mean_sample_stddev_ms": 0.000351955851022634,
+      "p95_ms_mean": 0.053248,
+      "p99_ms_mean": 0.055807999999999996,
+      "native4_paired_percent": 0.4671601609422593,
+      "native4_paired_percent_95_interval": [
+        -0.6123563747759098,
+        1.5466766966604284
+      ],
+      "native4_per_run_percent": [
+        -1.0264808612648335,
+        1.0641290552325655,
+        -0.09933592097276511,
+        1.6376028333614512,
+        -0.08279364144834211,
+        1.30983950074548
+      ],
+      "case13_paired_percent": 0.0,
+      "case13_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "case13_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "metric": "SR_Resolve",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.03505546666666667,
+      "run_mean_sample_stddev_ms": 0.00036241831386654147,
+      "p95_ms_mean": 0.053248,
+      "p99_ms_mean": 0.056149333333333336,
+      "native4_paired_percent": 0.7148794193879038,
+      "native4_paired_percent_95_interval": [
+        -0.3963322538783367,
+        1.8260910926541443
+      ],
+      "native4_per_run_percent": [
+        1.1012047956872495,
+        -0.11803461670297777,
+        1.990397527639276,
+        -0.04236767735356084,
+        1.8104209596703003,
+        -0.4523444726128645
+      ],
+      "case13_paired_percent": 0.262387942555468,
+      "case13_paired_percent_95_interval": [
+        -1.7994295550385961,
+        2.324205440149532
+      ],
+      "case13_per_run_percent": [
+        2.1497524544616953,
+        -1.169716380071395,
+        2.0918113687001583,
+        -1.6529025320179858,
+        1.8947833612609877,
+        -1.7394006170006526
+      ]
+    },
+    {
+      "mode": "O-T2X-R",
+      "metric": "SR_Resolve",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 0.03480672,
+      "run_mean_sample_stddev_ms": 4.727568109715493e-05,
+      "p95_ms_mean": 0.04096,
+      "p99_ms_mean": 0.04164266666666667,
+      "native4_paired_percent": 0.0,
+      "native4_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "native4_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "case13_paired_percent": -0.45627048083040816,
+      "case13_paired_percent_95_interval": [
+        -1.5285002864973753,
+        0.6159593248365591
+      ],
+      "case13_per_run_percent": [
+        1.0371267690562513,
+        -1.052924578859249,
+        0.09943469534314797,
+        -1.6112174900920873,
+        0.08286224611928628,
+        -1.2929045265497985
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "metric": "WallFrame",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 1.23093892,
+      "run_mean_sample_stddev_ms": 0.002315997585546133,
+      "p95_ms_mean": 1.3719000000000001,
+      "p99_ms_mean": 1.4945166666666667,
+      "native4_paired_percent": 1.8240285570381893,
+      "native4_paired_percent_95_interval": [
+        1.2970507586694264,
+        2.3510063554069522
+      ],
+      "native4_per_run_percent": [
+        1.8624797803004078,
+        1.267830970560646,
+        2.106098174359272,
+        2.4781244719627615,
+        1.1935028851050689,
+        2.03613505994098
+      ],
+      "case13_paired_percent": 0.0,
+      "case13_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "case13_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "metric": "WallFrame",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 1.2416013578333334,
+      "run_mean_sample_stddev_ms": 0.020651513169910242,
+      "p95_ms_mean": 1.41375,
+      "p99_ms_mean": 1.5455999999999999,
+      "native4_paired_percent": 2.7006467996761576,
+      "native4_paired_percent_95_interval": [
+        1.297932047312358,
+        4.103361552039957
+      ],
+      "native4_per_run_percent": [
+        2.704738486888303,
+        2.0541719675226666,
+        1.8257037496809625,
+        2.436428121873968,
+        5.336807607009586,
+        1.8460308650814605
+      ],
+      "case13_paired_percent": 0.8660304836041003,
+      "case13_paired_percent_95_interval": [
+        -0.8687336490047831,
+        2.600794616212984
+      ],
+      "case13_per_run_percent": [
+        0.8268586317597082,
+        0.7764963359298216,
+        -0.27461085056790235,
+        -0.04068804957512162,
+        4.0944374923050475,
+        -0.18631065822695136
+      ]
+    },
+    {
+      "mode": "O-T2X-R",
+      "metric": "WallFrame",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 1.2089130035,
+      "run_mean_sample_stddev_ms": 0.006398325671354502,
+      "p95_ms_mean": 1.3491666666666666,
+      "p99_ms_mean": 1.4709833333333333,
+      "native4_paired_percent": 0.0,
+      "native4_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "native4_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "case13_paired_percent": -1.7893615639576514,
+      "case13_paired_percent_95_interval": [
+        -2.2980878641345113,
+        -1.2806352637807914
+      ],
+      "case13_per_run_percent": [
+        -1.828425720949911,
+        -1.2519582560519216,
+        -2.0626566013352443,
+        -2.4181985030773734,
+        -1.1794263970288377,
+        -1.9955039053026202
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "metric": "WholeFrame",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 1.1990197676666667,
+      "run_mean_sample_stddev_ms": 0.004342963174769115,
+      "p95_ms_mean": 1.324192,
+      "p99_ms_mean": 1.4204586666666668,
+      "native4_paired_percent": 1.8896146551718858,
+      "native4_paired_percent_95_interval": [
+        1.432899607606227,
+        2.3463297027375445
+      ],
+      "native4_per_run_percent": [
+        1.5779057571051913,
+        1.3007259613596833,
+        2.2585005468692465,
+        2.395737894679817,
+        1.6673762545500237,
+        2.1374415164673533
+      ],
+      "case13_paired_percent": 0.0,
+      "case13_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "case13_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "metric": "WholeFrame",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 1.20356085,
+      "run_mean_sample_stddev_ms": 0.010181484356678589,
+      "p95_ms_mean": 1.3428053333333332,
+      "p99_ms_mean": 1.4395733333333334,
+      "native4_paired_percent": 2.2744473599274153,
+      "native4_paired_percent_95_interval": [
+        1.5042714396599643,
+        3.044623280194866
+      ],
+      "native4_per_run_percent": [
+        2.498036521728464,
+        1.5311515515689544,
+        1.9005496974496383,
+        2.2767910070046415,
+        3.601427026556281,
+        1.8387283552565137
+      ],
+      "case13_paired_percent": 0.3794941956751359,
+      "case13_paired_percent_95_interval": [
+        -0.5412159919575572,
+        1.3002043833078292
+      ],
+      "case13_per_run_percent": [
+        0.9058375025209786,
+        0.22746686958310391,
+        -0.3500450793873511,
+        -0.11616390498353502,
+        1.9023317442203647,
+        -0.29246195790274543
+      ]
+    },
+    {
+      "mode": "O-T2X-R",
+      "metric": "WholeFrame",
+      "run_count": 6,
+      "samples_per_run": 4800,
+      "mean_ms": 1.1767941135,
+      "run_mean_sample_stddev_ms": 0.004909235833989478,
+      "p95_ms_mean": 1.2997973333333332,
+      "p99_ms_mean": 1.3914453333333334,
+      "native4_paired_percent": 0.0,
+      "native4_paired_percent_95_interval": [
+        0.0,
+        0.0
+      ],
+      "native4_per_run_percent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "case13_paired_percent": -1.8530774729495676,
+      "case13_paired_percent_95_interval": [
+        -2.2932506552620806,
+        -1.4129042906370546
+      ],
+      "case13_per_run_percent": [
+        -1.5533946534380227,
+        -1.2840243236320381,
+        -2.208618877443913,
+        -2.3396851704354793,
+        -1.6400307709085737,
+        -2.092711041839379
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 0,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.1862752,
+      "median_ms": 0.201728,
+      "p95_ms": 0.241664,
+      "p99_ms": 0.243712,
+      "stddev_ms": 0.046424026,
+      "slowest_one_percent_equivalent_fps": 4085.67942125
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.244484053,
+      "median_ms": 0.265216,
+      "p95_ms": 0.318464,
+      "p99_ms": 0.320512,
+      "stddev_ms": 0.062347857,
+      "slowest_one_percent_equivalent_fps": 3101.634354529
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 0,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02371264,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000427061,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 0,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034474667,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.054272,
+      "stddev_ms": 0.015967347,
+      "slowest_one_percent_equivalent_fps": 17575.928008999
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.226459229,
+      "median_ms": 1.2155,
+      "p95_ms": 1.366,
+      "p99_ms": 1.495,
+      "stddev_ms": 0.071542177,
+      "slowest_one_percent_equivalent_fps": 638.050118837
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.190262047,
+      "median_ms": 1.197056,
+      "p95_ms": 1.294272,
+      "p99_ms": 1.41824,
+      "stddev_ms": 0.068870016,
+      "slowest_one_percent_equivalent_fps": 679.35767185
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 0,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.188029013,
+      "median_ms": 0.201728,
+      "p95_ms": 0.242688,
+      "p99_ms": 0.244736,
+      "stddev_ms": 0.046001779,
+      "slowest_one_percent_equivalent_fps": 4068.304113869
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.247027627,
+      "median_ms": 0.26624,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.32256,
+      "stddev_ms": 0.061628703,
+      "slowest_one_percent_equivalent_fps": 3077.200814022
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 0,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023762347,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000447685,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 0,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.035215787,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.05632,
+      "stddev_ms": 0.015700283,
+      "slowest_one_percent_equivalent_fps": 17451.600893522
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.236600313,
+      "median_ms": 1.2244,
+      "p95_ms": 1.3775,
+      "p99_ms": 1.5128,
+      "stddev_ms": 0.075456344,
+      "slowest_one_percent_equivalent_fps": 618.805499118
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.201043887,
+      "median_ms": 1.204224,
+      "p95_ms": 1.323008,
+      "p99_ms": 1.380352,
+      "stddev_ms": 0.06860791,
+      "slowest_one_percent_equivalent_fps": 685.925315537
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.16624512,
+      "median_ms": 0.187392,
+      "p95_ms": 0.207872,
+      "p99_ms": 0.20992,
+      "stddev_ms": 0.038972546,
+      "slowest_one_percent_equivalent_fps": 4738.677719369
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.224866773,
+      "median_ms": 0.242688,
+      "p95_ms": 0.272384,
+      "p99_ms": 0.274432,
+      "stddev_ms": 0.042556239,
+      "slowest_one_percent_equivalent_fps": 3624.449083739
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023777493,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000447388,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034832213,
+      "median_ms": 0.032768,
+      "p95_ms": 0.04096,
+      "p99_ms": 0.04096,
+      "stddev_ms": 0.004816765,
+      "slowest_one_percent_equivalent_fps": 23903.620601734
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.204034333,
+      "median_ms": 1.1877,
+      "p95_ms": 1.3357,
+      "p99_ms": 1.46,
+      "stddev_ms": 0.064123271,
+      "slowest_one_percent_equivalent_fps": 652.68825977
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 0,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.17177258,
+      "median_ms": 1.171456,
+      "p95_ms": 1.299456,
+      "p99_ms": 1.38752,
+      "stddev_ms": 0.056588904,
+      "slowest_one_percent_equivalent_fps": 697.144588717
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.167322027,
+      "median_ms": 0.187392,
+      "p95_ms": 0.208896,
+      "p99_ms": 0.214016,
+      "stddev_ms": 0.03860883,
+      "slowest_one_percent_equivalent_fps": 4644.307936193
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.225990187,
+      "median_ms": 0.242688,
+      "p95_ms": 0.274432,
+      "p99_ms": 0.278528,
+      "stddev_ms": 0.041987346,
+      "slowest_one_percent_equivalent_fps": 3576.879053796
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023755947,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.00044429,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034882987,
+      "median_ms": 0.032768,
+      "p95_ms": 0.04096,
+      "p99_ms": 0.041984,
+      "stddev_ms": 0.00482308,
+      "slowest_one_percent_equivalent_fps": 23806.500761808
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.216605396,
+      "median_ms": 1.1915,
+      "p95_ms": 1.4058,
+      "p99_ms": 1.531,
+      "stddev_ms": 0.079801228,
+      "slowest_one_percent_equivalent_fps": 632.740358948
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.184301187,
+      "median_ms": 1.173504,
+      "p95_ms": 1.323008,
+      "p99_ms": 1.437696,
+      "stddev_ms": 0.071018495,
+      "slowest_one_percent_equivalent_fps": 683.799646704
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 1,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.186770773,
+      "median_ms": 0.201728,
+      "p95_ms": 0.241664,
+      "p99_ms": 0.244736,
+      "stddev_ms": 0.046434489,
+      "slowest_one_percent_equivalent_fps": 4083.543862706
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.245450453,
+      "median_ms": 0.26624,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.321536,
+      "stddev_ms": 0.062524471,
+      "slowest_one_percent_equivalent_fps": 3093.651003168
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 1,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02381376,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000474659,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 1,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034841813,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.055296,
+      "stddev_ms": 0.016134134,
+      "slowest_one_percent_equivalent_fps": 17682.006789891
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.241596563,
+      "median_ms": 1.2211,
+      "p95_ms": 1.4372,
+      "p99_ms": 1.6179,
+      "stddev_ms": 0.090170534,
+      "slowest_one_percent_equivalent_fps": 594.907591021
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.202434633,
+      "median_ms": 1.201152,
+      "p95_ms": 1.366016,
+      "p99_ms": 1.463296,
+      "stddev_ms": 0.077703414,
+      "slowest_one_percent_equivalent_fps": 656.288844096
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 1,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.18794624,
+      "median_ms": 0.202752,
+      "p95_ms": 0.241664,
+      "p99_ms": 0.243712,
+      "stddev_ms": 0.045534952,
+      "slowest_one_percent_equivalent_fps": 4087.460760377
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 1,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.24707776,
+      "median_ms": 0.26624,
+      "p95_ms": 0.318464,
+      "p99_ms": 0.32256,
+      "stddev_ms": 0.061239038,
+      "slowest_one_percent_equivalent_fps": 3083.881578947
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 1,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023854933,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000473408,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 1,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.035254187,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.055296,
+      "stddev_ms": 0.015748662,
+      "slowest_one_percent_equivalent_fps": 17322.616407982
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 1,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.232029896,
+      "median_ms": 1.2213,
+      "p95_ms": 1.373,
+      "p99_ms": 1.4952,
+      "stddev_ms": 0.070552958,
+      "slowest_one_percent_equivalent_fps": 636.453680095
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 1,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.1997057,
+      "median_ms": 1.206208,
+      "p95_ms": 1.324032,
+      "p99_ms": 1.40288,
+      "stddev_ms": 0.068230001,
+      "slowest_one_percent_equivalent_fps": 682.10249454
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 2,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.186963413,
+      "median_ms": 0.201728,
+      "p95_ms": 0.242688,
+      "p99_ms": 0.244736,
+      "stddev_ms": 0.046487481,
+      "slowest_one_percent_equivalent_fps": 4073.607369427
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.245579733,
+      "median_ms": 0.26624,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.32256,
+      "stddev_ms": 0.062616442,
+      "slowest_one_percent_equivalent_fps": 3086.927889365
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 2,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02383744,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000472742,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 2,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03475648,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.057344,
+      "stddev_ms": 0.016146646,
+      "slowest_one_percent_equivalent_fps": 17438.616071429
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.231325708,
+      "median_ms": 1.2189,
+      "p95_ms": 1.3772,
+      "p99_ms": 1.4989,
+      "stddev_ms": 0.07056615,
+      "slowest_one_percent_equivalent_fps": 636.304344368
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.200469953,
+      "median_ms": 1.204224,
+      "p95_ms": 1.33632,
+      "p99_ms": 1.406976,
+      "stddev_ms": 0.0708504,
+      "slowest_one_percent_equivalent_fps": 682.910839161
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 2,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.188793173,
+      "median_ms": 0.202752,
+      "p95_ms": 0.243712,
+      "p99_ms": 0.24576,
+      "stddev_ms": 0.046142381,
+      "slowest_one_percent_equivalent_fps": 4059.847566257
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.24817856,
+      "median_ms": 0.267264,
+      "p95_ms": 0.321536,
+      "p99_ms": 0.324608,
+      "stddev_ms": 0.061949331,
+      "slowest_one_percent_equivalent_fps": 3058.128914405
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 2,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02388352,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000482317,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 2,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03548352,
+      "median_ms": 0.04096,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.057344,
+      "stddev_ms": 0.015835714,
+      "slowest_one_percent_equivalent_fps": 17189.218921892
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.227944354,
+      "median_ms": 1.2177,
+      "p95_ms": 1.3669,
+      "p99_ms": 1.4879,
+      "stddev_ms": 0.066280026,
+      "slowest_one_percent_equivalent_fps": 650.634843394
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.196267767,
+      "median_ms": 1.202176,
+      "p95_ms": 1.289216,
+      "p99_ms": 1.38752,
+      "stddev_ms": 0.066100196,
+      "slowest_one_percent_equivalent_fps": 683.309037901
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.16688,
+      "median_ms": 0.187392,
+      "p95_ms": 0.208896,
+      "p99_ms": 0.210944,
+      "stddev_ms": 0.039098856,
+      "slowest_one_percent_equivalent_fps": 4735.326800687
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.225533013,
+      "median_ms": 0.243712,
+      "p95_ms": 0.273408,
+      "p99_ms": 0.275456,
+      "stddev_ms": 0.0426537,
+      "slowest_one_percent_equivalent_fps": 3621.089223638
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02384,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000482638,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03479104,
+      "median_ms": 0.032768,
+      "p95_ms": 0.04096,
+      "p99_ms": 0.04096,
+      "stddev_ms": 0.004784624,
+      "slowest_one_percent_equivalent_fps": 23867.107942974
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.205927687,
+      "median_ms": 1.1913,
+      "p95_ms": 1.3302,
+      "p99_ms": 1.4606,
+      "stddev_ms": 0.065196184,
+      "slowest_one_percent_equivalent_fps": 643.365229058
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 2,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.173956147,
+      "median_ms": 1.173504,
+      "p95_ms": 1.29536,
+      "p99_ms": 1.368064,
+      "stddev_ms": 0.056048629,
+      "slowest_one_percent_equivalent_fps": 689.593346803
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.167760213,
+      "median_ms": 0.188416,
+      "p95_ms": 0.208896,
+      "p99_ms": 0.212992,
+      "stddev_ms": 0.038506594,
+      "slowest_one_percent_equivalent_fps": 4667.430050782
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.226352213,
+      "median_ms": 0.243712,
+      "p95_ms": 0.273408,
+      "p99_ms": 0.277504,
+      "stddev_ms": 0.04182211,
+      "slowest_one_percent_equivalent_fps": 3585.360256999
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023829333,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000463145,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034743467,
+      "median_ms": 0.032768,
+      "p95_ms": 0.04096,
+      "p99_ms": 0.041984,
+      "stddev_ms": 0.004731637,
+      "slowest_one_percent_equivalent_fps": 23818.597560976
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.203194042,
+      "median_ms": 1.1918,
+      "p95_ms": 1.3201,
+      "p99_ms": 1.4378,
+      "stddev_ms": 0.056207695,
+      "slowest_one_percent_equivalent_fps": 665.528797292
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.173638947,
+      "median_ms": 1.173504,
+      "p95_ms": 1.262592,
+      "p99_ms": 1.348608,
+      "stddev_ms": 0.050768778,
+      "slowest_one_percent_equivalent_fps": 709.578841305
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 3,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.187422293,
+      "median_ms": 0.202752,
+      "p95_ms": 0.242688,
+      "p99_ms": 0.244736,
+      "stddev_ms": 0.046646202,
+      "slowest_one_percent_equivalent_fps": 4068.657234615
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.246102827,
+      "median_ms": 0.26624,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.32256,
+      "stddev_ms": 0.062590995,
+      "slowest_one_percent_equivalent_fps": 3079.626831351
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 3,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023927253,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000499561,
+      "slowest_one_percent_equivalent_fps": 40444.348576359
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 3,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034728747,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.055296,
+      "stddev_ms": 0.015981319,
+      "slowest_one_percent_equivalent_fps": 17575.928008999
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.232509,
+      "median_ms": 1.2205,
+      "p95_ms": 1.3742,
+      "p99_ms": 1.5089,
+      "stddev_ms": 0.071468873,
+      "slowest_one_percent_equivalent_fps": 627.291082665
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.200360253,
+      "median_ms": 1.206272,
+      "p95_ms": 1.335296,
+      "p99_ms": 1.414144,
+      "stddev_ms": 0.069042952,
+      "slowest_one_percent_equivalent_fps": 684.096846222
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 3,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.18845312,
+      "median_ms": 0.203776,
+      "p95_ms": 0.241664,
+      "p99_ms": 0.243712,
+      "stddev_ms": 0.045622427,
+      "slowest_one_percent_equivalent_fps": 4081.055197632
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 3,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.247668267,
+      "median_ms": 0.267264,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.323584,
+      "stddev_ms": 0.061395831,
+      "slowest_one_percent_equivalent_fps": 3076.392990746
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 3,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02388352,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000489063,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 3,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.035312427,
+      "median_ms": 0.04096,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.057344,
+      "stddev_ms": 0.015836595,
+      "slowest_one_percent_equivalent_fps": 17277.921120531
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 3,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.233010688,
+      "median_ms": 1.2228,
+      "p95_ms": 1.369,
+      "p99_ms": 1.491,
+      "stddev_ms": 0.068375413,
+      "slowest_one_percent_equivalent_fps": 640.719314217
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 3,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.20175626,
+      "median_ms": 1.206272,
+      "p95_ms": 1.316864,
+      "p99_ms": 1.472512,
+      "stddev_ms": 0.069289523,
+      "slowest_one_percent_equivalent_fps": 668.849792389
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 4,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.187467947,
+      "median_ms": 0.202752,
+      "p95_ms": 0.242688,
+      "p99_ms": 0.244736,
+      "stddev_ms": 0.04662396,
+      "slowest_one_percent_equivalent_fps": 4068.657234615
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 4,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.246138667,
+      "median_ms": 0.26624,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.32256,
+      "stddev_ms": 0.062578941,
+      "slowest_one_percent_equivalent_fps": 3082.259337191
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 4,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02389248,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000489607,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 4,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03475648,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.054272,
+      "stddev_ms": 0.015988389,
+      "slowest_one_percent_equivalent_fps": 17722.117202268
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 4,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.231990062,
+      "median_ms": 1.2196,
+      "p95_ms": 1.3761,
+      "p99_ms": 1.5026,
+      "stddev_ms": 0.070992089,
+      "slowest_one_percent_equivalent_fps": 638.379367579
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 4,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.200961613,
+      "median_ms": 1.205248,
+      "p95_ms": 1.342464,
+      "p99_ms": 1.432576,
+      "stddev_ms": 0.07146243,
+      "slowest_one_percent_equivalent_fps": 680.444611582
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 4,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.187491627,
+      "median_ms": 0.201728,
+      "p95_ms": 0.241664,
+      "p99_ms": 0.242688,
+      "stddev_ms": 0.045411311,
+      "slowest_one_percent_equivalent_fps": 4095.674967235
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 4,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.24668032,
+      "median_ms": 0.26624,
+      "p95_ms": 0.318464,
+      "p99_ms": 0.32256,
+      "stddev_ms": 0.061146047,
+      "slowest_one_percent_equivalent_fps": 3085.302441914
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 4,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02375296,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000449553,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 4,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03541504,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.05632,
+      "stddev_ms": 0.015746028,
+      "slowest_one_percent_equivalent_fps": 17471.114424152
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 4,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.282433125,
+      "median_ms": 1.2427,
+      "p95_ms": 1.5593,
+      "p99_ms": 1.6741,
+      "stddev_ms": 0.123947105,
+      "slowest_one_percent_equivalent_fps": 570.28189747
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 4,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.223807887,
+      "median_ms": 1.21344,
+      "p95_ms": 1.42848,
+      "p99_ms": 1.559552,
+      "stddev_ms": 0.095292988,
+      "slowest_one_percent_equivalent_fps": 623.960066556
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 4,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.16659392,
+      "median_ms": 0.187392,
+      "p95_ms": 0.208896,
+      "p99_ms": 0.210944,
+      "stddev_ms": 0.03907586,
+      "slowest_one_percent_equivalent_fps": 4718.168092602
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 4,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.22521792,
+      "median_ms": 0.242688,
+      "p95_ms": 0.273408,
+      "p99_ms": 0.275456,
+      "stddev_ms": 0.04267902,
+      "slowest_one_percent_equivalent_fps": 3614.109483423
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 4,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023812267,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000471558,
+      "slowest_one_percent_equivalent_fps": 40444.348576359
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 4,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.03478528,
+      "median_ms": 0.032768,
+      "p95_ms": 0.04096,
+      "p99_ms": 0.041984,
+      "stddev_ms": 0.004829829,
+      "slowest_one_percent_equivalent_fps": 23818.597560976
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 4,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.217459646,
+      "median_ms": 1.1969,
+      "p95_ms": 1.3662,
+      "p99_ms": 1.4825,
+      "stddev_ms": 0.073485015,
+      "slowest_one_percent_equivalent_fps": 631.115575669
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 4,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.181265473,
+      "median_ms": 1.1776,
+      "p95_ms": 1.318912,
+      "p99_ms": 1.404928,
+      "stddev_ms": 0.062064109,
+      "slowest_one_percent_equivalent_fps": 694.351864196
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 5,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.168076587,
+      "median_ms": 0.188416,
+      "p95_ms": 0.20992,
+      "p99_ms": 0.214016,
+      "stddev_ms": 0.038732353,
+      "slowest_one_percent_equivalent_fps": 4641.089108911
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 5,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.226737067,
+      "median_ms": 0.243712,
+      "p95_ms": 0.274432,
+      "p99_ms": 0.279552,
+      "stddev_ms": 0.042077594,
+      "slowest_one_percent_equivalent_fps": 3562.471500228
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 5,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023844693,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000466884,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 5,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034805333,
+      "median_ms": 0.032768,
+      "p95_ms": 0.04096,
+      "p99_ms": 0.041984,
+      "stddev_ms": 0.004718867,
+      "slowest_one_percent_equivalent_fps": 23806.500761808
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 5,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.206256917,
+      "median_ms": 1.1921,
+      "p95_ms": 1.337,
+      "p99_ms": 1.454,
+      "stddev_ms": 0.063000585,
+      "slowest_one_percent_equivalent_fps": 655.249848131
+    },
+    {
+      "mode": "O-T2X-R",
+      "run": 5,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.175830347,
+      "median_ms": 1.174528,
+      "p95_ms": 1.299456,
+      "p99_ms": 1.401856,
+      "stddev_ms": 0.057260964,
+      "slowest_one_percent_equivalent_fps": 686.093793596
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 5,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.18765184,
+      "median_ms": 0.202752,
+      "p95_ms": 0.243712,
+      "p99_ms": 0.24576,
+      "stddev_ms": 0.04663753,
+      "slowest_one_percent_equivalent_fps": 4054.229372081
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 5,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.246228267,
+      "median_ms": 0.26624,
+      "p95_ms": 0.320512,
+      "p99_ms": 0.323584,
+      "stddev_ms": 0.062630928,
+      "slowest_one_percent_equivalent_fps": 3071.756225426
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 5,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.02390976,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000501895,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 5,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.034647893,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.05632,
+      "stddev_ms": 0.01601655,
+      "slowest_one_percent_equivalent_fps": 17412.704309064
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 5,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.228524792,
+      "median_ms": 1.2185,
+      "p95_ms": 1.3674,
+      "p99_ms": 1.472,
+      "stddev_ms": 0.065112796,
+      "slowest_one_percent_equivalent_fps": 650.369491167
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "run": 5,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.197450673,
+      "median_ms": 1.2032,
+      "p95_ms": 1.314816,
+      "p99_ms": 1.432576,
+      "stddev_ms": 0.069663949,
+      "slowest_one_percent_equivalent_fps": 671.203104717
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 5,
+      "metric": "SF_Spatial",
+      "samples": 4800,
+      "mean_ms": 0.18840256,
+      "median_ms": 0.202752,
+      "p95_ms": 0.241664,
+      "p99_ms": 0.242688,
+      "stddev_ms": 0.045622988,
+      "slowest_one_percent_equivalent_fps": 4095.674967235
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 5,
+      "metric": "SMAA",
+      "samples": 4800,
+      "mean_ms": 0.2476,
+      "median_ms": 0.267264,
+      "p95_ms": 0.319488,
+      "p99_ms": 0.321536,
+      "stddev_ms": 0.061337146,
+      "slowest_one_percent_equivalent_fps": 3094.467916557
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 5,
+      "metric": "SR_CameraVelocity",
+      "samples": 4800,
+      "mean_ms": 0.023919573,
+      "median_ms": 0.023552,
+      "p95_ms": 0.024576,
+      "p99_ms": 0.024576,
+      "stddev_ms": 0.000504806,
+      "slowest_one_percent_equivalent_fps": 40690.104166667
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 5,
+      "metric": "SR_Resolve",
+      "samples": 4800,
+      "mean_ms": 0.035261227,
+      "median_ms": 0.039936,
+      "p95_ms": 0.053248,
+      "p99_ms": 0.05632,
+      "stddev_ms": 0.015738453,
+      "slowest_one_percent_equivalent_fps": 17556.179775281
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 5,
+      "metric": "WallFrame",
+      "samples": 4800,
+      "mean_ms": 1.230817937,
+      "median_ms": 1.2206,
+      "p95_ms": 1.3701,
+      "p99_ms": 1.4844,
+      "stddev_ms": 0.067468524,
+      "slowest_one_percent_equivalent_fps": 643.133345661
+    },
+    {
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+      "run": 5,
+      "metric": "WholeFrame",
+      "samples": 4800,
+      "mean_ms": 1.200963033,
+      "median_ms": 1.207296,
+      "p95_ms": 1.3312,
+      "p99_ms": 1.389568,
+      "stddev_ms": 0.068501659,
+      "slowest_one_percent_equivalent_fps": 685.768520208
+    }
+  ]
+}

@@ -10,7 +10,7 @@ resolved-output RGB/current-spatial velocity alpha feedback을 유지한다.
 비선택 RGB는 현재 spatial 결과를 그대로 출력·저장한다.
 
 변경은 selected history weight를 native adaptive 0..0.5에서 고정 0.8로
-교체하는 것 하나다. `output = 0.2*current + 0.8*history`를 계산한다.
+교체하는 것 하나다. 단순 0.5→0.8 배율 변경이 아니라 기존 velocity-alpha 기반 감쇠도 고정값으로 대체하므로 그 효과를 포함한다. `output = 0.2*current + 0.8*history`를 계산한다.
 visible alpha도 해당 혼합을 따르지만 다음 history alpha는 current spatial alpha다.
 History가 invalid인 첫 프레임/reset은 기존 current-spatial seed와 좌표 초기화를 유지한다.
 추가 production draw/copy/texture는 없고 clipping, 후보 변경, object motion,
