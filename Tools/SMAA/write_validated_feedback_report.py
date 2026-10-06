@@ -1,7 +1,7 @@
 """Assemble measured case12 results and preserve historical denominators."""
 import json
 from analyze_edge_validated_rgb_feedback import ROOT,DOC,MODES,CASES,load
-NAMES=['④ 원본 T2X-R','⑥ 현재 edge','⑨ 현재+직전 edge','⑩ RGB bilinear','⑪ resolved RGB','⑫ clipping+adaptive 기본값','⑫ 넓은 반응 범위','⑫ clipping-only control']
+NAMES=['④ 원본 T2X-R','⑥ 현재 edge','⑨ 현재+직전 edge','⑩ RGB bilinear','⑪ resolved RGB','⑫ clipping+adaptive 기본값','⑫ 넓은 반응 범위','⑫ native-weight clipping 대조군']
 def main():
  text='''# ⑫ 논문·공개 구현 기반 history validation 실험
 
@@ -9,6 +9,11 @@ def main():
 clipping과 밝기 차이에 따른 history 누적을 적용한 독립 실험이다. 문헌·출처·최소 의존성·
 식·원본 대비 변경은 [method.md](method.md), 설정은 [case.json](case.json)에 있다.
 실험 번호는 최종 Original/Adaptive 8-case semantic matrix와 별개다.
+
+**결론: ⑫는 얇은 선 소실·반짝임을 함께 해결하지 못해 채택하지 않았다.**
+공개 기본값은 일부 프레임 변화를 줄였지만 선의 대비와 세부 정보를 잃는 구간이 있었다.
+전체 AA 시간은 같은 실행의 ④ 대비 Bistro 약6.20% 감소, Minecraft 약11.31% 증가였다.
+빠른 반응 설정에서도 품질과 비용의 문제를 함께 해결하지 못했다.
 
 ## 같은 실행의 성능 비교
 
@@ -30,8 +35,9 @@ RTX 3060 Ti, DX11 Release x64, Ultra, 1920×1061, hidden, VSync Off.
  text+='''
 한 scene당 한 process의6 run이며6개 독립 세션이라고 주장하지 않는다. run별표본,
 p95/p99, WholeFrame, spatial/camera 비용과 paired95% 구간은 benchmark JSON/CSV에 있다.
-⑪↔⑫는 pattern/선택/기본 feedback 구조가 같고, clipping-only control은 변경 요소의
-영향을 분리하기 위한 조건이다. 새로운 production draw/fullscreen copy는0개지만,
+⑪↔⑫는 pattern/선택/기본 feedback 구조가 같다. ClippedRGB는 native weight를 유지하지만
+clipping과 화면 밖 history 거부를 함께 추가하므로 전역 차이를 clipping 하나의 효과로
+해석하지 않는다. 새로운 production draw/fullscreen copy는0개지만,
 추가 neighborhood reads와⑪의 current-spatial MRT 비용은 포함한다.
 
 ## 품질: 직접 확인한 구조 손실과 수치의 차이
@@ -66,6 +72,14 @@ Minecraft=(956,524)-(1020,620). MAE는 supersample **spatial proxy** 대비 오�
 Bistro227/Minecraft239까지 변화가 남았다. ⑪는189 이후 동일했다. 일부 작은 변화가
 눈에 잘 안 보여도⑫의 출력이 완전히 안정했다고 쓰지 않는다. 이는 global jitter를 켠
 조건이 아니며 누적/재표본화 정착을 지터 위상 떨림과 구분해야 한다.
+190–195프레임의 raw/current/velocity/edge 파일은 각 조건에서 모두 동일했다.
+입력 내용은 고정돼 있지만 출력에는 변화가 남았다. 정확한 수치 메커니즘을
+이 검사만으로 단정하지 않으며 [고정 입력 증거](static-input-hashes.json)에 경로와 hash를 보존했다.
+
+Minecraft frame126–138의 같은 현재 spatial 선 좌표를 추적한 encoded RGB 대비의 평균은
+⑪ 약23.85, ⑫ 기본값 약9.72, Response 약27.84였다. Response의 인접-frame 대비 변화는
+약20.75로 ⑪ 약13.83보다 컸다. 이는 고정 화면 strip의 보조 진단이며 object tracking이나
+정답 품질 점수가 아니다. [선 대비 추적](minecraft-line-contrast.json).
 
 ## 공식 CGVQM-2 보조 비교
 
@@ -95,6 +109,17 @@ Bistro227/Minecraft239까지 변화가 남았다. ⑪는189 이후 동일했다.
  for case in [1,2,3,5,7,8]:
   b=next(v for v in historic['performance'] if v['case']==case and v['scene']=='bistro');m=next(v for v in historic['performance'] if v['case']==case and v['scene']=='minecraft')
   text+=f"| {case} | {b['total_ms']:.6f} | {b['total_change_percent']:+.2f}% | {m['total_ms']:.6f} | {m['total_change_percent']:+.2f}% |\n"
+ text+='''
+과거 temporal 처리 시간만 비교하면 아래와 같다. 역시 당시 대응 ④가 분모다.
+①·②는 temporal을 실행하지 않아 이 표에서 제외했다. ⑦·⑧의 보존 비용 분석은
+4,800프레임 × 3회이며, ①·②·③·⑤의 six-case 갱신은 4,800프레임 × 6회다.
+
+| 과거 구성 | Bistro temporal ms | 당시④ 대비 | Minecraft temporal ms | 당시④ 대비 |
+|---|---:|---:|---:|---:|
+'''
+ for case in [3,5,7,8]:
+  b=next(v for v in historic['performance'] if v['case']==case and v['scene']=='bistro');m=next(v for v in historic['performance'] if v['case']==case and v['scene']=='minecraft')
+  text+=f"| {case} | {b['resolve_ms']:.6f} | {b['resolve_change_percent']:+.2f}% | {m['resolve_ms']:.6f} | {m['resolve_change_percent']:+.2f}% |\n"
  text+='''
 과거 ①–⑧의 공식 보조 품질 점수도 함께 보존한다. 이는 당시 검증한 영상의 기록이며,
 이번에 모든 사례를 다시 캡처·평가했다고 표현하지 않는다. 특히 점수만으로 이동 중

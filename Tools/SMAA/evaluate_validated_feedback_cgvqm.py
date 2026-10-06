@@ -6,12 +6,19 @@ from analyze_edge_validated_rgb_feedback import ROOT,DOC,MODES,load
 from edge_quality_inputs import sha
 
 def evaluate(scene,mode,case,window,start,end,capture,reference):
+ # The capture folder also contains diagnostic PNGs. Keep the official adapter
+ # strict and pass only final-frame PNGs, using same-volume immutable hardlinks.
+ sequence=capture/'cgvqm-final-only'/mode;sequence.mkdir(parents=True,exist_ok=True)
+ for index in range(240):
+  source=capture/mode/f'frame_{index:05d}.png';target=sequence/source.name
+  if not target.exists():target.hardlink_to(source)
+  assert target.samefile(source)
  output=ROOT/'tmp/edge-validated-rgb-feedback/cgvqm'/scene/mode/window;output.mkdir(parents=True,exist_ok=True)
  parts=[]
  for first in range(start,end,60):
   dest=output/f'part-{first:05d}-{first+59:05d}';dest.mkdir(exist_ok=True);result=dest/'CGVQM-Results.json'
   if not result.exists():
-   args=[sys.executable,str(ROOT/'Tools/SMAA/run_cgvqm_png_sequences.py'),'--test-dir',str(capture/mode),'--reference-dir',str(reference),'--output-dir',str(dest),'--start-index',str(first),'--frames','60','--cgvqm-root',str(ROOT.parents[2]/'.research-tools/CGVQM'),'--model','2','--classification','engineering','--scene',scene,'--camera-profile','original-flythrough-t2-still60-move120-still60','--test-mode',mode,'--reference-id','SS-Reference-spatial-proxy','--device','cuda','--patch-scale','4','--patch-pool','mean','--skip-error-map-video']
+   args=[sys.executable,str(ROOT/'Tools/SMAA/run_cgvqm_png_sequences.py'),'--test-dir',str(sequence),'--reference-dir',str(reference),'--output-dir',str(dest),'--start-index',str(first),'--frames','60','--cgvqm-root',str(ROOT.parents[2]/'.research-tools/CGVQM'),'--model','2','--classification','engineering','--scene',scene,'--camera-profile','original-flythrough-t2-still60-move120-still60','--test-mode',mode,'--reference-id','SS-Reference-spatial-proxy','--device','cuda','--patch-scale','4','--patch-pool','mean','--skip-error-map-video']
    print(scene,case,window,first,'CGVQM',flush=True)
    with (dest/'runner.log').open('w',encoding='utf-8') as log:subprocess.run(args,check=True,stdout=log,stderr=subprocess.STDOUT,timeout=600)
   data=load(result);validate(data,first,first+60)
