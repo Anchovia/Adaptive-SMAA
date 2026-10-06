@@ -1,0 +1,27 @@
+{
+  "case": 13,
+  "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+  "branch": "experiment/edge-history-catmull-rom-reconstruction",
+  "base": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "dependencies": [
+    "3992640",
+    "96c495a",
+    "b793b74",
+    "573ecfa",
+    "cd8844d"
+  ],
+  "case12_inherited": false,
+  "spatial": "Original SMAA Ultra",
+  "coverage": "current OR reprojected previous raw edge",
+  "reprojection": "camera/depth only",
+  "paired_sample_pattern": "Off",
+  "history_rgb_sampler": "normalized five-tap Catmull-Rom approximation",
+  "history_alpha_sampler": "point",
+  "history_weight": "native adaptive 0..0.5",
+  "history_feedback": "resolved RGB / current spatial alpha",
+  "new_production_draws": 0,
+  "new_production_copies": 0,
+  "new_production_textures_vs_case11": 0,
+  "status": "implementation; validation pending",
+  "default_enabled": false
+}

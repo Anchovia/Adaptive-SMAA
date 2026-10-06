@@ -1,0 +1,93 @@
+{
+  "validation": "PASS",
+  "implementation": "Actual shared production helper compiled into hardware DX11 CS; UNORM-sRGB input and linear-clamp sampler",
+  "fixtures": [
+    {
+      "fixture": "constant",
+      "samples": 2370,
+      "gpu_vs_ideal_max_linear_error": 0.0005447383842839271,
+      "gpu_vs_ideal_mean_linear_error": 0.00019494013900530198,
+      "texel_center_vs_gpu_baseline_max_linear_error": 5.960464477539063e-08,
+      "gpu_srgb_decode_vs_ideal_max_linear_error": 0.0005445595703493789,
+      "constant_vs_gpu_baseline_max_error": 1.7881393432617188e-07,
+      "five_vs_exact16_max_linear_error": 1.5543122344752192e-15,
+      "five_vs_exact16_mean_linear_error": 9.891973941014526e-17,
+      "normalization_min": 0.984375,
+      "input_sha256": "16644c567c2951ea633ac8f3e5f01d7777f6ece76c65a8c10cbcf4b12882dfa5",
+      "output_sha256": "7c2a86be998317e58f45b80579ee0bcb7bde80cf32937c25708cb7885d7269a3"
+    },
+    {
+      "fixture": "gradient",
+      "samples": 2370,
+      "gpu_vs_ideal_max_linear_error": 0.004082020210184112,
+      "gpu_vs_ideal_mean_linear_error": 0.0004366026081069124,
+      "texel_center_vs_gpu_baseline_max_linear_error": 1.1920928955078125e-07,
+      "gpu_srgb_decode_vs_ideal_max_linear_error": 0.0017814327205515346,
+      "constant_vs_gpu_baseline_max_error": null,
+      "five_vs_exact16_max_linear_error": 0.0018250199982998705,
+      "five_vs_exact16_mean_linear_error": 0.00015685677360727037,
+      "normalization_min": 0.984375,
+      "input_sha256": "6b3753ab46ae9b1528f2127a8a6d95cd5d106975b70bf8f604f2cbb136c2b33b",
+      "output_sha256": "82aea4f9582c2953501e1c963320a6ff4f23a8835b2e597d65ad1962d8c5e4b0"
+    },
+    {
+      "fixture": "vertical-line",
+      "samples": 2370,
+      "gpu_vs_ideal_max_linear_error": 0.0033046736938554394,
+      "gpu_vs_ideal_mean_linear_error": 0.0011290479640757912,
+      "texel_center_vs_gpu_baseline_max_linear_error": 5.960464477539063e-08,
+      "gpu_srgb_decode_vs_ideal_max_linear_error": 0.0008497505064807287,
+      "constant_vs_gpu_baseline_max_error": null,
+      "five_vs_exact16_max_linear_error": 0.007728620147309323,
+      "five_vs_exact16_mean_linear_error": 0.0014354748703365081,
+      "normalization_min": 0.984375,
+      "input_sha256": "a05d0f542b50f40f9a40bbf6f08fa4d18b4e82e95fc377887517e823ac4b3132",
+      "output_sha256": "3abf5149cb5cf3dfccf5eba050581edd39f2bb4e89c6be8b708315a6a4e3bcf4"
+    },
+    {
+      "fixture": "checker",
+      "samples": 2370,
+      "gpu_vs_ideal_max_linear_error": 0.006915374471084423,
+      "gpu_vs_ideal_mean_linear_error": 0.0017047124593468183,
+      "texel_center_vs_gpu_baseline_max_linear_error": 2.980232238769531e-07,
+      "gpu_srgb_decode_vs_ideal_max_linear_error": 0.0006895404596125587,
+      "constant_vs_gpu_baseline_max_error": null,
+      "five_vs_exact16_max_linear_error": 0.007523962190859629,
+      "five_vs_exact16_mean_linear_error": 0.0005937205991525826,
+      "normalization_min": 0.984375,
+      "input_sha256": "e277445c2d7b4843a8e1143d11514f6217edf44676570ff2daf0f86d5565c0c9",
+      "output_sha256": "c165ead41cda7b435caa27373fc90cfde383d95eefc895e2e7204ea6cfaaf277"
+    },
+    {
+      "fixture": "random",
+      "samples": 2370,
+      "gpu_vs_ideal_max_linear_error": 0.007867609835776501,
+      "gpu_vs_ideal_mean_linear_error": 0.0010457405722177013,
+      "texel_center_vs_gpu_baseline_max_linear_error": 2.384185791015625e-07,
+      "gpu_srgb_decode_vs_ideal_max_linear_error": 0.00374874789446511,
+      "constant_vs_gpu_baseline_max_error": null,
+      "five_vs_exact16_max_linear_error": 0.013877916228222542,
+      "five_vs_exact16_mean_linear_error": 0.0016517829553383053,
+      "normalization_min": 0.984375,
+      "input_sha256": "a94e21bf8641888385faeaed26277616ca607f304bcf6b7004e3c56ea5ad96d1",
+      "output_sha256": "998c213ed35f04725c403bda71fe2137dcd433b25e1655b1a194b470af185eb6"
+    }
+  ],
+  "symmetry": [
+    {
+      "axis": "x",
+      "cpu_max_linear_error": 6.142435754474818e-07
+    },
+    {
+      "axis": "y",
+      "cpu_max_linear_error": 5.254262815390653e-07
+    }
+  ],
+  "gpu_ideal_error_bound": 0.015625,
+  "limits": [
+    "Five taps approximate exact16; differences recorded",
+    "Hardware filtering vs ideal spline is bounded, not byte-exact",
+    "Negative lobes can overshoot; no neighborhood clamp introduced",
+    "Not a full renderer quality or speed test"
+  ]
+}
