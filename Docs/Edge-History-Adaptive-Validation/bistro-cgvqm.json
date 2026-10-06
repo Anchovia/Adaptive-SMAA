@@ -1,0 +1,2112 @@
+{
+  "validation": "PASS",
+  "scene": "bistro",
+  "scope": "Official CGVQM-2 auxiliary score vs supersample spatial proxy; direct lossless frames decide visual quality; not a ghosting ground truth",
+  "capture_evidence_sha256": "b833aec4ad174dc4d67eacabca19e3d237e7bf2dd6b907a89b49d54e1ad4436f",
+  "windows": [
+    {
+      "window": "moving",
+      "frames": [
+        60,
+        179
+      ],
+      "records": [
+        {
+          "case": 4,
+          "mode": "O-T2X-R",
+          "score": 96.19123458862305,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "O-T2X-R",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "D:\\SMAAResearchCaptures\\edge-bilinear-history-rgb\\capture\\bistro\\20261005_231835\\O-T2X-R",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "c5132e2e27925b0436ee84884892bfb82f359e8cdb67a2899fd220a6a192c10a"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 96.19123458862305
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "O-T2X-R",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-bilinear-history-rgb\\capture\\bistro\\20261005_231835\\O-T2X-R",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "255a239142a7d3d25c22d50ea666a2f131c60a5d98cbd2186986896364ddd520"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "4183cad2c5518706575d567dac86d0adfe5b90631e7aa38fee51533f29840cb5"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.17295837402344,
+                    "error_map": {
+                      "mean": 4.4285664558410645,
+                      "p95": 16.761377334594727,
+                      "p99": 39.73011779785156,
+                      "maximum": 545.497314453125
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00060-00119\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              },
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "O-T2X-R",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-bilinear-history-rgb\\capture\\bistro\\20261005_231835\\O-T2X-R",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "009f36eee5090b6679531a744ef221c65d34a6265a8d9a42806a5a8e14714136"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "1b60830782d54852ba45335cbe7dc4917b31a2fd49c10d63cb73da39b14cd925"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.20951080322266,
+                    "error_map": {
+                      "mean": 4.3608880043029785,
+                      "p95": 16.358232498168945,
+                      "p99": 39.343109130859375,
+                      "maximum": 785.1422119140625
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-4\\part-00120-00179\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Unmodified official <=60-frame invocations; original30-frame patch boundaries; equal-patch mean pooling",
+            "native_full_window_bridge": {
+              "score_difference": -3.814697265625e-06,
+              "tolerance": 2e-05,
+              "validation": "PASS"
+            }
+          },
+          "reused": "Existing official score; exact current decoded RGB/reference bridge"
+        },
+        {
+          "case": 10,
+          "mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+          "score": 96.35633087158203,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-10",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "937b84e2ac2bc72395531e49716cb41b5fb4cfd112c33443795bc4c88201cf27"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 96.35633087158203
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-10",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "fc01980f9b25448c2ef67a12435e20cc7603788081a05dccf1c50e06ad724353"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "4183cad2c5518706575d567dac86d0adfe5b90631e7aa38fee51533f29840cb5"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.35647583007812,
+                    "error_map": {
+                      "mean": 4.314561367034912,
+                      "p95": 17.341033935546875,
+                      "p99": 41.878868103027344,
+                      "maximum": 1264.54150390625
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00060-00119\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              },
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-10",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "6fd3665f86d4172a1b6efd40a001b1381f67b94865cf21aff2bf5e7ab355942f"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "1b60830782d54852ba45335cbe7dc4917b31a2fd49c10d63cb73da39b14cd925"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.35618591308594,
+                    "error_map": {
+                      "mean": 4.236538410186768,
+                      "p95": 17.049217224121094,
+                      "p99": 41.74367904663086,
+                      "maximum": 1129.23583984375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\moving\\case-10\\part-00120-00179\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Unmodified official <=60-frame invocations; original30-frame patch boundaries; equal-patch mean pooling",
+            "native_full_window_bridge": null
+          },
+          "reused": "Existing official score; exact current decoded RGB/reference bridge"
+        },
+        {
+          "case": 11,
+          "mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+          "score": 96.37657928466797,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm-inputs\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "320863f2621a21d2efd9238160b1c20297372a8aa66df32100f4714e6d211597"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 96.37657928466797
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm-inputs\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "d5f23b32ab0589c80cd3250aaceaca34e36cde098346b30c2ffcc56fc7a331aa"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "4183cad2c5518706575d567dac86d0adfe5b90631e7aa38fee51533f29840cb5"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.37279510498047,
+                    "error_map": {
+                      "mean": 4.294195652008057,
+                      "p95": 17.296716690063477,
+                      "p99": 41.13797378540039,
+                      "maximum": 1092.311767578125
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00060-00119\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              },
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm-inputs\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "0922049423208f4ab2fca68fb7da6c2d3dd474d74bdd4d428ffbefde2b77da46"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "1b60830782d54852ba45335cbe7dc4917b31a2fd49c10d63cb73da39b14cd925"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.38036346435547,
+                    "error_map": {
+                      "mean": 4.206748008728027,
+                      "p95": 17.00432777404785,
+                      "p99": 40.87781524658203,
+                      "maximum": 957.2389526367188
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\moving\\part-00120-00179\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Equal-patch mean of official 60-frame invocations; unchanged 30-frame patch boundaries; cached native chunk/full bridge in source evidence.",
+            "native_full_window_bridge": null,
+            "native_control_pooling_bridge": {
+              "score_difference": -3.814697265625e-06,
+              "tolerance": 2e-05,
+              "validation": "PASS"
+            },
+            "bridge_scope": "Case4 validates bounded pooling against its native full-window invocation. Case11 itself has no full-window model rerun."
+          },
+          "reused": "Existing official score; exact current decoded RGB/reference bridge"
+        },
+        {
+          "case": 12,
+          "mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+          "score": 95.5363998413086,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "1450d706c7364dd77c0e52ad0f778ace925ec2fa73658ca1ed00dc62db9872ea"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 95.5363998413086
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "f39bf2dde83edde32297242cad818893d4b9acd4e3d707b25d34b5bb43a13452"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "4183cad2c5518706575d567dac86d0adfe5b90631e7aa38fee51533f29840cb5"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.53472137451172,
+                    "error_map": {
+                      "mean": 5.340831279754639,
+                      "p95": 22.179000854492188,
+                      "p99": 55.4650993347168,
+                      "maximum": 1206.9105224609375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00060-00119\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              },
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "3468f87966e1a89e2a9cc4d5845ecca87bc829b94531d0883ef5b8ecd82b996e"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "1b60830782d54852ba45335cbe7dc4917b31a2fd49c10d63cb73da39b14cd925"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.53807830810547,
+                    "error_map": {
+                      "mean": 5.253964424133301,
+                      "p95": 22.041337966918945,
+                      "p99": 55.82767868041992,
+                      "maximum": 1173.6522216796875
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\moving\\part-00120-00179\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Equal-patch pooled official 60-frame calls with unchanged 30-frame patches; no case12 full-window model rerun."
+          },
+          "reused": false
+        },
+        {
+          "case": "12-response",
+          "mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+          "score": 95.8902359008789,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "1cc37a4be80de5bb045fe51817304656ecec047dfbfaaf5855e1c66f9992ebab"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 120,
+              "first_index": 60,
+              "last_index": 179,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "f5d47254d9ce87274faf5e35086276be3471d1911d4426a58ab79b3bd0df1b51"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 120,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 95.8902359008789
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "bd4db289c84f90fabd3aefdaa32445d0f4db41da9b1771e9626a3751880f5689"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 60,
+                  "last_index": 119,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "4183cad2c5518706575d567dac86d0adfe5b90631e7aa38fee51533f29840cb5"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00060-00119\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00060-00119\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.89061737060547,
+                    "error_map": {
+                      "mean": 4.896387577056885,
+                      "p95": 20.312162399291992,
+                      "p99": 46.39099884033203,
+                      "maximum": 1396.4456787109375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00060-00119\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              },
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "2074cb5127a543343017290176fd1fac5c84b72c9f72537b9422588c69303f37"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 120,
+                  "last_index": 179,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "1b60830782d54852ba45335cbe7dc4917b31a2fd49c10d63cb73da39b14cd925"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00120-00179\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00120-00179\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.88985443115234,
+                    "error_map": {
+                      "mean": 4.81648063659668,
+                      "p95": 20.000537872314453,
+                      "p99": 46.64522933959961,
+                      "maximum": 1213.861083984375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\moving\\part-00120-00179\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Equal-patch pooled official 60-frame calls with unchanged 30-frame patches; no case12 full-window model rerun."
+          },
+          "reused": false
+        }
+      ]
+    },
+    {
+      "window": "transition",
+      "frames": [
+        160,
+        219
+      ],
+      "records": [
+        {
+          "case": 4,
+          "mode": "O-T2X-R",
+          "score": 96.71925354003906,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "O-T2X-R",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-4",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "20cb5d6d678cffb9a2c058be38681ecab5e69ec51121a08e5ad83779d2a497da"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-4\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-4\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 96.71925354003906
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "O-T2X-R",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-4",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "20cb5d6d678cffb9a2c058be38681ecab5e69ec51121a08e5ad83779d2a497da"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-4\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-4\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.71925354003906,
+                    "error_map": {
+                      "mean": 3.6470673084259033,
+                      "p95": 14.238283157348633,
+                      "p99": 36.3372688293457,
+                      "maximum": 650.2515258789062
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-4\\part-00160-00219\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Unmodified official <=60-frame invocations; original30-frame patch boundaries; equal-patch mean pooling",
+            "native_full_window_bridge": {
+              "score_difference": 0.0,
+              "tolerance": 2e-05,
+              "validation": "PASS"
+            }
+          },
+          "reused": "Existing official score; exact current decoded RGB/reference bridge"
+        },
+        {
+          "case": 10,
+          "mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+          "score": 95.98033905029297,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-10",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "a1e83f1070ef9804969c58392a71f30f57052e03c9599aa5b009b47cf80b893c"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-10\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-10\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 95.98033905029297
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-BilinearRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\FinalPNGs\\bistro\\case-10",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "a1e83f1070ef9804969c58392a71f30f57052e03c9599aa5b009b47cf80b893c"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-10\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-10\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.98033905029297,
+                    "error_map": {
+                      "mean": 4.568101406097412,
+                      "p95": 18.423351287841797,
+                      "p99": 49.41454315185547,
+                      "maximum": 1129.23583984375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-bilinear-quality-review\\bistro\\transition\\case-10\\part-00160-00219\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Unmodified official <=60-frame invocations; original30-frame patch boundaries; equal-patch mean pooling",
+            "native_full_window_bridge": null
+          },
+          "reused": "Existing official score; exact current decoded RGB/reference bridge"
+        },
+        {
+          "case": 11,
+          "mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+          "score": 96.00643920898438,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm-inputs\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "1f3e63e3d82b63be7e77bae4b016eaa2fc6b75fd8c8230b7df27c4d69c6b0951"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\transition\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\transition\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 96.00643920898438
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm-inputs\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResolvedRGB",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "1f3e63e3d82b63be7e77bae4b016eaa2fc6b75fd8c8230b7df27c4d69c6b0951"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\transition\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\transition\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 96.00643920898438,
+                    "error_map": {
+                      "mean": 4.535738945007324,
+                      "p95": 18.30506134033203,
+                      "p99": 48.67769241333008,
+                      "maximum": 848.4593505859375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\cgvqm\\bistro\\transition\\part-00160-00219\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Equal-patch mean of official 60-frame invocations; unchanged 30-frame patch boundaries; cached native chunk/full bridge in source evidence.",
+            "native_full_window_bridge": null,
+            "native_control_pooling_bridge": {
+              "score_difference": 0.0,
+              "tolerance": 2e-05,
+              "validation": "PASS"
+            },
+            "bridge_scope": "Case4 validates bounded pooling against its native full-window invocation. Case11 itself has no full-window model rerun."
+          },
+          "reused": "Existing official score; exact current decoded RGB/reference bridge"
+        },
+        {
+          "case": 12,
+          "mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+          "score": 95.7562255859375,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "47c2a76e9068fe28d31ec7f23de0eac33c24629fc77eeaa889bd568783aff731"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\transition\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\transition\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 95.7562255859375
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "47c2a76e9068fe28d31ec7f23de0eac33c24629fc77eeaa889bd568783aff731"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\transition\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\transition\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.7562255859375,
+                    "error_map": {
+                      "mean": 4.843801498413086,
+                      "p95": 19.96701431274414,
+                      "p99": 52.482093811035156,
+                      "maximum": 1173.6522216796875
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ValidatedRGB\\transition\\part-00160-00219\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Equal-patch pooled official 60-frame calls with unchanged 30-frame patches; no case12 full-window model rerun."
+          },
+          "reused": false
+        },
+        {
+          "case": "12-response",
+          "mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+          "score": 95.87773895263672,
+          "record": {
+            "classification": "engineering",
+            "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+            "provenance": {
+              "scene": "bistro",
+              "camera_profile": "original-flythrough-t2-still60-move120-still60",
+              "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+              "reference_id": "SS-Reference-spatial-proxy"
+            },
+            "official_cgvqm": {
+              "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+              "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+            },
+            "runtime": {
+              "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+              "torch": "2.8.0+cu128",
+              "cuda_available": true,
+              "cuda_runtime": "12.8",
+              "device": "cuda",
+              "gpu": "NVIDIA GeForce RTX 3060 Ti"
+            },
+            "configuration": {
+              "fps": 60,
+              "patch_scale": 4,
+              "patch_pool": "mean",
+              "models": [
+                "2"
+              ],
+              "reference_index_offset": 0
+            },
+            "test_sequence": {
+              "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "833498a875f6d6f066817ad0813930b42205f8ec89ca0181709f819a54d5b3a9"
+            },
+            "reference_sequence": {
+              "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+              "frame_count": 60,
+              "first_index": 160,
+              "last_index": 219,
+              "width": 1920,
+              "height": 1061,
+              "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+            },
+            "test_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\transition\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "reference_round_trip": {
+              "videos": [
+                "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\transition\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv"
+              ],
+              "decoded_frames": 60,
+              "mismatched_values": 0,
+              "max_absolute_difference": 0
+            },
+            "results": {
+              "CGVQM-2": {
+                "score_higher_is_better": 95.87773895263672
+              }
+            },
+            "official_chunk_results": [
+              {
+                "classification": "engineering",
+                "metric_scope": "Full-reference perceptual video quality; not an absolute ghosting ground truth.",
+                "provenance": {
+                  "scene": "bistro",
+                  "camera_profile": "original-flythrough-t2-still60-move120-still60",
+                  "test_mode": "ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+                  "reference_id": "SS-Reference-spatial-proxy"
+                },
+                "official_cgvqm": {
+                  "root": "C:\\Users\\USER\\Desktop\\research\\.research-tools\\CGVQM",
+                  "commit": "8302ff45b4ff5a691682baf23f7c007d6b591e98"
+                },
+                "runtime": {
+                  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+                  "torch": "2.8.0+cu128",
+                  "cuda_available": true,
+                  "cuda_runtime": "12.8",
+                  "device": "cuda",
+                  "gpu": "NVIDIA GeForce RTX 3060 Ti"
+                },
+                "configuration": {
+                  "fps": 60,
+                  "patch_scale": 4,
+                  "patch_pool": "mean",
+                  "models": [
+                    "2"
+                  ],
+                  "reference_index_offset": 0
+                },
+                "test_sequence": {
+                  "directory": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation\\capture\\bistro\\20261006_072626\\cgvqm-final-only\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "833498a875f6d6f066817ad0813930b42205f8ec89ca0181709f819a54d5b3a9"
+                },
+                "reference_sequence": {
+                  "directory": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench\\20260917_140856\\SS-Reference",
+                  "frame_count": 60,
+                  "first_index": 160,
+                  "last_index": 219,
+                  "width": 1920,
+                  "height": 1061,
+                  "pixel_sha256": "7fc127e8e975cd3948189989bc230c3ce1b2fcf77facfc4f172c4d3befc8e3f8"
+                },
+                "test_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\transition\\part-00160-00219\\LosslessInputs\\test_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "reference_round_trip": {
+                  "video": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\transition\\part-00160-00219\\LosslessInputs\\reference_ffv1.mkv",
+                  "codec": "ffv1",
+                  "pixel_format": "bgr0",
+                  "decoded_frames": 60,
+                  "mismatched_values": 0,
+                  "max_absolute_difference": 0,
+                  "verification_attempts": 1,
+                  "transient_mismatched_values": 0,
+                  "transient_max_absolute_difference": 0
+                },
+                "results": {
+                  "CGVQM-2": {
+                    "score_higher_is_better": 95.87773895263672,
+                    "error_map": {
+                      "mean": 4.693850517272949,
+                      "p95": 19.173851013183594,
+                      "p99": 49.466976165771484,
+                      "maximum": 1213.861083984375
+                    },
+                    "per_frame_csv": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-validated-rgb-feedback\\cgvqm\\bistro\\ABL-ET2X-R-PreviousRawEdge-ResponsiveRGB\\transition\\part-00160-00219\\CGVQM-2-PerFrame.csv",
+                    "visualized_error_map": null
+                  }
+                }
+              }
+            ],
+            "evaluation_method": "Equal-patch pooled official 60-frame calls with unchanged 30-frame patches; no case12 full-window model rerun."
+          },
+          "reused": false
+        }
+      ]
+    }
+  ]
+}

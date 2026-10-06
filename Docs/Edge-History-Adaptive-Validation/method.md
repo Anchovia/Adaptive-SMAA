@@ -39,12 +39,15 @@ adaptation이다. Noise, motion blur, velocity dilation, global jitter는 추가
 |---|---|---|
 | `ValidatedRGB` — ⑫의 공개 기본값 조건 | rounded bounds + clipping + adaptive feedback | `confidence × lerp(0.88,0.97,(1-d)^2)` |
 | `ResponsiveRGB` — ⑫의 명시적 parameter ablation | 같은 계산, 빠른 현재값 반응 범위 | `confidence × lerp(0.05,0.97,(1-d)^2)` |
-| `ClippedRGB` — 효과 분리 control | clipping만 추가 | `confidence × 0.5` |
+| `ClippedRGB` — native weight control | clipping + 화면 밖 history 거부 | `confidence × 0.5` |
 
 `confidence=saturate(1-sqrt(abs(currentAlpha²-previousAlpha²)/5)×nativeScale)`는
 기존 SMAA alpha rejection을 보존하기 위한 연구 adaptation이다. 화면 밖 history는
 weight0으로 거부한다. Previous-depth disocclusion rejection과 object velocity는
 포함하지 않으므로 색상 범위 검사를 완전한 visibility 판정으로 표현하지 않는다.
+ClippedRGB도 다른 ⑫ 조건처럼 화면 밖 history를 거부한다. ⑪는 clamp sampling을
+유지하므로 전역 ⑪↔ClippedRGB 차이를 clipping 하나의 효과라고 단정하지 않는다.
+화면 안에 재투영되는 좁은 ROI에서는 기존 weight를 유지한 clipping control로 비교한다.
 
 Production은 기존 선택 temporal draw에서 처리하며 추가 draw·fullscreen copy는0개다.
 ⑪의 current-spatial texture/MRT 비용과 추가 neighborhood reads는 여전히 존재한다.
@@ -67,7 +70,7 @@ clipping-only control로 추가 요소의 효과를 구분한다.
   순서 교차, PNG/query/readback Off. 변화율은 같은 run④ 기준.
 - 실제720-frame long capture와 GIF/MP4. 짧은 sequence 반복·보간 금지.
 
-현재 상태: 구현 중, 성공·채택 미정. 최종 결과는 report.md에 기록한다.
+현재 상태: 구현·검증·측정 완료. 얇은 구조 보존과 반짝임 해결의 품질 gate를 통과하지 못해 채택하지 않았다. 최종 결과는 report.md에 기록한다.
 
 ### CPU ideal mirror의 최초 실패와 검사 범위
 

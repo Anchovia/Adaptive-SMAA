@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\research\tmp\worktrees\standard-t2x-reuse\Tools\SMAA\run_cgvqm_png_sequences.py", line 665, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Users\USER\Desktop\research\tmp\worktrees\standard-t2x-reuse\Tools\SMAA\run_cgvqm_png_sequences.py", line 529, in main
+    test_by_index = collect_frames(args.test_dir.resolve())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\research\tmp\worktrees\standard-t2x-reuse\Tools\SMAA\run_cgvqm_png_sequences.py", line 148, in collect_frames
+    index = frame_index(path)
+            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\research\tmp\worktrees\standard-t2x-reuse\Tools\SMAA\run_cgvqm_png_sequences.py", line 137, in frame_index
+    raise ValueError(
+ValueError: PNG filename does not end in '_frame_<index>': frame_00000-current.png

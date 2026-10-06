@@ -1,0 +1,78 @@
+{
+  "user_authorized": true,
+  "capture_pixels_and_paths_preserved": true,
+  "method": "Same-volume SHA-256-identical immutable-file hardlinks; no source/reference deletion",
+  "results": [
+    {
+      "validation": "PASS",
+      "root": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures",
+      "png_count": 3344,
+      "linked_png_count": 2453,
+      "immutable_capture_only": true,
+      "content_and_path_preserved": true,
+      "method": "SHA-256 exact same-volume hardlink with atomic replacement",
+      "payload_bytes_reclaimed": 4062211342,
+      "free_before": 35253006336,
+      "free_after": 39324053504,
+      "seconds": 46.69599938392639,
+      "detail_record": "C:\\Users\\USER\\Desktop\\research\\tmp\\storage-cleanup-20261006\\c-feedback.json",
+      "detail_sha256": "dcc5e78c1341279c2c6aebc0767c41ed1b7ae7b7b220ec7856be6804c3441a16"
+    },
+    {
+      "validation": "PASS",
+      "root": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\tmp\\edge-resolved-rgb-feedback\\captures",
+      "resource_count": 6480,
+      "linked_resource_count": 2769,
+      "immutable_capture_only": true,
+      "content_and_path_preserved": true,
+      "method": "SHA-256 exact same-volume hardlink with atomic replacement",
+      "payload_bytes_reclaimed": 19071859928,
+      "free_before": 38756876288,
+      "free_after": 57829646336,
+      "seconds": 98.65590333938599,
+      "detail_record": "C:\\Users\\USER\\Desktop\\research\\tmp\\storage-cleanup-20261006\\c-feedback-resources.json",
+      "detail_sha256": "de872de5b5320a6d78e875ceceac1aa007d1f24da615beb58433ec438b6a5d04"
+    },
+    {
+      "validation": "PASS",
+      "root": "D:\\SMAAResearchCaptures\\six-case-long-20261006",
+      "png_count": 25920,
+      "linked_png_count": 7192,
+      "immutable_capture_only": true,
+      "content_and_path_preserved": true,
+      "method": "SHA-256 exact same-volume hardlink with atomic replacement",
+      "payload_bytes_reclaimed": 11414464751,
+      "free_before": 72340459520,
+      "free_after": 83770679296,
+      "seconds": 492.7179250717163,
+      "detail_record": "C:\\Users\\USER\\Desktop\\research\\tmp\\storage-cleanup-20261006\\d-long.json",
+      "detail_sha256": "04edf8ba3e964385fee809cd5a906b976cc35cd319c3a1e1948ab4faf1f0047e"
+    },
+    {
+      "validation": "PASS",
+      "root": "D:\\SMAAResearchCaptures\\edge-history-adaptive-validation",
+      "resource_count": 8256,
+      "linked_resource_count": 5235,
+      "immutable_capture_only": true,
+      "content_and_path_preserved": true,
+      "method": "SHA-256 exact same-volume hardlink with atomic replacement",
+      "payload_bytes_reclaimed": 24577519689,
+      "free_before": 47994859520,
+      "free_after": 64783699968,
+      "seconds": 602.9883954524994,
+      "detail_record": "C:\\Users\\USER\\Desktop\\research\\tmp\\storage-cleanup-20261006\\d-case12-short.json",
+      "detail_sha256": "77a32210900a81dbe2804d7a893b1fc851e436af7b8d0e73ccc05a6444ff6a65"
+    }
+  ],
+  "total_payload_bytes_reclaimed": 59126055710,
+  "per_drive_payload_bytes_reclaimed": {
+    "C": 23134071270,
+    "D": 35991984440
+  },
+  "final_free_bytes": {
+    "C": 55085387776,
+    "D": 44557635584
+  },
+  "completed_utc": "2026-10-05T23:59:17.521990+00:00",
+  "note": "New captures were written during a D cleanup; free-space deltas are not attributed entirely to cleanup. Payload reclamation is counted only for removed unique original file allocations."
+}
