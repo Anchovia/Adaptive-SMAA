@@ -1,0 +1,399 @@
+{
+  "implementation_commit": "537540e",
+  "base": "304f7493c6a5e53fa3cfac5dfd084ce0e86ca459",
+  "branch": "experiment/edge-history-catmull-rom-reconstruction",
+  "build": "VS2022 MSBuild Release x64 CMAA2; unchanged AllModules/IntegratedExternals copied as libraries; BuildProjectReferences=false; child environment deduplicated by case",
+  "initial_build_excluded": "PATH/Path duplicate-key environment failure; no renderer code change required; successful build log retained",
+  "hardware": "RTX 3060 Ti / AMD Ryzen 5 5600",
+  "api": "DirectX11",
+  "dimensions": [
+    1920,
+    1061
+  ],
+  "window": "hidden",
+  "vsync": false,
+  "gpu_authorization": "User reported no other GPU workload before measurement",
+  "files": [
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\CMAA2.exe",
+      "size": 3783680,
+      "sha256": "e41cc8f108c062252aca17de895339138381545f4510e5ca346d0088da9f95bb"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\tmp\\build-case13-clean.log",
+      "size": 1138,
+      "sha256": "b61125d20d55f80ebc4cfe433a438c5d287e37d8009cb690c54db379e86cd317"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\_Lib\\AllModules\\x64\\Release\\AllModules.lib",
+      "size": 281010906,
+      "sha256": "9ca231151c3779656aa4a55211bf4827dc787baf1113686c3d914058cddcd294"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\_Lib\\AllModules\\x64\\Release\\AllModules.pdb",
+      "size": 7712768,
+      "sha256": "e89d2a6442d0630d2932cac215c35b4f114f466c771eb8a4eeb46447980046b5"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\_Lib\\IntegratedExternals\\x64\\Release\\IntegratedExternals.lib",
+      "size": 67492146,
+      "sha256": "790516d0e6e3093aff581717295669aa4d0a3b6af0db517499fd661954113155"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\_Lib\\IntegratedExternals\\x64\\Release\\IntegratedExternals.pdb",
+      "size": 2527232,
+      "sha256": "45375ac4b53344ac3f7562fb109cf361e3e7404948d83ec4b2cc65cd60147e39"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\EdgeCatmullRomRGBFeedback.inl",
+      "size": 13393,
+      "sha256": "ccc0220b7e3f282625ca120984b3e151c4ebb946eacc3cd014228272de1a6090"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\SMAA\\CatmullRomHistory5Tap.hlsli",
+      "size": 2710,
+      "sha256": "741c5b94d04d10acf8bf3873bca4e7a8d774720cf62dc8fa26d1a132fd378ca6"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\SMAA\\CatmullRomRGBFeedback.hlsl",
+      "size": 1878,
+      "sha256": "fc3445cdcfc54cd392af97487daf225a7228f673663c42f7beb885e8b7659329"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\SMAA\\SMAA.cpp",
+      "size": 39285,
+      "sha256": "591717047675316257da59fb023f16af8f0ed203a8821034310a92a15ecc265a"
+    },
+    {
+      "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\SMAA\\vaSMAAWrapperDX11.cpp",
+      "size": 54355,
+      "sha256": "362d54320f87dccee19ea16df8a70700573858f63fdb537a9d0cf8c1e88e10e6"
+    }
+  ],
+  "dependencies": [
+    {
+      "source": "3992640",
+      "replayed": "2b1c8fb"
+    },
+    {
+      "source": "96c495a",
+      "replayed": "bb610a2"
+    },
+    {
+      "source": "b793b74",
+      "replayed": "5069db7"
+    },
+    {
+      "source": "573ecfa",
+      "replayed": "494f148"
+    },
+    {
+      "source": "cd8844d",
+      "replayed": "302e2ae"
+    }
+  ],
+  "case11_document_snapshot": "2e7136f copied only case11 final evidence; c93ff39 resolved final-doc snapshot",
+  "case12_inherited": false,
+  "receipts": [
+    {
+      "scene": "bistro",
+      "phase": "Test",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackTest",
+        "bistro",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 0,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:12:42.8048595Z",
+      "completed_utc": "2026-10-06T05:12:56.2215919Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_141244\\20261006_141244_results.csv",
+      "report_sha256": "1664B95F2FC1E49D60232EF5516F0F6170B4F285AF4D859C2C5CA503BBF787DB"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Test",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackTest",
+        "minecraft",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 2,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:15:04.9107401Z",
+      "completed_utc": "2026-10-06T05:15:10.7389628Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_141505\\20261006_141505_results.csv",
+      "report_sha256": "915A4688218FD03F511B4D15B52C51A62E5E59C64AA2FB2B804FAF48736AB98D"
+    },
+    {
+      "scene": "bistro",
+      "phase": "Capture",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackCapture",
+        "bistro",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 0,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:15:54.893297Z",
+      "completed_utc": "2026-10-06T05:17:58.5197386Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_141555\\20261006_141555_results.csv",
+      "report_sha256": "8DC992579B9FD5FA2C9D718C61D7C5E1FFCBCFF2246285B4C41F7D96442B5A49"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Capture",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackCapture",
+        "minecraft",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 2,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:19:39.3346905Z",
+      "completed_utc": "2026-10-06T05:21:42.7562606Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_141939\\20261006_141939_results.csv",
+      "report_sha256": "636EA3C995E1FD1ADC075762C30B2CA9D72A6A01C73F07007C7629BA2CB0CCAC"
+    },
+    {
+      "scene": "bistro",
+      "phase": "Smoke",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackSmoke",
+        "bistro",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 0,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:24:09.3646204Z",
+      "completed_utc": "2026-10-06T05:24:47.4299756Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_142409\\20261006_142409_results.csv",
+      "report_sha256": "D0ED08653918619D3AB768B17FC84D0FEBFA56DD38D92B695E617A5852B6FB0E"
+    },
+    {
+      "scene": "bistro",
+      "phase": "Benchmark",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackBenchmark",
+        "bistro",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 0,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:25:03.1886424Z",
+      "completed_utc": "2026-10-06T05:31:39.7080015Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_142503\\20261006_142503_results.csv",
+      "report_sha256": "AF7B20FEE5278C45FA8F3A74B2D7C1BE181009882E9AD54C3B4FED7E9F2F77D3"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Smoke",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackSmoke",
+        "minecraft",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 2,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:31:58.301792Z",
+      "completed_utc": "2026-10-06T05:32:32.4391218Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_143158\\20261006_143158_results.csv",
+      "report_sha256": "FEEA92EFF5809F9972C382D9AED4959A19803F0977AA45EDE37B4A1CEA8D8B56"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Benchmark",
+      "frames": 240,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackBenchmark",
+        "minecraft",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Tools\\SMAA\\..\\..\\tmp\\edge-catmull-rom-rgb-feedback\\captures",
+        "240",
+        "2"
+      ],
+      "scene_bootstrap": 2,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:32:45.936063Z",
+      "completed_utc": "2026-10-06T05:35:45.0040785Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_143246\\20261006_143246_results.csv",
+      "report_sha256": "A001816D3C4A550BFEFF9E6B9CCFC3E739596166FBB60161991A3B042F49D6DC"
+    },
+    {
+      "scene": "bistro",
+      "phase": "Capture",
+      "frames": 720,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackCapture",
+        "bistro",
+        "D:/SMAAResearchCaptures/edge-history-catmull-rom-reconstruction",
+        "720",
+        "2"
+      ],
+      "scene_bootstrap": 0,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:37:16.7926296Z",
+      "completed_utc": "2026-10-06T05:42:22.2597922Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_143717\\20261006_143717_results.csv",
+      "report_sha256": "6F2E73D93E4B908941799896CF72FF6225AA87FFBD4FDBDFA3C8EE6FB0125189"
+    },
+    {
+      "scene": "minecraft",
+      "phase": "Capture",
+      "frames": 720,
+      "start_time": 2.0,
+      "window": "hidden",
+      "arguments": [
+        "-smaaEdgeCatmullRomRGBFeedbackCapture",
+        "minecraft",
+        "D:/SMAAResearchCaptures/edge-history-catmull-rom-reconstruction",
+        "720",
+        "2"
+      ],
+      "scene_bootstrap": 2,
+      "retry_reason": "",
+      "started_utc": "2026-10-06T05:51:57.3937074Z",
+      "completed_utc": "2026-10-06T05:57:36.2341803Z",
+      "executable_sha256": "E41CC8F108C062252ACA17DE895339138381545F4510E5CA346D0088DA9F95BB",
+      "shader_sha256": {
+        "Projects/CMAA2/SMAA/PersistenceEdgeStencil.hlsl": "243945D1F3631ADD59E46D84C86DE5B36ED6E8D7D67A3A696B0F5E61CED6D08C",
+        "Projects/CMAA2/SMAA/ResolvedRGBFeedback.hlsl": "A79B9B2D5963DE2051E7B9437298C60FABCD6897C3E2054D0129008F3CA5DA07",
+        "Projects/CMAA2/SMAA/SMAAWrapper.hlsl": "30A6262D4231E01B3D48AF33749A123E69C0B75C436D28D36D5DD0798A1BB2A9",
+        "Projects/CMAA2/SMAA/CatmullRomHistory5Tap.hlsli": "741C5B94D04D10ACF8BF3873BCA4E7A8D774720CF62DC8FA26D1A132FD378CA6",
+        "Projects/CMAA2/SMAA/FirstEdgeStencil.hlsl": "C0DFB07F682401E7215538045D539DF6CEF09D68C7B2C93AD33FBB5947CF118D",
+        "Projects/CMAA2/SMAA/SMAA.hlsl": "28E527DCA63E8CC3091D695B1BDE753664F128BE1D717F954B19052A5FF18479",
+        "Projects/CMAA2/SMAA/CatmullRomRGBFeedback.hlsl": "FC3445CDCFC54CD392AF97487DAF225A7228F673663C42F7BEB885E8B7659329"
+      },
+      "report": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Projects\\CMAA2\\AutoBench\\20261006_145159\\20261006_145159_results.csv",
+      "report_sha256": "8E63E24E1316EB1D2154AADD9F47BC821DF3079B55FF22158CD64BCF427B7103"
+    }
+  ]
+}

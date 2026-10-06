@@ -1,0 +1,25 @@
+{
+  "reviewed_date": "2026-10-06",
+  "sources": [
+    {
+      "url": "https://gist.github.com/TheRealMJP/c83b8c0f46b63f3a88a5986f4fa982b1",
+      "raw_revision": "8b7feaa39187aec0b324b94518f5b1db7919dd63",
+      "author": "MJP",
+      "scope": "Authored 9-fetch Catmull-Rom weight code and author comment about omitting the four corners for a 5-fetch TAA approximation, referring to Filmic SMAA SIGGRAPH 2016.",
+      "access": "Gist rendered text inspected; raw endpoint cache miss. No raw downloaded-file hash claimed.",
+      "adaptation": "Retained weights normalized for constant preservation; RGB-only connection to existing SMAA linear-sRGB history. Not the exact nine/sixteen-fetch filter or Intel recovered shader."
+    },
+    {
+      "url": "https://gist.github.com/TheRealMJP/bc503b0b87b643d3505d41eab8b332ae",
+      "raw_revision": "4863562ad0ecde8fd0241a0234b725bda04aa01b",
+      "scope": "MIT license for public gists, Copyright (c) 2019 MJP. Full notice retained in production helper."
+    },
+    {
+      "url": "https://www.intel.com/content/dam/develop/external/us/en/documents/tscmaa-codesample-v1.pdf",
+      "scope": "Page 4 sharpness-preserving 5-tap history sampling motivates testing reconstruction separately. Does not establish this normalized filter as an exact Intel port, nor guarantee superiority over native SMAA T2X-R."
+    }
+  ],
+  "case12_code_inherited": false,
+  "controlled_change": "Case11 bilinear history RGB to normalized 5-fetch Catmull-Rom approximation only",
+  "comparison_scope": "Intermediate ablation; final eight-case research semantics and default profiles unchanged"
+}
