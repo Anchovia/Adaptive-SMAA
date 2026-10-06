@@ -67,6 +67,8 @@ def main():
             assert item['mode']==MODES[index]
             assert record['test_sequence']['pixel_sha256']==stream(cap/MODES[index],start,end)
             assert record['reference_sequence']['pixel_sha256']==stream(reference,start,end)
+            assert len(record['official_chunk_results'])==(end-start)//60
+            assert item['score']==record['results']['CGVQM-2']['score_higher_is_better']
             for first,chunk in zip(range(start,end,60),record['official_chunk_results']):
                 validate(chunk,first,first+60)
                 assert chunk['test_sequence']['pixel_sha256']==stream(cap/MODES[index],first,first+60)

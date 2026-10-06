@@ -8,7 +8,7 @@ from analyze_case13_quality import ROOT,DOC,MODES,load
 from edge_quality_inputs import sha
 FONT=ImageFont.truetype('C:/Windows/Fonts/consola.ttf',14)
 SMALL=ImageFont.truetype('C:/Windows/Fonts/consola.ttf',11)
-LABELS=['④ 원본 T2X-R','⑩ bilinear · spatial history','⑪ bilinear · RGB feedback','⑬ 5-tap · RGB feedback']
+LABELS=['4 T2X-R','10 Bilinear','11 Feedback','13 Catmull-Rom']
 DETAIL=['Spatial ON / Full T / Pattern ON','Spatial ON / Edge T / Pattern OFF','Spatial ON / Edge T / Pattern OFF','Spatial ON / Edge T / Pattern OFF']
 FRAME_COUNT=720
 ROIS={'bistro':[('chairs','의자·테이블의 얇은 선',(1230,546,1358,706)),('thin-chair','가는 의자 구조',(1230,582,1358,670)),('windows','창살과 반복 경계',(950,460,1110,588))],
@@ -17,11 +17,11 @@ def compose(images,f,box=None):
  w,h=(640,354) if box is None else ((box[2]-box[0])*2,(box[3]-box[1])*2)
  size=(4*(w+8)+8,h+72);size=(size[0]+size[0]%2,size[1]+size[1]%2)
  canvas=Image.new('RGB',size,(18,20,23));d=ImageDraw.Draw(canvas)
- phase='initial still' if f<60 else ('moving' if f<=FRAME_COUNT-60 else 'final still')
+ phase='initial still' if f<60 else ('moving' if f<FRAME_COUNT-60 else 'final still')
  for i,image in enumerate(images):
   x=8+i*(w+8)
   d.text((x,6),LABELS[i],font=FONT,fill='white')
-  d.text((x,24),DETAIL[i] if box is None else DETAIL[i].replace('Spatial ON / ','S ON / '),font=SMALL,fill='#cdd7e1')
+  d.text((x,24),DETAIL[i] if box is None else ('T full | J On' if i==0 else 'T edge | J Off'),font=SMALL,fill='#cdd7e1')
   d.text((x,40),f'f{f:03d} / {phase}',font=SMALL,fill='#cdd7e1')
   tile=image.resize((w,h),Image.Resampling.LANCZOS) if box is None else image.crop(box).resize((w,h),Image.Resampling.NEAREST)
   canvas.paste(tile,(x,60))

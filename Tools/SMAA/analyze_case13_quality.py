@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/'Docs/Edge-History-Catmull-Rom-Reconstruction'
 CONTROL_DOC=Path('C:/Users/USER/Desktop/research/tmp/worktrees/standard-t2x-reuse/Docs/Edge-History-Adaptive-Validation')
 MODES=['O-T2X-R','ABL-ET2X-R-PreviousRawEdge-BilinearRGB','ABL-ET2X-R-PreviousRawEdge-ResolvedRGB','ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB']
-LABELS=['4 Native T2X-R / ON','10 Bilinear spatial / OFF','11 Bilinear resolved / OFF','13 Catmull resolved / OFF']
+LABELS=['4 Native / On','10 Bilin / Off','11 Feed / Off','13 5tap / Off']
 ROIS={'bistro':{'chairs':(1230,546,1358,706),'thin-chair':(1230,582,1358,670),'windows':(950,460,1110,588)},
       'minecraft':{'seams':(932,512,1060,672),'thin-seam':(956,524,1020,620),'leaves':(1420,590,1580,718)}}
 WINDOWS={'move':range(126,132),'transition':range(178,184),'still':range(190,196)}
