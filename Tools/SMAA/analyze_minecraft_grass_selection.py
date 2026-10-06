@@ -22,6 +22,7 @@ EVIDENCE = ROOT / 'Docs/Edge-History-Catmull-Rom-Reconstruction/minecraft-captur
 MODE = 'ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB'
 BASE = 'O-T2X-R'
 ROI = (1420, 590, 1580, 718)
+SCALE = 3
 # Manually located subregions in f130, not edge masks or tracked objects.
 PATCHES = {
     'whole_leaves_crop': ROI,
@@ -41,7 +42,8 @@ def weight(path):
     return np.frombuffer(buf[off:], np.float32).reshape(h, w)
 
 
-def cut(a, box=ROI):
+def cut(a, box=None):
+    if box is None: box=ROI
     x0, y0, x1, y1 = box
     return a[y0:y1, x0:x1]
 
@@ -51,7 +53,8 @@ def tile(a, scale=3):
 
 
 def panels(items, f, columns=3):
-    w, h = 480, 384
+    h, w = items[0][2].shape[:2]
+    w, h = w*SCALE, h*SCALE
     rows = (len(items)+columns-1)//columns
     sheet = Image.new('RGB', (columns*(w+10)+10, rows*(h+64)+10), '#12151a')
     draw = ImageDraw.Draw(sheet)
@@ -59,7 +62,7 @@ def panels(items, f, columns=3):
         x, y = 10+(i % columns)*(w+10), 10+(i//columns)*(h+64)
         draw.text((x, y), title, fill='white', font=FONT)
         draw.text((x, y+21), f'f{f} | {subtitle}', fill='#cbd3de', font=SMALL)
-        sheet.paste(tile(arr), (x, y+50))
+        sheet.paste(tile(arr,SCALE), (x, y+50))
     return sheet
 
 
@@ -121,7 +124,7 @@ def main(out):
             dimg = np.repeat((cut(delta).max(axis=2)*8).clip(0,255).astype(np.uint8)[:,:,None],3,axis=2)
             edgeimg = np.repeat((cut(edge).astype(np.uint8)*255)[:,:,None],3,axis=2)
             panels([
-                ('13 actual output', 'RGB unchanged; nearest 3x',color),
+                ('13 actual output', f'RGB unchanged; nearest {SCALE}x',color),
                 ('13 current raw edges', 'WHITE = first-pass RG > 0',edgeimg),
                 ('13 temporal selection', 'WHITE = GPU coverage witness',mask),
                 ('13 selection overlay', 'CYAN = selected; diagnostic',overlay),
@@ -130,7 +133,7 @@ def main(out):
             ],f).save(out/'grass-diagnostics-f130.png')
             annotation=tile(color,4); draw=ImageDraw.Draw(annotation)
             for name,box in PATCHES.items():
-                if name=='whole_leaves_crop': continue
+                if name.startswith('whole_') or name in ['U_seam_upper','D_seam_lower']: continue
                 a,b,c,d=box
                 rect=((a-ROI[0])*4,(b-ROI[1])*4,(c-ROI[0])*4,(d-ROI[1])*4)
                 draw.rectangle(rect,outline='#ffcf42',width=2)
@@ -180,7 +183,7 @@ def main(out):
         f130=[r for r in rows if r['frame']==130],
         invariants=dict(current_raw_edge_selection_mismatch=0,nonselected_output_mismatch=0,
                         nonselected_weight_mismatch=0),
-        presentation=dict(output=str(out),rgb_scale=3,filter='nearest',rgb_tone_adjustment=False,
+        presentation=dict(output=str(out),rgb_scale=SCALE,filter='nearest',rgb_tone_adjustment=False,
                           gif_fps=12.5,source_fps=60,moving_frames=[126,138],transition_frames=[172,189],
                           gif_decoded_rgb_verified=True),
         inspection_sheets=inspected_sheets,
@@ -196,4 +199,16 @@ def main(out):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True)
-    main(p.parse_args().output.resolve())
+    p.add_argument('--focus-user-seam',action='store_true')
+    args=p.parse_args()
+    if args.focus_user_seam:
+        DOC=DOC/'User-Specified-Seam'
+        ROI=(1450,665,1552,719)
+        SCALE=4
+        PATCHES={
+            'whole_user_crop':ROI,
+            'S_seam_strip':(1494,700,1525,705),
+            'U_seam_upper':(1494,699,1525,700),
+            'D_seam_lower':(1494,705,1525,706),
+        }
+    main(args.output.resolve())

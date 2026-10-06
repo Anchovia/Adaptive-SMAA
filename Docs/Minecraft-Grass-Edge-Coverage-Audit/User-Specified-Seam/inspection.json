@@ -1,0 +1,77 @@
+{
+  "classification": "user-specified weak grass-top seam; correction of target region, not a renderer change",
+  "attachment_path": "C:\\Users\\USER\\.codex\\attachments\\5e7c9d97-31bf-4a95-9a90-4d75bbf2e373\\스크린샷 2026-10-06 오후 3.44.06.png",
+  "attachment_sha256": "d7ba5120c705e3a64688a70cf06fd35527d6e05e9b9a4dcb78e74cc7d8e8da91",
+  "screenshot_mode_and_frame_exactly_identified": false,
+  "location_note": "Screenshot geometry identifies the same grass-top surface. Inspect stored frame130 as an explicitly indexed example; template matching of the screenshot does not establish exact source mode/frame.",
+  "previous_9_7_percent_note": "Earlier A_grass_top is another fixed-screen rectangle, not a selection rate for the user-specified seam.",
+  "frame": 130,
+  "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB",
+  "spatial": "Original Ultra ON",
+  "pattern": "Off",
+  "reprojection": "camera/depth",
+  "roi": [
+    1450,
+    665,
+    1552,
+    719
+  ],
+  "marked_strip": [
+    1494,
+    700,
+    1525,
+    705
+  ],
+  "pixels": 155,
+  "current_edge_pixels": 0,
+  "selected_pixels": 0,
+  "weight_min": 0.0,
+  "weight_max": 0.0,
+  "raw_current_mismatch_pixels": 0,
+  "current_output_mismatch_pixels": 0,
+  "source_files": {
+    ".png": "b3359bb9889f8104d53219c73d5cc37f661f5d2b0593fa9571c38c530f4f45fe",
+    "-raw.dds": "c18b187bb374325f09fcf0b34d57170f53d11bde11b83ca081ee49c0b5163ed7",
+    "-current.dds": "838dc61cbd0e1a95b70935c228ac3951f22e4c7ff9b6fd70fad75b1e01f182ba",
+    "-edge.rg8": "6114290bfdeeefdee34293f56645b71f9b2988f5d55a801d7f0e55e2f5bb5d74",
+    "-coverage.dds": "d37c5dc28de50795cdaa4683e5165d8cfd09c4ddab38a9c41214e5c486ce1899",
+    "-weight.dds": "d58f63495f05ffc595e4c930d180a49d8be8f8a34b44ed9da5eb6e5c268f446e"
+  },
+  "directly_opened_same_roi_consecutive_frames": {
+    "moving": [
+      126,
+      127,
+      128,
+      129,
+      130,
+      131
+    ],
+    "transition": [
+      178,
+      179,
+      180,
+      181,
+      182,
+      183
+    ],
+    "still": [
+      190,
+      191,
+      192,
+      193,
+      194,
+      195
+    ],
+    "scale": 4,
+    "filter": "nearest",
+    "rgb_tone_adjustment": false
+  },
+  "interpretation": "The marked weak-contrast surface segment receives no temporal blending in frame130. Current raw edges are absent there, so this is not a detected edge lost during transfer. The region already has the same RGB before spatial and after temporal processing; this does not mean the spatial SMAA pipeline was disabled.",
+  "limitations": [
+    "No claim that the entire seam is unselected in every frame",
+    "Fixed-screen strip is not tracked geometry",
+    "No new quality improvement or performance claim",
+    "Weak line source, texture filtering and exact threshold failure stage are not isolated"
+  ],
+  "media_root": "C:/Users/USER/Desktop/research/Deliverables/SMAA_13_User_Grass_Seam_20261006"
+}
