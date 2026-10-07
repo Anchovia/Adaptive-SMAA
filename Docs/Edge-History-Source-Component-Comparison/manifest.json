@@ -1,0 +1,432 @@
+{
+  "validation": "PASS",
+  "source_frames": 240,
+  "source_fps": 60,
+  "mode_order": [
+    4,
+    14,
+    15,
+    16,
+    17
+  ],
+  "control_hash_mismatch": 0,
+  "independent_branches": {
+    "15": {
+      "case": 15,
+      "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-YCoCgVarianceClamp",
+      "base_case": 14,
+      "base_commit": "8ed45765e63d7e73ba63e17be329fef693dc65b4",
+      "branch": "experiment/edge-history-source-clipping",
+      "component": "source-clipping",
+      "independent": true,
+      "source_util": "tmp/tscmaa-source-audit-20260910/Intel/Util/Util.hlsl",
+      "controls": [
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+        "O-T2X-R"
+      ],
+      "pattern": "Off; native4 On",
+      "weight": 0.8,
+      "feedback": "resolved RGB/current spatial velocity alpha",
+      "additional_production_passes": 0,
+      "source_util_sha256": "dd4e9f4655704b0b18a910173dd84bb415e72e1cbfad87322800ff525484b17b",
+      "source_differences": [
+        "Signed Co/Cg retained; variance clamped nonnegative; history clamped in YCoCg, not inverse-transformed RGB corner endpoints",
+        "Sharpening deliberately Off to isolate history range limiting",
+        "SMAA linear sRGB-view domain, clamp sampler, mask/stencil and history lifecycle retained; not full original TSCMAA port",
+        "Source component bypassed while history invalid; preserves original seed/reset output"
+      ]
+    },
+    "16": {
+      "case": 16,
+      "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-Recovered5Fetch",
+      "base_case": 14,
+      "base_commit": "8ed45765e63d7e73ba63e17be329fef693dc65b4",
+      "branch": "experiment/edge-history-source-sampling",
+      "component": "source-sampling",
+      "independent": true,
+      "source_util": "tmp/tscmaa-source-audit-20260910/Intel/Util/Util.hlsl",
+      "controls": [
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+        "O-T2X-R"
+      ],
+      "pattern": "Off; native4 On",
+      "weight": 0.8,
+      "feedback": "resolved RGB/current spatial velocity alpha",
+      "additional_production_passes": 0,
+      "source_util_sha256": "dd4e9f4655704b0b18a910173dd84bb415e72e1cbfad87322800ff525484b17b",
+      "source_differences": [
+        "Port the recovered five-fetch coordinate/coefficient expression, including asymmetric top (A+B) term; do not silently correct it",
+        "Keep case14 linear sRGB-view RGB domain and clamp addressing instead of source UNORM/border",
+        "History point alpha, fixed0.8 weight, current/previous raw-edge union and feedback unchanged",
+        "Component bypassed on invalid history seed/reset"
+      ]
+    },
+    "17": {
+      "case": 17,
+      "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",
+      "base_case": 14,
+      "base_commit": "8ed45765e63d7e73ba63e17be329fef693dc65b4",
+      "branch": "experiment/edge-history-source-color-blend",
+      "component": "source-color-blend",
+      "independent": true,
+      "source_util": "tmp/tscmaa-source-audit-20260910/Intel/Util/Util.hlsl",
+      "controls": [
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+        "O-T2X-R"
+      ],
+      "pattern": "Off; native4 On",
+      "weight": 0.8,
+      "feedback": "resolved RGB/current spatial velocity alpha",
+      "additional_production_passes": 0,
+      "source_temporal_sha256": "0cb15cb7aaa9b7babf6dc779299df6fa871e6247d9f9b9110add0accad919d8f",
+      "source_differences": [
+        "Apply source encoded-RGB square/weighted-sum/sqrt through an explicit sRGB-domain adapter; current/history RGB sampling still case14 linear domain",
+        "Saturate linear sampled RGB to valid0..1 before sRGB encoding; retain finite conversion values for filter overshoot",
+        "Hold document history0.8 instead of recovered active0.789473712, to isolate blending from weight",
+        "No neighborhood clipping or recovered five-fetch substitution; component bypassed on invalid history seed/reset"
+      ]
+    }
+  },
+  "results": [
+    {
+      "scene": "bistro",
+      "roi": [
+        1230,
+        546,
+        1358,
+        706
+      ],
+      "title": "의자·테이블의 얇은 선",
+      "name": "chairs",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-chairs-all-60fps.mp4",
+        "sha256": "2382d72c72296b4df52b9ef8dfcdda3c0ee998f54bbdadb73b132f56bc9ffbd4",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-chairs-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-chairs-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-chairs-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-chairs-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-chairs-all-f210.png"
+      ]
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        1230,
+        582,
+        1358,
+        670
+      ],
+      "title": "가는 의자 구조",
+      "name": "thin-chair",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-thin-chair-all-60fps.mp4",
+        "sha256": "d43f064c0abc81e7ed3ad77b35c453b4015a5f88666ce4133fd289d3bdef96cf",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-thin-chair-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-thin-chair-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-thin-chair-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-thin-chair-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-thin-chair-all-f210.png"
+      ]
+    },
+    {
+      "scene": "bistro",
+      "roi": [
+        950,
+        460,
+        1110,
+        588
+      ],
+      "title": "창살과 반복 경계",
+      "name": "windows",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-windows-all-60fps.mp4",
+        "sha256": "1f99e9573b31abe1b9cc17e0c3e510733875a2ddb493b5a328efae3fdb3968c5",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-windows-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-windows-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-windows-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-windows-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\bistro-windows-all-f210.png"
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        932,
+        512,
+        1060,
+        672
+      ],
+      "title": "벽 이음선과 가는 경계",
+      "name": "seams",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-seams-all-60fps.mp4",
+        "sha256": "54c4ef2554eb58cef5aa0cc0bd635f655d4e8b3028b51ae06a92ef42ec3f5161",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-seams-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-seams-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-seams-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-seams-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-seams-all-f210.png"
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        956,
+        524,
+        1020,
+        620
+      ],
+      "title": "얇은 벽 이음선",
+      "name": "thin-seam",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-thin-seam-all-60fps.mp4",
+        "sha256": "9efbcbed0b656adc3bd06c09a2e3ece8751ea45e2f94f4d38ef46790043cb221",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-thin-seam-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-thin-seam-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-thin-seam-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-thin-seam-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-thin-seam-all-f210.png"
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1420,
+        590,
+        1580,
+        718
+      ],
+      "title": "식생의 촘촘한 무늬",
+      "name": "leaves",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-leaves-all-60fps.mp4",
+        "sha256": "d9eccdeabef9ee77cfa2953b5f154f2d474ce0fa17c3929ec0ee21760756ff39",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-leaves-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-leaves-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-leaves-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-leaves-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-leaves-all-f210.png"
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "roi": [
+        1450,
+        665,
+        1552,
+        719
+      ],
+      "title": "잔디 윗면의 약한 이음선",
+      "name": "grass-seam",
+      "mode_order": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "nearest_scale": 2,
+      "video": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-grass-seam-all-60fps.mp4",
+        "sha256": "6c941bdd6061a5c21950acc4440c64b190d4063c650bcbfe59259a31ecc6290f",
+        "frames": 240,
+        "fps": 60,
+        "duration_seconds": 4.0,
+        "monotonic_pts": true,
+        "codec": "H264 CRF12 yuv420p; lossy presentation"
+      },
+      "slow": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-grass-seam-all-slow.gif",
+        "frames": 240,
+        "fps": 25.0,
+        "seconds": 9.6,
+        "decode_hash_match": true
+      },
+      "fast": {
+        "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-grass-seam-all-fast.gif",
+        "frames": 240,
+        "fps": 50.0,
+        "seconds": 4.8,
+        "decode_hash_match": true
+      },
+      "original_frame_png": [
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-grass-seam-all-f130.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-grass-seam-all-f180.png",
+        "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_20261007\\minecraft-grass-seam-all-f210.png"
+      ]
+    }
+  ],
+  "implementation_commits": {
+    "14": "8ed45765e63d7e73ba63e17be329fef693dc65b4",
+    "15": "78e7368",
+    "16": "7adb9ae",
+    "17": "77f5e57"
+  },
+  "verified_media_runtime": {
+    "Pillow": "12.3.0",
+    "numpy": "2.3.5",
+    "PyAV": "15.1.0"
+  }
+}
