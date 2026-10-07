@@ -13,7 +13,7 @@ for scene in ['bistro','minecraft']:
  index={(s['mode'],s['metric']):s for s in p['summary']}
  for m,label in [('O-T2X-R','④ T2X-R'),(base,'⑭ fixed0.8'),(mode,f'{case} {info["component"]}')]:
   a=index[m,'SMAA'];t=index[m,'SR_Resolve'];lines.append(f'| {scene} | {label} | {a["mean_ms"]:.6f} | {a["native4_paired_percent"]:+.2f}% | {a["case14_paired_percent"]:+.2f}% | {t["mean_ms"]:.6f} | {t["native4_paired_percent"]:+.2f}% | {t["case14_paired_percent"]:+.2f}% |')
-lines+=['','## 品질 수치와 프레임 검사'.replace('品質','품질'),'','Supersample spatial proxy에 대한 RGB MAE(0~255, 낮을수록 작음)와 raw luma 2차 시간 차분(낮을수록 작음)을 함께 기록했다. 차분 감소는 blur와 motion의 영향도 포함해 반짝임/고스팅 해결을 단독 입증하지 않는다. CGVQM을 새로 실행한 결과가 아니다. ④는 paired Pattern On, ⑭와 새 구현은 Off이다.','', '| 장면 / 이동 ROI | ⑭ 참조 MAE | 새 MAE | ⑭ 2차 차분 | 새 2차 차분 |','|---|---:|---:|---:|---:|']
+lines+=['','## 품질 수치와 프레임 검사','','Supersample spatial proxy에 대한 RGB MAE(0~255, 낮을수록 작음)와 raw luma 2차 시간 차분(낮을수록 작음)을 함께 기록했다. 차분 감소는 blur와 motion의 영향도 포함해 반짝임/고스팅 해결을 단독 입증하지 않는다. CGVQM을 새로 실행한 결과가 아니다. ④는 paired Pattern On, ⑭와 새 구현은 Off이다.','', '| 장면 / 이동 ROI | ⑭ 참조 MAE | 새 MAE | ⑭ 2차 차분 | 새 2차 차분 |','|---|---:|---:|---:|---:|']
 for scene in ['bistro','minecraft']:
  q=all_results[scene]['quality'];rois=['thin-chair','windows'] if scene=='bistro' else ['thin-seam','leaves','grass-seam']
  for roi in rois:

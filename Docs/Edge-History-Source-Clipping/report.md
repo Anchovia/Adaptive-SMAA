@@ -17,7 +17,7 @@ RTX 3060 Ti / DX11 Release x64 / Ultra / 1920×1061 / hidden / VSync Off. Scene�
 | minecraft | ⑭ fixed0.8 | 0.251232 | +8.82% | +0.00% | 0.035281 | -0.07% | +0.00% |
 | minecraft | 15 source-clipping | 0.265727 | +15.10% | +5.77% | 0.049218 | +39.42% | +39.52% |
 
-## 品질 수치와 프레임 검사
+## 품질 수치와 프레임 검사
 
 Supersample spatial proxy에 대한 RGB MAE(0~255, 낮을수록 작음)와 raw luma 2차 시간 차분(낮을수록 작음)을 함께 기록했다. 차분 감소는 blur와 motion의 영향도 포함해 반짝임/고스팅 해결을 단독 입증하지 않는다. CGVQM을 새로 실행한 결과가 아니다. ④는 paired Pattern On, ⑭와 새 구현은 Off이다.
 
