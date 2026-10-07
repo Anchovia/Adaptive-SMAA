@@ -37,6 +37,7 @@ ROIS = {
         ('windows', '창살과 반복 경계', (950, 460, 1110, 588)),
         ('scooter', '스쿠터 곡선과 가림 변화', (440, 715, 600, 843)),
         ('lamp', '가로등·화분 경계', (1630, 470, 1758, 630)),
+        ('awning', '차양의 대각선 경계', (1320, 360, 1480, 488)),
     ],
     'minecraft': [
         ('seams', '벽 이음선과 가는 경계', (932, 512, 1060, 672)),
@@ -198,7 +199,7 @@ def make_scene(scene, evidence, out):
     for row, f in enumerate(sample_frames):
         ims = images(f)
         for name, _, box in specs:
-            atlases[name].paste(compose(ims, f, box).resize((600, 180)), (0, row * 180))
+            atlases[name].paste(compose(ims, f, box).resize((600, 180), Image.Resampling.NEAREST), (0, row * 180))
     first = images(0)
     writers = {}
     for name, _, box in specs:
@@ -274,7 +275,7 @@ def main():
             '<style>body{max-width:1600px;margin:30px auto;padding:20px;background:#12151a;color:#edf2f8;font:16px sans-serif}video,img{max-width:100%;height:auto}section{margin:48px 0}a{color:#a8d3ff}</style>',
             '<h1>④·⑭·⑮·⑯·⑰: 다른 세부 장면과 긴 이동</h1>',
             '<p>왼쪽부터 ④ 원본 SMAA T2X-R / ⑭ fixed0.8 / ⑮ clipping / ⑯ source 5-fetch / ⑰ gamma2 blend. 각 변경은 ⑭에서 독립 분기했습니다. 모두 Original spatial SMAA·camera/depth reprojection On. ④ Pattern On, 나머지 Off입니다.</p>',
-            '<p>두 실제 3D 장면 Bistro·Minecraft에서 11개 세부 영역을 비교합니다. 새 3D 장면 11개를 추가한 것이 아닙니다. 세부 영역은 화면 고정이며 물체를 추적하지 않습니다. 확대는 nearest 2배, 전체 경로만 Lanczos 축소입니다. 색·밝기 보정은 없습니다.</p>',
+            '<p>두 실제 3D 장면 Bistro·Minecraft에서 12개 세부 영역을 비교합니다. 세부 영역은 화면 고정이며 물체를 추적하지 않습니다. 확대는 nearest 2배, 전체 경로만 Lanczos 축소입니다. 색·밝기 보정은 없습니다.</p>',
             '<p>실제 720프레임: 정지 1초 → 연속 이동 10초 → 정지 1초. 반복·보간으로 길이를 늘리지 않았습니다. 정상 MP4 12초, 빠른 GIF 7.2초(1.67배), 느린 GIF 28.8초(0.42배). 빠른 GIF는 홀수 프레임을 생략하므로 세밀한 결함 판단에는 정상 영상·느린 GIF·연속 원본 PNG를 함께 확인하십시오. GIF 256색/MP4 압축에는 손실이 있습니다.</p>',
             '<p>기존 GPU 성능·품질 점수는 그대로입니다. 이번 자료는 긴 재생 비교와 원본 프레임 검사이며 새 품질 점수 측정이 아닙니다. <a href="manifest.json">검증 및 원본 경로</a></p>']
     for scene in results:

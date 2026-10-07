@@ -1,0 +1,25 @@
+{
+  "case": 16,
+  "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-Recovered5Fetch",
+  "base_case": 14,
+  "base_commit": "8ed45765e63d7e73ba63e17be329fef693dc65b4",
+  "branch": "experiment/edge-history-source-sampling",
+  "component": "source-sampling",
+  "independent": true,
+  "source_util": "tmp/tscmaa-source-audit-20260910/Intel/Util/Util.hlsl",
+  "controls": [
+    "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+    "O-T2X-R"
+  ],
+  "pattern": "Off; native4 On",
+  "weight": 0.8,
+  "feedback": "resolved RGB/current spatial velocity alpha",
+  "additional_production_passes": 0,
+  "source_util_sha256": "dd4e9f4655704b0b18a910173dd84bb415e72e1cbfad87322800ff525484b17b",
+  "source_differences": [
+    "Port the recovered five-fetch coordinate/coefficient expression, including asymmetric top (A+B) term; do not silently correct it",
+    "Keep case14 linear sRGB-view RGB domain and clamp addressing instead of source UNORM/border",
+    "History point alpha, fixed0.8 weight, current/previous raw-edge union and feedback unchanged",
+    "Component bypassed on invalid history seed/reset"
+  ]
+}

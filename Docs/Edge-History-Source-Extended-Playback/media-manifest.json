@@ -1,0 +1,3507 @@
+{
+  "validation": "PASS",
+  "classification": "extended presentation only; no new quality score or GPU timing",
+  "mode_order": [
+    4,
+    14,
+    15,
+    16,
+    17
+  ],
+  "independent_implementations": true,
+  "source_timeline": "60 still + 600 moving + 60 still at fixed60",
+  "fast": "every second source frame; 50fps; 7.2s; 1.6667x",
+  "slow": "all source frames; 25fps; 28.8s; 0.4167x",
+  "normal": "all source frames; 60fps; 12s; 1x",
+  "actual_playback_observed": false,
+  "results": [
+    {
+      "scene": "bistro",
+      "source_frames": 720,
+      "source_fps": 60,
+      "source_validation": {
+        "15": {
+          "report_sha256": "96c84cce1f6f11820ce6078628437d1da1b59bb6010e2fbde86086dfbeaa3e36",
+          "mode_checks": 2160,
+          "diagnostics_off": true,
+          "initial_still": 60,
+          "moving": 600,
+          "final_still": 60,
+          "source_fps": 60
+        },
+        "16": {
+          "report_sha256": "1f195254db5a4b4567ba54d43d7f267d9413f1009255980830aa4e403910bfe6",
+          "mode_checks": 2160,
+          "diagnostics_off": true,
+          "initial_still": 60,
+          "moving": 600,
+          "final_still": 60,
+          "source_fps": 60
+        },
+        "17": {
+          "report_sha256": "c2336a5ae6e32b601398f3002dff2d763bbebb6b29758c76db5b6df9547d4a2a",
+          "mode_checks": 2160,
+          "diagnostics_off": true,
+          "initial_still": 60,
+          "moving": 600,
+          "final_still": 60,
+          "source_fps": 60
+        }
+      },
+      "controls_shared_frames": 2880,
+      "control_rgb_mismatch": 0,
+      "source_pngs_checked": 3600,
+      "evidence_sha256": {
+        "15": "24af3a16ed0f1bc950e3006a0f44315e56b17a8b26312fb118ef7104a348cbcd",
+        "16": "d06c655af72e9684731abaf2fc9c8d0ca25bd4e55d90940b0e1319a5e444ccf2",
+        "17": "5e9cdc9702d66ef2403d9d7796125e7140962d3f56fbcd477b95e5516cce3775"
+      },
+      "stable_hash_counts": {
+        "O-T2X-R": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-YCoCgVarianceClamp": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-Recovered5Fetch": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend": 1
+      },
+      "results": [
+        {
+          "name": "overview",
+          "title": "전체 이동 경로",
+          "roi": null,
+          "filter": "Lanczos overview",
+          "scale": null,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-overview-long-normal.mp4",
+            "sha256": "3bf73ff10df606c8d48a35dbe9b190ded7549b742c6212f7c588555a5649424c",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-overview-long-slow.gif",
+            "sha256": "d3b4519f6169dc1f7a1751d2dd6c9b520c30045a10084ef2cde3a500c1ac673f",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-overview-long-fast.gif",
+            "sha256": "0269c957a268340e4a7ff8c032cde276f6a1ff36c3c5442e99c7cdb67f6ac1ef",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "chairs",
+          "title": "의자·테이블 다리",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-long-normal.mp4",
+            "sha256": "c0774e440535ae150ca8a8b1e83a8ebef0695aaabd696914f746fa549076c84c",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-long-slow.gif",
+            "sha256": "d6481626f9cd20443592b091f7bbf80ec27e5dd1e9d55466596449fb4d88db55",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-long-fast.gif",
+            "sha256": "03e1dffa797c05e181b7adbe8ad63e756d65835f6700efab152f9031048892fe",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "thin-chair",
+          "title": "얇은 의자 구조",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-long-normal.mp4",
+            "sha256": "f7d71b64967040854eb8966a66a121b1aa3853576f6ad65cb104ef18909271e0",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-long-slow.gif",
+            "sha256": "ce29a003323b96a63a20b9ddf3a9ddf62bd65e587a04305b803c08a45de3d873",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-long-fast.gif",
+            "sha256": "8bda30f5ca849c0b10702223aaf42cb67575c04b156d3fc023e3b2e3e4433832",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "windows",
+          "title": "창살과 반복 경계",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-long-normal.mp4",
+            "sha256": "a41f141731c4fba2bed32dd6f0dbd55681b40678ae2dbe075cbac1fc677b664a",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-long-slow.gif",
+            "sha256": "70b08bd10305e996935bf031a6765b05d6abbf68c80f9a001d562957aac7492c",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-long-fast.gif",
+            "sha256": "9e0f42d026c20ba7d82b65bb1c908f2a875aae0b9830766633f465c8a6281b26",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "scooter",
+          "title": "스쿠터 곡선과 가림 변화",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-long-normal.mp4",
+            "sha256": "f258b9c427c91b6d22f4d9574df16cae3273e9f23ae009bd0ae8ccef6f6835a4",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-long-slow.gif",
+            "sha256": "70c00ec8fa87963a39cc50b5e4a13d6f878e093d9cdafb4739ff2710bd0e9271",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-long-fast.gif",
+            "sha256": "5c1000327f777b695fdc58caef7a3edd2d9a2793b579c69578a7c58ef78aa549",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "lamp",
+          "title": "가로등·화분 경계",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-long-normal.mp4",
+            "sha256": "2c0fa875406e70d40a1d9663f9aee3de602224cfb1992c6094b78099960df1e9",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-long-slow.gif",
+            "sha256": "453f1617635343982a5fac47eb4d1b96feed28f8cfe54326052646c2b2d44b08",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-long-fast.gif",
+            "sha256": "3d40d024762cf4954333e6e7430d3941d0008382ab0c3689eb0e017478a37bf5",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "awning",
+          "title": "차양의 대각선 경계",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-long-normal.mp4",
+            "sha256": "9dc49ae00f67b0dedf2692723a91099ac150258d024d15ce8de50f9b1afc175e",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-long-slow.gif",
+            "sha256": "4bc6b6ad6c1caf764431bd6e06e5c2198277ec92229eba1ddc0dc7cb9cd9c302",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-long-fast.gif",
+            "sha256": "406f609db0b27acf6cc2ecbea839604f52294ea8fd4db805b0bf281ef14f4f81",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        }
+      ],
+      "inspection_sheets": [
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-moving-pair0.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-moving-pair0.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-moving-pair0.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-moving-pair0.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-moving-pair0.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-moving-pair0.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-moving-pair1.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-moving-pair1.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-moving-pair1.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-moving-pair1.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-moving-pair1.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-moving-pair1.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-moving-pair2.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-moving-pair2.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-moving-pair2.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-moving-pair2.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-moving-pair2.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-moving-pair2.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-late-moving-pair0.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-late-moving-pair0.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-late-moving-pair0.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-late-moving-pair0.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-late-moving-pair0.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-late-moving-pair0.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-late-moving-pair1.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-late-moving-pair1.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-late-moving-pair1.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-late-moving-pair1.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-late-moving-pair1.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-late-moving-pair1.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-late-moving-pair2.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-late-moving-pair2.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-late-moving-pair2.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-late-moving-pair2.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-late-moving-pair2.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-late-moving-pair2.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-transition-pair0.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-transition-pair0.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-transition-pair0.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-transition-pair0.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-transition-pair0.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-transition-pair0.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-transition-pair1.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-transition-pair1.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-transition-pair1.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-transition-pair1.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-transition-pair1.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-transition-pair1.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-transition-pair2.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-transition-pair2.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-transition-pair2.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-transition-pair2.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-transition-pair2.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-transition-pair2.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-still-pair0.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-still-pair0.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-still-pair0.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-still-pair0.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-still-pair0.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-still-pair0.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-still-pair1.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-still-pair1.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-still-pair1.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-still-pair1.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-still-pair1.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-still-pair1.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-chairs-still-pair2.png",
+          "roi": [
+            1230,
+            546,
+            1358,
+            706
+          ],
+          "name": "chairs",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-thin-chair-still-pair2.png",
+          "roi": [
+            1230,
+            582,
+            1358,
+            670
+          ],
+          "name": "thin-chair",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-windows-still-pair2.png",
+          "roi": [
+            950,
+            460,
+            1110,
+            588
+          ],
+          "name": "windows",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-scooter-still-pair2.png",
+          "roi": [
+            440,
+            715,
+            600,
+            843
+          ],
+          "name": "scooter",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-lamp-still-pair2.png",
+          "roi": [
+            1630,
+            470,
+            1758,
+            630
+          ],
+          "name": "lamp",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\bistro-awning-still-pair2.png",
+          "roi": [
+            1320,
+            360,
+            1480,
+            488
+          ],
+          "name": "awning",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        }
+      ]
+    },
+    {
+      "scene": "minecraft",
+      "source_frames": 720,
+      "source_fps": 60,
+      "source_validation": {
+        "15": {
+          "report_sha256": "8eade71f19e2e87db3294f7dd10466684ffddc8bc58d636f770373c71ceef67f",
+          "mode_checks": 2160,
+          "diagnostics_off": true,
+          "initial_still": 60,
+          "moving": 600,
+          "final_still": 60,
+          "source_fps": 60
+        },
+        "16": {
+          "report_sha256": "476150ace0d57da35c7398f4a3575235c087f6a90dccce66fabddf979254e3fa",
+          "mode_checks": 2160,
+          "diagnostics_off": true,
+          "initial_still": 60,
+          "moving": 600,
+          "final_still": 60,
+          "source_fps": 60
+        },
+        "17": {
+          "report_sha256": "2be9aaee25f4cda8ec3dc2544b1a47cef1c9f603222aa42b044accb5b66699cb",
+          "mode_checks": 2160,
+          "diagnostics_off": true,
+          "initial_still": 60,
+          "moving": 600,
+          "final_still": 60,
+          "source_fps": 60
+        }
+      },
+      "controls_shared_frames": 2880,
+      "control_rgb_mismatch": 0,
+      "source_pngs_checked": 3600,
+      "evidence_sha256": {
+        "15": "799e1321aa1eb825c2eb20aa88f7ff2717c632d7b9fd35b2a190bea4d35babb0",
+        "16": "5d06388fa8eb144c26e22d503f55105610e953db0bc8f1aea53a7df624e99890",
+        "17": "87a3acc12029f4c71381490cb943bbf24635ef186a764dab9cfc165e547c2a06"
+      },
+      "stable_hash_counts": {
+        "O-T2X-R": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-YCoCgVarianceClamp": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-Recovered5Fetch": 1,
+        "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend": 1
+      },
+      "results": [
+        {
+          "name": "overview",
+          "title": "전체 이동 경로",
+          "roi": null,
+          "filter": "Lanczos overview",
+          "scale": null,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-overview-long-normal.mp4",
+            "sha256": "cf0202951e7969763ca0c88bf6fcce2a34fb37427017291532145570d0aa10cb",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-overview-long-slow.gif",
+            "sha256": "51be00100575cc271e4540852c9c91e944eaf02b1a1e8d069135f8235d347fd2",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-overview-long-fast.gif",
+            "sha256": "b1dff5c739861e76fa846838ead3fd64e8e7eb36ad64899114aa6e0da2fe3e4b",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "seams",
+          "title": "벽 이음선과 가는 경계",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-long-normal.mp4",
+            "sha256": "43e40847a029458faadc1688d55e32858cf3b9b8b10cbe43e79780b835e7cef2",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-long-slow.gif",
+            "sha256": "b9d9c040649aa6910abbc04bbc0c3b941edd1d0f15a598488eb982fb4e55d60a",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-long-fast.gif",
+            "sha256": "99b202016ea392083c9ff67ca7c71aec964994338112b8d5201891071ab36c09",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "thin-seam",
+          "title": "얇은 벽 이음선",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-long-normal.mp4",
+            "sha256": "4c13c63b6960431974d2f8411f90c7d03de027401a1018597a9b9814f3551e0e",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-long-slow.gif",
+            "sha256": "39fd5d1b9ed0c0979139f34858ed400faf60f8ccefc03077ca9ee25d914389bb",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-long-fast.gif",
+            "sha256": "56f2c81291e0392874b8dd6ebbf913730d128304b9083f6b0ee7b6c1fc9b406d",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "leaves",
+          "title": "나뭇잎의 촘촘한 무늬",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-long-normal.mp4",
+            "sha256": "c10ccb0750fe6c609926e9c676a55d1f5447d02ef5b3f715e64c85a94906898c",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-long-slow.gif",
+            "sha256": "60a19039b9c2cefcf187a3aeabacd78997d8935e26773867f9c45c641f9065d9",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-long-fast.gif",
+            "sha256": "3da3a04d125aa22a9401a22b77c18bb7e0ac866497203100ee47b123f5cfe0fc",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "grass-seam",
+          "title": "잔디 윗면의 약한 이음선",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-long-normal.mp4",
+            "sha256": "b5b4d72be8ee832ce88bab4a50010ac00e53d421b7a35744b598144b95afa10d",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-long-slow.gif",
+            "sha256": "ba4dfe08091d8bf632f49afc4c298e4bb7fb8c0916b5bcce1be82ca651cfc26f",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-long-fast.gif",
+            "sha256": "97f40e0a67ca9f2f15fbf3f98dfb1c7b8e1d1a83da8efebc3aee527104a166f8",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "stone-blocks",
+          "title": "흰 돌 구조물의 틈·모서리",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-long-normal.mp4",
+            "sha256": "637649438f21fa4d486f75f4b6007b95c9cdee499468a2bf538ad40e9e611e6e",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-long-slow.gif",
+            "sha256": "e3d61e57874f85de1da1d2bec7b3779e768dac4ced2c4717b6c507117d8fa923",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-long-fast.gif",
+            "sha256": "7fdaa7a7aee5416a403968c6b5e7e40c359dac234f34392a7f05ffc7bf9f5ec0",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        },
+        {
+          "name": "diagonal-beam",
+          "title": "대각선 돌 구조·잔디 단차",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "normal": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-long-normal.mp4",
+            "sha256": "f1a1692b082afa9e35573b0071119fca036f16665ed0246c46875fef0de9a94b",
+            "frames": 720,
+            "fps": 60,
+            "seconds": 12.0,
+            "playback_speed": 1,
+            "decoded_count_and_pts_verified": true,
+            "classification": "lossy H264 CRF12 yuv420p presentation"
+          },
+          "slow": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-long-slow.gif",
+            "sha256": "aff3065a638695dfa1c15559a0a599c03078ad647d3e7f337d1468fcb0988dc3",
+            "frames": 720,
+            "seconds": 28.8,
+            "fps": 25.0,
+            "playback_speed": 0.4166666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 1
+            }
+          },
+          "fast": {
+            "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-long-fast.gif",
+            "sha256": "92ce12c8146f02553c1372f7fcc02a8123f42bc0d271c6cea36b3905039572dc",
+            "frames": 360,
+            "seconds": 7.2,
+            "fps": 50.0,
+            "playback_speed": 1.6666666666666667,
+            "decoded_pixel_hashes_verified": true,
+            "classification": "lossy fixed 256-color palette, no dithering",
+            "source_index_pattern": {
+              "start": 0,
+              "stop_exclusive": 720,
+              "stride": 2
+            }
+          }
+        }
+      ],
+      "inspection_sheets": [
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-moving-pair0.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-moving-pair0.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-moving-pair0.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-moving-pair0.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-moving-pair0.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-moving-pair0.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "moving",
+          "frames": [
+            130,
+            131
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-moving-pair1.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-moving-pair1.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-moving-pair1.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-moving-pair1.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-moving-pair1.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-moving-pair1.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "moving",
+          "frames": [
+            132,
+            133
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-moving-pair2.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-moving-pair2.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-moving-pair2.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-moving-pair2.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-moving-pair2.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-moving-pair2.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "moving",
+          "frames": [
+            134,
+            135
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-late-moving-pair0.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-late-moving-pair0.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-late-moving-pair0.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-late-moving-pair0.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-late-moving-pair0.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-late-moving-pair0.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "late-moving",
+          "frames": [
+            480,
+            481
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-late-moving-pair1.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-late-moving-pair1.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-late-moving-pair1.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-late-moving-pair1.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-late-moving-pair1.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-late-moving-pair1.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "late-moving",
+          "frames": [
+            482,
+            483
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-late-moving-pair2.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-late-moving-pair2.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-late-moving-pair2.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-late-moving-pair2.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-late-moving-pair2.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-late-moving-pair2.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "late-moving",
+          "frames": [
+            484,
+            485
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-transition-pair0.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-transition-pair0.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-transition-pair0.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-transition-pair0.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-transition-pair0.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-transition-pair0.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "transition",
+          "frames": [
+            658,
+            659
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-transition-pair1.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-transition-pair1.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-transition-pair1.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-transition-pair1.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-transition-pair1.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-transition-pair1.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "transition",
+          "frames": [
+            660,
+            661
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-transition-pair2.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-transition-pair2.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-transition-pair2.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-transition-pair2.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-transition-pair2.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-transition-pair2.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "transition",
+          "frames": [
+            662,
+            663
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-still-pair0.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-still-pair0.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-still-pair0.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-still-pair0.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-still-pair0.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-still-pair0.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "still",
+          "frames": [
+            700,
+            701
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-still-pair1.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-still-pair1.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-still-pair1.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-still-pair1.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-still-pair1.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-still-pair1.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "still",
+          "frames": [
+            702,
+            703
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-seams-still-pair2.png",
+          "roi": [
+            932,
+            512,
+            1060,
+            672
+          ],
+          "name": "seams",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-thin-seam-still-pair2.png",
+          "roi": [
+            956,
+            524,
+            1020,
+            620
+          ],
+          "name": "thin-seam",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-leaves-still-pair2.png",
+          "roi": [
+            1420,
+            590,
+            1580,
+            718
+          ],
+          "name": "leaves",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-grass-seam-still-pair2.png",
+          "roi": [
+            1450,
+            665,
+            1552,
+            719
+          ],
+          "name": "grass-seam",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-stone-blocks-still-pair2.png",
+          "roi": [
+            1150,
+            635,
+            1310,
+            795
+          ],
+          "name": "stone-blocks",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        },
+        {
+          "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_15_16_17_Extended_20261007\\minecraft-diagonal-beam-still-pair2.png",
+          "roi": [
+            470,
+            355,
+            614,
+            483
+          ],
+          "name": "diagonal-beam",
+          "window": "still",
+          "frames": [
+            704,
+            705
+          ],
+          "filter": "nearest",
+          "scale": 2,
+          "tone_adjustment": false
+        }
+      ]
+    }
+  ],
+  "frame_inspection": {
+    "completed": true,
+    "full_frame": {
+      "scenes": [
+        "bistro",
+        "minecraft"
+      ],
+      "cases": [
+        4,
+        14,
+        15,
+        16,
+        17
+      ],
+      "frame": 480
+    },
+    "consecutive_moving": {
+      "bistro": [
+        "thin-chair",
+        130,
+        135
+      ],
+      "minecraft": [
+        "thin-seam",
+        130,
+        135
+      ],
+      "minecraft_additional": [
+        "grass-seam",
+        130,
+        135
+      ]
+    },
+    "consecutive_transition": {
+      "bistro": [
+        "thin-chair",
+        658,
+        663
+      ],
+      "minecraft": [
+        "thin-seam",
+        658,
+        663
+      ]
+    },
+    "late_moving": {
+      "bistro": [
+        "awning",
+        480,
+        485
+      ],
+      "minecraft": [
+        "stone-blocks",
+        480,
+        485
+      ]
+    },
+    "settled": {
+      "bistro": [
+        "thin-chair",
+        700,
+        701
+      ],
+      "minecraft": [
+        "thin-seam",
+        700,
+        701
+      ]
+    },
+    "scope": "selected representative raw PNGs opened directly; no claim every ROI/frame was visually inspected",
+    "actual_animation_playback_observed": false
+  }
+}
