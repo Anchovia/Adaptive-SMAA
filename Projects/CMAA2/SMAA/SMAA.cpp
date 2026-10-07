@@ -254,6 +254,8 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     catmullRomRGBFeedbackCoverageTechnique=techniqueManagerInterface->CreateTechnique("CatmullRomRGBFeedbackCoveragePS",defines);
     fixedWeightRGBFeedbackTechnique=techniqueManagerInterface->CreateTechnique("FixedWeightRGBFeedbackPS",defines);
     fixedWeightRGBFeedbackCoverageTechnique=techniqueManagerInterface->CreateTechnique("FixedWeightRGBFeedbackCoveragePS",defines);
+    sourceComponentTechnique=techniqueManagerInterface->CreateTechnique("SourceComponentPS",defines);
+    sourceComponentCoverageTechnique=techniqueManagerInterface->CreateTechnique("SourceComponentCoveragePS",defines);
     const char *persistenceKinds[] = {"Luma", "LumaRaw", "Color", "Depth"};
     for(int i=0;i<4;++i)
         eagerPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerPersistence")+persistenceKinds[i]+"EdgePS").c_str(),defines);
@@ -424,7 +426,7 @@ void SMAA::reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11Shader
 
 void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool bilinearHistoryRGB, ID3D11RenderTargetView *weight, ID3D11RenderTargetView *feedbackRTV, bool catmullRomHistoryRGB, bool fixedHistoryWeight080) {
+    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool bilinearHistoryRGB, ID3D11RenderTargetView *weight, ID3D11RenderTargetView *feedbackRTV, bool catmullRomHistoryRGB, bool fixedHistoryWeight080, bool sourceTemporalComponent) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -439,7 +441,8 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     if(feedbackRTV) {
         assert(bilinearHistoryRGB && feedbackRTV!=output);
         assert(!fixedHistoryWeight080 || catmullRomHistoryRGB);
-        (fixedHistoryWeight080 ? (coverage ? fixedWeightRGBFeedbackCoverageTechnique : fixedWeightRGBFeedbackTechnique) :
+        (sourceTemporalComponent ? (coverage ? sourceComponentCoverageTechnique : sourceComponentTechnique) :
+            fixedHistoryWeight080 ? (coverage ? fixedWeightRGBFeedbackCoverageTechnique : fixedWeightRGBFeedbackTechnique) :
             catmullRomHistoryRGB ? (coverage ? catmullRomRGBFeedbackCoverageTechnique : catmullRomRGBFeedbackTechnique) :
             (coverage ? resolvedRGBFeedbackCoverageTechnique : resolvedRGBFeedbackTechnique))->ApplyStates(context);
         ID3D11RenderTargetView *targets[4] = {output, feedbackRTV, coverage, weight};
