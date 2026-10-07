@@ -1,0 +1,31 @@
+{
+  "classification": "incomplete presentation attempt; not a research result",
+  "attempts": [
+    {
+      "scene": "minecraft",
+      "command_session": 50222,
+      "exit_code": 1,
+      "failure": "Source RGB hash assertion at O-T2X-R frame 99",
+      "initial_actual_hash": "not retained by the original assertion",
+      "independent_reread": {
+        "cases": [15, 16, 17],
+        "frame": 99,
+        "expected_and_actual": "b757aa0a70c93225534a22e369052f9e3b2a2a9fe9cc486ad846874565b8b618",
+        "all_match": true
+      },
+      "cause": "not established; do not infer source corruption or hardware fault",
+      "disposition": "Excluded. Regenerate all Minecraft pair files from frame 0 in a fresh Python process, with explicit actual/expected failure diagnostics. Do not use incomplete media. Original PNGs are unchanged."
+    },
+    {
+      "scene": "minecraft",
+      "command_session": 28571,
+      "exit_code": 1,
+      "failure": "Source RGB hash assertion at O-T2X-R frame 696",
+      "actual": "20a69d1bc00e4cfb820a962c1abcc4ddff62ad2c522085192d83cc767a69ca2b",
+      "expected": "023bdb62a30500786799fdf02c8f206f119c28a53edf4b4eb6502d1caeedfed7",
+      "independent_reread": "All three source captures match their expected RGB hash at frame 696; the failed-read hash is absent from every mode's recorded timeline.",
+      "cause": "not established",
+      "disposition": "Excluded. Regenerate every Minecraft pair from frame 0. Load encoded bytes into an isolated buffer, discard and record any mismatched decode, retry at most three times, and accept only the exact pinned RGB hash. Abort on persistent mismatch. Never publish incomplete output."
+    }
+  ]
+}

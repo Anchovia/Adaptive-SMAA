@@ -63,3 +63,26 @@ GIF 전체 decode의 720/360 frame·길이·양자화 후 RGB hash 검사를 통
 캡처 영수증의 SHA로 복원·확인했다. ⑮·⑯의 긴 캡처 기록은 각각 원래 독립
 브랜치에 커밋했다. 원본은 D 드라이브 연구 폴더에 보존해 C 드라이브 추가 부담을 줄였다.
 새 GPU 성능 측정, CGVQM 재실행, spatial/temporal 알고리즘 변경은 없다.
+
+## ④와 개별 구현의 2-way 비교
+
+사용자 요청에 따라 ④↔⑭·⑮·⑯·⑰을 각각 별도 파일로 구성했다.
+두 실제 장면의 동일 12개 세부 영역과 두 전체 경로에서 정상 MP4 56개,
+빠른 GIF 56개, 느린 GIF 56개 및 무손실 연속 PNG 576개를 완성했다.
+왼쪽은 항상 ④이고 오른쪽은 해당 독립 구현이다. 길이·속도·ROI와
+④ Pattern On / 다른 구현 Off 조건은 기존 비교와 동일하다.
+
+원본 PNG 7,200장의 hash 검사를 통과한 이미지에서 직접 생성했다.
+168개 미디어의 전체 decode와 길이/프레임 수/PTS/GIF pixel hash 및 최종 파일
+SHA256 검증을 통과했다. PNG 32개 image panel이 해당 독립 원본의 nearest
+확대 픽셀과 동일했고 gallery의 모든 링크도 확인했다. 최종 두 scene의
+source 읽기 retry는 0이며 불일치 이미지 사용도 0이다. Minecraft의 초기 중단
+두 실행은 `pair-excluded-attempts.json`에 기록했고 최종 결과에서 제외했다.
+
+이 task의 직접 열어 본 pair PNG는 Bistro ④↔⑭ 얇은 의자 frame130~131과
+Minecraft ④↔⑯ 얇은 이음선 frame130~131이다. 원본 프레임 검사와
+실제 애니메이션 재생 관찰을 동일시하지 않는다. 기존 품질 판정은 변경하지 않는다.
+
+모음: `Deliverables/SMAA_4_Pair_Extended_20261007/comparison.html`.
+compact 기록은 `pair-media-manifest.json`이며 full manifest와 원본은 local에 보존한다.
+생산 AA 소스·브랜치별 실험 구현·기존 성능/품질 수치는 변경하지 않았다.

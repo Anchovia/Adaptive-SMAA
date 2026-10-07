@@ -40,3 +40,27 @@ Lanczos로 축소한다. 색/밝기 보정은 없다.
 출력은 `Deliverables/SMAA_15_16_17_Extended_20261007/comparison.html`과 manifest다.
 영상 생성·decode 검사와 실제 재생 관찰을 구분하며 원본 프레임의 직접 검사 결과는
 후속 결과 문서에 기록한다. 기존 품질 성공/실패 판정이나 최종 8-case를 변경하지 않는다.
+
+## 사용자 지정 2개씩 비교
+
+채팅과 이후 비교 자료는 ④↔⑭, ④↔⑮, ④↔⑯, ④↔⑰로 나눈다.
+왼쪽은 항상 native ④이고 오른쪽은 해당 독립 구현이다. 단순한 비교 화면 재구성이며
+실험 구현을 결합하거나 새로운 성능·품질 측정을 수행하지 않는다.
+
+`create_source_component_pair_playback.py`는 검증한 원본 lossless PNG에서 각 pair를
+직접 구성한다. 이미 압축한 MP4/GIF를 잘라서 다시 압축하지 않는다. 장면별 원본
+3,600장의 RGB hash와 독립 캡처 사이의 control bridge를 재검사한다. GIF에는 기존
+다섯 구현의 공통 256색 palette를 유지하고 decoded pixel hash·길이·프레임 수를 검사한다.
+MP4는 전체 decode의 프레임 수·60 fps·PTS 증가를 검사한다.
+
+두 장면의 동일 12개 ROI와 두 전체 경로, 실제 720 frame과 기존 재생 속도를 유지한다.
+Pair당 이동·이동 후반·정지 전환·정지의 무손실 연속 PNG도 함께 저장한다.
+출력은 `Deliverables/SMAA_4_Pair_Extended_20261007/comparison.html`과 manifest다.
+④ Pattern On, ⑭~⑰ Off 표시는 모든 pair에 유지한다.
+
+Minecraft 변환에서 frame99/frame696의 source hash 검사 실패로 중단한 두 실행은
+`pair-excluded-attempts.json`에 보존하고 결과에서 제외한다. 각 실패 frame의 세 원본은
+독립 재읽기에서 기록된 RGB hash와 일치했지만 최초 실패 원인은 확정하지 않는다.
+후속 읽기는 파일의 encoded bytes를 독립 버퍼에 저장한 뒤 decode하고 pinned RGB hash와
+일치하는 이미지에만 후속 처리를 허용한다. 불일치 read는 기록·폐기하고 최대 세 번만
+재읽으며, 지속 실패는 전체 실행을 중단한다. 이 절차는 hash 검사를 완화하지 않는다.
