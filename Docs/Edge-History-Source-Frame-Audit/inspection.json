@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-07",
+  "branch": "research/source-temporal-frame-audit",
+  "production_changes": false,
+  "source_base_commit": "105fb31",
+  "classification": "Offline original-frame quality diagnosis; not a final eight-case result",
+  "case_meanings": {
+    "14": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+    "16": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-Recovered5Fetch",
+    "17": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend"
+  },
+  "shared_settings": {
+    "spatial": "Original SMAA Ultra",
+    "sample_pattern": "Off",
+    "history_weight": 0.8,
+    "feedback": "Resolved RGB / current spatial velocity alpha",
+    "selection": "Current raw edge union camera-reprojected previous raw edge",
+    "reprojection": "Camera/depth only",
+    "resolution": [1920, 1061]
+  },
+  "quantitative_scope": {
+    "scenes": ["bistro", "minecraft"],
+    "source_frames_per_case_per_scene": 720,
+    "source_png_hash_checks": 4320,
+    "supplemental_hash_checks": 240,
+    "moving_window": [60, 659],
+    "transition_window": [658, 689],
+    "settled_window": [700, 719],
+    "spatial_reference_window": [60, 179],
+    "thin_line_strip_window": [126, 131],
+    "source_read_retries": 0,
+    "reference_bridge": "All 2400 reference-MAE observations exactly match the archived short-capture analysis",
+    "output": "Deliverables/SMAA_14_16_17_FrameAudit_20261007"
+  },
+  "direct_inspection": {
+    "completed": true,
+    "actual_gif_playback_observed": false,
+    "whole_frame": {
+      "scenes": ["bistro", "minecraft"],
+      "frame": 130,
+      "cases": [14, 16, 17],
+      "source": "Pinned original lossless PNG"
+    },
+    "lossless_nearest_sheets": [
+      {
+        "roi": "minecraft/thin-seam",
+        "windows": [[124, 133], [480, 485], [658, 663], [700, 701]],
+        "pairs": [[14, 17], [16, 17]],
+        "scale": 4
+      },
+      {
+        "roi": "bistro/thin-chair",
+        "windows": [[126, 131], [658, 663], [700, 701]],
+        "pairs": [[14, 17], [16, 17]],
+        "scale": 2
+      },
+      {
+        "roi": "bistro/windows",
+        "windows": [[126, 131], [658, 663]],
+        "pairs": [[14, 17], [16, 17]],
+        "scale": 2
+      },
+      {
+        "roi": "minecraft/leaves",
+        "windows": [[126, 131], [658, 663]],
+        "pairs": [[14, 17], [16, 17]],
+        "scale": 2
+      },
+      {
+        "roi": "minecraft/grass-seam",
+        "windows": [[126, 131], [658, 663]],
+        "pairs": [[14, 17], [16, 17]],
+        "scale": 2
+      }
+    ],
+    "tone_adjustment": false,
+    "observations": [
+      "Minecraft f128/f130 shows very weak and locally interrupted vertical seam in all three cases. It strengthens again in f129/f131. The neighboring f124..133 examination does not establish a visibly continuous-line restoration by 16 or 17.",
+      "Bistro f126..131 retains weak/discontinuous small chair-leg structure in all three cases. Pairwise raw crops do not establish that 16 or 17 repairs the structural defect.",
+      "Minecraft leaf/grass detail changes over f126..131 in all three cases. There is no clear visible reduction sufficient to call the remaining shimmer solved.",
+      "The direct comparison does not reveal a large, consistent quality improvement from the sampling or color-blending replacement.",
+      "The settled RGB sequences are temporally constant in all three cases. This does not establish equal spatial quality or solve moving-frame flicker."
+    ]
+  },
+  "thin_line_probe": {
+    "selection": "Common current-spatial x search in x966..983, fixed y578..611; background columns x-3 and x+3",
+    "units": "Encoded Rec709 luma 0..255; diagnostic contrast, not visibility ground truth",
+    "mean_contrast_f126_131": {
+      "14": 18.32866684595744,
+      "16": 18.270641962687176,
+      "17": 18.648487726847332
+    },
+    "minimum_contrast_f130": {
+      "14": 1.1429901123046875,
+      "16": 1.5005950927734375,
+      "17": 1.1429901123046875
+    },
+    "rows_below_contrast4_of204": {"14": 2, "16": 2, "17": 2},
+    "interpretation_ko": "17의 평균 선 대비는 14보다 약 1.75% 높지만, 약한 선 구간의 회복이나 단절 감소가 확인된 것은 아니다. 16은 f130 최소 대비를 조금 높였으나 평균 대비는 약간 낮다."
+  },
+  "flow_residual_change_percent_vs14_moving600": [
+    {"roi": "bistro/thin-chair", "16": -0.140824291643071, "17": -0.419889115111283},
+    {"roi": "bistro/windows", "16": -0.375804799785318, "17": -1.09092248342244},
+    {"roi": "minecraft/thin-seam", "16": -0.101508872516221, "17": 0.0494914894040077},
+    {"roi": "minecraft/leaves", "16": -0.167841385223599, "17": 0.0282914546875901},
+    {"roi": "minecraft/grass-seam", "16": -0.279120703954283, "17": 0.0359380860360137}
+  ],
+  "conclusion_ko": "확실한 종합 품질 승자는 확인되지 않았다. 17은 선 평균 대비와 Bistro 변화량에서 작은 개선 경향이 있고, 16은 Minecraft 변화량이 조금 낮다. 세 구현 모두 검사한 이동 구간에서 선 약화·단절과 번쩍임 문제를 해결했다고 판정하지 않는다.",
+  "quality_improvement_confirmed": false,
+  "limitations": [
+    "720 frames were computed and hash-checked; direct visual inspection covers only the listed representative windows, not every frame.",
+    "Fixed screen ROIs do not track a physical object; scene content can move into or out of the region. Late Minecraft leaves/grass ROI names describe their initial content, not foliage throughout the timeline.",
+    "Farneback alignment is computed from case14 filtered output and shared across all three cases, with a 32px halo and <=1px forward/backward consistency threshold. It can be biased by temporal filtering, and is not renderer motion or absolute flicker ground truth.",
+    "Raw temporal differences include motion and blur. Residual reductions of 0.1..1.1% alone do not establish a perceptually meaningful improvement.",
+    "The line probe uses a six-frame local strip and diagnostic thresholds. Counts cannot be interpreted as whole-scene thin-line disappearance counts.",
+    "Only frames60..179 match the existing supersampled spatial reference. Its metric must not be described as a 600-frame or temporal-reference result.",
+    "GIFs are indexed-color viewing aids; calculations and visual judgments use original RGB PNGs and lossless sheets."
+  ],
+  "primary_method_reference": "https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html",
+  "reproduce": [
+    "python Tools/SMAA/audit_source_temporal_frames.py --evidence Deliverables/SMAA_15_16_17_Extended_20261007/EvidenceLong --short-evidence Deliverables/SMAA_15_16_17_20261007/Evidence --output Deliverables/SMAA_14_16_17_FrameAudit_20261007 --scene bistro",
+    "python Tools/SMAA/audit_source_temporal_frames.py --evidence Deliverables/SMAA_15_16_17_Extended_20261007/EvidenceLong --short-evidence Deliverables/SMAA_15_16_17_20261007/Evidence --output Deliverables/SMAA_14_16_17_FrameAudit_20261007 --scene minecraft",
+    "python Tools/SMAA/finish_source_temporal_frame_audit.py"
+  ]
+}
