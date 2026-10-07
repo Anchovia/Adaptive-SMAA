@@ -1,0 +1,23 @@
+{
+  "classification": "Presentation-only verification failures; no GPU capture or benchmark repeated or excluded",
+  "attempts": [
+    {
+      "runtime": "quality-venv Python3.12 / Pillow11.3 / PyAV15.1",
+      "validation": "FAIL",
+      "phase": "source PNG decoded RGB hash check",
+      "detail": "Initial presentation run stopped before Minecraft encoding completed."
+    },
+    {
+      "runtime": "quality-venv Python3.12 / Pillow11.3 / PyAV15.1",
+      "validation": "FAIL",
+      "phase": "source PNG decoded RGB hash check",
+      "scene": "minecraft",
+      "frame": 150,
+      "mode": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080",
+      "observed": "3a2fe695fdd185c9418ea170bdc289fb5693de95a1f93fe1cebe606379b5f3fd",
+      "expected": "ae27da2f95f0d9a7771e1411c4ee40e411535b1ba7f6f0c56fd41e5b2eaf7b96"
+    }
+  ],
+  "independent_file_check": "Same compressed PNG SHA256 db8ef55015a9191a46a49efdd5877ce22aab8fd96df8c38d7083fb361b79cb57 across14,15,16,17. Reopening each three times with Pillow12.3 and11.3 produced expected ae27... hash. No source file difference observed. Exact cause of streaming-runtime failure was not established.",
+  "replacement": "Use bundled Pillow12.3/numpy2.3.5 with existing PyAV15.1. Require all original-frame hash checks and full media decode validation before acceptance."
+}
