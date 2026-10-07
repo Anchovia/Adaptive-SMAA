@@ -1,0 +1,30 @@
+{
+  "completed": true,
+  "gif_playback_observed": false,
+  "method": "Directly opened lossless PNG sheets; nearest enlargement without brightness/color adjustment. Animated GIFs are provided separately, not claimed as observed playback.",
+  "moving_frames": [126,127,128,129,130,131],
+  "transition_frames": [178,179,180,181,182,183],
+  "extended_failure_frames": [124,125,126,127,128,129,130,131,132,133],
+  "settled_frame": 230,
+  "whole_frame_overview": {"cases":"1 through 17","frames":[130,181,230],"scale":0.25,"interpolation":"nearest","purpose":"Composition and gross pipeline failures only; fine AA judged in original-pixel crops"},
+  "whole_frame_original": {"cases":[4,17],"frames":[130,181,230],"scale":1},
+  "rois": {
+    "bistro/thin-chair":{"xyxy":[1230,582,1358,670],"cases":"All 17 at moving/transition/settled; extended case4,14,17 plus spatial reference","scales":[1,2,3]},
+    "bistro/windows":{"xyxy":[950,460,1110,588],"cases":[4,6,11,14,15,16,17],"scale":1},
+    "minecraft/thin-seam":{"xyxy":[956,524,1020,620],"cases":"All 17 at moving/transition/settled; extended case4,14,17 plus spatial reference","scales":[2,3]},
+    "minecraft/leaves":{"xyxy":[1420,590,1580,718],"cases":[4,6,11,14,15,16,17],"scale":1},
+    "minecraft/grass-seam":{"xyxy":[1450,665,1552,719],"cases":[4,6,11,14,15,16,17],"scale":1}
+  },
+  "reviewed_files": "All 34 PNG files in inspection/ were directly opened, including all whole-frame f230 sheets and extra case12 f234..239 sheets. Scripts creating the sheets preserve source-frame provenance.",
+  "findings_ko": [
+    "Minecraft 얇은 경계 ROI (956,524)-(1020,620)의 f128·f130에서 ⑭·⑰의 수직 경계 일부가 매우 약해지거나 끊겨 보이고 f129·f131에서 다시 강해진다. 해당 구간을 f124~133으로 확장해 ④·⑭·⑰와 공간 참조를 대조했다. 구조 보존 실패가 남아 있어 완전 해결로 판정하지 않는다.",
+    "Bistro 의자 ROI (1230,582)-(1358,670)에서도 ⑭·⑰의 가는 다리·연결부가 일부 프레임에서 약해지거나 단절된다. ④도 완벽하지 않으며 이 어두운 ROI 하나로 전체 품질 순위를 확정하지 않는다.",
+    "⑥은 이동 중 얇은 경계의 프레임별 변동이 남아 있다. ⑦~⑩은 검사 창에서 비슷해 보였지만 출력 동일성은 별도 RGB hash 검증으로 판단한다.",
+    "Minecraft 나뭇잎·잔디 경계 및 Bistro 창문에서는 ⑭·⑮·⑯·⑰ 사이에 국소 차이가 보인다. 모든 ROI와 구간에서 일관된 우승 방식은 확인하지 못했다. 이동에 따른 원시 색상 변화 자체를 반짝임 감소율로 해석하지 않는다.",
+    "전체 화면 f130·f181·f230의 구성과 기하 배치는 일치하며, 공간 AA가 통째로 빠진 것과 같은 명백한 파이프라인 붕괴는 검사한 화면에서 보이지 않았다. ④와 ⑰의 원본 1배 화면에서는 나뭇잎과 세부 경계의 거칠기 차이가 남아 있다.",
+    "정지 안정 구간 f230은 별도로 확인했다. 정지 hash 안정성이 이동 중 선 소실과 반짝임 해결을 뜻하지 않는다.",
+    "⑫만 정지 f220~239에서 20개의 서로 다른 hash를 보였다. 추가로 ④·⑫의 f234~239를 직접 열어 대조했다. 전체 화면 인접 차이의 최대는 채널값 1이고 평균 변경 픽셀 비율은 Bistro 0.000829%, Minecraft 0.001121%로 매우 작다. 검사한 ROI에서 뚜렷한 정지 떨림은 보이지 않았으며, hash 차이만으로 눈에 보이는 떨림을 주장하지 않는다.",
+    "이번 확인은 저장된 무손실 연속 프레임의 직접 검사다. GIF 재생을 직접 관찰했다고 주장하지 않는다. 카메라 이동 장면이며 object-motion 또는 절대 고스팅 ground truth 검증은 아니다.",
+    "③·④는 paired sample pattern On, ⑤~⑰은 Off다. 따라서 이러한 시각 차이를 후보 선택 효과 하나로 귀속하지 않는다."
+  ]
+}

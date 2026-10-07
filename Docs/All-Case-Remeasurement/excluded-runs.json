@@ -1,0 +1,43 @@
+[
+  {
+    "case": 4,
+    "scene": "bistro",
+    "phase": "Smoke",
+    "pid": 24776,
+    "classification": "Excluded startup run",
+    "reason": "Long source path prevented asset XML access",
+    "action": "Stopped owned process; moved owned source snapshots to shorter path; reran",
+    "formal_result": false
+  },
+  {
+    "case": 7,
+    "scene": "minecraft",
+    "phase": "Capture",
+    "pid": 29836,
+    "classification": "Excluded stalled startup capture",
+    "reason": "No frame output; process CPU and log unchanged during repeated checks; exact cause unproven",
+    "computer_use": "node_repl initialization failed: kernel assets path missing, including reset/retry",
+    "action": "Stopped owned process; fresh-process capture succeeded using same executable and source",
+    "formal_result": false
+  },
+  {
+    "case": 11,
+    "scene": "minecraft",
+    "phase": "Benchmark",
+    "pid": 25340,
+    "classification": "Excluded stalled startup benchmark",
+    "reason": "Initial material shader preparation had no further log output; CPU remained 2.52 seconds in three consecutive checks; exact cause unproven",
+    "action": "Stopped this owned process only; pending command will resume in a fresh process with identical executable",
+    "formal_result": false
+  },
+  {
+    "case": 17,
+    "scene": "minecraft",
+    "phase": "Benchmark",
+    "pid": 25120,
+    "classification": "Excluded stalled startup benchmark",
+    "reason": "Initial material shader preparation had no further log output; CPU remained 2.38 seconds in consecutive checks for more than three minutes; exact cause unproven",
+    "action": "Stopped this owned process only; pending command resumes in a fresh process with identical executable",
+    "formal_result": false
+  }
+]

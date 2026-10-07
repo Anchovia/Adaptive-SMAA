@@ -27,11 +27,14 @@ def rgb(p):
   return np.asarray(im).copy()
 def pixel_sha(a):return hashlib.sha256(a.tobytes()).hexdigest()
 def gray(a):return a.astype(np.float32)@LUMA
-def ssim(a,b):
- a=gray(a);b=gray(b)
+def ssim_reference(b):
+ b=gray(b);mb=cv2.GaussianBlur(b,(11,11),1.5)[5:-5,5:-5]
+ vb=cv2.GaussianBlur(b*b,(11,11),1.5)[5:-5,5:-5]-mb*mb
+ return b,mb,vb
+def ssim(a,prepared_reference):
+ a=gray(a);b,mb,vb=prepared_reference
  blur=lambda x:cv2.GaussianBlur(x,(11,11),1.5)[5:-5,5:-5]
- ma,mb=blur(a),blur(b)
- va,vb=blur(a*a)-ma*ma,blur(b*b)-mb*mb
+ ma=blur(a);va=blur(a*a)-ma*ma
  cov=blur(a*b)-ma*mb
  return float(np.mean(((2*ma*mb+6.5025)*(2*cov+58.5225))/((ma*ma+mb*mb+6.5025)*(va+vb+58.5225))))
 def flow(previous,current):
@@ -53,7 +56,7 @@ def performance(plan,runs):
    for r in rows(run['report']):
     if r and r[0]=='timing':
      assert len(r)>=12 and int(r[4])==4800
-     stats[(r[1],r[3])][int(r[2])]=float(r[5]);detailed.append(dict(case=item['case'],scene=scene,mode=r[1],metric=r[3],run=int(r[2]),samples=int(r[4]),mean_ms=float(r[5]),p95_ms=float(r[7]),p99_ms=float(r[8]),report=run['report']))
+     stats[(r[1],r[3])][int(r[2])]=float(r[5]);detailed.append(dict(case=item['case'],scene=scene,mode=r[1],metric=r[3],run=int(r[2]),samples=int(r[4]),mean_ms=float(r[5]),median_ms=float(r[6]),p95_ms=float(r[7]),p99_ms=float(r[8]),stddev_ms=float(r[9]),slowest_one_percent_equivalent_fps=float(r[10]),report=run['report']))
    def metric(name):
     t=stats[(item['target'],name)];c=stats[('O-T2X-R',name)]
     assert t,(item['case'],scene,'Missing timing',name)
@@ -90,16 +93,19 @@ def quality(plan,runs):
   for case in range(1,18):roi_frames[(scene,case)]={k:[] for k in ROIS[scene]}
   for key in ROIS[scene]:flow_controls[(scene,key)]=[]
   for f in range(240):
-   ref=rgb(Path(reference[scene]['reference'])/f'frame_{f:05d}.png')
-   native=rgb(paths[(scene,4)]/f'frame_{f:05d}.png');native_hash=pixel_sha(native)
+   ref=rgb(Path(reference[scene]['reference'])/f'frame_{f:05d}.png');ref_ssim=ssim_reference(ref)
+   native_file=paths[(scene,4)]/f'frame_{f:05d}.png'
+   native=rgb(native_file);native_hash=pixel_sha(native);native_png=native_file.read_bytes()
    for case in range(1,18):
     a=rgb(paths[(scene,case)]/f'frame_{f:05d}.png')
     sha=pixel_sha(a);hashes[f'{scene}/{case}/{f}']=sha
-    check=rgb(natives[(scene,case)]/f'frame_{f:05d}.png')
-    assert pixel_sha(check)==native_hash,('Native baseline regression',scene,case,f)
+    check_file=natives[(scene,case)]/f'frame_{f:05d}.png'
+    # Equal PNG bytes imply equal decoded RGB. Decode any different encoding.
+    if check_file!=native_file and check_file.read_bytes()!=native_png:
+     assert pixel_sha(rgb(check_file))==native_hash,('Native baseline regression',scene,case,f)
     diff=a.astype(np.float32)-ref.astype(np.float32);mse=float(np.mean(diff*diff))
     phase='moving' if 60<=f<180 else 'transition' if 180<=f<210 else 'settled' if f>=220 else 'late-settling' if f>=210 else 'initial'
-    allrows.append(dict(scene=scene,case=case,frame=f,phase=phase,reference_mae=float(np.abs(diff).mean()),psnr=99 if mse==0 else 10*math.log10(255**2/mse),luma_ssim=ssim(a,ref),difference_to_native_mae=float(np.abs(a.astype(np.float32)-native).mean())))
+    allrows.append(dict(scene=scene,case=case,frame=f,phase=phase,reference_mae=float(np.abs(diff).mean()),psnr=99 if mse==0 else 10*math.log10(255**2/mse),luma_ssim=ssim(a,ref_ssim),difference_to_native_mae=float(np.abs(a.astype(np.float32)-native).mean())))
     for key,(x0,y0,x1,y1) in ROIS[scene].items():
      roi_frames[(scene,case)][key].append(a[y0:y1,x0:x1].copy())
      if case==2:flow_controls[(scene,key)].append(a[y0-32:y1+32,x0-32:x1+32].copy())
@@ -150,8 +156,8 @@ def sheets(paths,roi_frames):
     name=f'{scene}-{key}-4-vs-{case}.png';sheet.save(gallery/name)
     # Pair GIF for motion and stop; originals, labels, no color adjustment.
     frames=[]
-    for f in range(60,210,2):
-     im=Image.new('RGB',(w*4+24,h*2+32),(24,24,24));dd=ImageDraw.Draw(im);dd.text((8,6),f'4 | {case}; f{f}; 60fps timeline, stride2 / 30fps',font=FONT)
+    for f in range(60,210):
+     im=Image.new('RGB',(w*4+24,h*2+32),(24,24,24));dd=ImageDraw.Draw(im);dd.text((8,6),f'4 | {case}; f{f}; all frames, 0.5x / 30fps',font=FONT)
      for col,a in enumerate((controls[f],crops[f])):im.paste(Image.fromarray(a).resize((w*2,h*2),Image.Resampling.NEAREST),(8+col*(w*2+8),28))
      frames.append(im)
     delays=[30 if i%3!=1 else 40 for i in range(len(frames))]

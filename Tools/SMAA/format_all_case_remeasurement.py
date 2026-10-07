@@ -22,12 +22,23 @@ def main():
  lines+=['','Temporal 결합 단계만 비교한 시간이다. Camera velocity 생성과 공간 처리·선택 준비 비용은 포함하지 않는다.','','| 번호 | Bistro temporal ms | Minecraft temporal ms |','|---|---:|---:|']
  for item in plan['cases']:
   c=item['case'];lines.append(f"| {c:02d} | {cell(pp['bistro',c]['temporal'])} | {cell(pp['minecraft',c]['temporal'])} |")
+ lines+=['','성능 해석','',
+  '- ⑥의 전체 AA 시간은 ④ 대비 Bistro -15.11%, Minecraft -4.12%다. ⑰은 Bistro -6.79%, Minecraft +9.46%로 장면별 방향이 다르다.',
+  '- Minecraft ⑨·⑩의 전체 AA 변화는 각각 약 +0.52%·+0.40%이며, 6회 짝 비교의 95% 구간이 모두 0을 포함한다. 이 작은 차이로 확정적인 속도 우열을 주장하지 않는다.',
+  '- 95% 구간은 반복별 변화율의 Student-t(df=5) 구간이며 다중 비교 보정은 하지 않았다. 전체 frame timing과 pass별 표본 통계는 performance-runs.csv, 실행 평균과 짝 비교 변동은 performance.json에 보존했다.']
  lines+=['','아래는 같은 프레임의 supersample **공간 참조 대용값**과 비교한 결과다. Temporal ground truth가 아니며, 점수로 반짝임·선 소실·잔상이 해결됐다고 판정하지 않는다.',
   '이동: f60~179. 정지 전환: f180~209. SSIM은 encoded Rec.709 luma, Gaussian 11×11/σ1.5, 가장자리 5픽셀 제외다. PSNR·SSIM은 높을수록 해당 참조에 가깝다.','','| 번호 | Bistro 이동 PSNR / SSIM | Minecraft 이동 PSNR / SSIM | Bistro 전환 PSNR | Minecraft 전환 PSNR |','|---|---:|---:|---:|---:|']
  for item in plan['cases']:
   c=item['case'];b=qq['bistro',c];m=qq['minecraft',c]
   lines.append(f"| {c:02d} | {b['moving']['psnr']:.3f} / {b['moving']['luma_ssim']:.5f} | {m['moving']['psnr']:.3f} / {m['moving']['luma_ssim']:.5f} | {b['transition']['psnr']:.3f} | {m['transition']['psnr']:.3f} |")
- lines+=['','④ 대비 고정 ROI의 움직임 보정 잔차 변화율. 낮을수록 이 보조 지표의 시간 변화가 적다. 공통 flow는 temporal을 사용하지 않는 ②에서 추정했다. 각 ROI에 32픽셀 여유 영역, Farneback, forward/backward 오차 ≤1픽셀·화면 내 유효 조건을 사용했다. 물체 추적이나 절대 고스팅 지표가 아니다.','','| 번호 | Bistro 의자 가는 구조 | Minecraft 얇은 경계 | Minecraft 나뭇잎 |','|---|---:|---:|---:|']
+ lines+=['','CGVQM 모델 점수는 이번 재측정에서 다시 계산하지 않았다. 과거 점수를 새로운 품질 측정값으로 섞지 않았으며, 위 표는 새로 캡처한 전체 프레임의 PSNR·SSIM이다.',
+  '정지 안정 구간 f220~239의 서로 다른 RGB frame hash 수(1이면 검사 구간 출력 불변):','',
+  '| 번호 | Bistro | Minecraft |','|---|---:|---:|']
+ for item in plan['cases']:
+  c=item['case'];lines.append(f"| {c:02d} | {qq['bistro',c]['settled_distinct_frame_hashes']} | {qq['minecraft',c]['settled_distinct_frame_hashes']} |")
+ lines+=['','⑫의 정지 hash 차이를 추가 검사했다. 인접 frame의 최대 채널 차이는 1/255이고, 변경 픽셀 비율은 Bistro 평균 0.000829%, Minecraft 0.001121%다. ④·⑫ f234~239를 직접 대조한 ROI에서 뚜렷한 정지 떨림은 보이지 않았다. 이 작은 수치만으로 눈에 보이는 flicker를 주장하지 않는다.']
+ lines+=['','④ 대비 고정 ROI의 움직임 보정 잔차 변화율. 공통 flow는 temporal을 사용하지 않는 ②에서 추정했다. 각 ROI에 32픽셀 여유 영역, Farneback, forward/backward 오차 ≤1픽셀·화면 내 유효 조건을 사용했다. 물체 추적이나 절대 고스팅 지표가 아니다.',
+  '흐림이나 선 자체의 소실도 잔차를 낮출 수 있으므로, 감소율을 품질 순위나 반짝임 해결률로 해석하지 않는다. 원본 연속 프레임에서 구조 보존 여부를 함께 확인한다.','','| 번호 | Bistro 의자 가는 구조 | Minecraft 얇은 경계 | Minecraft 나뭇잎 |','|---|---:|---:|---:|']
  with (OUT/'roi-temporal-diagnostics.csv').open(encoding='utf-8-sig',newline='') as f:rr=list(csv.DictReader(f))
  def residual(scene,c,roi):return float(np.mean([float(r['aligned_residual']) for r in rr if r['scene']==scene and int(r['case'])==c and r['roi']==roi and r['phase']=='moving' and r['aligned_residual']]))
  for item in plan['cases']:
@@ -41,8 +52,13 @@ def main():
   '- ⑮ clipping, ⑯ sampling, ⑰ 색 혼합은 각각 ⑭에 한 항목만 변경한 구현이다.',
   '- 프로덕션 SMAA C++/HLSL 소스는 각 pinned branch의 원본을 보존했다. 측정 도구는 대상·④만 순회, 6회 반복, RGB 캡처에서 진단 DDS 생략으로만 조정했다.',
   '- 최초 ④ 실행은 작업 경로 길이 때문에 장면 자료를 읽지 못해 중단했다. 정식 결과에서 제외하고 짧은 경로에서 다시 시작했다.',
+  '- 최초 ⑦ Minecraft 캡처는 초기 준비 중 프레임을 생성하지 못해 제외했다. 원인은 확정하지 않았으며, 동일 실행 파일의 새 프로세스로 재실행해 완료했다.',
+  '- 최초 ⑪ Minecraft 본 측정도 초기 준비에서 멈춰 제외했다. 해당 실행에서 시작한 프로세스만 종료하고 동일 실행 파일의 새 프로세스로 재측정했다.',
+  '- 최초 ⑰ Minecraft 본 측정도 같은 형태의 초기 준비 정지로 제외하고 동일 실행 파일의 새 프로세스로 재측정했다. 초기 준비 정지의 원인은 확정하지 않았다.',
+  '- ⑦~⑨의 과거 프레임워크와 공유 빌드 라이브러리를 연결하기 위해 shader 오류 보고용 static symbol adapter를 추가했다. SMAA 계산·리소스·렌더 경로는 수정하지 않았으며, adapter의 오류창 차단 기능은 검증하지 않았다.',
   '- 정식 실행은 매 명령 앞뒤 CMAA2 프로세스 0개, 독립 프로세스, 1,200초 timeout 및 Aggregate PASS를 확인했다.',
   '- 성능 실행에는 PNG 저장·진단 query·GPU readback이 없다. 품질 분석은 성능 실행이 모두 끝난 후 수행했다.',
+  '- GIF는 f60~209를 건너뛰지 않고 30fps, 0.5배속으로 재생한다. 팔레트 변환을 거치는 보조 자료이며, 원본 PNG가 구조·색상 판정의 기준이다.',
   '- GPU 실행 파일·장면 자료·원본 캡처는 Git에 올리지 않는다. 실행 파일/생산 소스/결과 CSV 해시는 별도 provenance에 기록했다.','']
  inspection=OUT/'visual-inspection.json'
  if inspection.exists():
