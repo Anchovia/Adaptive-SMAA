@@ -1,0 +1,110 @@
+{
+  "status": "PARTIAL_COMPLETE_PENDING_LARGE_RAW_CAPTURE_APPROVAL",
+  "date": "2026-10-15",
+  "branch": "tooling/generated-media-storage-cleanup",
+  "deleted_files": 3911,
+  "logical_deleted_bytes": 72266681591,
+  "preserved_files": 58,
+  "preserved_bytes": 165103376,
+  "preserved_root": "C:\\Users\\USER\\Desktop\\research\\Reports\\Preserved-Baselines-20261015",
+  "verification": {
+    "exported-media-pass": {
+      "missing_planned_media": 3295,
+      "remaining_planned_media": 0,
+      "preserved_files": 58,
+      "preserved_hashes": "PASS"
+    },
+    "derived-intermediates-pass": {
+      "missing_planned_media": 615,
+      "remaining_planned_media": 0,
+      "preserved_files": 58,
+      "preserved_hashes": "PASS"
+    }
+  },
+  "parts": {
+    "exported-media-pass": {
+      "deleted_files": 3295,
+      "logical_deleted_bytes": 13128931791,
+      "already_missing": 0,
+      "errors": 0,
+      "free_bytes_after": {
+        "C": 76458528768,
+        "D": 51177709568
+      },
+      "free_bytes_before": {
+        "C": 5185069056,
+        "D": 65584263168
+      },
+      "note": "Logical deleted bytes include hardlink aliases. Actual free-space change is reported separately."
+    },
+    "derived-intermediates-pass": {
+      "deleted_files": 615,
+      "logical_deleted_bytes": 53494524077,
+      "already_missing": 0,
+      "errors": 0,
+      "free_bytes_after": {
+        "C": 86820450304,
+        "D": 94304587776
+      },
+      "free_bytes_before": {
+        "C": 5185069056,
+        "D": 65584263168
+      },
+      "note": "Logical deleted bytes include hardlink aliases. Actual free-space change is reported separately."
+    }
+  },
+  "first_archive": {
+    "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\edge-history-reconstruction\\Deliverables\\SMAA_Mail_Package_20261008\\SMAA_Full_Comparisons_01-17.zip",
+    "bytes": 5643225723,
+    "sha256": "04597EED1CDF79D932BCA19E9EB09C009D689F60FE791C87B57C4B53FF09214A",
+    "deleted": true,
+    "classification": "generated full-media ZIP; reports retained"
+  },
+  "free_bytes_current": {
+    "C": 86824796160,
+    "D": 94304587776
+  },
+  "automatic_review_rejection": "Broad 463930-file/1.14TiB deletion over 33 roots rejected: scale, reversibility and ambiguous DDS/RG8/RDC diagnostic asset authorization. Raw frames/buffers were not deleted through a workaround.",
+  "safer_alternative": "Only exported viewing media plus clearly named derived presentation/video intermediates; no raw frame PNG/DDS/RG8/RDC.",
+  "pending": {
+    "classification": "Pending; not executed due automatic approval review rejecting broad irreversible scope",
+    "files": 417102,
+    "roots": {
+      "D:\\SMAAResearchCaptures": {
+        "files": 146558,
+        "logical_bytes": 400734699127
+      },
+      "D:\\SMAA-Research-Data\\AutoBench": {
+        "files": 188750,
+        "logical_bytes": 422569852951
+      },
+      "C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\standard-t2x-reuse\\Projects\\CMAA2\\AutoBench": {
+        "files": 81794,
+        "logical_bytes": 161796946316
+      }
+    },
+    "extensions": {
+      ".png": {
+        "files": 396191,
+        "logical_bytes": 865613912658
+      },
+      ".dds": {
+        "files": 14190,
+        "logical_bytes": 88897787500
+      },
+      ".rg8": {
+        "files": 6715,
+        "logical_bytes": 27358602180
+      },
+      ".rdc": {
+        "files": 6,
+        "logical_bytes": 3231196056
+      }
+    },
+    "logical_gib": 917.4472637418658,
+    "cutoff_kst": "2026-10-09 00:00:00",
+    "source_and_scene_assets_excluded": true
+  },
+  "text_source_scene_inputs_preserved": true,
+  "note": "Free-space values are measured observations; other activity during cleanup can affect net changes. Logical bytes include shared-storage aliases."
+}
