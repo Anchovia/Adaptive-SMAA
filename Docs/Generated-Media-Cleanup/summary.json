@@ -1,9 +1,9 @@
 {
-  "status": "PARTIAL_COMPLETE_PENDING_LARGE_RAW_CAPTURE_APPROVAL",
+  "status": "COMPLETE_EXPLICITLY_AUTHORIZED_RAW_SCOPE",
   "date": "2026-10-15",
   "branch": "tooling/generated-media-storage-cleanup",
-  "deleted_files": 3911,
-  "logical_deleted_bytes": 72266681591,
+  "deleted_files": 421013,
+  "logical_deleted_bytes": 1057368179985,
   "preserved_files": 58,
   "preserved_bytes": 165103376,
   "preserved_root": "C:\\Users\\USER\\Desktop\\research\\Reports\\Preserved-Baselines-20261015",
@@ -19,6 +19,15 @@
       "remaining_planned_media": 0,
       "preserved_files": 58,
       "preserved_hashes": "PASS"
+    },
+    "raw-capture-pass": {
+      "missing_planned_media": 417102,
+      "remaining_planned_media": 0,
+      "preserved_files": 58,
+      "preserved_hashes": "PASS",
+      "retained_unchanged": 3040,
+      "retained_missing": 0,
+      "retained_changed": 0
     }
   },
   "parts": {
@@ -51,6 +60,22 @@
         "D": 65584263168
       },
       "note": "Logical deleted bytes include hardlink aliases. Actual free-space change is reported separately."
+    },
+    "raw-capture-pass": {
+      "deleted_files": 417102,
+      "logical_deleted_bytes": 985101498394,
+      "already_missing": 0,
+      "errors": 0,
+      "free_bytes_after": {
+        "D": 825479643136,
+        "C": 241489231872
+      },
+      "free_bytes_before": {
+        "D": 94304587776,
+        "C": 86188793856
+      },
+      "stage_id": "explicitly_authorized_old_raw_captures",
+      "note": "Logical deleted bytes include hardlink aliases. Actual free-space change is reported separately."
     }
   },
   "first_archive": {
@@ -61,13 +86,13 @@
     "classification": "generated full-media ZIP; reports retained"
   },
   "free_bytes_current": {
-    "C": 86824796160,
-    "D": 94304587776
+    "C": 241487769600,
+    "D": 825479643136
   },
   "automatic_review_rejection": "Broad 463930-file/1.14TiB deletion over 33 roots rejected: scale, reversibility and ambiguous DDS/RG8/RDC diagnostic asset authorization. Raw frames/buffers were not deleted through a workaround.",
   "safer_alternative": "Only exported viewing media plus clearly named derived presentation/video intermediates; no raw frame PNG/DDS/RG8/RDC.",
   "pending": {
-    "classification": "Pending; not executed due automatic approval review rejecting broad irreversible scope",
+    "classification": "COMPLETED after explicit user authorization of the three-root raw scope",
     "files": 417102,
     "roots": {
       "D:\\SMAAResearchCaptures": {
@@ -106,5 +131,7 @@
     "source_and_scene_assets_excluded": true
   },
   "text_source_scene_inputs_preserved": true,
-  "note": "Free-space values are measured observations; other activity during cleanup can affect net changes. Logical bytes include shared-storage aliases."
+  "note": "Free-space values are measured observations; other activity during cleanup can affect net changes. Logical bytes include shared-storage aliases.",
+  "fresh_scan_remaining_old_raw_files": 0,
+  "automatic_review_resolution": "After the earlier broad-scope rejection, the user explicitly authorized only the three named raw-capture roots and PNG/DDS/RG8/RDC before 2026-10-09 KST. That narrower scope is complete; the rejected 33-root plan was never executed."
 }
