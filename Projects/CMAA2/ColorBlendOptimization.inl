@@ -12,7 +12,7 @@ public:
     enum class Phase {Capture, Profile, Smoke, Benchmark};
 private:
     struct Mode {const char *name; bool selected; unsigned optimizations;};
-    enum : unsigned {OPT_DEPTH_STENCIL_CLEAR=1u};
+    enum : unsigned {OPT_DEPTH_STENCIL_CLEAR=1u,OPT_NEIGHBORHOOD_NO_DEPTH=2u};
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
@@ -42,6 +42,7 @@ private:
     // Candidate toggles; each is applied only by the selected feedback route in Draw().
     static void ApplyOptimizations(const shared_ptr<vaSMAAWrapper>& s,const Mode& c) {
         s->SetSelectedDepthStencilClear((c.optimizations&OPT_DEPTH_STENCIL_CLEAR)!=0);
+        s->SetSelectedNeighborhoodWithoutDepth((c.optimizations&OPT_NEIGHBORHOOD_NO_DEPTH)!=0);
     }
     std::wstring Prefix() const {
         const auto dir=m_output+vaStringTools::SimpleWiden(Current().name)+L"/";
@@ -73,6 +74,7 @@ public:
         m_measureFrames(phase==Phase::Smoke?240:phase==Phase::Profile?2400:4800),m_repeats(phase==Phase::Smoke?1:phase==Phase::Profile?3:6),m_output(output) {
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",true,0});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-DepthStencilClear",true,OPT_DEPTH_STENCIL_CLEAR});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth",true,OPT_NEIGHBORHOOD_NO_DEPTH});
         m_modes.push_back({"O-T2X-R",false,0});
     }
     void Tick(AutoBenchTool& tool,float) override {
@@ -137,6 +139,7 @@ public:
         ok=ok&&s->GetFirstEdgeStencilEnabled()&&s->GetSpatialFirstEdgeEnabled()==c.selected&&!s->GetStencilUpstreamControl()&&s->GetTemporalSamplePatternEnabled()==!c.selected;
         ok=ok&&s->GetPreviousRawEdgesEnabled()==c.selected&&s->GetBilinearHistoryRGBEnabled()==c.selected&&s->GetResolvedRGBFeedbackEnabled()==c.selected&&s->GetCatmullRomHistoryRGBEnabled()==c.selected&&s->GetFixedHistoryWeight080Enabled()==c.selected&&s->GetSourceTemporalComponentEnabled()==c.selected;
         ok=ok&&s->GetSelectedDepthStencilClear()==((c.optimizations&OPT_DEPTH_STENCIL_CLEAR)!=0);
+        ok=ok&&s->GetSelectedNeighborhoodWithoutDepth()==((c.optimizations&OPT_NEIGHBORHOOD_NO_DEPTH)!=0);
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.selected?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
         m_failed=m_failed||!ok;if(!Capturing()||m_frame<0)return;

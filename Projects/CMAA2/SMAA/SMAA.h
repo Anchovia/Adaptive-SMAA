@@ -237,6 +237,8 @@ class SMAA {
         void setPassProfilingContext(VertexAsylum::vaRenderDeviceContext *context) { passProfilingContext = context; }
         // Optimization candidate: also clear the never-read depth plane with the stencil (same outputs).
         void setClearDepthWithStencil(bool enabled) { clearDepthWithStencil = enabled; }
+        // Optimization candidate: feedback neighborhood blending without the never-read depth writes.
+        void setNeighborhoodWithoutDepth(bool enabled) { neighborhoodWithoutDepth = enabled; }
 
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
         RenderTarget *getBlendRenderTarget() { return blendRT; }
@@ -348,6 +350,7 @@ class SMAA {
         SMAATechniqueInterface *bilinearHistoryRGBTechnique, *bilinearHistoryRGBCoverageTechnique, *firstEdgeWeightCoverageTechnique;
         SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
         SMAATechniqueInterface *neighborhoodFeedbackSeedTechnique, *resolvedRGBFeedbackTechnique, *resolvedRGBFeedbackCoverageTechnique;
+        SMAATechniqueInterface *neighborhoodFeedbackSeedNoDepthTechnique;
         SMAATechniqueInterface *catmullRomRGBFeedbackTechnique, *catmullRomRGBFeedbackCoverageTechnique;
         SMAATechniqueInterface *fixedWeightRGBFeedbackTechnique, *fixedWeightRGBFeedbackCoverageTechnique;
         SMAATechniqueInterface *sourceComponentTechnique, *sourceComponentCoverageTechnique;
@@ -366,6 +369,7 @@ class SMAA {
         bool orderDetected = false;
         VertexAsylum::vaRenderDeviceContext *passProfilingContext = nullptr;
         bool clearDepthWithStencil = false;
+        bool neighborhoodWithoutDepth = false;
 };
 
 #endif

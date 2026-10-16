@@ -79,6 +79,7 @@ namespace VertexAsylum
         ID3D11DepthStencilState *   m_DisableDepthStencil           = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthReplaceStencil    = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthUseStencil        = nullptr;
+        ID3D11DepthStencilState *   m_DisableDepthNoStencil         = nullptr;   // depth and stencil Off: no depth writes
         ID3D11BlendState *          m_Blend                         = nullptr;
         ID3D11BlendState *          m_NoBlending                    = nullptr;
 
@@ -273,6 +274,12 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
         V( device->CreateDepthStencilState( &desc, &m_DisableDepthUseStencil ) );
     }
     {
+        CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
+        desc.DepthEnable                = FALSE;
+        desc.StencilEnable              = FALSE;
+        V( device->CreateDepthStencilState( &desc, &m_DisableDepthNoStencil ) );
+    }
+    {
         CD3D11_BLEND_DESC desc = CD3D11_BLEND_DESC( CD3D11_DEFAULT( ) );
         desc.AlphaToCoverageEnable      = FALSE;
         desc.RenderTarget[0].BlendEnable= TRUE;
@@ -310,6 +317,7 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
     SAFE_RELEASE( m_DisableDepthStencil        );
     SAFE_RELEASE( m_DisableDepthReplaceStencil );
     SAFE_RELEASE( m_DisableDepthUseStencil     );
+    SAFE_RELEASE( m_DisableDepthNoStencil      );
     SAFE_RELEASE( m_Blend                      );
     SAFE_RELEASE( m_NoBlending                 );
     SAFE_RELEASE( m_PointSampler    );
@@ -606,6 +614,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->setPassProfilingContext( m_passProfiling ? &deviceContext : nullptr );
                 m_smaa->setClearDepthWithStencil( feedback && m_selectedDepthStencilClear );
+                m_smaa->setNeighborhoodWithoutDepth( feedback && m_selectedNeighborhoodWithoutDepth );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
                     firstEdgeStencilRoute ? visibleRTV : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,
                     nextHistoryRTV );
@@ -788,11 +797,12 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         stencilGatedFeedbackResolve(L"SMAA/CatmullRomRGBFeedback.hlsl");            // case 13
     else if(name=="ResolvedRGBFeedbackPS" || name=="ResolvedRGBFeedbackCoveragePS")
         stencilGatedFeedbackResolve(L"SMAA/ResolvedRGBFeedback.hlsl");              // case 11
-    else if(name=="NeighborhoodFeedbackSeedPS") {
+    else if(name=="NeighborhoodFeedbackSeedPS" || name=="NeighborhoodFeedbackSeedNoDepthPS") {
         // Full-screen neighborhood blending into spatial, visible and next-history targets.
+        // The NoDepth variant runs the same pixel shader with depth disabled (no depth writes).
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAANeighborhoodBlendingVS",inputElements,shaderMacros,true);
-        tech->PS->CreateShaderFromFile(L"SMAA/ResolvedRGBFeedback.hlsl","ps_5_0",name,shaderMacros,true);
-        tech->DSS=m_DisableDepthStencil;
+        tech->PS->CreateShaderFromFile(L"SMAA/ResolvedRGBFeedback.hlsl","ps_5_0","NeighborhoodFeedbackSeedPS",shaderMacros,true);
+        tech->DSS=name=="NeighborhoodFeedbackSeedNoDepthPS"?m_DisableDepthNoStencil:m_DisableDepthStencil;
         tech->BS=m_NoBlending;
         for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
         tech->SampleMask=0xFFFFFFFF;tech->StencilRef=0;

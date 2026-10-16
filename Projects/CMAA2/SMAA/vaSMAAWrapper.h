@@ -79,6 +79,7 @@ namespace VertexAsylum
 
         // Output-preserving optimization candidates for the selected feedback route (default Off).
         bool m_selectedDepthStencilClear = false;                           // Clear SMAA depth+stencil instead of stencil only.
+        bool m_selectedNeighborhoodWithoutDepth = false;                    // Feedback neighborhood pass with depth disabled.
 
         // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
@@ -126,6 +127,8 @@ namespace VertexAsylum
         void SetPassProfiling(bool enabled){m_passProfiling=enabled;}
         void SetSelectedDepthStencilClear(bool enabled){m_selectedDepthStencilClear=enabled;}
         bool GetSelectedDepthStencilClear() const {return m_selectedDepthStencilClear;}
+        void SetSelectedNeighborhoodWithoutDepth(bool enabled){m_selectedNeighborhoodWithoutDepth=enabled;}
+        bool GetSelectedNeighborhoodWithoutDepth() const {return m_selectedNeighborhoodWithoutDepth;}
         void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
         bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
         void SetBilinearHistoryRGBEnabled(bool enabled){if(m_bilinearHistoryRGBEnabled!=enabled){m_bilinearHistoryRGBEnabled=enabled;ResetTemporalHistory();}}

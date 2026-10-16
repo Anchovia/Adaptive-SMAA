@@ -250,6 +250,7 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     bilinearHistoryRGBCoverageTechnique=techniqueManagerInterface->CreateTechnique("BilinearHistoryRGBCoveragePS",defines);
     firstEdgeWeightCoverageTechnique=techniqueManagerInterface->CreateTechnique("FirstEdgeStencilWeightCoveragePS",defines);
     neighborhoodFeedbackSeedTechnique=techniqueManagerInterface->CreateTechnique("NeighborhoodFeedbackSeedPS",defines);
+    neighborhoodFeedbackSeedNoDepthTechnique=techniqueManagerInterface->CreateTechnique("NeighborhoodFeedbackSeedNoDepthPS",defines);
     resolvedRGBFeedbackTechnique=techniqueManagerInterface->CreateTechnique("ResolvedRGBFeedbackPS",defines);
     resolvedRGBFeedbackCoverageTechnique=techniqueManagerInterface->CreateTechnique("ResolvedRGBFeedbackCoveragePS",defines);
     catmullRomRGBFeedbackTechnique=techniqueManagerInterface->CreateTechnique("CatmullRomRGBFeedbackPS",defines);
@@ -742,7 +743,8 @@ void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderT
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    (feedbackRTV ? neighborhoodFeedbackSeedTechnique : retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
+    (feedbackRTV ? (neighborhoodWithoutDepth ? neighborhoodFeedbackSeedNoDepthTechnique : neighborhoodFeedbackSeedTechnique) :
+        retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
     
     // Do the final pass!
     assert(!feedbackRTV || (retainRTV && feedbackRTV!=dstRTV && feedbackRTV!=retainRTV));
