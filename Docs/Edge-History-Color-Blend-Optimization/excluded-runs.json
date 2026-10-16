@@ -1,2 +1,24 @@
-{"harness":"Optimization","label":"opt-b","scene":"minecraft","phase":"Capture","executable_sha256":"BF3059591B3138AB3E239CC3588533BEE9E7BA79BEAED2D7F6FA3735F796DFCE",
- "autobench_dir":"Projects/CMAA2/AutoBench/20261016_223453","reason":"Stopped at user request (pause) before completion; no results CSV; partial PNGs not used.","classification":"excluded partial run"}
+[
+ {
+  "harness": "Optimization",
+  "label": "opt-b",
+  "scene": "minecraft",
+  "phase": "Capture",
+  "executable_sha256": "BF3059591B3138AB3E239CC3588533BEE9E7BA79BEAED2D7F6FA3735F796DFCE",
+  "autobench_dir": "Projects/CMAA2/AutoBench/20261016_223453",
+  "reason": "Stopped at user request (pause) before completion; no results CSV; partial PNGs not used.",
+  "classification": "excluded partial run"
+ },
+ {
+  "harness": "Optimization",
+  "label": "opt-bench-a",
+  "scene": "minecraft",
+  "phase": "Benchmark",
+  "executable_sha256": "BF3059591B3138AB3E239CC3588533BEE9E7BA79BEAED2D7F6FA3735F796DFCE",
+  "process_start_local": "2026-10-17T01:39:57+09:00",
+  "terminated_local": "2026-10-17T01:59:57+09:00",
+  "reason": "Startup stall: log ends at vaMaterialBasic.hlsl cache-miss recompiles, 2.2 s CPU, GPU idle (P8). Runner 1200 s timeout terminated only this process. Same pattern as earlier excluded stalls; cause not determined.",
+  "outputs": "No results CSV (AutoBench 20261017_013957 empty).",
+  "classification": "excluded startup stall"
+ }
+]

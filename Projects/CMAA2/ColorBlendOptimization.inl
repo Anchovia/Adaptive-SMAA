@@ -77,6 +77,8 @@ public:
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-DepthStencilClear",true,OPT_DEPTH_STENCIL_CLEAR});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth",true,OPT_NEIGHBORHOOD_NO_DEPTH});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-PresentHistory",true,OPT_PRESENT_HISTORY});
+        // Integration of the individually beneficial candidates (O1 measured slower and is excluded).
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory",true,OPT_NEIGHBORHOOD_NO_DEPTH|OPT_PRESENT_HISTORY});
         m_modes.push_back({"O-T2X-R",false,0});
     }
     void Tick(AutoBenchTool& tool,float) override {
