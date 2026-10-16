@@ -20,5 +20,25 @@
   "reason": "Startup stall: log ends at vaMaterialBasic.hlsl cache-miss recompiles, 2.2 s CPU, GPU idle (P8). Runner 1200 s timeout terminated only this process. Same pattern as earlier excluded stalls; cause not determined.",
   "outputs": "No results CSV (AutoBench 20261017_013957 empty).",
   "classification": "excluded startup stall"
+ },
+ {
+  "harness": "Optimization",
+  "label": "opt-c",
+  "scene": "bistro",
+  "phase": "Capture",
+  "executable_sha256": "E29F1D60680413D7671BCEB59299F3C94D2261FCE294A3291EB4F77F74191F3F",
+  "report": "Projects/CMAA2/AutoBench/20261017_020038",
+  "reason": "Output size changed during the run (OPT-NeighborhoodNoDepth from f57: 1902x1039, then 1902x1001) while the PC started being used; the harness did not check size, so the report said PASS. Whole capture invalid.",
+  "classification": "excluded external interference"
+ },
+ {
+  "harness": "Optimization",
+  "label": "opt-c",
+  "scene": "minecraft",
+  "phase": "Capture",
+  "executable_sha256": "E29F1D60680413D7671BCEB59299F3C94D2261FCE294A3291EB4F77F74191F3F",
+  "process_start_local": "2026-10-17T02:02:53+09:00",
+  "reason": "Startup stall (2.3 s CPU after 8 min, material shader recompile log); stopped when the user asked to stop using the PC for measurements.",
+  "classification": "excluded startup stall / user stop"
  }
 ]

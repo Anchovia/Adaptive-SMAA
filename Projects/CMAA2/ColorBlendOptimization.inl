@@ -147,6 +147,8 @@ public:
         ok=ok&&s->GetSelectedPresentHistory()==((c.optimizations&OPT_PRESENT_HISTORY)!=0);
         ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==((c.optimizations&OPT_PRESENT_HISTORY)!=0));
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.selected?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        // Fixed output size: a window/display change during a run invalidates captures and timing.
+        if(color->GetSizeX()!=1920||color->GetSizeY()!=1061){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
         m_failed=m_failed||!ok;if(!Capturing()||m_frame<0)return;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),vaStringTools::Format("%.6f",jitter.x),vaStringTools::Format("%.6f",jitter.y),ok?"PASS":"FAIL"});
