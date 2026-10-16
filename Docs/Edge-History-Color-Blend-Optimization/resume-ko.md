@@ -1,35 +1,27 @@
-# ⑰ 출력 보존 최적화: 중단 시점과 재개 절차 (2026-10-16 22:35 KST)
+# ⑰ 출력 보존 최적화: 진행 상태와 재개 절차 (2026-10-17 02:20 KST)
 
-브랜치 `experiment/edge-history-color-blend-optimization`, 의존성: 정리 완료 커밋 `d2a6315`
-(`tooling/edge-history-color-blend-cleanup`). 사용자 요청으로 일시 중단했다.
-**성능 측정은 사용자가 허용할 때까지 실행하지 않는다**(게임 실행 중이라는 사용자 지시, 2026-10-16).
+브랜치 `experiment/edge-history-color-blend-optimization`, 의존성: 정리 완료 커밋 `d2a6315`.
+사용자 요청으로 다시 중단했다. **성능 측정은 사용자가 다시 허용할 때까지 실행하지 않는다.**
+PC 사용 중에는 창 크기가 바뀌어 품질 캡처도 무효가 될 수 있으므로 CMAA2 실행 자체를 멈췄다.
 
-## 커밋 상태
+## 지금까지 확정된 것
 
-| 커밋 | 내용 | 출력 검증 |
-|---|---|---|
-| `e785a43` | 진단용 pass별 GPU timer(기본 Off), paired harness `-smaaColorBlendOptimization{Capture,Profile,Smoke,Benchmark}` | — |
-| `6b851df` | O1: SMAA DSV depth+stencil 동시 clear (기본 Off, ⑰ feedback 경로만) | 양 장면 240프레임 RGB가 ⑰와 같음 (`opt-a`) |
-| `2827827` | O2: feedback neighborhood pass depth 비활성 (기본 Off) | 양 장면 240프레임 RGB가 ⑰와 같음 (`opt-a`) |
-| 다음 커밋 | O3: history를 직접 표시하고 visible slot을 unbind (기본 Off). HLSL 무변경 | **미검증**: Bistro `opt-b` 캡처만 완료, Minecraft는 중단 |
-
-O3는 neighborhood 3 MRT → 2 MRT, resolve 2 MRT → 1 MRT로 쓰기를 줄인다. 화면 RGB는 같아야 하지만
-visible alpha가 resolve lerp alpha에서 spatial alpha로 바뀐다(PNG·화면에는 쓰이지 않음). 채택 여부는 사용자 결정 사항이다.
-처음 시도한 단일 target 전용 shader 방식은 FXC 명령 순서가 달라 산술 동일성을 증명할 수 없어 폐기했다.
+- O1/O2/O3 각각 두 장면 240프레임 RGB가 ⑰·정리본 캡처·원래 ⑰ 기록과 동일 (`verify-opt-a-*`, `verify-opt-b-*`).
+  O3 원본 프레임 직접 검사(Minecraft f124~133/f178~183/f230, Bistro f126~131/f178~183/f230, full f130)에서 ⑰와 같고
+  기존 얇은 구조 문제도 그대로다.
+- 진단 pass profile(두 장면)과 Bistro 정식 benchmark(6×4,800): `interim-performance.json`.
+  Bistro 전체 AA는 ⑰ 대비 O3 −7.34%, O2 −0.50%, O1 +1.16%(느려짐, 제외). ④ 대비 ⑰ −6.95%, ⑰+O3 −13.78%.
+- Minecraft 정식 benchmark는 시작 정지로 제외. 결합 모드(O2+O3) 캡처는 창 크기 변경으로 무효.
 
 ## 재개 순서
 
-1. 실행 전 `CMAA2.exe` 0개 확인. 이 worktree binary는 `BF305959…`(O3 포함).
-2. Bistro `opt-b` 검증:
-   `COLOR_BLEND_RUNS=<c17-opt>/tmp/cleanup-runs.json python Tools/SMAA/verify_color_blend_optimization.py opt-b --reference after-a --record Docs/Edge-History-Source-Color-Blend/bistro-capture.json --scene bistro`
-3. Minecraft `opt-b` 재캡처: `Tools/SMAA/run_color_blend_preservation.ps1 -Harness Optimization -Phase Capture -Scene minecraft -Label opt-b -RetryReason "first attempt stopped by user pause"` 후 같은 검증.
-4. O3 원본 프레임 직접 검사(이동 f126~131, 전환 f178~183, 실패 주변 f124~133, 정지 f230).
-5. **사용자 허용 후** 성능: 장면별 `Profile`(pass 분해, 진단) → `Smoke` → `Benchmark`(300 warm-up + 4,800 × 6, 정/역 교차),
-   그리고 정리 전/후 binary ABBA(`c17-before` = `CA01DD…`, `c17-cleanup` = `47E69F…`, Preservation harness Benchmark).
-6. 분석: `Tools/SMAA/analyze_color_blend_performance.py <reports>` (같은 실행의 ④·⑰ 대비 paired 변화율, t95).
+1. `CMAA2.exe` 0개, GPU 유휴(P8), 게임/PC 사용 없음 확인.
+2. 이 worktree를 Release x64로 다시 빌드한다(`535d0b3`의 출력 크기 검사 포함). 새 exe hash를 기록.
+3. 6 mode 출력 캡처 `-Label opt-d` (Bistro, Minecraft) → `verify_color_blend_optimization.py`로 결합 모드 포함 RGB 동일성 확인.
+   Minecraft 시작 정지가 이전 프로세스 종료 직후 반복됐으므로 명령 사이 대기를 두는 것을 시도한다(원인은 미확정).
+4. **사용자 허용 후**: 장면별 Smoke → Benchmark(`-Label opt-bench-b`), 그다음 Preservation harness ABBA
+   (`c17-before` CA01DD… / `c17-cleanup` 47E69F…, 각 장면 전·후·후·전).
+5. `analyze_color_blend_performance.py`로 같은 실행의 ④·⑰ 대비 변화율, 반복별 변동, WholeFrame을 정리하고
+   최종 보고서·④ vs 최적화본 GIF·커밋/푸시.
 
-## 예상(측정 전, 확정 아님)
-
-기존 재측정표 기준으로 feedback 구조(⑩→⑪)가 Minecraft에서 약 +7.8%p, Bistro에서 약 +7.2%p의 AA 비용을 더했다.
-O3는 그 쓰기 수를 ⑩ 수준으로 줄인다. O1·O2는 수 µs 이하로 예상한다. edge union(⑥→⑨, Minecraft 약 +4.6%p)은
-출력 동일성을 보장하는 방법을 찾지 못했다.
+O3(및 결합 모드)는 visible alpha를 spatial alpha로 바꾼다(PNG·화면 미사용). 채택 여부는 사용자 결정 사항이다.
