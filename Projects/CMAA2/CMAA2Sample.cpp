@@ -1177,6 +1177,12 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     {
         finalOutColor = m_scratchPostProcessColor;
         finalOutColorIgnoreSRGBConvView = m_scratchPostProcessColor; //m_scratchPostProcessColorIgnoreSRGBConvView;
+        // Case-17 present-history candidate: SMAA's next history is this frame's final colour.
+        if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected && m_SMAA->GetPresentedOutputOverride() != nullptr)
+        {
+            finalOutColor = m_SMAA->GetPresentedOutputOverride();
+            finalOutColorIgnoreSRGBConvView = finalOutColor;
+        }
     }
 
     // various helper tools - at one point these should go and become part of the base app but for now let's just stick them in here

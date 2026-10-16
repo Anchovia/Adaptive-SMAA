@@ -162,6 +162,7 @@ class SMAA {
             bool catmullRomHistoryRGB = false;    // Normalized five-fetch Catmull-Rom history RGB (requires feedback).
             bool fixedHistoryWeight080 = false;   // Fixed selected history weight 0.8 (requires Catmull-Rom).
             bool sourceTemporalComponent = false; // Encoded-gamma2 colour blend on top of weight 0.8; only with valid history.
+            bool presentHistory = false;          // Candidate: visible slot unbound; the next history is presented.
         };
         void reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,

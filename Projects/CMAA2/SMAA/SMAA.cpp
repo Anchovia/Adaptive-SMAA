@@ -325,7 +325,7 @@ void SMAA::go(ID3D11DeviceContext * context,
 
     // Case9 dependency: ping-pong raw RG, never the temporal union.
     if(previousRawEdges) {
-        assert(retainRTV != nullptr);
+        assert(retainRTV != nullptr || feedbackRTV != nullptr); // present-history leaves the visible slot unbound
         if(!previousRawEdgesRT) {
             ID3D11RenderTargetView *view=*edgesRT; D3D11_RENDER_TARGET_VIEW_DESC desc;view->GetDesc(&desc);
             previousRawEdgesRT=new RenderTarget(device,width,height,desc.Format);
@@ -467,7 +467,9 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     if(feedbackRTV) {
         assert(options.bilinearHistoryRGB && feedbackRTV!=output);
         assert(!options.fixedHistoryWeight080 || options.catmullRomHistoryRGB);
-        ID3D11RenderTargetView *targets[4] = {output, feedbackRTV, coverage, weight};
+        // Present-history candidate: the visible slot stays unbound, so the same shader writes
+        // only the next history (which the application then presents).
+        ID3D11RenderTargetView *targets[4] = {options.presentHistory ? nullptr : output, feedbackRTV, coverage, weight};
         context->OMSetRenderTargets(coverage ? 4 : 2, targets, dsv);
     } else {
         ID3D11RenderTargetView *targets[3] = {output, coverage, weight};
@@ -747,7 +749,7 @@ void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderT
         retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
     
     // Do the final pass!
-    assert(!feedbackRTV || (retainRTV && feedbackRTV!=dstRTV && feedbackRTV!=retainRTV));
+    assert(!feedbackRTV || (feedbackRTV!=dstRTV && feedbackRTV!=retainRTV));
     ID3D11RenderTargetView *targets[3] = {dstRTV, retainRTV, feedbackRTV};
     context->OMSetRenderTargets(feedbackRTV ? 3 : retainRTV ? 2 : 1, targets, dsv);
     triangle->draw( context );

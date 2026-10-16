@@ -80,6 +80,7 @@ namespace VertexAsylum
         // Output-preserving optimization candidates for the selected feedback route (default Off).
         bool m_selectedDepthStencilClear = false;                           // Clear SMAA depth+stencil instead of stencil only.
         bool m_selectedNeighborhoodWithoutDepth = false;                    // Feedback neighborhood pass with depth disabled.
+        bool m_selectedPresentHistory = false;                              // Present the next history (visible slot unbound).
 
         // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
@@ -129,6 +130,11 @@ namespace VertexAsylum
         bool GetSelectedDepthStencilClear() const {return m_selectedDepthStencilClear;}
         void SetSelectedNeighborhoodWithoutDepth(bool enabled){m_selectedNeighborhoodWithoutDepth=enabled;}
         bool GetSelectedNeighborhoodWithoutDepth() const {return m_selectedNeighborhoodWithoutDepth;}
+        void SetSelectedPresentHistory(bool enabled){m_selectedPresentHistory=enabled;}
+        bool GetSelectedPresentHistory() const {return m_selectedPresentHistory;}
+        // Non-null only for a frame drawn by the present-history candidate: the app presents
+        // this texture instead of the render target bound for Draw().
+        virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
         void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
         bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
         void SetBilinearHistoryRGBEnabled(bool enabled){if(m_bilinearHistoryRGBEnabled!=enabled){m_bilinearHistoryRGBEnabled=enabled;ResetTemporalHistory();}}

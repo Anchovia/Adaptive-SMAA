@@ -107,6 +107,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_executionCoverage;
         bool m_thinLineRawSaved=false;
         shared_ptr<vaTexture> m_historyWeightDiagnostic;
+        shared_ptr<vaTexture> m_presentedOutput;                    // present-history candidate: this frame's next history
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -131,6 +132,7 @@ namespace VertexAsylum
                                                 const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
+        virtual shared_ptr<vaTexture>   GetPresentedOutputOverride( ) const override { return m_presentedOutput; }
         virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext &ctx,const wstring &prefix) override {
             return m_thinLineRawSaved && !m_thinLineTracePrefix.empty() && m_thinLineTracePrefix==prefix
                 && m_temporalHistoryValid
@@ -343,6 +345,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalVelocity = nullptr;
     m_executionCoverage = nullptr;
     m_historyWeightDiagnostic = nullptr;
+    m_presentedOutput = nullptr;
     m_smaaReprojectionEnabled = false;
     ResetTemporalHistory( );
 }
@@ -522,6 +525,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     deviceContext.SetRenderTarget( nullptr, nullptr, false );
 
     ID3D11DeviceContext * dx11Context = vaSaferStaticCast< vaRenderDeviceContextDX11 * >( &deviceContext )->GetDXContext( );
+    m_presentedOutput = nullptr;
 
     if( !UpdateResources( deviceContext, inputColor ) )
     { assert( false ); return vaDrawResultFlags::UnspecifiedError; }
@@ -606,6 +610,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11RenderTargetView * currentSpatialRTV = currentSpatial->SafeCast<vaTextureDX11*>( )->GetRTV( );
             ID3D11RenderTargetView * nextHistoryRTV = feedback? currentHistory->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr;
             ID3D11RenderTargetView * visibleRTV = dstRT->SafeCast<vaTextureDX11*>()->GetRTV();
+            // Present-history candidate: the next history RGB equals the visible RGB, so the visible
+            // slot is left unbound in neighborhood blending and the resolve; same shaders.
+            const bool presentHistory = feedback && m_selectedPresentHistory;
+            if( presentHistory && m_executionDiagnostics )
+            { VA_LOG_ERROR("Present-history candidate has no capture witnesses"); return vaDrawResultFlags::UnspecifiedError; }
             ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
@@ -616,7 +625,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 m_smaa->setClearDepthWithStencil( feedback && m_selectedDepthStencilClear );
                 m_smaa->setNeighborhoodWithoutDepth( feedback && m_selectedNeighborhoodWithoutDepth );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
-                    firstEdgeStencilRoute ? visibleRTV : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,
+                    firstEdgeStencilRoute ? (presentHistory ? nullptr : visibleRTV) : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,
                     nextHistoryRTV );
             }
 
@@ -635,6 +644,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                     options.fixedHistoryWeight080=GetFixedHistoryWeight080Enabled();
                     // Seed/reset frames bypass the colour blend and use the fixed-weight resolve.
                     options.sourceTemporalComponent=GetSourceTemporalComponentEnabled() && m_temporalHistoryValid;
+                    options.presentHistory=presentHistory;
                     m_smaa->reprojectFirstEdgeStencil(dx11Context,currentSpatialSRV,previousHistorySRV,velocitySRV,visibleRTV,depthDSV,options,
                         nextHistoryRTV,diagnostics.CoverageRTV,diagnostics.WeightRTV);
                 }
@@ -644,6 +654,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 m_smaa->reproject( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, visibleRTV );
             }
             EndExecutionDiagnostics( dx11Context, diagnostics );
+            if( presentHistory )
+                m_presentedOutput = currentHistory;
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
             AdvanceTemporalFrame( );
