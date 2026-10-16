@@ -61,16 +61,24 @@ namespace VertexAsylum
         // Research ablation: projection jitter and spatial area pattern change together.
         bool                        m_temporalSamplePatternEnabled = true;
         vaVector2                   m_lastTemporalProjectionOffset = vaVector2(0,0);
-        bool                        m_spatialFirstEdgeEnabled = false;
-        bool m_firstEdgeStencilEnabled = true;
-        bool m_stencilUpstreamControl = false;
+
+        // Selected-temporal research route. Defaults keep the native T2X(-R) path.
+        // Case 17 (ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend)
+        // enables every flag below except m_stencilUpstreamControl, with sample
+        // pattern Off and camera/depth reprojection On. Draw() rejects incomplete
+        // combinations of the feedback flags.
+        bool                        m_spatialFirstEdgeEnabled = false;      // Temporal only on first-pass edge pixels.
+        bool m_firstEdgeStencilEnabled = true;                              // Gate those pixels with the edge-pass stencil.
+        bool m_stencilUpstreamControl = false;                              // Exact-stencil edge pass on the native route (cost control).
+        bool m_previousRawEdgesEnabled = false;                             // Add camera-reprojected previous raw edges to the stencil.
+        bool m_bilinearHistoryRGBEnabled = false;                           // Bilinear history RGB, point alpha.
+        bool m_resolvedRGBFeedbackEnabled = false;                          // Next history = resolved RGB + current spatial alpha.
+        bool m_catmullRomHistoryRGBEnabled = false;                         // Normalized five-fetch Catmull-Rom history RGB.
+        bool m_fixedHistoryWeight080Enabled = false;                        // Selected history weight fixed at 0.8.
+        bool m_sourceTemporalComponentEnabled = false;                      // Encoded-gamma2 colour blend (case 17).
+
+        // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
-        bool m_previousRawEdgesEnabled = false;
-        bool m_bilinearHistoryRGBEnabled = false;
-        bool m_resolvedRGBFeedbackEnabled = false;
-        bool m_catmullRomHistoryRGBEnabled = false;
-        bool m_fixedHistoryWeight080Enabled = false;
-        bool m_sourceTemporalComponentEnabled = false;
         wstring m_thinLineTracePrefix;
         uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
         bool m_executionQueryOK = false;

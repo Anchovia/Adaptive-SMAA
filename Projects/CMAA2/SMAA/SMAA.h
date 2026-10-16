@@ -141,15 +141,31 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0, ID3D11RenderTargetView *retainRTV=nullptr, bool exactStencil=false, bool previousRawEdges=false, bool previousValid=false, ID3D11RenderTargetView *feedbackRTV=nullptr); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, // Selects the S2x or 4x pass (either 0 or 1).
+                // Research extensions (all default to the original SMAA behaviour):
+                ID3D11RenderTargetView *retainRTV=nullptr, // Second neighborhood-blending output (selected-temporal visible target).
+                bool exactStencil=false, // Edge pass stencil marks exactly the stored RG edges.
+                bool previousRawEdges=false, // Edge pass also marks camera-reprojected previous raw edges (stencil union; RG keeps current edges).
+                bool previousValid=false, // Previous raw edges belong to valid history; otherwise none are bound.
+                ID3D11RenderTargetView *feedbackRTV=nullptr); // Third neighborhood-blending output (next history seed).
 
         /**
-         * This function perform a temporal resolve of two buffers. They must
-         * contain temporary jittered color subsamples.
+         * Research extension: temporal resolve gated by the stencil written in
+         * the first-pass edge detection of go(). Only stencil-selected pixels
+         * run; the neighborhood pass already wrote the spatial result elsewhere.
+         * Options select one resolve shader; they are not cumulative switches.
          */
+        struct FirstEdgeResolveOptions {
+            bool bilinearHistoryRGB = false;      // Bilinear history RGB with point-sampled alpha and native weight.
+            bool catmullRomHistoryRGB = false;    // Normalized five-fetch Catmull-Rom history RGB (requires feedback).
+            bool fixedHistoryWeight080 = false;   // Fixed selected history weight 0.8 (requires Catmull-Rom).
+            bool sourceTemporalComponent = false; // Encoded-gamma2 colour blend on top of weight 0.8; only with valid history.
+        };
         void reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage=nullptr, bool bilinearHistoryRGB=false, ID3D11RenderTargetView *weight=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr, bool catmullRomHistoryRGB=false, bool fixedHistoryWeight080=false, bool sourceTemporalComponent=false);
+            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, const FirstEdgeResolveOptions &options,
+            ID3D11RenderTargetView *feedbackRTV=nullptr, // Next history (resolved RGB + current spatial alpha).
+            ID3D11RenderTargetView *coverage=nullptr, ID3D11RenderTargetView *weight=nullptr); // Capture-only witnesses.
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -278,6 +294,7 @@ class SMAA {
         void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, bool previousRawEdges=false);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
         void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr);
+        SMAATechniqueInterface *firstEdgeResolveTechnique(const FirstEdgeResolveOptions &options, bool feedback, bool coverage, bool weight) const;
 
         ID3D11Device *device;
         int width, height;
@@ -317,6 +334,8 @@ class SMAA {
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        spatialFirstEdgeTechnique;
+        // Research techniques. Each case selects one edge, neighborhood and resolve
+        // variant; "Coverage" variants add capture-only witness targets.
         SMAATechniqueInterface *exactEdgeTechniques[4];
         SMAATechniqueInterface *eagerPersistenceEdgeTechniques[4];
         SMAATechniqueInterface *bilinearHistoryRGBTechnique, *bilinearHistoryRGBCoverageTechnique, *firstEdgeWeightCoverageTechnique;

@@ -424,9 +424,22 @@ void SMAA::reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11Shader
     texturesInterface->SetResource_edgesTex(context, nullptr);
 }
 
+SMAATechniqueInterface *SMAA::firstEdgeResolveTechnique(const FirstEdgeResolveOptions &options, bool feedback, bool coverage, bool weight) const {
+    if(feedback) {
+        // Visible + next-history MRT resolves; the most specific option wins.
+        if(options.sourceTemporalComponent) return coverage ? sourceComponentCoverageTechnique : sourceComponentTechnique;
+        if(options.fixedHistoryWeight080) return coverage ? fixedWeightRGBFeedbackCoverageTechnique : fixedWeightRGBFeedbackTechnique;
+        if(options.catmullRomHistoryRGB) return coverage ? catmullRomRGBFeedbackCoverageTechnique : catmullRomRGBFeedbackTechnique;
+        return coverage ? resolvedRGBFeedbackCoverageTechnique : resolvedRGBFeedbackTechnique;
+    }
+    if(options.bilinearHistoryRGB) return coverage ? bilinearHistoryRGBCoverageTechnique : bilinearHistoryRGBTechnique;
+    return weight ? firstEdgeWeightCoverageTechnique : coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique;
+}
+
 void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *coverage, bool bilinearHistoryRGB, ID3D11RenderTargetView *weight, ID3D11RenderTargetView *feedbackRTV, bool catmullRomHistoryRGB, bool fixedHistoryWeight080, bool sourceTemporalComponent) {
+    ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, const FirstEdgeResolveOptions &options,
+    ID3D11RenderTargetView *feedbackRTV, ID3D11RenderTargetView *coverage, ID3D11RenderTargetView *weight) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -438,18 +451,13 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
     // No edge SRV: the first pass's exact stencil is the gate.
+    firstEdgeResolveTechnique(options, feedbackRTV != nullptr, coverage != nullptr, weight != nullptr)->ApplyStates(context);
     if(feedbackRTV) {
-        assert(bilinearHistoryRGB && feedbackRTV!=output);
-        assert(!fixedHistoryWeight080 || catmullRomHistoryRGB);
-        (sourceTemporalComponent ? (coverage ? sourceComponentCoverageTechnique : sourceComponentTechnique) :
-            fixedHistoryWeight080 ? (coverage ? fixedWeightRGBFeedbackCoverageTechnique : fixedWeightRGBFeedbackTechnique) :
-            catmullRomHistoryRGB ? (coverage ? catmullRomRGBFeedbackCoverageTechnique : catmullRomRGBFeedbackTechnique) :
-            (coverage ? resolvedRGBFeedbackCoverageTechnique : resolvedRGBFeedbackTechnique))->ApplyStates(context);
+        assert(options.bilinearHistoryRGB && feedbackRTV!=output);
+        assert(!options.fixedHistoryWeight080 || options.catmullRomHistoryRGB);
         ID3D11RenderTargetView *targets[4] = {output, feedbackRTV, coverage, weight};
         context->OMSetRenderTargets(coverage ? 4 : 2, targets, dsv);
     } else {
-        (bilinearHistoryRGB ? (coverage ? bilinearHistoryRGBCoverageTechnique : bilinearHistoryRGBTechnique) :
-            weight ? firstEdgeWeightCoverageTechnique : coverage ? firstEdgeStencilCoverageTechnique : firstEdgeStencilTechnique)->ApplyStates(context);
         ID3D11RenderTargetView *targets[3] = {output, coverage, weight};
         context->OMSetRenderTargets(weight ? 3 : coverage ? 2 : 1, targets, dsv);
     }
