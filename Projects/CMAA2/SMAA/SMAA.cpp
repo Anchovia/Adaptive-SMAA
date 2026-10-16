@@ -37,6 +37,8 @@
 #include "AreaTex.h"
 #include "SearchTex.h"
 #include "SMAA.h"
+#include "Core/Misc/vaProfiler.h"
+#include <memory>
 using namespace std;
 
 using namespace VertexAsylum;
@@ -293,6 +295,10 @@ void SMAA::go(ID3D11DeviceContext * context,
               Mode mode,
               int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, bool previousRawEdges, bool previousValid, ID3D11RenderTargetView *feedbackRTV) {
 //    HRESULT hr;
+    // Diagnostic pass profile; each timer closes when the next stage starts.
+    std::unique_ptr<vaScopeTimer> passTimer;
+    auto profilePass = [&](const char *name) { if(passProfilingContext){passTimer.reset();passTimer.reset(new vaScopeTimer(name, passProfilingContext));} };
+    profilePass("SP_Prepare");
 
     if( !orderDetected )
     {
@@ -376,12 +382,16 @@ void SMAA::go(ID3D11DeviceContext * context,
         ID3D11ShaderResourceView *oldRaw=previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
         context->PSSetShaderResources(10,1,&oldRaw);
     }
+    profilePass("SP_Edge");
     edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil, previousRawEdges);
     if(previousRawEdges) {ID3D11ShaderResourceView *none=nullptr;context->PSSetShaderResources(10,1,&none);}
+    profilePass("SP_Weights");
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
+    profilePass("SP_Neighborhood");
     texturesInterface->SetResource_blendTex(context, *blendRT);
     neighborhoodBlendingPass(context, dstRTV, dsv, retainRTV, feedbackRTV);
+    passTimer.reset();
 
     // Reset external inputs, to avoid warnings:
     // V(colorTexGammaVariable->SetResource(nullptr));

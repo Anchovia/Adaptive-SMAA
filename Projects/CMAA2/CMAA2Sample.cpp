@@ -1849,6 +1849,7 @@ protected:
 #include "EdgeFixedWeightRGBFeedback.inl"
 #include "EdgeSourceTemporalComponent.inl"
 #include "ColorBlendPreservation.inl"
+#include "ColorBlendOptimization.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
@@ -1856,7 +1857,7 @@ void AutoBenchTool::Tick(float deltaTime)
     if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueStencilLifecycleVerification(m_parent,*this);}
     static bool spatialEdgeCommandParsed=false;
     if(!spatialEdgeCommandParsed){spatialEdgeCommandParsed=true;QueueSpatialFirstEdgeVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);
-    QueueFirstEdgeStencilVerification(m_parent,*this);QueueEdgeBilinearHistoryRGB(m_parent,*this);QueueEdgeResolvedRGBFeedback(m_parent,*this);QueueEdgeCatmullRomRGBFeedback(m_parent,*this);QueueEdgeFixedWeightRGBFeedback(m_parent,*this);QueueEdgeSourceTemporalComponent(m_parent,*this);QueueColorBlendPreservation(m_parent,*this);}
+    QueueFirstEdgeStencilVerification(m_parent,*this);QueueEdgeBilinearHistoryRGB(m_parent,*this);QueueEdgeResolvedRGBFeedback(m_parent,*this);QueueEdgeCatmullRomRGBFeedback(m_parent,*this);QueueEdgeFixedWeightRGBFeedback(m_parent,*this);QueueEdgeSourceTemporalComponent(m_parent,*this);QueueColorBlendPreservation(m_parent,*this);QueueColorBlendOptimization(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)

@@ -35,6 +35,8 @@
 //#include <d3d10.h>
 #include "RenderTarget.h"
 
+namespace VertexAsylum { class vaRenderDeviceContext; }
+
 /**
  * IMPORTANT NOTICE: please note that the documentation given in this file is
  * rather limited. We recommend first checking out SMAA.h in the root directory
@@ -231,6 +233,9 @@ class SMAA {
         void reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output);
 
+        // Diagnostic-only GPU timers around the go() stages (null: off; timing commands keep it off).
+        void setPassProfilingContext(VertexAsylum::vaRenderDeviceContext *context) { passProfilingContext = context; }
+
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
         RenderTarget *getBlendRenderTarget() { return blendRT; }
 
@@ -357,6 +362,7 @@ class SMAA {
         int msaaOrderMap[2];
 
         bool orderDetected = false;
+        VertexAsylum::vaRenderDeviceContext *passProfilingContext = nullptr;
 };
 
 #endif
