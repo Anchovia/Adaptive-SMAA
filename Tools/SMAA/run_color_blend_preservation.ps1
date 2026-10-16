@@ -36,12 +36,22 @@ $output=Join-Path $OutputRoot $Label
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 $started=[DateTime]::UtcNow.ToString('o')
 $arguments=@("-smaaColorBlendPreservation$Phase",$Scene,$output)
+$autoBench=Join-Path $root 'Projects/CMAA2/AutoBench'
+$reportsBefore=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
 $result=& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $arguments -Hidden -TimeoutSeconds 1200
 $pass=$result | Where-Object {$_ -match 'PASS:.*report='} | Select-Object -Last 1
+if(!$pass -and $Phase -eq 'Diagnostic'){
+    # run_clean_cmaa2 only collects reports for *Test/*Capture/*Smoke/*Benchmark commands.
+    $pass=$result | Where-Object {$_ -match '^PASS: clean CMAA2 process exited normally'} | Select-Object -Last 1
+    $new=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' | Where-Object {$reportsBefore -notcontains $_.FullName})
+    if(!$pass -or $new.Count -ne 1){throw 'No single new Diagnostic report'}
+    $pass="$pass; report=$($new[0].FullName)"
+}
 if(!$pass){throw 'No completed result'}
 $report=($pass -split 'report=',2)[1].Trim()
 $text=Get-Content -LiteralPath $report -Raw
 if($text -notmatch 'Aggregate: PASS'){throw 'Aggregate PASS missing'}
+if($text -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or $text -match '(?im),\s*FAIL\s*(?:,|$)'){throw "Report contains a failed check: $report"}
 if((Get-FileHash -LiteralPath $exe).Hash -ne $hash){throw 'Executable changed during execution'}
 $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
 $records += [pscustomobject]@{label=$Label;scene=$Scene;phase=$Phase;window='hidden';arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
