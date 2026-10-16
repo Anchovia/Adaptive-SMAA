@@ -1,0 +1,52 @@
+{
+ "method": "Lossless PNG crops pasted with nearest-neighbour scaling, no tone change; amplified difference drawn in a separate labelled row. Sheets viewed directly.",
+ "media_root": "D:/SMAAResearchCaptures/c17-cleanup-20261016/inspection",
+ "reviewed": [
+  {
+   "sheet": "minecraft-thin-seam-failure-window.png",
+   "frames": "124..133",
+   "scale": 3,
+   "observation": "17 before and 17 cleanup rows look identical; x16 difference row is black. Known issue remains in both: the vertical seam weakens or breaks at f128 and f130 and is stronger at f129/f131. Case 4 shows its own segment breaks/offsets."
+  },
+  {
+   "sheet": "minecraft-thin-seam-transition.png",
+   "frames": "178..183",
+   "scale": 3,
+   "observation": "Identical 17 rows, black difference. 17 seam darkens progressively while settling; case 4 shows staggered seam segments at f178-179."
+  },
+  {
+   "sheet": "minecraft-leaves-moving.png",
+   "frames": "126..131",
+   "scale": 2,
+   "observation": "Identical 17 rows, black difference."
+  },
+  {
+   "sheet": "bistro-thin-chair-failure-window.png (viewed as 4-frame crops f124-127, f128-131, f130-133)",
+   "frames": "124..133",
+   "scale": 3,
+   "observation": "Identical 17 rows, black difference. Thin chair legs appear dashed/weakened in places in both 17 builds (known structure-preservation failure); case 4 also fragments legs with a different pattern."
+  },
+  {
+   "sheet": "bistro-thin-chair-settled.png",
+   "frames": "230",
+   "scale": 3,
+   "observation": "Identical 17 rows, black difference."
+  },
+  {
+   "sheet": "minecraft-full-f130-case17-cleanup.png",
+   "frames": "130",
+   "scale": 1,
+   "observation": "Full frame composition and geometry intact; no missing spatial pass or pipeline collapse."
+  },
+  {
+   "sheet": "bistro-full-f181-case17-cleanup.png",
+   "frames": "181",
+   "scale": 1,
+   "observation": "Full frame composition intact."
+  }
+ ],
+ "not_claimed": [
+  "GIF playback was generated and frame counts checked (150 frames, f60-209, 33 ms); it was not watched as animation",
+  "No quality improvement: identical output keeps the existing thin-structure failures"
+ ]
+}

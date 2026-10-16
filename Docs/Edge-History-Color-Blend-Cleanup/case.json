@@ -1,0 +1,29 @@
+{
+ "name": "case17 code cleanup",
+ "label_ko": "⑰ 코드 정리본",
+ "semantic_id": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",
+ "branch": "tooling/edge-history-color-blend-cleanup",
+ "base_case": 17,
+ "base_branch": "experiment/edge-history-source-color-blend",
+ "base_commit": "5bdd18934d9924503aedc8fb27986a5bdcf11a43",
+ "harness_commit": "c7514c2",
+ "native_control": "O-T2X-R (case 4, paired pattern On, camera/depth reprojection)",
+ "algorithm_change": false,
+ "hlsl_change": false,
+ "scope": [
+  "C++ structure only: named configuration validation, resolve-technique selection and capture-only diagnostics",
+  "No shader source, pass order, render target binding, state object, clear, resource format or history topology change",
+  "Case 4 and the other research flags keep their existing code paths"
+ ],
+ "not_claimed": [
+  "quality improvement",
+  "speed improvement",
+  "official TSCMAA port"
+ ],
+ "verification_tool_commit": "113a6ad",
+ "cleanup_commit": "b86573c",
+ "before_executable": "CA01DDD6602ABC129A49D246B7D93C17E4F92FC3E0570E9DE92864792130B739",
+ "after_executable": "47E69FD5B3073FDFFBD364FA5F2F3B55ED5107C893B1345E701D2EBBF586D212",
+ "output_identity": "RGB 240 frames x case17/case4 x two scenes identical; diagnostic internal state identical except unused reset snapshots (see output-verification.json)",
+ "performance": "Not measured yet; user requested no timing while gaming (2026-10-16)."
+}

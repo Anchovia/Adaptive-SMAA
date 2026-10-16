@@ -1,0 +1,22 @@
+[
+ {
+  "label": "before-b",
+  "scene": "minecraft",
+  "phase": "Capture",
+  "executable_sha256": "CA01DDD6602ABC129A49D246B7D93C17E4F92FC3E0570E9DE92864792130B739",
+  "pid": 3796,
+  "process_start_local": "2026-10-16T21:24:09+09:00",
+  "terminated_local": "2026-10-16T21:44:10+09:00",
+  "reason": "No frame produced; log ends at material shader (vaMaterialBasic.hlsl) cache-miss recompiles; 2.4 s CPU in 10 minutes. Runner 1200 s timeout terminated only this run's process.",
+  "outputs": "No PNG and no results CSV (AutoBench 20261016_212410 empty).",
+  "classification": "excluded startup stall; cause not determined; not used as a result",
+  "log_tail": [
+   "21:24:10: vaApplicationWin entering main loop",
+   "21:24:10:  > file 'vaMaterialBasic.hlsl' for 'vs_5_0', entry 'VS_Standard', not found in cache; recompiling...",
+   "21:24:10:  > file 'vaMaterialBasic.hlsl' for 'ps_5_0', entry 'PS_DepthOnly', not found in cache; recompiling...",
+   "21:24:10:  > file 'vaMaterialBasic.hlsl' for 'ps_5_0', entry 'PS_Forward', not found in cache; recompiling...",
+   "21:24:10:  > file 'vaMaterialBasic.hlsl' for 'ps_5_0', entry 'PS_Deferred', not found in cache; recompiling...",
+   "21:24:10:  > file 'vaMaterialBasic.hlsl' for 'ps_5_0', entry 'PS_CustomShadow', not found in cache; recompiling..."
+  ]
+ }
+]

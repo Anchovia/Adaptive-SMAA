@@ -19,6 +19,7 @@ ROOT=Path(__file__).resolve().parents[2]
 RUNS=[ROOT/'tmp/color-blend-preservation-runs.json']+[Path(x) for x in os.environ.get('COLOR_BLEND_RUNS','').split(os.pathsep) if x]
 CASE17='ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend'
 NATIVE='O-T2X-R'
+RESET_FRAMES={0,150,200}
 FORMATS={27:(np.uint8,4),28:(np.uint8,4),29:(np.uint8,4),34:(np.float16,2),41:(np.float32,1),61:(np.uint8,1),35:(np.uint16,2)}
 
 def capture_root(label,scene):
@@ -63,7 +64,7 @@ def invariants(root):
         out.append(row)
     return out
 def byte_compare(root_a,root_b):
-    out=[];total=0;bad=0
+    out=[];unused=[];total=0;bad=0
     for mode in [CASE17,NATIVE]:
         names=sorted(p.name for p in (root_a/mode).iterdir());names_b=sorted(p.name for p in (root_b/mode).iterdir())
         assert names==names_b,(mode,len(names),len(names_b))
@@ -73,8 +74,12 @@ def byte_compare(root_a,root_b):
                 same=np.array_equal(png(root_a/mode/n),png(root_b/mode/n))
             else:
                 same=(root_a/mode/n).read_bytes()==(root_b/mode/n).read_bytes()
-            if not same:bad+=1;out.append(f'{mode}/{n}')
-    return dict(files=total,mismatch_files=bad,mismatches=out[:50])
+            if not same:
+                # History is invalid at f0/f150/f200 (reset or recreation): the resolve reads the
+                # current spatial texture, so the saved "previous" ping-pong texture is unused there.
+                if n.endswith('-previous.dds') and int(n[6:11]) in RESET_FRAMES:unused.append(f'{mode}/{n}')
+                else:bad+=1;out.append(f'{mode}/{n}')
+    return dict(files=total,mismatch_files=bad,mismatches=out[:50],unused_reset_snapshot_mismatches=unused)
 if __name__=='__main__':
     ap=argparse.ArgumentParser();ap.add_argument('a');ap.add_argument('b',nargs='?');ap.add_argument('--scene',required=True);ap.add_argument('--out')
     x=ap.parse_args()
