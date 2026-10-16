@@ -77,6 +77,9 @@ namespace VertexAsylum
         bool m_fixedHistoryWeight080Enabled = false;                        // Selected history weight fixed at 0.8.
         bool m_sourceTemporalComponentEnabled = false;                      // Encoded-gamma2 colour blend (case 17).
 
+        // Output-preserving optimization candidates for the selected feedback route (default Off).
+        bool m_selectedDepthStencilClear = false;                           // Clear SMAA depth+stencil instead of stencil only.
+
         // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
         bool m_passProfiling = false;                                       // GPU timers per go() stage.
@@ -121,6 +124,8 @@ namespace VertexAsylum
         bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
         void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
         void SetPassProfiling(bool enabled){m_passProfiling=enabled;}
+        void SetSelectedDepthStencilClear(bool enabled){m_selectedDepthStencilClear=enabled;}
+        bool GetSelectedDepthStencilClear() const {return m_selectedDepthStencilClear;}
         void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
         bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
         void SetBilinearHistoryRGBEnabled(bool enabled){if(m_bilinearHistoryRGBEnabled!=enabled){m_bilinearHistoryRGBEnabled=enabled;ResetTemporalHistory();}}

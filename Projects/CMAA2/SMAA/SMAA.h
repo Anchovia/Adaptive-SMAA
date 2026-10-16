@@ -235,6 +235,8 @@ class SMAA {
 
         // Diagnostic-only GPU timers around the go() stages (null: off; timing commands keep it off).
         void setPassProfilingContext(VertexAsylum::vaRenderDeviceContext *context) { passProfilingContext = context; }
+        // Optimization candidate: also clear the never-read depth plane with the stencil (same outputs).
+        void setClearDepthWithStencil(bool enabled) { clearDepthWithStencil = enabled; }
 
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
         RenderTarget *getBlendRenderTarget() { return blendRT; }
@@ -363,6 +365,7 @@ class SMAA {
 
         bool orderDetected = false;
         VertexAsylum::vaRenderDeviceContext *passProfilingContext = nullptr;
+        bool clearDepthWithStencil = false;
 };
 
 #endif

@@ -605,6 +605,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->setPassProfilingContext( m_passProfiling ? &deviceContext : nullptr );
+                m_smaa->setClearDepthWithStencil( feedback && m_selectedDepthStencilClear );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
                     firstEdgeStencilRoute ? visibleRTV : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,
                     nextHistoryRTV );

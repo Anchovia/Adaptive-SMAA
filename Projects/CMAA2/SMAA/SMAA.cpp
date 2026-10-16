@@ -377,7 +377,8 @@ void SMAA::go(ID3D11DeviceContext * context,
 
     // And here we go!
     // The dedicated SMAA stencil must describe this frame, for every spatial route.
-    if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
+    // No SMAA pass reads the depth plane, so clearing it with the stencil keeps every output.
+    if(dsv) context->ClearDepthStencilView(dsv, clearDepthWithStencil ? (D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL) : D3D11_CLEAR_STENCIL, 1.0f, 0);
     if(previousRawEdges) {
         ID3D11ShaderResourceView *oldRaw=previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
         context->PSSetShaderResources(10,1,&oldRaw);
