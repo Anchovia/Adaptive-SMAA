@@ -12,7 +12,7 @@ import re
 import statistics
 from pathlib import Path
 
-from analyze_color_blend_performance import CASE17, NATIVE, rows, summarize
+from analyze_color_blend_performance import CASE17, NATIVE, ci, rows, summarize
 from verify_color_blend_optimization import MODES
 
 METRICS = {'SMAA', 'SF_Spatial', 'SR_CameraVelocity', 'SR_Resolve', 'WholeFrame', 'WallFrame'}
@@ -62,6 +62,16 @@ def main():
     table = []
     for scene in ['bistro', 'minecraft']:
         opt = summaries[(scene, 'opt-bench-b')]
+        raw = rows(opt['report'])
+        present = CASE17 + '+OPT-PresentHistory'
+        combined = CASE17 + '+OPT-NeighborhoodNoDepth+PresentHistory'
+        opt['combined_vs_present_history'] = {
+            metric: dict(percent=ci([100 * (raw[(combined, run, metric)]['mean'] /
+                                           raw[(present, run, metric)]['mean'] - 1) for run in range(6)]),
+                         delta_ms=ci([raw[(combined, run, metric)]['mean'] -
+                                      raw[(present, run, metric)]['mean'] for run in range(6)]))
+            for metric in sorted(METRICS)
+        }
         output['optimization'][scene] = opt
         for mode in MODES:
             a = opt['absolute'][mode]
