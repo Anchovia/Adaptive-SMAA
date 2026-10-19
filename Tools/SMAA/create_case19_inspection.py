@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from create_color_blend_inspection import ROIS, WINDOWS, FONT, rgb
 from verify_color_blend_optimization import receipt
-from verify_case19_spatial import MODES, CASE18
+from verify_case19_spatial import MODES, CASE18, LAZY
 
 def sheet(rows,frames,roi,scale,title,path):
     x0,y0,x1,y1=roi;w,h=(x1-x0)*scale,(y1-y0)*scale
@@ -20,7 +20,7 @@ def sheet(rows,frames,roi,scale,title,path):
     return dict(path=str(path),sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest(),frames=frames,roi=list(roi),scale=scale,filter='nearest')
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--label',required=True);ap.add_argument('--mode',choices=MODES[3:],default=MODES[-1]);ap.add_argument('--out',required=True);x=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--label',required=True);ap.add_argument('--mode',choices=MODES[3:]+[LAZY],default=MODES[-1]);ap.add_argument('--out',required=True);x=ap.parse_args()
     out=Path(x.out);out.mkdir(parents=True,exist_ok=True);manifest=[]
     for scene in ('bistro','minecraft'):
         r,base,_=receipt(x.label,scene,'Case19')

@@ -1,6 +1,6 @@
 {
   "classification": "Technical material review, not 100 full papers",
-  "reviewed_count": 113,
+  "reviewed_count": 114,
   "reviewed": [
     {
       "id": 1,
@@ -792,6 +792,13 @@
       "url": "https://gpuopen.com/download/Practical_DX12_Programming_Model_and_Hardware_Capabilities.pdf",
       "review_scope": "AMD/NVIDIA GDC talk, especially pp38 and 46; no cover-to-cover claim",
       "takeaway": "Stencil output has depth-output-like costs; do not assume dual mask export is a free AA optimization. DX12 guidance is not RTX/DX11 performance proof."
+    },
+    {
+      "id": 114,
+      "title": "HLSL operators",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-operators",
+      "review_scope": "Relevant API semantics section; not cover-to-cover claim",
+      "takeaway": "FXC HLSL Boolean expressions do not short-circuit; use actual control flow to avoid a history read."
     }
   ],
   "not_counted": [
