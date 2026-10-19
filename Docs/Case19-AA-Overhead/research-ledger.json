@@ -1,0 +1,1011 @@
+{
+  "classification": "Technical material review, not 100 full papers",
+  "reviewed_count": 111,
+  "reviewed": [
+    {
+      "id": 1,
+      "title": "ClearRenderTargetView",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-clearrendertargetview",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Whole-view clear; removing a clear requires complete defined writes, not sparse edge output.",
+      "web_ref": "turn7view0"
+    },
+    {
+      "id": 2,
+      "title": "ClearDepthStencilView",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-cleardepthstencilview",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Stencil-only and depth clear are separate flags; retain current-frame stencil lifecycle.",
+      "web_ref": "turn8view0"
+    },
+    {
+      "id": 3,
+      "title": "OMSetRenderTargets",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-omsetrendertargets",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "MRT slots and subresource read/write hazards constrain fusion; keep separate spatial SRV.",
+      "web_ref": "turn10view0"
+    },
+    {
+      "id": 4,
+      "title": "PSSetShaderResources",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-pssetshaderresources",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Conflicting output bindings can null an SRV; explicit resource transitions remain necessary.",
+      "web_ref": "turn9view0"
+    },
+    {
+      "id": 5,
+      "title": "D3D11_BIND_FLAG",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Resource roles affect driver optimizations; no unused UAV flags in existing history.",
+      "web_ref": "turn13view0"
+    },
+    {
+      "id": 6,
+      "title": "D3D11_TEXTURE2D_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_texture2d_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Resource format and bind flags must be captured for reproducible format experiments.",
+      "web_ref": "turn15view0"
+    },
+    {
+      "id": 7,
+      "title": "D3D11_USAGE",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_usage",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Keep production textures DEFAULT; staging/readback stays outside timing.",
+      "web_ref": "turn16view0"
+    },
+    {
+      "id": 8,
+      "title": "DXGI_FORMAT",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "RG8 and RGBA8 retain eight bits per RG channel; binary edge format candidate.",
+      "web_ref": "turn12view0"
+    },
+    {
+      "id": 9,
+      "title": "CheckFormatSupport",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11device-checkformatsupport",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Check render-target and shader sample support before alternate edge formats.",
+      "web_ref": "turn14view0"
+    },
+    {
+      "id": 10,
+      "title": "D3D11_FORMAT_SUPPORT",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_format_support",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Texture filtering and output support are independent capability bits.",
+      "web_ref": "turn11view0"
+    },
+    {
+      "id": 11,
+      "title": "Depth-stencil pipeline",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-depth-stencil",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Stencil selection must survive any depth-state optimization.",
+      "web_ref": "turn19view0"
+    },
+    {
+      "id": 12,
+      "title": "D3D11_DEPTH_STENCIL_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencil_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Read/write masks and stencil pass operations control exact mask lifetime.",
+      "web_ref": "turn21view0"
+    },
+    {
+      "id": 13,
+      "title": "D3D11_RENDER_TARGET_BLEND_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_render_target_blend_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Full channel write masks can differ in compression cost; output alpha semantics constrain them.",
+      "web_ref": "turn17view0"
+    },
+    {
+      "id": 14,
+      "title": "D3D11_SAMPLER_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_sampler_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Point/linear/clamp filtering cannot be changed casually in exact-output experiments.",
+      "web_ref": "turn22view0"
+    },
+    {
+      "id": 15,
+      "title": "DiscardView",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11_1/nf-d3d11_1-id3d11devicecontext1-discardview",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Discard makes contents undefined; cannot replace required zero-clears of sparse targets.",
+      "web_ref": "turn20view0"
+    },
+    {
+      "id": 16,
+      "title": "CopyResource",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-copyresource",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Copy is GPU asynchronous and requires compatible resources; 18 final display copy remains.",
+      "web_ref": "turn18view0"
+    },
+    {
+      "id": 17,
+      "title": "D3D11 query types",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_query",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "TIMESTAMP/DISJOINT distinguish valid GPU duration from frequency changes.",
+      "web_ref": "turn24view0"
+    },
+    {
+      "id": 18,
+      "title": "TIMESTAMP_DISJOINT data",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_query_data_timestamp_disjoint",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Reject disjoint timestamps; use frequency only for valid measurements.",
+      "web_ref": "turn25view0"
+    },
+    {
+      "id": 19,
+      "title": "PIPELINE_STATISTICS data",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_query_data_pipeline_statistics",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "PS invocation counts can diagnose stencil efficiency but queries must remain off in formal timing.",
+      "web_ref": "turn27view0"
+    },
+    {
+      "id": 20,
+      "title": "GetData",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-getdata",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Polling can submit or stall work; diagnostic readback separated.",
+      "web_ref": "turn23view0"
+    },
+    {
+      "id": 21,
+      "title": "D3D11_ASYNC_GETDATA_FLAG",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_async_getdata_flag",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "DONOTFLUSH avoids implicit submission while polling diagnostic queries.",
+      "web_ref": "turn28view0"
+    },
+    {
+      "id": 22,
+      "title": "Map",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-map",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "CPU resource mapping is a potential synchronization point; keep out of benchmark.",
+      "web_ref": "turn26view0"
+    },
+    {
+      "id": 23,
+      "title": "NVIDIA shaders",
+      "url": "https://developer.nvidia.com/blog/advanced-api-performance-shaders/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Registers and shader specialization matter; never accept arithmetic reordering without output proof.",
+      "web_ref": "turn32view0"
+    },
+    {
+      "id": 24,
+      "title": "NVIDIA pipeline state",
+      "url": "https://developer.nvidia.com/blog/advanced-api-performance-pipeline-state-objects/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "PSO advice is DX12-specific; do not claim CPU state savings as measured GPU savings.",
+      "web_ref": "turn37view0"
+    },
+    {
+      "id": 25,
+      "title": "NVIDIA barriers",
+      "url": "https://developer.nvidia.com/blog/advanced-api-performance-barriers/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Dependency ordering matters, but explicit DX12 barriers cannot be transplanted to DX11.",
+      "web_ref": "turn38view0"
+    },
+    {
+      "id": 26,
+      "title": "NVIDIA peak-performance analysis",
+      "url": "https://developer.nvidia.com/blog/the-peak-performance-analysis-method-for-optimizing-any-gpu-workload/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Identify a saturated unit; timestamp differences alone do not establish bandwidth saturation.",
+      "web_ref": "turn33view0"
+    },
+    {
+      "id": 27,
+      "title": "NVIDIA thread-group swizzling",
+      "url": "https://developer.nvidia.com/blog/optimizing-compute-shaders-for-l2-locality-using-thread-group-id-swizzling/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Tile locality could help a compute redesign, but current pixel path has no threadgroup dispatch.",
+      "web_ref": "turn35view0"
+    },
+    {
+      "id": 28,
+      "title": "AMD occupancy explained",
+      "url": "https://gpuopen.com/learn/occupancy-explained/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Higher occupancy can hurt cache behavior; do not assume more waves is always faster.",
+      "web_ref": "turn36view0"
+    },
+    {
+      "id": 29,
+      "title": "AMD large thread groups",
+      "url": "https://gpuopen.com/learn/optimizing-gpu-occupancy-resource-usage-large-thread-groups/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Group size trades occupancy against resource use; compute rewrite needs separate validation.",
+      "web_ref": "turn31view0"
+    },
+    {
+      "id": 30,
+      "title": "AMD context rolls",
+      "url": "https://gpuopen.com/learn/understanding-gpu-context-rolls/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "State changes can have hardware costs; vendor-specific concept, not a measured RTX diagnosis.",
+      "web_ref": "turn30view0"
+    },
+    {
+      "id": 31,
+      "title": "MJP early-Z",
+      "url": "https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Discard and stencil writes constrain early testing; preserve exact selection semantics.",
+      "web_ref": "turn34view0"
+    },
+    {
+      "id": 32,
+      "title": "SMAA paper",
+      "url": "https://www.iryoku.com/smaa/downloads/SMAA-Enhanced-Subpixel-Morphological-Antialiasing.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Preserve accurate area/search reconstruction; changing presets is a quality tradeoff, not output preservation.",
+      "web_ref": "turn50view0"
+    },
+    {
+      "id": 33,
+      "title": "SMAA official C++",
+      "url": "https://raw.githubusercontent.com/iryoku/smaa/master/Demo/DX10/Code/SMAA.cpp",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Official sample explicitly selects RGBA8 for NVIDIA; local wrapper passes no adapter, so edge format is RG8.",
+      "web_ref": "turn48view0"
+    },
+    {
+      "id": 34,
+      "title": "Intel TSCMAA paper",
+      "url": "https://www.intel.com/content/dam/develop/external/us/en/documents/tscmaa-codesample-v1.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Sparse candidate work can save resolve time while requiring candidate setup; no new weight/filter changes.",
+      "web_ref": "turn51view0"
+    },
+    {
+      "id": 35,
+      "title": "Intel CMAA2 paper",
+      "url": "https://www.intel.com/content/dam/develop/external/us/en/documents/conservative-morphological-anti-aliasing-2-0-v2.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Compute compaction and reconstruction design is not a drop-in exact SMAA optimization.",
+      "web_ref": "turn47view0"
+    },
+    {
+      "id": 36,
+      "title": "MJP EarlyZTest implementation",
+      "url": "https://github.com/TheRealMJP/EarlyZTest",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Controlled invocation-count experiments distinguish shader discard and early test cases.",
+      "web_ref": "turn52view0"
+    },
+    {
+      "id": 37,
+      "title": "SMAA original shader",
+      "url": "https://github.com/iryoku/smaa/blob/master/SMAA.hlsl",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Author integration comments discuss stencil, sampler choices and lookup textures.",
+      "web_ref": "turn54view0"
+    },
+    {
+      "id": 38,
+      "title": "AMD RDNA guide",
+      "url": "https://gpuopen.com/learn/rdna-performance-guide/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Single-channel gather is a concrete luma fetch hypothesis; vendor result must be tested on RTX.",
+      "web_ref": "turn49view0"
+    },
+    {
+      "id": 39,
+      "title": "NVIDIA Ampere tuning guide",
+      "url": "https://docs.nvidia.com/cuda/ampere-tuning-guide/index.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Ampere cache and FP32/FP16 behavior; CUDA-specific scheduling guidance cannot justify a DX11 claim.",
+      "web_ref": "turn53view0"
+    },
+    {
+      "id": 40,
+      "title": "HLSL flow control",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-flow-control",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Loop/branch selection can affect latency; preserve control output.",
+      "web_ref": "turn56view0"
+    },
+    {
+      "id": 41,
+      "title": "HLSL Gather",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-gather",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Gather gets four red texels used for bilinear footprint; exact swizzle and border tests needed.",
+      "web_ref": "turn65view0"
+    },
+    {
+      "id": 42,
+      "title": "HLSL earlydepthstencil",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-attributes-earlydepthstencil",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Already used in resolve; applying it to discard-driven stencil writer would change selection.",
+      "web_ref": "turn58view0"
+    },
+    {
+      "id": 43,
+      "title": "HLSL precise variables",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-variable-syntax",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Precise constrains order/fusion, but adding it changes baseline arithmetic; not a free equality proof.",
+      "web_ref": "turn57view0"
+    },
+    {
+      "id": 44,
+      "title": "HLSL Load",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-load",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "OOB Load returns zero rather than sampler clamp; keep edge-neighbor boundary behavior.",
+      "web_ref": "turn66view0"
+    },
+    {
+      "id": 45,
+      "title": "HLSL Sample",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-sample",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Sampling applies normalized coordinates, offsets and format conversion.",
+      "web_ref": "turn64view0"
+    },
+    {
+      "id": 46,
+      "title": "HLSL SampleLevel",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-samplelevel",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Explicit LOD is needed with no mips and divergent control.",
+      "web_ref": "turn55view0"
+    },
+    {
+      "id": 47,
+      "title": "HLSL discard",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-discard",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Discard suppresses pixel outputs and interacts with stencil writes.",
+      "web_ref": "turn59view0"
+    },
+    {
+      "id": 48,
+      "title": "HLSL if",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-if",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Branch vs flatten controls execution scheduling; previous eager/deferred query results are preserved.",
+      "web_ref": "turn61view0"
+    },
+    {
+      "id": 49,
+      "title": "HLSL for",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-for",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Loop/unroll attributes affect code expansion in SMAA searches.",
+      "web_ref": "turn63view0"
+    },
+    {
+      "id": 50,
+      "title": "HLSL while",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-while",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Variable search length produces divergent loops; reducing preset would alter output.",
+      "web_ref": "turn60view0"
+    },
+    {
+      "id": 51,
+      "title": "HLSL data types",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-data-types",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Precision and conversion rules rule out casual half-precision replacement.",
+      "web_ref": "turn62view0"
+    },
+    {
+      "id": 52,
+      "title": "HLSL gather4 instruction",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/gather4--sm5---asm-",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Order is bilinear footprint, not filtered result; prove swizzle with GPU fixture.",
+      "web_ref": "turn71view0"
+    },
+    {
+      "id": 53,
+      "title": "HLSL GatherRed",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/texture2d-gatherred",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Single red channel gather is available in shader model 5; restrict new entry profile accordingly.",
+      "web_ref": "turn74view0"
+    },
+    {
+      "id": 54,
+      "title": "D3D floating-point rules",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/floating-point-rules",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "UNORM conversion and arithmetic tolerances mean equation equality alone is insufficient.",
+      "web_ref": "turn70view0"
+    },
+    {
+      "id": 55,
+      "title": "D3D11 functional specification",
+      "url": "https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Sampling quantization, border behavior, output-merger rules provide the normative constraints.",
+      "web_ref": "turn68view0"
+    },
+    {
+      "id": 56,
+      "title": "D3DCompile flags",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/d3dcompile-constants",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "All-resources-bound requires all referenced resources to be bound, violated by seed previous-edge null.",
+      "web_ref": "turn72view0"
+    },
+    {
+      "id": 57,
+      "title": "Shader optimization guide",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-optimize",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Instruction scheduling and flow changes require measurement; preserve baseline shader compilation.",
+      "web_ref": "turn69view0"
+    },
+    {
+      "id": 58,
+      "title": "Shader minimum precision",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/using-hlsl-minimum-precision",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "min16 is not a portable exact-output optimization; do not change arithmetic precision.",
+      "web_ref": "turn67view0"
+    },
+    {
+      "id": 59,
+      "title": "Morphological Antialiasing (Reshetov 2009)",
+      "url": "https://www.intel.com/content/dam/develop/external/us/en/documents/z-shape-arm-785403.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Spatial edge classification is algorithmic work; keep pattern coverage, optimize data delivery.",
+      "web_ref": "turn80view0"
+    },
+    {
+      "id": 60,
+      "title": "Practical indirect occlusion (Jimenez et al.)",
+      "url": "https://www.activision.com/cdn/research/PracticalRealtimeStrategiesTRfinal.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Neighborhood data locality/gather is transferable as implementation idea; AO equations are out of scope.",
+      "web_ref": "turn84view0"
+    },
+    {
+      "id": 61,
+      "title": "An excursion in temporal supersampling (Salvi)",
+      "url": "https://developer.download.nvidia.com/gameworks/events/GDC2016/msalvi_temporal_supersampling.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "History sampling/clipping belongs to temporal-quality design; no reason to change successful resolve here.",
+      "web_ref": "turn77view0"
+    },
+    {
+      "id": 62,
+      "title": "A Directionally Adaptive Edge Anti-Aliasing Filter",
+      "url": "https://www.iryoku.com/aacourse/downloads/02-A-Directionally-Adaptive-Edge-Anti-Aliasing-Filter.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "MSAA plane fitting changes inputs and reconstruction; excluded from exact RGB scope.",
+      "web_ref": "turn90view0"
+    },
+    {
+      "id": 63,
+      "title": "Morphological Anti-Aliasing",
+      "url": "https://www.iryoku.com/aacourse/downloads/03-Morphological-Anti-Aliasing.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "MLAA shape classification and neighborhood blending motivate locality, not candidate reduction.",
+      "web_ref": "turn95view0"
+    },
+    {
+      "id": 64,
+      "title": "Jimenez’s MLAA & SMAA: Subpixel Morphological Anti-Aliasing",
+      "url": "https://www.iryoku.com/aacourse/downloads/04-Jimenez%27s-MLAA-%26-SMAA-%28Subpixel-Morphological-Anti-Aliasing%29.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "SMAA texture layouts, search acceleration and GPU stages underpin spatial cost audit.",
+      "web_ref": "turn87view0"
+    },
+    {
+      "id": 65,
+      "title": "SRAA: Subpixel Reconstruction Anti-Aliasing",
+      "url": "https://www.iryoku.com/aacourse/downloads/07-SRAA-Subpixel-Reconstruction-Anti-Aliasing.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "SRAA needs geometric multisample buffers and a different reconstruction; excluded.",
+      "web_ref": "turn92view0"
+    },
+    {
+      "id": 66,
+      "title": "FXAA 3.11 in 15 Slides",
+      "url": "https://www.iryoku.com/aacourse/downloads/09-FXAA-3.11-in-15-Slides.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "FXAA single-pass design is a different filter and output; cannot substitute for exact SMAA.",
+      "web_ref": "turn89view0"
+    },
+    {
+      "id": 67,
+      "title": "Distance-to-edge AA",
+      "url": "https://www.iryoku.com/aacourse/downloads/10-Distance-to-edge-AA-%28DEAA%29.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Distance-to-edge requires geometry integration and changes coverage; excluded.",
+      "web_ref": "turn91view0"
+    },
+    {
+      "id": 68,
+      "title": "Geometry Buffer Anti-Aliasing",
+      "url": "https://www.iryoku.com/aacourse/downloads/11-Geometry-Buffer-Anti-Aliasing-%28GBAA%29.pdf",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "GBAA requires geometry buffer and different reconstruction; excluded.",
+      "web_ref": "turn86view0"
+    },
+    {
+      "id": 69,
+      "title": "Unity SMAA runtime",
+      "url": "https://raw.githubusercontent.com/Unity-Technologies/PostProcessing/v2/PostProcessing/Runtime/Effects/SubpixelMorphologicalAntialiasing.cs",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Temporary targets, color-space and stencil setup are explicit; reference rather than new semantics.",
+      "web_ref": "turn104view0"
+    },
+    {
+      "id": 70,
+      "title": "Three.js SMAAPass",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/jsm/postprocessing/SMAAPass.js",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Two intermediate targets and pass lifetimes clarify non-temporal buffer overhead.",
+      "web_ref": "turn106view0"
+    },
+    {
+      "id": 71,
+      "title": "Three.js SMAAShader",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/jsm/shaders/SMAAShader.js",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Luma sampling, accurate search and area reconstruction stay quality-critical.",
+      "web_ref": "turn99view0"
+    },
+    {
+      "id": 72,
+      "title": "Godot SMAA integration",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/master/servers/rendering/renderer_rd/effects/smaa.cpp",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Modern integration provides resource-format and pass scheduling comparison.",
+      "web_ref": "turn105view0"
+    },
+    {
+      "id": 73,
+      "title": "DiligentFX temporal implementation documentation",
+      "url": "https://diligentgraphics.github.io/docs/db/d24/DiligentFX_PostProcess_TemporalAntiAliasing_README.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Retain reset/history consistency while optimizing spatial data access.",
+      "web_ref": "turn98view0"
+    },
+    {
+      "id": 74,
+      "title": "Unity anti-aliasing documentation",
+      "url": "https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.postprocessing/Documentation~/Anti-aliasing.md",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Lower quality is explicitly a speed tradeoff, not acceptable as same-output optimization.",
+      "web_ref": "turn102view0"
+    },
+    {
+      "id": 75,
+      "title": "NVIDIA GPU Gems pipeline performance",
+      "url": "https://developer.nvidia.com/gpugems/gpugems/part-v-performance-and-practicalities/chapter-28-graphics-pipeline-performance",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Vary workload/format to isolate bottlenecks rather than infer them from code.",
+      "web_ref": "turn119view0"
+    },
+    {
+      "id": 76,
+      "title": "NVIDIA GPU Gems deferred stencil locality",
+      "url": "https://developer.nvidia.com/gpugems/gpugems3/part-iii-rendering/chapter-19-deferred-shading-tabula-rasa",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Stencil masking efficiency depends on locality; selected-pixel count alone does not predict speed.",
+      "web_ref": "turn116view0"
+    },
+    {
+      "id": 77,
+      "title": "NVIDIA GPU Gems occlusion queries",
+      "url": "https://developer.nvidia.com/gpugems/gpugems/part-v-performance-and-practicalities/chapter-29-efficient-occlusion-culling",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "GPU/CPU query dependencies can cost more than saved work; no readback-driven per-frame policy.",
+      "web_ref": "turn118view0"
+    },
+    {
+      "id": 78,
+      "title": "NVIDIA GPU Gems parallel prefix sum",
+      "url": "https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Stream compaction has setup/synchronization cost; not free sparse execution.",
+      "web_ref": "turn112view0"
+    },
+    {
+      "id": 79,
+      "title": "Intel Xe-LP optimization",
+      "url": "https://www.intel.com/content/www/us/en/developer/articles/guide/lp-api-developer-optimization-guide.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Use minimum resources and careful sampling; Intel-specific advice is not RTX performance proof.",
+      "web_ref": "turn113view0"
+    },
+    {
+      "id": 80,
+      "title": "Intel Gen11 optimization",
+      "url": "https://www.intel.com/content/www/us/en/developer/articles/guide/developer-and-optimization-guide-for-intel-processor-graphics-gen11-api.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Reduce unnecessary channels but recognize vendor-specific format exceptions.",
+      "web_ref": "turn115view0"
+    },
+    {
+      "id": 81,
+      "title": "MJP half precision",
+      "url": "https://therealmjp.github.io/posts/shader-fp16/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Conversion overhead and numerical changes make half precision a poor exact-output default.",
+      "web_ref": "turn120view0"
+    },
+    {
+      "id": 82,
+      "title": "CreateTexture2D",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11device-createtexture2d",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Check creation errors and reject unsupported target format rather than silently fall back.",
+      "web_ref": "turn124view0"
+    },
+    {
+      "id": 83,
+      "title": "CreateRenderTargetView",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11device-createrendertargetview",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "RTV type must match resource format; both ping-pong edges must change together.",
+      "web_ref": "turn127view0"
+    },
+    {
+      "id": 84,
+      "title": "CreateShaderResourceView",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11device-createshaderresourceview",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "SRV view compatibility required for resource-format optimization.",
+      "web_ref": "turn122view0"
+    },
+    {
+      "id": 85,
+      "title": "D3D11_SHADER_RESOURCE_VIEW_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_shader_resource_view_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Preserve exact edge UNORM interpretation and mip range.",
+      "web_ref": "turn126view0"
+    },
+    {
+      "id": 86,
+      "title": "D3D11_RENDER_TARGET_VIEW_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_render_target_view_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Use RTV format to construct matching previous-raw ping-pong target.",
+      "web_ref": "turn125view0"
+    },
+    {
+      "id": 87,
+      "title": "OMSetDepthStencilState",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-omsetdepthstencilstate",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Reference value and read/write masks must remain unchanged across candidates.",
+      "web_ref": "turn123view0"
+    },
+    {
+      "id": 88,
+      "title": "RSSetViewports",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-rssetviewports",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Viewport defines pixel-center mapping; fixture must use same full-screen geometry as production.",
+      "web_ref": "turn130view0"
+    },
+    {
+      "id": 89,
+      "title": "D3D11_RASTERIZER_DESC",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ns-d3d11-d3d11_rasterizer_desc",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Scissor/cull/sample changes cannot silently alter edge coverage.",
+      "web_ref": "turn128view0"
+    },
+    {
+      "id": 90,
+      "title": "D3DCompileFromFile",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3dcompiler/nf-d3dcompiler-d3dcompilefromfile",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Compile production helper in isolated fixture with exact macros/targets.",
+      "web_ref": "turn129view0"
+    },
+    {
+      "id": 91,
+      "title": "D3DDisassemble",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3dcompiler/nf-d3dcompiler-d3ddisassemble",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Compare generated texture instruction counts and reject unexpected baseline shader changes.",
+      "web_ref": "turn121view0"
+    },
+    {
+      "id": 92,
+      "title": "D3D11 output-merger stage",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Output-merger format conversion/blend masks are part of result semantics.",
+      "web_ref": "turn137view0"
+    },
+    {
+      "id": 93,
+      "title": "D3D11 rasterizer stage",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Preserve full-screen interpolation and coverage when changing texture access.",
+      "web_ref": "turn135view0"
+    },
+    {
+      "id": 94,
+      "title": "D3D11 shader resource introduction",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-resources-intro",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Resources and views have separate roles and typed interpretations.",
+      "web_ref": "turn141view0"
+    },
+    {
+      "id": 95,
+      "title": "D3D11 feature levels",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-devices-downlevel-intro",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "New Gather entry must use a supported shader profile; current production device uses FL11.",
+      "web_ref": "turn139view0"
+    },
+    {
+      "id": 96,
+      "title": "HLSL semantics",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Pixel-center position and semantic interpolation are critical to gather placement.",
+      "web_ref": "turn134view0"
+    },
+    {
+      "id": 97,
+      "title": "HLSL Texture2D GetDimensions",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-getdimensions",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Production resolution is compile-time macro; avoid redundant dimension queries.",
+      "web_ref": "turn132view0"
+    },
+    {
+      "id": 98,
+      "title": "HLSL saturate",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-saturate",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Do not change clamp/saturate domain in the color blend.",
+      "web_ref": "turn140view0"
+    },
+    {
+      "id": 99,
+      "title": "HLSL mad",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/mad",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Fused or unfused arithmetic may differ; exact RGB gate remains mandatory.",
+      "web_ref": "turn142view0"
+    },
+    {
+      "id": 100,
+      "title": "HLSL ddx",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddx",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Implicit derivatives depend on quad execution; do not infer arbitrary divergent sampling equivalence.",
+      "web_ref": "turn133view0"
+    },
+    {
+      "id": 101,
+      "title": "NVIDIA CUDA best practices",
+      "url": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Use measured bandwidth/latency diagnosis; CUDA APIs and scheduling are not DX11 evidence.",
+      "web_ref": "turn136view0"
+    },
+    {
+      "id": 102,
+      "title": "D3D11 Flush",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-flush",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Flush has overhead and does not guarantee GPU completion; do not insert per-pass synchronization.",
+      "web_ref": "turn131view0"
+    },
+    {
+      "id": 103,
+      "title": "Intel PresentMon implementation",
+      "url": "https://github.com/GameTechDev/PresentMon",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Presentation timing and application GPU scopes differ; do not turn AA savings into FPS claims.",
+      "web_ref": "turn151view0"
+    },
+    {
+      "id": 104,
+      "title": "SciPy paired t-test",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Pair each candidate with same repeat control; confidence intervals need paired differences.",
+      "web_ref": "turn148view0"
+    },
+    {
+      "id": 105,
+      "title": "NIST paired comparisons",
+      "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda353.htm",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Distinguish paired samples from cross-process absolute mean comparisons.",
+      "web_ref": "turn145view0"
+    },
+    {
+      "id": 106,
+      "title": "NumPy array_equal",
+      "url": "https://numpy.org/doc/stable/reference/generated/numpy.array_equal.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Pixel equality must include equal dimensions and exact decoded values.",
+      "web_ref": "turn146view0"
+    },
+    {
+      "id": 107,
+      "title": "Pillow Image conversion",
+      "url": "https://pillow.readthedocs.io/en/stable/reference/Image.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "RGB conversion intentionally omits alpha; state separate RGB and RGBA equality scopes.",
+      "web_ref": "turn149view0"
+    },
+    {
+      "id": 108,
+      "title": "NVIDIA shader intrinsics",
+      "url": "https://developer.nvidia.com/blog/unlocking-gpu-intrinsics-in-hlsl/",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Vendor intrinsics/wave ops add portability constraints; not needed for first minimal candidates.",
+      "web_ref": "turn144view0"
+    },
+    {
+      "id": 109,
+      "title": "D3D11 rasterization rules",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Full-screen triangle fixture must preserve pixel centers and edge coverage.",
+      "web_ref": "turn152view0"
+    },
+    {
+      "id": 110,
+      "title": "GPU Program Optimization, correct chapter",
+      "url": "https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-35-gpu-program-optimization",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Move invariant work out of high-frequency pixel execution; verify arithmetic and instruction scheduling.",
+      "web_ref": "turn163view0"
+    },
+    {
+      "id": 111,
+      "title": "Fullscreen triangle execution (Wallis)",
+      "url": "https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html",
+      "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
+      "takeaway": "Already uses a single fullscreen triangle; replacing a quad is not a new optimization here.",
+      "web_ref": "turn162view0"
+    }
+  ],
+  "not_counted": [
+    {
+      "title": "NVIDIA memory and resources",
+      "url": "https://developer.nvidia.com/blog/advanced-api-performance-memory-and-resources/",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Texture filtering",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-resources-textures-filtering",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Temporal AA survey (Yang/Liu/Salvi 2020)",
+      "url": "https://www.leiy.cc/publications/TAA/TemporalAA.pdf",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Reverse reprojection caching (Nehab et al.)",
+      "url": "https://hhoppe.com/proj/reproj/",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Amortized supersampling (Yang et al.)",
+      "url": "https://hhoppe.com/proj/amortized/",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Subpixel reconstruction antialiasing (Chajdas et al.)",
+      "url": "https://research.nvidia.com/publication/2011-02_subpixel-reconstruction-antialiasing-deferred-shading",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "High-quality temporal supersampling (Karis)",
+      "url": "https://advances.realtimerendering.com/s2014/epic/TemporalAA.pdf",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Internal Error",
+      "url": null,
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Internal Error",
+      "url": null,
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Anti-Aliasing from a Different Perspective",
+      "url": "https://www.iryoku.com/aacourse/downloads/12-Anti-Aliasing-from-a-Different-Perspective-%28DLAA%29.pdf",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Internal Error",
+      "url": null,
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Unity SMAA passes",
+      "url": "https://github.com/Unity-Technologies/PostProcessing/blob/v2/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasing.shader",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "ReShade SMAA implementation",
+      "url": "https://github.com/crosire/reshade-shaders/blob/master/Shaders/SMAA.fx",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "PlayCanvas SMAA implementation",
+      "url": "https://raw.githubusercontent.com/playcanvas/engine/main/scripts/posteffects/posteffect-smaa.js",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Intel CMAA2 official implementation",
+      "url": "https://github.com/GameTechDev/CMAA2/blob/master/Projects/CMAA2/CMAA2.hlsl",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "NVIDIA GPU Gems GPU program optimization",
+      "url": "https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-35-gpu-program",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "MJP Catmull-Rom implementation",
+      "url": "https://gist.github.com/TheRealMJP/cb4a58eb1b3f24c5f3a6",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "D3D11 performance queries",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-devices-counters",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "NVIDIA Nsight Graphics user guide",
+      "url": "https://docs.nvidia.com/nsight-graphics/UserGuide/index.html",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Unity render texture formats",
+      "url": "https://docs.unity3d.com/ScriptReference/RenderTextureFormat.html",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Godot SMAA shader",
+      "url": "https://github.com/godotengine/godot/blob/master/servers/rendering/renderer_rd/shaders/effects/smaa.glsl",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "Temporal AA survey (author copy)",
+      "url": "https://behindthepixels.io/assets/files/TemporalAA.pdf",
+      "status": "not-counted-fetch-or-insufficient-content"
+    },
+    {
+      "title": "GCN fullscreen execution patterns (Drobot)",
+      "url": "https://michaldrobot.com/2014/05/31/gcn-execution-patterns-in-full-screen-passes/",
+      "status": "not-counted-fetch-or-insufficient-content"
+    }
+  ]
+}
