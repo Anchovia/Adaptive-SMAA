@@ -10,12 +10,13 @@ ENTRIES={
  'FixedWeightRGBFeedback.hlsl':['FixedWeightRGBFeedbackPS'],
  'ResolvedRGBFeedback.hlsl':['NeighborhoodFeedbackSeedPS'],
 }
-def compile_shader(src,file,entry,out,gather=False,size=(1920,1061)):
+def compile_shader(src,file,entry,out,gather=False,size=(1920,1061),lazy=False):
     w,h=size
     cmd=[str(FXC),'/nologo','/T','ps_5_0','/E',entry,'/O3','/Ges','/I',str(src),
          '/D','SMAA_HLSL_4_1=1','/D','SMAA_PRESET_ULTRA=1','/D','SMAA_REPROJECTION=1',
          '/D',f'SMAA_RT_METRICS=float4(1.0/{w}.0,1.0/{h}.0,{w}.0,{h}.0)']
     if gather:cmd+=['/D','CASE19_GATHER_LUMA=1']
+    if lazy:cmd+=['/D','CASE19_LAZY_PREVIOUS_EDGE=1']
     cmd+=['/Fo',str(out),'/Fc',str(out.with_suffix('.asm')),str(src/file)]
     p=subprocess.run(cmd,capture_output=True,timeout=60)
     if p.returncode:raise RuntimeError((p.stdout+p.stderr).decode(errors='replace'))
@@ -35,10 +36,19 @@ def main():
                 rows.append(dict(entry=entry,size=size,macro_off_byte_identical=a==b,sha256=hashlib.sha256(a).hexdigest()))
     a,baseline=compile_shader(head,'PersistenceEdgeStencil.hlsl','PersistenceLumaRawEdgePS',out/'raw-point.dxbc')
     b,gather=compile_shader(head,'PersistenceEdgeStencil.hlsl','PersistenceLumaRawEdgePS',out/'raw-gather.dxbc',True)
-    result=dict(validation='PASS' if all(r['macro_off_byte_identical'] for r in rows) else 'FAIL',
+    c,lazy=compile_shader(head,'PersistenceEdgeStencil.hlsl','PersistenceLumaRawEdgePS',out/'raw-lazy.dxbc',lazy=True)
+    depth=0;conditional=[]
+    for line in (out/'raw-lazy.asm').read_text().splitlines():
+        line=line.strip()
+        if re.match(r'if_[nz]+\b',line):depth+=1
+        if re.match(r'(sample_l|ld)(?:_indexable)?\b',line):conditional.append(depth>0)
+        if line=='endif':depth-=1
+    previous_conditional=len(conditional)==2 and all(conditional)
+    result=dict(validation='PASS' if all(r['macro_off_byte_identical'] for r in rows) and previous_conditional else 'FAIL',
         compiler=str(FXC),comparison='O3 + strict, debug omitted for executable DXBC comparison; runtime uses debug metadata additionally',
         baseline=str(base),existing_entries=rows,point_texture_instructions=baseline,gather_texture_instructions=gather,
-        changed_entry='PersistenceLumaRawEdgePS only when CASE19_GATHER_LUMA=1')
+        lazy_texture_instructions=lazy,lazy_previous_reads_inside_branch=previous_conditional,
+        changed_entry='PersistenceLumaRawEdgePS only when CASE19_GATHER_LUMA=1 or CASE19_LAZY_PREVIOUS_EDGE=1')
     (out/'shader-audit.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:v for k,v in result.items() if k!='existing_entries'},indent=2))
     raise SystemExit(0 if result['validation']=='PASS' else 1)

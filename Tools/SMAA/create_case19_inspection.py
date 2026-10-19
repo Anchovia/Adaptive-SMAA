@@ -20,27 +20,27 @@ def sheet(rows,frames,roi,scale,title,path):
     return dict(path=str(path),sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest(),frames=frames,roi=list(roi),scale=scale,filter='nearest')
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--label',required=True);ap.add_argument('--out',required=True);x=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--label',required=True);ap.add_argument('--mode',choices=MODES[3:],default=MODES[-1]);ap.add_argument('--out',required=True);x=ap.parse_args()
     out=Path(x.out);out.mkdir(parents=True,exist_ok=True);manifest=[]
     for scene in ('bistro','minecraft'):
         r,base,_=receipt(x.label,scene,'Case19')
         get=lambda mode:lambda f:rgb(base/mode/f'frame_{f:05d}.png')
-        native,old,new=get(MODES[0]),get(CASE18),get(MODES[-1])
+        native,old,new=get(MODES[0]),get(CASE18),get(x.mode)
         def diff(f):return np.clip(np.abs(old(f).astype(np.int16)-new(f).astype(np.int16))*16,0,255).astype(np.uint8)
         roi_name='thin-chair' if scene=='bistro' else 'thin-seam';roi=ROIS[scene][roi_name]
         for window,frames in WINDOWS.items():
             rows=[('4 native T2X-R (paired pattern On)',native),('18 (pattern Off)',old),
-                  ('19 RGBA8 + Gather (pattern Off)',new),('|18 - 19| x16 (amplified difference)',diff)]
+                  (f'19 {x.mode.removeprefix("ABL-ET2X-R-Case19-")} (pattern Off)',new),('|18 - 19| x16 (amplified difference)',diff)]
             manifest.append(dict(scene=scene,window=window,**sheet(rows,frames,roi,3,
                 f'{scene} {roi_name} f{frames[0]}..{frames[-1]}; original pixels, nearest 3x',out/f'{scene}-{window}.png')))
         for frame in (130,181,230):
-            for name,load in [('case18',old),('case19-combined',new)]:
+            for name,load in [('case18',old),('case19-selected',new)]:
                 p=out/f'{scene}-full-f{frame}-{name}.png';Image.fromarray(load(frame)).save(p)
                 manifest.append(dict(scene=scene,frame=frame,path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest(),kind='lossless full frame copy'))
         x0,y0,x1,y1=roi;w,h=(x1-x0)*3,(y1-y0)*3;frames=[]
         for frame in range(60,210):
             im=Image.new('RGB',(24+w*3,h+32),(24,24,24));draw=ImageDraw.Draw(im)
-            for col,(name,load) in enumerate([('4',native),('18',old),('19 combined',new)]):
+            for col,(name,load) in enumerate([('4',native),('18',old),('19 selected',new)]):
                 draw.text((8+col*(w+4),4),f'f{frame} {name}',font=FONT,fill=(235,235,235))
                 im.paste(Image.fromarray(load(frame)[y0:y1,x0:x1]).resize((w,h),Image.Resampling.NEAREST),(8+col*(w+4),28))
             frames.append(im)
@@ -51,7 +51,7 @@ def main():
             for i in range(count):gif.seek(i);duration+=gif.info['duration']
         assert duration==5000
         manifest.append(dict(scene=scene,path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest(),frames=count,
-            duration_ms=duration,source_frames=[60,209],playback='0.5x average of fixed 60 Hz capture',kind='palette viewing aid; PNG is reference',receipt=r))
+            duration_ms=duration,source_frames=[60,209],mode=x.mode,playback='0.5x average of fixed 60 Hz capture',kind='palette viewing aid; PNG is reference',receipt=r))
     (out/'manifest.json').write_text(json.dumps(manifest,indent=1)+'\n',encoding='utf-8')
     print(f'PASS: {len(manifest)} inspection artifacts')
 if __name__=='__main__':main()

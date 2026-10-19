@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory=$true)][string]$Label,
     [string]$OutputRoot='D:\SMAAResearchCaptures\c17-cleanup-20261016',
     [string]$RetryReason='',
-    [string]$WorktreeRoot=''
+    [string]$WorktreeRoot='',
+    [ValidateSet('Basic','Lazy')][string]$Case19Variant='Basic'
 )
 # One clean CMAA2 process per command for the case-17 preservation/optimization harnesses.
 # Records executable, renderer source and report hashes for every completed run.
@@ -34,8 +35,9 @@ $dirty=$dirtyLines.Count -ne 0
 $records=@()
 if(Test-Path -LiteralPath $receipt){$records=@(Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json)}
 $recordHarness={param($r) if($r.harness){$r.harness}else{'Preservation'}}
+$recordVariant={param($r) if($r.matrix_variant){$r.matrix_variant}else{'Basic'}}
 if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase -and $_.label -eq $Label -and (& $recordHarness $_) -eq $Harness}).Count -and !$RetryReason){throw 'Label already recorded; explicit retry reason required'}
-if($Phase -eq 'Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq 'Smoke' -and $_.executable_sha256 -eq $hash -and (& $recordHarness $_) -eq $Harness}).Count){throw 'Same-binary smoke required before benchmark'}
+if($Phase -eq 'Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq 'Smoke' -and $_.executable_sha256 -eq $hash -and (& $recordHarness $_) -eq $Harness -and (& $recordVariant $_) -eq $Case19Variant}).Count){throw 'Same-binary, same-matrix smoke required before benchmark'}
 if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count){throw 'Existing CMAA2 process; no new run started'}
 $gpuBefore=@(& nvidia-smi --query-gpu=name,driver_version,pstate,utilization.gpu,memory.used --format=csv,noheader)
 if($LASTEXITCODE -ne 0){throw 'Cannot verify GPU state before execution'}
@@ -62,6 +64,10 @@ New-Item -ItemType Directory -Force -Path $output | Out-Null
 $started=[DateTime]::UtcNow.ToString('o')
 $command=if($Harness -eq 'Case19'){"-smaaCase19Spatial$Phase"}else{"-smaaColorBlend$Harness$Phase"}
 $arguments=@($command,$Scene,$output)
+if($Case19Variant -eq 'Lazy'){
+    if($Harness -ne 'Case19'){throw 'Lazy matrix requires Case19 harness'}
+    $arguments += 'lazy'
+}
 $autoBench=Join-Path $root 'Projects/CMAA2/AutoBench'
 $reportsBefore=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
 $cleanRunner=Join-Path $root 'Tools/SMAA/run_clean_cmaa2.ps1'
@@ -82,7 +88,7 @@ if($text -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or $text -match '(?im),\s*
 if($text -notmatch 'Resolution:\s*1920\s*x\s*1061\b'){throw "Report does not have the fixed output resolution: $report"}
 if((Get-FileHash -LiteralPath $exe).Hash -ne $hash){throw 'Executable changed during execution'}
 $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
-$records += [pscustomobject]@{harness=$Harness;label=$Label;scene=$Scene;phase=$Phase;window='hidden';expected_resolution=@(1920,1061);arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
+$records += [pscustomobject]@{harness=$Harness;matrix_variant=$Case19Variant;label=$Label;scene=$Scene;phase=$Phase;window='hidden';expected_resolution=@(1920,1061);arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
     worktree_root=$root;gpu_before=$gpuBefore;gpu_processes_before=$gpuProcessesBefore;
     git_head=$commit;renderer_dirty=$dirty;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');executable_sha256=$hash;harness_sha256=$harnessHash;
     renderer_sha256=$sources;report=$report;report_sha256=(Get-FileHash -LiteralPath $report).Hash;capture_root=$captureRoot}

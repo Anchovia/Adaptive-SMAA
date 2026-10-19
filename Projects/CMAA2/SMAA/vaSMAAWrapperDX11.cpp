@@ -459,7 +459,7 @@ bool vaSMAAWrapperDX11::TemporalResourcesMissing( bool smaaProjection ) const
 bool vaSMAAWrapperDX11::ValidateSelectedTemporalConfiguration( ) const
 {
     const bool feedback=GetResolvedRGBFeedbackEnabled();
-    if((m_selectedEdgeRGBA8 || m_selectedGatherLuma) && (!feedback || !GetSourceTemporalComponentEnabled())) {
+    if((m_selectedEdgeRGBA8 || m_selectedGatherLuma || m_selectedLazyPreviousEdge) && (!feedback || !GetSourceTemporalComponentEnabled())) {
         VA_LOG_ERROR("Case19 spatial candidates require the complete case17 feedback configuration");return false;
     }
     if(GetSourceTemporalComponentEnabled() && !GetFixedHistoryWeight080Enabled()) {
@@ -816,6 +816,8 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         auto edgeMacros=shaderMacros;
         if(m_selectedGatherLuma && entry=="PersistenceLumaRawEdgePS")
             edgeMacros.push_back({"CASE19_GATHER_LUMA","1"});
+        if(m_selectedLazyPreviousEdge && entry=="PersistenceLumaRawEdgePS")
+            edgeMacros.push_back({"CASE19_LAZY_PREVIOUS_EDGE","1"});
         tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,edgeMacros,true);
         tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
         for(int i=0;i<4;++i)tech->BlendFactor[i]=0;

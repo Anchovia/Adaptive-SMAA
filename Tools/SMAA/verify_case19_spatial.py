@@ -4,13 +4,18 @@ from pathlib import Path
 import verify_color_blend_optimization as v
 CASE18=v.CASE17+'+OPT-NeighborhoodNoDepth+PresentHistory'
 MODES=[v.NATIVE,v.CASE17,CASE18,'ABL-ET2X-R-Case19-EdgeRGBA8','ABL-ET2X-R-Case19-GatherLuma','ABL-ET2X-R-Case19-EdgeRGBA8-GatherLuma']
+LAZY='ABL-ET2X-R-Case19-LazyPreviousEdge'
+def modes_for_receipt(receipt):
+    variant=receipt.get('matrix_variant','Basic')
+    if variant not in ('Basic','Lazy'):raise ValueError('Unknown case19 matrix variant')
+    return MODES[:3]+[LAZY] if variant=='Lazy' else MODES
 def verify(label,scene,baseline_runs,record):
-    r,root,text=v.receipt(label,scene,'Case19');v.validate_phases(text,MODES)
+    r,root,text=v.receipt(label,scene,'Case19');modes=modes_for_receipt(r);v.validate_phases(text,modes)
     states=[]
     for row in csv.reader(text.splitlines()):
         row=[x.strip() for x in row]
         if row and row[0]=='edge_storage':states.append(row)
-    v.require(len(states)==len(MODES) and {row[1] for row in states}==set(MODES),'Missing/duplicate actual edge formats')
+    v.require(len(states)==len(modes) and {row[1] for row in states}==set(modes),'Missing/duplicate actual edge formats')
     for row in states:
         expected=28 if 'Case19-EdgeRGBA8' in row[1] else 49
         v.require(int(row[2])==expected and row[3]=='PASS',f'Wrong actual edge format: {row}')
@@ -21,8 +26,8 @@ def verify(label,scene,baseline_runs,record):
     baseline=v.hashes(Path(rr['capture_root']),CASE18)
     record=Path(record);doc=json.loads(record.read_text(encoding='utf-8-sig'))
     v.require(doc['validation']=='PASS' and doc['receipt']['scene']==scene,'Wrong original capture record')
-    hashes={m:v.hashes(root,m) for m in MODES};rows=[]
-    for mode in MODES:
+    hashes={m:v.hashes(root,m) for m in modes};rows=[]
+    for mode in modes:
         ref=v.NATIVE if mode==v.NATIVE else v.CASE17
         original=v.compare_hashes(hashes[mode],doc['rgb_hashes'][ref])
         same=[] if mode==v.NATIVE else v.compare_hashes(hashes[mode],hashes[CASE18])
@@ -30,7 +35,7 @@ def verify(label,scene,baseline_runs,record):
         rows.append(dict(mode=mode,vs_same_run_case18=same,vs_preserved_case18=previous,vs_original_record=original,
             mismatch_details=v.mismatch_details(root,mode,root,CASE18,same)))
     ok=all(not any(row[k] for k in ['vs_same_run_case18','vs_preserved_case18','vs_original_record']) for row in rows)
-    return dict(validation='PASS' if ok else 'MISMATCH',scene=scene,frames_per_mode=240,expected_modes=len(MODES),
+    return dict(validation='PASS' if ok else 'MISMATCH',scene=scene,frames_per_mode=240,expected_modes=len(modes),
         receipt=r,preserved_case18_receipt=rr,record=str(record),record_sha256=hashlib.sha256(record.read_bytes()).hexdigest(),
         actual_edge_formats=states,modes=rows,rgb_hashes=hashes,scope='Decoded RGB; no new quality improvement or universal all-scene equivalence claim')
 def main():

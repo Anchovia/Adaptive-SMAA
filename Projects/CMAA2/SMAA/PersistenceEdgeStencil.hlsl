@@ -241,13 +241,24 @@ bool PreviousRawEdgeAt(float2 uv) {
 
 
 float2 PersistenceLumaRawEdgePS(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0, float4 offset[3] : TEXCOORD1) : SV_TARGET {
+    #if !CASE19_LAZY_PREVIOUS_EDGE
     bool oldEdge = PreviousRawEdgeAt(texcoord);
+    #endif
     #if SMAA_PREDICATION
     float2 edge = PersistenceSMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex);
     #else
     float2 edge = PersistenceSMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma);
     #endif
+    #if CASE19_LAZY_PREVIOUS_EDGE
+    // HLSL logical operators do not short-circuit. Explicit control flow keeps
+    // both previous reads inside the no-current-edge path. Selection remains
+    // current OR reprojected previous; previous-only pixels are still retained.
+    [branch] if (!any(edge > 0.0)) {
+        if (!PreviousRawEdgeAt(texcoord)) discard;
+    }
+    #else
     if (!(any(edge > 0.0) || oldEdge)) discard;
+    #endif
     return edge;
 }
 

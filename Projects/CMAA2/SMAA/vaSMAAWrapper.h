@@ -83,6 +83,7 @@ namespace VertexAsylum
         bool m_selectedPresentHistory = false;                              // Present the next history (visible slot unbound).
         bool m_selectedEdgeRGBA8 = false;                                  // Case19 format-only raw edge storage candidate.
         bool m_selectedGatherLuma = false;                                 // Case19 raw-luma neighbor fetch candidate.
+        bool m_selectedLazyPreviousEdge = false;                           // Case19: read previous edge only if current raw edge is absent.
 
         // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
@@ -142,6 +143,10 @@ namespace VertexAsylum
             if(m_selectedGatherLuma!=enabled){m_selectedGatherLuma=enabled;CleanupTemporaryResources();}
         }
         bool GetSelectedGatherLuma() const {return m_selectedGatherLuma;}
+        void SetSelectedLazyPreviousEdge(bool enabled) {
+            if(m_selectedLazyPreviousEdge!=enabled){m_selectedLazyPreviousEdge=enabled;CleanupTemporaryResources();}
+        }
+        bool GetSelectedLazyPreviousEdge() const {return m_selectedLazyPreviousEdge;}
         virtual int GetEdgeStorageFormatForDiagnostics() const {return 0;}
         // Non-null only for a frame drawn by the present-history candidate: the app presents
         // this texture instead of the render target bound for Draw().

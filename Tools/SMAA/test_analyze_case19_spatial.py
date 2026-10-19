@@ -1,15 +1,15 @@
 import hashlib, tempfile, unittest
 from pathlib import Path
 from analyze_case19_spatial import analyze, METRICS
-from verify_case19_spatial import MODES, CASE18
+from verify_case19_spatial import MODES, CASE18, LAZY
 class TimingValidation(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.path=Path(self.tmp.name)/'results.csv'
-    def fixture(self):
+    def fixture(self,modes=MODES):
         text='Case19 spatial cost matrix\nPNG/query/readback Off\nAPI:  DirectX11\nVsync:        OFF\nFullscreen:   Windowed\nResolution: 1920 x 1061\n'
         text+='edge_storage,O-T2X-R,49,PASS\n' # Native4 precondition, outside measured repeats.
-        for mode_index,mode in enumerate(MODES):
+        for mode_index,mode in enumerate(modes):
             for run in range(6):
                 text+=f'edge_storage,{mode},{28 if "Case19-EdgeRGBA8" in mode else 49},PASS\n'
                 for metric in sorted(METRICS):
@@ -43,4 +43,12 @@ class TimingValidation(unittest.TestCase):
     def test_changed_report(self):
         r=self.receipt(self.fixture());self.path.write_text(self.fixture()+'changed',encoding='utf-8')
         with self.assertRaisesRegex(ValueError,'SHA'):analyze(r)
+    def test_lazy_matrix(self):
+        r=self.receipt(self.fixture(MODES[:3]+[LAZY]));r['matrix_variant']='Lazy'
+        result=analyze(r)
+        self.assertEqual(len(result['modes']),4)
+        self.assertIn(f'{LAZY} vs {CASE18}',result['paired'])
+    def test_unknown_variant(self):
+        r=self.receipt(self.fixture());r['matrix_variant']='unknown'
+        with self.assertRaisesRegex(ValueError,'Unknown case19'):analyze(r)
 if __name__=='__main__':unittest.main()

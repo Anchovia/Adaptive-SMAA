@@ -1,6 +1,6 @@
 {
   "classification": "Technical material review, not 100 full papers",
-  "reviewed_count": 111,
+  "reviewed_count": 113,
   "reviewed": [
     {
       "id": 1,
@@ -778,6 +778,20 @@
       "url": "https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html",
       "review_scope": "Relevant technical sections or implementation excerpt; not a claim of cover-to-cover reading",
       "takeaway": "Already uses a single fullscreen triangle; replacing a quad is not a new optimization here."
+    },
+    {
+      "id": 112,
+      "title": "Shader Specified Stencil Reference Value (D3D11)",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/direct3d11/shader-specified-stencil-reference-value",
+      "review_scope": "Relevant D3D11.3 semantics and support contract",
+      "takeaway": "Per-pixel stencil export could separate current and temporal masks, but is optional and needs a separate capability/lifecycle/performance gate."
+    },
+    {
+      "id": 113,
+      "title": "Practical DX12: Programming Model and Hardware Capabilities",
+      "url": "https://gpuopen.com/download/Practical_DX12_Programming_Model_and_Hardware_Capabilities.pdf",
+      "review_scope": "AMD/NVIDIA GDC talk, especially pp38 and 46; no cover-to-cover claim",
+      "takeaway": "Stencil output has depth-output-like costs; do not assume dual mask export is a free AA optimization. DX12 guidance is not RTX/DX11 performance proof."
     }
   ],
   "not_counted": [
