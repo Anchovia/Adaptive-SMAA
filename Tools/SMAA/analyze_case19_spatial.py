@@ -24,7 +24,9 @@ def analyze(receipt):
         if row and row[0]=='edge_storage':
             if row[1] not in MODES or int(row[2])!=(28 if 'Case19-EdgeRGBA8' in row[1] else 49) or row[3]!='PASS':raise ValueError('Incorrect actual edge format')
             formats[row[1]]+=1
-    if formats!=collections.Counter({m:repeats for m in MODES}):raise ValueError('Missing actual format checks')
+    # The 30-second precondition uses native4, then Configure() starts repeat 0.
+    expected_formats=collections.Counter({m:repeats for m in MODES});expected_formats[MODES[0]]+=1
+    if formats!=expected_formats:raise ValueError('Missing actual format checks')
     result=summarize(path)
     for mode in MODES:
         if mode==CASE18:continue
@@ -32,7 +34,7 @@ def analyze(receipt):
             metric:dict(percent=ci([100*(raw[(mode,r,metric)]['mean']/raw[(CASE18,r,metric)]['mean']-1) for r in range(repeats)]),
                 delta_ms=ci([raw[(mode,r,metric)]['mean']-raw[(CASE18,r,metric)]['mean'] for r in range(repeats)]))
             for metric in sorted(metrics)}
-    result.update(validation='PASS',receipt=receipt,actual_format_checks=dict(formats))
+    result.update(validation='PASS',receipt=receipt,actual_format_checks=dict(formats),format_checks_include_native_precondition=True)
     return result
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--runs',required=True);ap.add_argument('--label',required=True);ap.add_argument('--phase',choices=['Smoke','Benchmark','Profile'],required=True);ap.add_argument('--out',required=True);x=ap.parse_args()

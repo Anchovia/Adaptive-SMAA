@@ -8,6 +8,7 @@ class TimingValidation(unittest.TestCase):
         self.path=Path(self.tmp.name)/'results.csv'
     def fixture(self):
         text='Case19 spatial cost matrix\nPNG/query/readback Off\nAPI:  DirectX11\nVsync:        OFF\nFullscreen:   Windowed\nResolution: 1920 x 1061\n'
+        text+='edge_storage,O-T2X-R,49,PASS\n' # Native4 precondition, outside measured repeats.
         for mode_index,mode in enumerate(MODES):
             for run in range(6):
                 text+=f'edge_storage,{mode},{28 if "Case19-EdgeRGBA8" in mode else 49},PASS\n'
@@ -33,6 +34,9 @@ class TimingValidation(unittest.TestCase):
     def test_wrong_actual_format(self):
         text=self.fixture().replace('edge_storage,O-T2X-R,49,PASS','edge_storage,O-T2X-R,28,PASS',1)
         with self.assertRaisesRegex(ValueError,'Incorrect actual'):analyze(self.receipt(text))
+    def test_missing_precondition_format(self):
+        text=self.fixture().replace('edge_storage,O-T2X-R,49,PASS\n','',1)
+        with self.assertRaisesRegex(ValueError,'Missing actual'):analyze(self.receipt(text))
     def test_incomplete_frame_count(self):
         text=self.fixture().replace(',4800,',',4799,',1)
         with self.assertRaisesRegex(ValueError,'sample counts'):analyze(self.receipt(text))
