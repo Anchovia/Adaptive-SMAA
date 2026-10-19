@@ -107,7 +107,7 @@ class SMAA {
          */
         SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, 
              Preset preset=PRESET_HIGH, bool predication=false, bool reprojection=false, const DXGI_ADAPTER_DESC *adapterDesc=NULL,
-             const ExternalStorage &storage=ExternalStorage());
+             const ExternalStorage &storage=ExternalStorage(), bool forceEdgeRGBA8=false);
         ~SMAA();
 
         /**

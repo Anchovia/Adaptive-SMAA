@@ -12,10 +12,11 @@ public:
     enum class Phase {Capture, Profile, Smoke, Benchmark};
 private:
     struct Mode {const char *name; bool selected; unsigned optimizations;};
-    enum : unsigned {OPT_DEPTH_STENCIL_CLEAR=1u,OPT_NEIGHBORHOOD_NO_DEPTH=2u,OPT_PRESENT_HISTORY=4u};
+    enum : unsigned {OPT_DEPTH_STENCIL_CLEAR=1u,OPT_NEIGHBORHOOD_NO_DEPTH=2u,OPT_PRESENT_HISTORY=4u,
+                     OPT_EDGE_RGBA8=8u,OPT_GATHER_LUMA=16u};
     std::vector<Mode> m_modes;
     Phase m_phase;
-    bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
+    bool m_minecraft,m_case19,m_started=false,m_done=false,m_failed=false,m_rendered=false,m_formatChecked=false;
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
@@ -37,13 +38,15 @@ private:
         s->SetPassProfiling(m_phase==Phase::Profile);
         ApplyOptimizations(s,c);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
-        m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
+        m_samples.clear();m_rendered=false;m_formatChecked=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
     // Candidate toggles; each is applied only by the selected feedback route in Draw().
     static void ApplyOptimizations(const shared_ptr<vaSMAAWrapper>& s,const Mode& c) {
         s->SetSelectedDepthStencilClear((c.optimizations&OPT_DEPTH_STENCIL_CLEAR)!=0);
         s->SetSelectedNeighborhoodWithoutDepth((c.optimizations&OPT_NEIGHBORHOOD_NO_DEPTH)!=0);
         s->SetSelectedPresentHistory((c.optimizations&OPT_PRESENT_HISTORY)!=0);
+        s->SetSelectedEdgeRGBA8((c.optimizations&OPT_EDGE_RGBA8)!=0);
+        s->SetSelectedGatherLuma((c.optimizations&OPT_GATHER_LUMA)!=0);
     }
     std::wstring Prefix() const {
         const auto dir=m_output+vaStringTools::SimpleWiden(Current().name)+L"/";
@@ -70,9 +73,19 @@ private:
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output):
-        AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
+    BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output,bool case19=false):
+        AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),m_case19(case19),
         m_measureFrames(phase==Phase::Smoke?240:phase==Phase::Profile?2400:4800),m_repeats(phase==Phase::Smoke?1:phase==Phase::Profile?3:6),m_output(output) {
+        if(case19) {
+            const unsigned base18=OPT_NEIGHBORHOOD_NO_DEPTH|OPT_PRESENT_HISTORY;
+            m_modes.push_back({"O-T2X-R",false,0});
+            m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",true,0});
+            m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory",true,base18});
+            m_modes.push_back({"ABL-ET2X-R-Case19-EdgeRGBA8",true,base18|OPT_EDGE_RGBA8});
+            m_modes.push_back({"ABL-ET2X-R-Case19-GatherLuma",true,base18|OPT_GATHER_LUMA});
+            m_modes.push_back({"ABL-ET2X-R-Case19-EdgeRGBA8-GatherLuma",true,base18|OPT_EDGE_RGBA8|OPT_GATHER_LUMA});
+            return;
+        }
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",true,0});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-DepthStencilClear",true,OPT_DEPTH_STENCIL_CLEAR});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth",true,OPT_NEIGHBORHOOD_NO_DEPTH});
@@ -93,6 +106,7 @@ public:
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
             tool.ReportAddText("Case17 paired optimization harness: native case4, case17 and single-toggle case17 candidates; renderer configuration otherwise identical to EdgeSourceTemporalComponent.inl.\r\n");
+            if(m_case19)tool.ReportAddText("Case19 spatial cost matrix: native4, case17, case18 (O2+O3), EdgeRGBA8, GatherLuma, combined. No temporal equation changes.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Profile: diagnostic per-pass GPU timers On for every mode; 30s precondition; 300 warmup; 2400 frames x 3 alternating repeats. Not a speed result.\r\n",
@@ -145,6 +159,14 @@ public:
         ok=ok&&s->GetSelectedDepthStencilClear()==((c.optimizations&OPT_DEPTH_STENCIL_CLEAR)!=0);
         ok=ok&&s->GetSelectedNeighborhoodWithoutDepth()==((c.optimizations&OPT_NEIGHBORHOOD_NO_DEPTH)!=0);
         ok=ok&&s->GetSelectedPresentHistory()==((c.optimizations&OPT_PRESENT_HISTORY)!=0);
+        ok=ok&&s->GetSelectedEdgeRGBA8()==((c.optimizations&OPT_EDGE_RGBA8)!=0);
+        ok=ok&&s->GetSelectedGatherLuma()==((c.optimizations&OPT_GATHER_LUMA)!=0);
+        if(!m_formatChecked) {
+            const int format=s->GetEdgeStorageFormatForDiagnostics();
+            const int expected=(c.optimizations&OPT_EDGE_RGBA8)?28:49; // DXGI RGBA8/RG8 UNORM.
+            ok=ok&&format==expected;m_formatChecked=true;
+            tool.ReportAddRowValues({"edge_storage",c.name,std::to_string(format),format==expected?"PASS":"FAIL"});
+        }
         ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==((c.optimizations&OPT_PRESENT_HISTORY)!=0));
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.selected?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         // Fixed output size: a window/display change during a run invalidates captures and timing.
@@ -163,13 +185,16 @@ static void QueueColorBlendOptimization(CMAA2Sample& parent,AutoBenchTool& tool)
     using Phase=BenchItemColorBlendOptimization::Phase;
     static const std::pair<const wchar_t*,Phase> commands[]={
         {L"smaaColorBlendOptimizationCapture",Phase::Capture},{L"smaaColorBlendOptimizationProfile",Phase::Profile},
-        {L"smaaColorBlendOptimizationSmoke",Phase::Smoke},{L"smaaColorBlendOptimizationBenchmark",Phase::Benchmark}};
+        {L"smaaColorBlendOptimizationSmoke",Phase::Smoke},{L"smaaColorBlendOptimizationBenchmark",Phase::Benchmark},
+        {L"smaaCase19SpatialCapture",Phase::Capture},{L"smaaCase19SpatialProfile",Phase::Profile},
+        {L"smaaCase19SpatialSmoke",Phase::Smoke},{L"smaaCase19SpatialBenchmark",Phase::Benchmark}};
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
         for(const auto& command:commands) {
             if(_wcsicmp(p.first.c_str(),command.first)!=0)continue;
             std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
             if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");return;}
-            tool.AddTask(std::make_shared<BenchItemColorBlendOptimization>(parent,command.second,scene==L"minecraft",output));return;
+            const bool case19=std::wstring(command.first).find(L"smaaCase19")==0;
+            tool.AddTask(std::make_shared<BenchItemColorBlendOptimization>(parent,command.second,scene==L"minecraft",output,case19));return;
         }
     }
 }

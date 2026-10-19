@@ -104,7 +104,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage, bool forceEdgeRGBA8)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -187,7 +187,7 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
 
     // In NVIDIA cards R8G8 is slower, avoid it:
     bool isNVIDIACard = adapterDesc? adapterDesc->VendorId == 0x10DE : false;
-    DXGI_FORMAT format = isNVIDIACard? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    DXGI_FORMAT format = (isNVIDIACard || forceEdgeRGBA8)? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R8G8_UNORM;
 
     // If storage for the edges is not specified we will create it:
     if (storage.edgesRTV != nullptr && storage.edgesSRV != nullptr)

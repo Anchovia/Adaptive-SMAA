@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Preservation','Optimization')][string]$Harness='Preservation',
+    [ValidateSet('Preservation','Optimization','Case19')][string]$Harness='Preservation',
     [ValidateSet('Capture','Diagnostic','Profile','Smoke','Benchmark')][string]$Phase='Capture',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
@@ -19,8 +19,8 @@ $sources=@{}
 foreach($file in Get-ChildItem -LiteralPath (Join-Path $root 'Projects/CMAA2/SMAA') -File | Where-Object {$_.Extension -in '.cpp','.h','.hlsl','.hlsli'}){
     $sources['Projects/CMAA2/SMAA/'+$file.Name]=(Get-FileHash -LiteralPath $file.FullName).Hash
 }
-$harnessFile=Join-Path $root "Projects/CMAA2/ColorBlend$Harness.inl"
-if(($Harness -eq 'Preservation' -and $Phase -eq 'Profile') -or ($Harness -eq 'Optimization' -and $Phase -eq 'Diagnostic')){throw "Phase $Phase is not defined for the $Harness harness"}
+$harnessFile=Join-Path $root $(if($Harness -eq 'Case19'){'Projects/CMAA2/ColorBlendOptimization.inl'}else{"Projects/CMAA2/ColorBlend$Harness.inl"})
+if(($Harness -eq 'Preservation' -and $Phase -eq 'Profile') -or ($Harness -ne 'Preservation' -and $Phase -eq 'Diagnostic')){throw "Phase $Phase is not defined for the $Harness harness"}
 $harnessHash=(Get-FileHash -LiteralPath $harnessFile).Hash
 # Trust only this selected worktree for this invocation, without changing global
 # Git settings when the sandbox user has a different SID from the owner.
@@ -60,7 +60,8 @@ $content=[regex]::Replace($content,'<CurrentAAOption>\d+</CurrentAAOption>','<Cu
 $output=Join-Path $OutputRoot $Label
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 $started=[DateTime]::UtcNow.ToString('o')
-$arguments=@("-smaaColorBlend$Harness$Phase",$Scene,$output)
+$command=if($Harness -eq 'Case19'){"-smaaCase19Spatial$Phase"}else{"-smaaColorBlend$Harness$Phase"}
+$arguments=@($command,$Scene,$output)
 $autoBench=Join-Path $root 'Projects/CMAA2/AutoBench'
 $reportsBefore=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
 $cleanRunner=Join-Path $root 'Tools/SMAA/run_clean_cmaa2.ps1'

@@ -133,6 +133,12 @@ namespace VertexAsylum
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
         virtual shared_ptr<vaTexture>   GetPresentedOutputOverride( ) const override { return m_presentedOutput; }
+        virtual int GetEdgeStorageFormatForDiagnostics() const override {
+            if(!m_smaa)return 0;
+            ID3D11RenderTargetView *view=*m_smaa->getEdgesRenderTarget();
+            D3D11_RENDER_TARGET_VIEW_DESC desc;view->GetDesc(&desc);
+            return int(desc.Format);
+        }
         virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext &ctx,const wstring &prefix) override {
             return m_thinLineRawSaved && !m_thinLineTracePrefix.empty() && m_thinLineTracePrefix==prefix
                 && m_temporalHistoryValid
@@ -380,8 +386,16 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
         SAFE_DELETE( m_smaa );
         CleanupTemporaryResources( );
         SetGlobalStates( deviceContext );
+        if(GetResolvedRGBFeedbackEnabled() && m_selectedEdgeRGBA8) {
+            UINT support=0;
+            const UINT required=D3D11_FORMAT_SUPPORT_TEXTURE2D|D3D11_FORMAT_SUPPORT_SHADER_SAMPLE|D3D11_FORMAT_SUPPORT_RENDER_TARGET;
+            if(FAILED(GetRenderDevice().SafeCast<vaRenderDeviceDX11*>()->GetPlatformDevice()->CheckFormatSupport(DXGI_FORMAT_R8G8B8A8_UNORM,&support)) || (support&required)!=required) {
+                UnsetGlobalStates(deviceContext);VA_LOG_ERROR("Case19 RGBA8 edge format unsupported");return false;
+            }
+        }
         m_smaa = new SMAA( GetRenderDevice().SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice(), (SMAAShaderConstantsInterface*)this, (SMAATexturesInterface*)this, (SMAATechniqueManagerInterface*)this, inputColor->GetSizeX( ), inputColor->GetSizeY( ),
-            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection );
+            ( SMAA::Preset )m_settings.Preset, smaaPredication, smaaProjection, nullptr, SMAA::ExternalStorage(),
+            GetResolvedRGBFeedbackEnabled() && m_selectedEdgeRGBA8 );
         m_smaaReprojectionEnabled = smaaProjection;
         UnsetGlobalStates( deviceContext );
         m_texDepthStencil = vaTexture::Create2D( GetRenderDevice(), vaResourceFormat::D24_UNORM_S8_UINT, m_smaa->getWidth( ), m_smaa->getHeight( ), 1, 1, 1, vaResourceBindSupportFlags::DepthStencil );
@@ -445,6 +459,9 @@ bool vaSMAAWrapperDX11::TemporalResourcesMissing( bool smaaProjection ) const
 bool vaSMAAWrapperDX11::ValidateSelectedTemporalConfiguration( ) const
 {
     const bool feedback=GetResolvedRGBFeedbackEnabled();
+    if((m_selectedEdgeRGBA8 || m_selectedGatherLuma) && (!feedback || !GetSourceTemporalComponentEnabled())) {
+        VA_LOG_ERROR("Case19 spatial candidates require the complete case17 feedback configuration");return false;
+    }
     if(GetSourceTemporalComponentEnabled() && !GetFixedHistoryWeight080Enabled()) {
         VA_LOG_ERROR("Source component requires fixed080 case14 configuration");return false;
     }
@@ -796,7 +813,10 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         shaderMacros.push_back({"PERSISTENCE_EAGER_FETCH","1"});
         const string entry=name.substr(5);
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
-        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
+        auto edgeMacros=shaderMacros;
+        if(m_selectedGatherLuma && entry=="PersistenceLumaRawEdgePS")
+            edgeMacros.push_back({"CASE19_GATHER_LUMA","1"});
+        tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,edgeMacros,true);
         tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
         for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
         tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;

@@ -31,6 +31,9 @@
 // discard -> return zero, allowing the wrapper to retain a previous-only pixel.
 // Raw RG stays zero there; the union is NEVER fed back as a raw edge.
 #include "SMAAWrapper.hlsl"
+#if CASE19_GATHER_LUMA
+#include "Case19LumaGather.hlsli"
+#endif
 Texture2D previousRawEdges : register(t10);
 
 float2 PersistenceSMAALumaRawEdgeDetectionPS(float2 texcoord,
@@ -57,9 +60,14 @@ float2 PersistenceSMAALumaRawEdgeDetectionPS(float2 texcoord,
 
     // Gather lumas:
     //SMAAGather
+    #if CASE19_GATHER_LUMA
+    float3 luma=Case19GatherLumaCurrentLeftTop(colorTex, PointSampler, texcoord, SMAA_RT_METRICS.xy);
+    float L=luma.x, Lleft=luma.y, Ltop=luma.z;
+    #else
     float L     = SMAASamplePoint(colorTex, texcoord).r;
     float Lleft = SMAASamplePoint(colorTex, offset[0].xy).r;
     float Ltop  = SMAASamplePoint(colorTex, offset[0].zw).r;
+    #endif
 
     // We do the usual threshold:
     float4 delta;

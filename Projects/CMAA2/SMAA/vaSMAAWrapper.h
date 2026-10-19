@@ -81,6 +81,8 @@ namespace VertexAsylum
         bool m_selectedDepthStencilClear = false;                           // Clear SMAA depth+stencil instead of stencil only.
         bool m_selectedNeighborhoodWithoutDepth = false;                    // Feedback neighborhood pass with depth disabled.
         bool m_selectedPresentHistory = false;                              // Present the next history (visible slot unbound).
+        bool m_selectedEdgeRGBA8 = false;                                  // Case19 format-only raw edge storage candidate.
+        bool m_selectedGatherLuma = false;                                 // Case19 raw-luma neighbor fetch candidate.
 
         // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
@@ -132,6 +134,15 @@ namespace VertexAsylum
         bool GetSelectedNeighborhoodWithoutDepth() const {return m_selectedNeighborhoodWithoutDepth;}
         void SetSelectedPresentHistory(bool enabled){m_selectedPresentHistory=enabled;}
         bool GetSelectedPresentHistory() const {return m_selectedPresentHistory;}
+        void SetSelectedEdgeRGBA8(bool enabled) {
+            if(m_selectedEdgeRGBA8!=enabled){m_selectedEdgeRGBA8=enabled;CleanupTemporaryResources();}
+        }
+        bool GetSelectedEdgeRGBA8() const {return m_selectedEdgeRGBA8;}
+        void SetSelectedGatherLuma(bool enabled) {
+            if(m_selectedGatherLuma!=enabled){m_selectedGatherLuma=enabled;CleanupTemporaryResources();}
+        }
+        bool GetSelectedGatherLuma() const {return m_selectedGatherLuma;}
+        virtual int GetEdgeStorageFormatForDiagnostics() const {return 0;}
         // Non-null only for a frame drawn by the present-history candidate: the app presents
         // this texture instead of the render target bound for Draw().
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
