@@ -4,12 +4,13 @@ param(
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
     [string]$OutputRoot='D:\SMAAResearchCaptures\c17-cleanup-20261016',
-    [string]$RetryReason=''
+    [string]$RetryReason='',
+    [string]$WorktreeRoot=''
 )
 # One clean CMAA2 process per command for the case-17 preservation/optimization harnesses.
 # Records executable, renderer source and report hashes for every completed run.
 $ErrorActionPreference='Stop'
-$root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+$root=if($WorktreeRoot){(Resolve-Path -LiteralPath $WorktreeRoot).Path}else{(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path}
 $exe=Join-Path $root 'Projects/CMAA2/CMAA2.exe'
 $receipt=Join-Path $root 'tmp/color-blend-preservation-runs.json'
 if(!(Test-Path -LiteralPath (Split-Path $receipt))){New-Item -ItemType Directory -Path (Split-Path $receipt)|Out-Null}
@@ -36,6 +37,10 @@ $recordHarness={param($r) if($r.harness){$r.harness}else{'Preservation'}}
 if(@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq $Phase -and $_.label -eq $Label -and (& $recordHarness $_) -eq $Harness}).Count -and !$RetryReason){throw 'Label already recorded; explicit retry reason required'}
 if($Phase -eq 'Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -and $_.phase -eq 'Smoke' -and $_.executable_sha256 -eq $hash -and (& $recordHarness $_) -eq $Harness}).Count){throw 'Same-binary smoke required before benchmark'}
 if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count){throw 'Existing CMAA2 process; no new run started'}
+$gpuBefore=@(& nvidia-smi --query-gpu=name,driver_version,pstate,utilization.gpu,memory.used --format=csv,noheader)
+if($LASTEXITCODE -ne 0){throw 'Cannot verify GPU state before execution'}
+$gpuProcessesBefore=@(& nvidia-smi)
+if($LASTEXITCODE -ne 0){throw 'Cannot inspect GPU processes before execution'}
 $settings=Join-Path $root 'Projects/CMAA2/ApplicationSettings.xml'
 $content=[System.IO.File]::ReadAllText($settings)
 # The excluded opt-c run persisted a resized window. Restore the established
@@ -58,7 +63,8 @@ $started=[DateTime]::UtcNow.ToString('o')
 $arguments=@("-smaaColorBlend$Harness$Phase",$Scene,$output)
 $autoBench=Join-Path $root 'Projects/CMAA2/AutoBench'
 $reportsBefore=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
-$result=& (Join-Path $PSScriptRoot 'run_clean_cmaa2.ps1') -CMAA2Arguments $arguments -Hidden -TimeoutSeconds 1200
+$cleanRunner=Join-Path $root 'Tools/SMAA/run_clean_cmaa2.ps1'
+$result=& $cleanRunner -CMAA2Arguments $arguments -Hidden -TimeoutSeconds 1200
 $pass=$result | Where-Object {$_ -match 'PASS:.*report='} | Select-Object -Last 1
 if(!$pass -and $Phase -in 'Diagnostic','Profile'){
     # run_clean_cmaa2 only collects reports for *Test/*Capture/*Smoke/*Benchmark commands.
@@ -72,9 +78,11 @@ $report=($pass -split 'report=',2)[1].Trim()
 $text=Get-Content -LiteralPath $report -Raw
 if($text -notmatch 'Aggregate: PASS'){throw 'Aggregate PASS missing'}
 if($text -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or $text -match '(?im),\s*FAIL\s*(?:,|$)'){throw "Report contains a failed check: $report"}
+if($text -notmatch 'Resolution:\s*1920\s*x\s*1061\b'){throw "Report does not have the fixed output resolution: $report"}
 if((Get-FileHash -LiteralPath $exe).Hash -ne $hash){throw 'Executable changed during execution'}
 $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
 $records += [pscustomobject]@{harness=$Harness;label=$Label;scene=$Scene;phase=$Phase;window='hidden';expected_resolution=@(1920,1061);arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
+    worktree_root=$root;gpu_before=$gpuBefore;gpu_processes_before=$gpuProcessesBefore;
     git_head=$commit;renderer_dirty=$dirty;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');executable_sha256=$hash;harness_sha256=$harnessHash;
     renderer_sha256=$sources;report=$report;report_sha256=(Get-FileHash -LiteralPath $report).Hash;capture_root=$captureRoot}
 ConvertTo-Json -InputObject @($records) -Depth 5 | Set-Content -LiteralPath $receipt -Encoding utf8

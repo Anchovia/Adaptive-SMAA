@@ -5,6 +5,12 @@
 새 알고리즘·품질 기능(후보 확장, dilation, Dual Filter, clipping/sampling/weight/jitter 변경, object motion,
 Adaptive 결합)은 추가하지 않는다.
 
+2026-10-19 사용자 지시 "성능측정까지 다 진행해줘"에 따라 출력 캡처와 후속 성능 campaign을 재개한다.
+새 실행 파일/드라이버의 결과는 2026-10-17 중간 수치와 구분한다. runner의 `-WorktreeRoot`는
+정리 전/후의 기존 실행 파일을 그 경로의 clean runner로 실행하고 해당 worktree에 receipt를 남긴다.
+이 옵션으로 과거 worktree의 runner 수정본과 실행 파일을 덮어쓰지 않고 동일한 창 준비 조건을 적용한다.
+실행 직전 GPU 상태와 GPU process 목록을 receipt에 보존한다.
+
 ## 후보 (모두 기본 Off, ⑰의 selected feedback 경로에만 적용, ④ 경로 불변)
 
 | ID | 커밋 | 변경 | 출력 보존 근거 |
