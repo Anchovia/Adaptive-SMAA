@@ -1,0 +1,47 @@
+System info:  AMD Ryzen 5 5600 6-Core Processor              , NVIDIA GeForce RTX 3060 Ti
+API:  DirectX11
+
+Resolution:   1920 x 1061
+Vsync:        OFF
+Fullscreen:   Windowed
+
+presentation_timeline, 240, 60, 120, 60, 60fps, 2.0, 
+Case17 paired optimization harness: native case4, case17 and single-toggle case17 candidates; renderer configuration otherwise identical to EdgeSourceTemporalComponent.inl.
+Case19 spatial cost matrix: native4, case17, case18 (O2+O3), LazyPreviousEdge. No temporal equation changes.
+Case19 lazy previous matrix: native4, case17, case18, LazyPreviousEdge. RG8 and point luma; union selection unchanged.
+Scene: bistro
+Ultra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.
+Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.
+timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps
+capture_root, C:\Users\USER\Desktop\research\tmp\case19-20261019\c19-lazy-smoke-a/smoke/bistro/20261019_172709/, 
+edge_storage, O-T2X-R, 49, PASS, 
+edge_storage, O-T2X-R, 49, PASS, 
+timing, O-T2X-R, 0, SF_Spatial, 240, 0.100898133, 0.101376000, 0.103424000, 0.104448000, 0.001498177, 9527.439024390, 
+timing, O-T2X-R, 0, SMAA, 240, 0.157248000, 0.156672000, 0.162816000, 0.163840000, 0.004176836, 6084.501557632, 
+timing, O-T2X-R, 0, SR_CameraVelocity, 240, 0.023398400, 0.023552000, 0.023552000, 0.024576000, 0.000460800, 40690.104166667, 
+timing, O-T2X-R, 0, SR_Resolve, 240, 0.032891733, 0.030720000, 0.036864000, 0.036864000, 0.003538297, 27126.736111111, 
+timing, O-T2X-R, 0, WallFrame, 240, 2.903696250, 2.859200000, 3.143400000, 3.184800000, 0.107751679, 304.094634250, 
+timing, O-T2X-R, 0, WholeFrame, 240, 2.431638667, 2.385920000, 2.679808000, 2.682880000, 0.107778763, 371.811345898, 
+edge_storage, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 49, PASS, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 0, SF_Spatial, 240, 0.113233067, 0.113664000, 0.116736000, 0.116736000, 0.003027948, 8418.642241379, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 0, SMAA, 240, 0.147037867, 0.148480000, 0.151552000, 0.152576000, 0.003775159, 6488.787375415, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 0, SR_CameraVelocity, 240, 0.023458133, 0.023552000, 0.024576000, 0.024576000, 0.000476570, 40690.104166667, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 0, SR_Resolve, 240, 0.010342400, 0.010240000, 0.011264000, 0.011264000, 0.000840263, 81380.208333333, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 0, WallFrame, 240, 2.908857917, 2.866300000, 3.137700000, 3.162400000, 0.102197334, 314.480242779, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend, 0, WholeFrame, 240, 2.420123067, 2.385920000, 2.644992000, 2.648064000, 0.095051875, 376.252167212, 
+edge_storage, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 49, PASS, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 0, SF_Spatial, 240, 0.102033067, 0.101376000, 0.108544000, 0.108544000, 0.004798974, 9084.302325581, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 0, SMAA, 240, 0.133811200, 0.131072000, 0.140288000, 0.141312000, 0.005717709, 7050.992779783, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 0, SR_CameraVelocity, 240, 0.023441067, 0.023552000, 0.023552000, 0.023552000, 0.000318260, 42459.239130435, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 0, SR_Resolve, 240, 0.008337067, 0.008192000, 0.010240000, 0.010240000, 0.000978584, 97656.250000000, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 0, WallFrame, 240, 2.904157083, 2.864000000, 3.140500000, 3.177300000, 0.102167003, 313.745176168, 
+timing, ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory, 0, WholeFrame, 240, 2.402974933, 2.360320000, 2.632704000, 2.634752000, 0.102326694, 379.542363000, 
+edge_storage, ABL-ET2X-R-Case19-LazyPreviousEdge, 49, PASS, 
+timing, ABL-ET2X-R-Case19-LazyPreviousEdge, 0, SF_Spatial, 240, 0.110638933, 0.108544000, 0.116736000, 0.116736000, 0.004958959, 8491.847826087, 
+timing, ABL-ET2X-R-Case19-LazyPreviousEdge, 0, SMAA, 240, 0.142583467, 0.140288000, 0.149504000, 0.150528000, 0.005941547, 6643.282312925, 
+timing, ABL-ET2X-R-Case19-LazyPreviousEdge, 0, SR_CameraVelocity, 240, 0.023492267, 0.023552000, 0.024576000, 0.024576000, 0.000454034, 40690.104166667, 
+timing, ABL-ET2X-R-Case19-LazyPreviousEdge, 0, SR_Resolve, 240, 0.008384000, 0.008192000, 0.010240000, 0.010240000, 0.001054609, 97656.250000000, 
+timing, ABL-ET2X-R-Case19-LazyPreviousEdge, 0, WallFrame, 240, 2.915985417, 2.867000000, 3.153900000, 3.257500000, 0.117057964, 299.365345468, 
+timing, ABL-ET2X-R-Case19-LazyPreviousEdge, 0, WholeFrame, 240, 2.437959067, 2.383872000, 2.658304000, 2.666496000, 0.117399929, 371.175408590, 
+Aggregate: PASS
+

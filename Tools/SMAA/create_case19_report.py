@@ -13,7 +13,7 @@ def interval(p):return ' / '.join(f'{v:+.3f}%' for v in p['ci95'])
 def table(headers,rows):return '\n'.join(['| '+' | '.join(headers)+' |','|'+'|'.join(['---']*len(headers))+'|']+['| '+' | '.join(map(str,r))+' |' for r in rows])
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--selected',required=True,choices=MODES[2:]+[LAZY]);ap.add_argument('--out',required=True);x=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--selected',required=True,choices=[CASE18,LAZY]);ap.add_argument('--out',required=True);x=ap.parse_args()
     docs=Path('Docs/Case19-AA-Overhead');bench=read(docs/'benchmark.json');profile=read(docs/'profile.json')
     modes=modes_for_receipt(bench['bistro']['receipt'])
     for scene in ('bistro','minecraft'):
@@ -21,6 +21,8 @@ def main():
         assert read(docs/f'verify-lazy-{scene}.json')['validation']=='PASS'
         assert bench[scene]['repeats']==6 and profile[scene]['repeats']==3
     reviewed=read(docs/'research-ledger.json');selected=x.selected
+    if selected==LAZY and any(paired(a,LAZY,CASE18,'SMAA')['ci95'][1]>=0 for a in bench.values()):
+        raise ValueError('Cannot adopt a candidate without consistent paired AA benefit in both scenes')
     rows=[];performance=[]
     for scene,a in bench.items():
         for m in modes:
@@ -39,9 +41,11 @@ def main():
             p=paired(a,m,CASE18,'SMAA');sp=paired(a,m,CASE18,'SF_Spatial');wf=paired(a,m,CASE18,'WholeFrame')
             detailed.append([scene,NAMES[m],f"{p['mean']:+.3f}%",interval(p),f"{sp['mean']:+.3f}%",interval(sp),f"{wf['mean']:+.3f}%",interval(wf)])
     prof=[]
+    edge_deltas=[]
     for scene,a in profile.items():
         for m in modes:
             prof.append([scene,NAMES[m]]+[f'{value(a,m,k):.6f}' for k in ['SP_Prepare','SP_Edge','SP_Weights','SP_Neighborhood','SR_Resolve']])
+        edge_deltas.append(f"- {scene}: 조회 지연 후보의 edge가 ⑱보다 {value(a,LAZY,'SP_Edge')-value(a,CASE18,'SP_Edge'):+.6f} ms 증가했다.")
     selected_summary=[]
     for scene,a in bench.items():
         if selected==CASE18:
@@ -100,15 +104,20 @@ stencil/edge/weight clear 생략은 sparse write의 0 보장을 깨뜨리므로 
 
 {table(['장면','설정','prepare ms','edge ms','weights ms','neighborhood ms','resolve ms'],prof)}
 
+{chr(10).join(edge_deltas)}
+
+조회 지연 후보의 추가 비용은 주로 edge 단계에서 관찰됐다. 분기로 인한 divergence나 기존 읽기의 latency overlap 감소가 가능한 설명이지만, 이를 특정한 하드웨어 원인으로 확정하지 않는다.
+
 ④는 Standard O-T2X-R의 paired sample pattern On이고 선택형은 pattern Off다. 공간 edge population도 달라질 수 있으므로 ④와의 edge/weight 차이 전체를 선택 mask 비용 하나로 단정하지 않는다. ⑱와 ⑲ 사이의 비교는 이 의미를 고정한다.
 
-소스상의 fetch 수는 실제 GPU 시간과 같은 지표가 아니다. RGBA8은 저장 폭이 넓고 Gather는 추가 채널·좌표 산술과 다른 명령 스케줄을 사용한다. 이들이 이번 차이를 만든 정확한 하드웨어 원인인지는 cache/throughput/occupancy counter를 계측하지 않아 확정하지 않는다. 별도 profile은 비용이 증가하거나 감소한 pass를 찾는 근거까지만 제공한다. 이번 후보가 실패해도 다른 출력 보존 최적화가 불가능하다는 결론은 아니다.
+소스상의 fetch 수는 실제 GPU 시간과 같은 지표가 아니다. RGBA8은 저장 폭이 넓고 Gather는 texture 요청 형태·좌표 산술과 명령 스케줄을 바꾼다. 이들이 이번 차이를 만든 정확한 하드웨어 원인인지는 cache/throughput/occupancy counter를 계측하지 않아 확정하지 않는다. 별도 profile은 비용이 증가하거나 감소한 pass를 찾는 근거까지만 제공한다. 이번 후보가 실패해도 다른 출력 보존 최적화가 불가능하다는 결론은 아니다.
 
 ## 출력·구현 검증
 
 - 첫 matrix는 Bistro/Minecraft 각각 6 mode×240프레임, 총 2,880 PNG, 후속 matrix는 각각 4 mode×240프레임, 총 1,920 PNG의 연속 index·1920×1061 RGB·jitter phase·실제 target format·report SHA를 검증했다. 모든 선택형 후보는 같은 실행 ⑱, 보존된 이전 ⑱와 원래 ⑰의 decoded RGB hash에 mismatch 0이다. ④도 원래 ④ hash와 mismatch 0이다.
 - GPU 수치 probe: 30개 fixture, 19,730,050 pixel에서 current/left/top point↔Gather와 binary RG edge의 RG8↔RGBA8 보간 결과에 mismatch 0. 1×1, odd size, 1920×1061을 포함한다. fixture 통과를 모든 장면의 영구 동등성 증명으로 표현하지 않는다.
 - shader audit: 11개 기존 entry×2해상도에서 옵션 Off의 최적화 DXBC가 ⑱ 소스와 byte 동일하다. debug metadata를 제외한 FXC /O3 /Ges 결과이며 runtime debug blob 전체 동일성을 주장하지 않는다.
+- 타이밍 분석기의 9개 검사는 누락·중복·표본 수·실제 format·report 변조·행렬 종류를 검증했고, 기존 color-blend 도구의 18개 검사도 통과했다.
 - 화면 f130 및 thin-chair/thin-seam 이동 f124~133, 전환 f178~183, 정지 f230 비교를 직접 확인했다. ⑰/⑱의 얇은 구조 단절·벽 경계 약화는 그대로다. 품질 개선이나 새 CGVQM 결과를 주장하지 않는다. 인증 범위는 화면 RGB이며 중간 alpha/전체 RGBA가 아니다.
 - `verify-bistro.json`, `verify-minecraft.json`, `verify-lazy-bistro.json`, `verify-lazy-minecraft.json`, `gpu-probe.json`, `shader-audit.json`, `lazy-shader-audit.json`, `smoke.json`, `lazy-smoke.json`에 원자료 경로·hash·검증 결과를 보존했다. 비교 PNG와 GIF는 별도 inspection 폴더에 있으며 GIF는 palette viewing aid다. GIF 재생을 직접 확인했다고 주장하지 않는다.
 
@@ -125,7 +134,7 @@ Tools/SMAA/run_case19_spatial.ps1 -Variant Lazy -Phase Benchmark -Scene bistro -
 Tools/SMAA/run_case19_spatial.ps1 -Variant Lazy -Phase Profile -Scene bistro -Label c19-lazy-profile-a
 ```
 
-각 명령은 독립 실행이며 이전 process의 종료·GPU idle 확인 후 다음 명령을 시작한다. Minecraft는 Scene만 바꾼다. raw PNG·실행 파일·컴파일 cache는 ignored 경로에 보존하며 저장소에는 원자료 위치·hash와 분석 결과를 기록한다.
+각 명령은 독립 실행이며 이전 process의 종료·GPU idle 확인 후 다음 명령을 시작한다. Minecraft는 Scene만 바꾼다. raw PNG와 현재 실행 파일·컴파일 cache는 ignored 경로에 남겼다. 초기 screening exe는 후속 빌드로 덮어썼으며 그 SHA·source commit을 기록했다. 저장소에는 raw CSV 사본·receipt·원자료 위치·hash와 분석 결과를 보존한다.
 '''
     Path(x.out).write_text(text,encoding='utf-8')
     source_lines=[f"# ⑲ 자료 검토 목록: {reviewed['reviewed_count']}개",'',

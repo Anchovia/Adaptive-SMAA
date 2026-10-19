@@ -10,6 +10,22 @@
   "reprojection": "camera/depth only",
   "pattern": "Off",
   "default_eight_case_matrix": "unchanged",
-  "status": "research in progress",
-  "requested_minimum_distinct_materials": 100
+  "status": "case19 investigation complete; tested candidates not adopted",
+  "requested_minimum_distinct_materials": 100,
+  "reviewed_materials": 114,
+  "tested_configurations": [
+    "EdgeRGBA8",
+    "GatherLuma",
+    "EdgeRGBA8+GatherLuma",
+    "LazyPreviousEdge"
+  ],
+  "adopted_new_candidate": null,
+  "recommended_configuration": "case18 (O2+O3)",
+  "production_defaults_changed": false,
+  "complete_clean_cmaa2_processes": 14,
+  "formal_runs_per_configuration": 6,
+  "formal_measurement_frames_per_run": 4800,
+  "validation": "All candidate decoded-RGB comparisons PASS; no paired AA benefit in both scenes",
+  "initial_executable_retained": false,
+  "current_executable_sha256": "8971104C54018BC77063C8AE417E94DC85103F2C80F964AA14B08664CC9F5C7F"
 }
