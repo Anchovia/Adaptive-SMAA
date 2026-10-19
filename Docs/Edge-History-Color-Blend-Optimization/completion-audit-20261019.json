@@ -1,0 +1,114 @@
+{
+ "date_kst": "2026-10-19",
+ "measurement_validation": "PASS",
+ "new_completed_clean_processes": 20,
+ "phase_counts": {
+  "Capture": 2,
+  "Smoke": 6,
+  "Benchmark": 10,
+  "Profile": 2
+ },
+ "process_ids": [
+  14600,
+  9744,
+  4876,
+  18940,
+  20372,
+  5332,
+  2748,
+  1688,
+  20544,
+  15516,
+  5964,
+  6664,
+  18996,
+  12736,
+  14824,
+  1828,
+  5740,
+  14944,
+  9468,
+  13944
+ ],
+ "startup_stalls_or_excluded_runs_this_campaign": 0,
+ "formal_benchmark_processes": 10,
+ "formal_repeats_per_mode": 6,
+ "formal_samples_per_repeat": 4800,
+ "profile_repeats_per_mode": 3,
+ "profile_samples_per_repeat": 2400,
+ "smokes": [
+  {
+   "scene": "bistro",
+   "label": "opt-smoke-b",
+   "modes": 6,
+   "samples_per_mode": 240,
+   "validation": "PASS",
+   "executable_sha256": "C83A5E29CB5A5F79ECF1BC3F2850CE4763FD921C957B4328DBDCDA8BE35C2638"
+  },
+  {
+   "scene": "minecraft",
+   "label": "opt-smoke-b",
+   "modes": 6,
+   "samples_per_mode": 240,
+   "validation": "PASS",
+   "executable_sha256": "C83A5E29CB5A5F79ECF1BC3F2850CE4763FD921C957B4328DBDCDA8BE35C2638"
+  },
+  {
+   "scene": "bistro",
+   "label": "before-smoke-1",
+   "modes": 2,
+   "samples_per_mode": 240,
+   "validation": "PASS",
+   "executable_sha256": "CA01DDD6602ABC129A49D246B7D93C17E4F92FC3E0570E9DE92864792130B739"
+  },
+  {
+   "scene": "minecraft",
+   "label": "before-smoke-1",
+   "modes": 2,
+   "samples_per_mode": 240,
+   "validation": "PASS",
+   "executable_sha256": "CA01DDD6602ABC129A49D246B7D93C17E4F92FC3E0570E9DE92864792130B739"
+  },
+  {
+   "scene": "bistro",
+   "label": "after-smoke-1",
+   "modes": 2,
+   "samples_per_mode": 240,
+   "validation": "PASS",
+   "executable_sha256": "47E69FD5B3073FDFFBD364FA5F2F3B55ED5107C893B1345E701D2EBBF586D212"
+  },
+  {
+   "scene": "minecraft",
+   "label": "after-smoke-1",
+   "modes": 2,
+   "samples_per_mode": 240,
+   "validation": "PASS",
+   "executable_sha256": "47E69FD5B3073FDFFBD364FA5F2F3B55ED5107C893B1345E701D2EBBF586D212"
+  }
+ ],
+ "output_validation": {
+  "scenes": 2,
+  "modes_per_scene": 6,
+  "frames_per_mode": 240,
+  "rgb_mismatch_count": 0,
+  "native_regression_mismatch_count": 0
+ },
+ "raw_capture": {
+  "path": "C:\\Users\\USER\\Desktop\\research\\tmp\\c17-resume-20261019\\opt-d\\capture",
+  "png_count": 2880,
+  "bytes": 6294141909
+ },
+ "tool_tests": {
+  "rgb_verifier_cases": 12,
+  "timing_validation_cases": 6,
+  "validation": "PASS"
+ },
+ "remaining_decision": "O3/combined intermediate visible-alpha change adoption; defaults remain Off",
+ "limitations": [
+  "RGB certification covers the two captured 240-frame timelines, not all scenes/inputs",
+  "No new O3 internal alpha/mask or swap-chain screenshot capture",
+  "Cleanup ABBA has only two independent processes per build; no definite cleanup speed claim",
+  "Hidden/windowed GPU timings, not general interactive game FPS",
+  "Existing thin-structure defects remain; no quality model rerun or improvement claim"
+ ]
+}

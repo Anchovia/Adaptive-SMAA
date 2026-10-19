@@ -1,37 +1,39 @@
-# ⑰ 출력 보존 최적화: 진행 상태와 재개 절차 (2026-10-19 인계 재개)
+# ⑰ 화면 RGB 출력 보존 최적화: 측정 완료 (2026-10-19)
 
 브랜치 `experiment/edge-history-color-blend-optimization`, 의존성: 정리 완료 커밋 `d2a6315`.
-사용자 요청으로 다시 중단했다. **성능 측정은 사용자가 다시 허용할 때까지 실행하지 않는다.**
-PC 사용 중에는 창 크기가 바뀌어 품질 캡처도 무효가 될 수 있으므로 CMAA2 실행 자체를 멈췄다.
+사용자의 "성능측정까지 다 진행해줘" 지시에 따라 두 장면 출력 검증, 본 benchmark, 정리 전후 ABBA,
+세부 pass 진단을 완료했다. 신규 20개 clean process 모두 PASS, timeout/제외 실행 0개, 잔류 CMAA2 0개다.
+최종 결과는 [report-ko.md](report-ko.md), 실행별 식별 정보는 [runs-20261019.json](runs-20261019.json),
+완성도 검사는 [completion-audit-20261019.json](completion-audit-20261019.json)을 먼저 읽는다.
 
 2026-10-19: 저장소 상태를 다시 확인하고 Release x64 재빌드에 성공했다(해상도 검사 포함).
 새 exe SHA-256은 `C83A5E29CB5A5F79ECF1BC3F2850CE4763FD921C957B4328DBDCDA8BE35C2638`이다.
-아직 이 exe로 CMAA2를 실행하지 않았다. 캡처/성능 실행 범위에 대한 사용자 답변을 기다린다.
-검증 도구 보완과 테스트, 다음 실행 명령은 [continuation-ko.md](continuation-ko.md), 기계 판독 기록은
-[continuation-20261019.json](continuation-20261019.json)에 있다. 렌더러/HLSL 변경과 기본값 채택은 없다.
+이 exe로 Bistro/Minecraft `opt-d` 캡처를 완료했고, 두 장면 모두 결합 모드 포함 6×240 RGB 검증 PASS다.
+원본 full frame과 moving/transition/failure-window/settled nearest ROI를 직접 확인했다. 기존 구조 단절은 그대로다.
+`verify-opt-d-*.json`, `visual-inspection-opt-d.json`, `inspection-opt-d-manifest.json`이 근거다.
+두 장면 `opt-smoke-b`와 before/after의 네 smoke가 PASS했다. 본 benchmark 10개 process는 각각 mode당
+300 warm-up + 4,800×6회, 별도 profile 두 process는 2,400×3회다. 측정 head는 `6ef1564`다.
+초기 도구 보강 당시의 상태는 `continuation-*`에 과거 기록으로 보존한다. 렌더러/HLSL 변경과 기본값 채택은 없다.
 
-## 지금까지 확정된 것
+## 이번 새 결과
 
-- O1/O2/O3 각각 두 장면 240프레임 RGB가 ⑰·정리본 캡처·원래 ⑰ 기록과 동일 (`verify-opt-a-*`, `verify-opt-b-*`).
-  O3 원본 프레임 직접 검사(Minecraft f124~133/f178~183/f230, Bistro f126~131/f178~183/f230, full f130)에서 ⑰와 같고
-  기존 얇은 구조 문제도 그대로다.
-- 진단 pass profile(두 장면)과 Bistro 정식 benchmark(6×4,800): `interim-performance.json`.
-  Bistro 전체 AA는 ⑰ 대비 O3 −7.34%, O2 −0.50%, O1 +1.16%(느려짐, 제외). ④ 대비 ⑰ −6.95%, ⑰+O3 −13.78%.
-- Minecraft 정식 benchmark는 시작 정지로 제외. 결합 모드(O2+O3) 캡처는 창 크기 변경으로 무효.
+- O2+O3 전체 AA: Bistro 0.135725 ms(동일 실행 ⑰ 대비 −8.468%, ④ 대비 −14.569%),
+  Minecraft 0.233648 ms(⑰ 대비 −6.529%, ④ 대비 +2.178%). AA는 6회 반복 모두 감소했다.
+- WholeFrame 평균: Bistro −0.631%, Minecraft −1.568%. AA와 같은 비율로 프레임이 빨라진 것은 아니다.
+- O3 단독 대비 결합의 추가 AA 변화: Bistro −1.257%로 재현, Minecraft −0.729%이나 95% 구간이 0을 포함해 확정하지 않는다.
+- O1은 일관된 개선이 없어 제외한다. O2 단독 AA 감소는 Bistro −0.547%, Minecraft −0.672%로 작다.
+- 정리 전후 ABBA의 각 process 자체 ④ 기준 정규화 AA 변화는 Bistro −0.457%, Minecraft −0.057%다.
+  build당 독립 process 2개인 작은 차이이므로 코드 정리 자체의 확정적인 속도 개선으로 주장하지 않는다.
+- Minecraft 잔여 양의 비용은 새 profile에서 edge scope가 가장 컸다(④ 대비 +0.006756 ms).
+  pattern/edge population 차이도 있어 raw-edge union의 순수 효과라고 단정하지 않는다.
+- 기존 `interim-performance.json`과 과거 제외 실행은 2026-10-17 기록이며 이번 결과로 섞지 않는다.
 
-## 재개 순서
+## 남은 사용자 결정
 
-1. `CMAA2.exe` 0개, GPU 유휴(P8), 게임/PC 사용 없음 확인.
-2. 재빌드 완료(`535d0b3` 출력 크기 검사 포함). 실행 전 exe hash가 위 값과 같은지 확인.
-3. 캡처 허용 후 새 저장 위치 `C:/Users/USER/Desktop/research/tmp/c17-resume-20261019`를 `-OutputRoot`로 지정해
-   6 mode 출력 캡처 `-Label opt-d` (Bistro, Minecraft) → `verify_color_blend_optimization.py`로 결합 모드 포함 RGB 동일성 확인.
-   runner는 이전 실행이 남긴 1902×1001 창 설정을 실행 전에 기준 1920×1061, windowed로 복원한다.
-   verifier는 이제 6개 모드·240개 PNG·모든 frame 위상 검사를 요구하며 실패/불일치 시 종료값 1을 반환한다.
-   이전 5-mode `opt-a/b`는 새 6-mode gate를 통과할 수 없다. 과거 5-mode 검증 결과를 철회하는 뜻은 아니다.
-   Minecraft 시작 정지가 이전 프로세스 종료 직후 반복됐으므로 명령 사이 대기를 두는 것을 시도한다(원인은 미확정).
-4. **사용자 허용 후**: 장면별 Smoke → Benchmark(`-Label opt-bench-b`), 그다음 Preservation harness ABBA
-   (`c17-before` CA01DD… / `c17-cleanup` 47E69F…, 각 장면 전·후·후·전).
-5. `analyze_color_blend_performance.py`로 같은 실행의 ④·⑰ 대비 변화율, 반복별 변동, WholeFrame을 정리하고
-   최종 보고서·④ vs 최적화본 GIF·커밋/푸시.
+측정과 분석은 완료했다. O3/결합의 채택만 사용자 결정 사항이다. 중간 visible texture의 alpha가
+resolve lerp에서 current spatial alpha로 바뀐다. history alpha는 유지하고, 최종 표시 shader는 RGB와 alpha=1을 출력한다.
+현재 후보 기본값은 모두 Off다. 채택 시 ⑰ 전용 설정에 적용하는 별도 커밋과 출력 재검증을 한다.
+다른 연구 mode나 최종 8-case의 기본값을 함께 바꾸지 않는다. 새 성능 실행이 필요하면 사용자의 허용 및 GPU 유휴를 다시 확인한다.
 
-O3(및 결합 모드)는 visible alpha를 spatial alpha로 바꾼다(PNG·화면 미사용). 채택 여부는 사용자 결정 사항이다.
+원시 캡처는 `C:/Users/USER/Desktop/research/tmp/c17-resume-20261019/opt-d/capture/`에 2,880 PNG, 약 5.86 GiB다.
+inspection 폴더에는 원본 픽셀 sheet와 0.5배속 GIF가 있다. 원본 자료 삭제·전체 옛 capture 복구는 하지 않았다.

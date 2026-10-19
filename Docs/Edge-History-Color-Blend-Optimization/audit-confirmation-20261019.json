@@ -1,0 +1,42 @@
+{
+  "date_kst": "2026-10-19",
+  "case17": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",
+  "current_commit": "6ef1564",
+  "renderer_changes_this_session": [],
+  "confirmed_route": {
+    "clear": "SMAA.cpp:382; stencil-only clear retained unless negative control O1 is selected",
+    "presentation": "CMAA2Sample.cpp:1181..1184 and :1221; present-history override feeds the existing final StretchRect",
+    "neighborhood": "SMAA.cpp:748; O2 only switches feedback neighborhood depth/stencil state",
+    "raw_edge_and_selection": "SMAA go retains current raw edge plus reprojected previous raw edge, stencil reference 1",
+    "lifetime": "vaSMAAWrapperDX11.cpp:348 cleanup and :528 each Draw clear the presented-output pointer; :658 assigns this frame history after resolve",
+    "camera_velocity": "vaSMAAWrapperDX11.cpp camera/depth pass remains first",
+    "resolve": "SMAA.cpp:472; O3 leaves visible slot 0 unbound while identical shader writes feedback slot 1",
+    "presentation_formats": "CMAA2Sample.cpp:968 scratch and vaSMAAWrapperDX11.cpp:417 history inherit the same GBuffer input resource/SRV/RTV formats",
+    "presentation_alpha": "Modules/Rendering/Shaders/vaPostProcess.hlsl PSStretchRectPoint/Linear return RGB processing with output alpha 1.0; intermediate visible alpha is not used in the presented RGB. No swap-chain screenshot capture was added."
+  },
+  "preserved": [
+    "RGB selection and raw-edge history",
+    "camera/depth reprojection",
+    "Catmull-Rom RGB sampling",
+    "encoded gamma2 blend",
+    "fixed history weight 0.8",
+    "resolved RGB feedback",
+    "current spatial history alpha",
+    "Pattern Off for case17",
+    "Pattern On for native4"
+  ],
+  "observable_difference": "O3 and O2+O3 visible alpha uses current spatial alpha, so only RGB equality is certified",
+  "measurement_boundaries": {
+    "WholeFrame": "whole GPU frame scope, not equivalent to percentage change in AA",
+    "SR_Resolve": "selected or native temporal resolve",
+    "presentation_copy": "existing StretchRect at CMAA2Sample.cpp:1221 is outside SMAA; no standalone GPU timestamp, therefore no separate measured copy-cost claim",
+    "SMAA": "whole AA scope",
+    "SR_CameraVelocity": "camera/depth reprojection preparation",
+    "SF_Spatial": "prepare, edge, blending weights, neighborhood"
+  },
+  "primary_sources": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-omsetrendertargets",
+    "https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-depth-stencil"
+  ],
+  "source_interpretation": "Microsoft documents nullable individual RTV slots and DepthEnable FALSE disabling both testing and depth writes. These support API semantics; the performance benefit is judged only from paired runs."
+}
