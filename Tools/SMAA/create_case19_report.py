@@ -4,7 +4,7 @@ from pathlib import Path
 from verify_case19_spatial import MODES, CASE18, LAZY, modes_for_receipt
 
 NAMES=dict(zip(MODES,['④ O-T2X-R','⑰ 색 혼합 기준','⑱ O2+O3','⑲ 후보: RGBA8','⑲ 후보: Gather','⑲ 후보: RGBA8+Gather']))
-NAMES[LAZY]='⑲ 후보: 이전 edge 조회 지연'
+NAMES[LAZY]='⑲ 재검증: 이전 edge 조회 지연'
 def read(path):return json.loads(Path(path).read_text(encoding='utf-8-sig'))
 def value(a,m,k):return a['absolute'][m][k]['mean']
 def paired(a,m,c,k):return a['paired'][f'{m} vs {c}'][k]['percent']
@@ -59,7 +59,9 @@ def main():
             screening.append([scene,NAMES[m],f"{value(a,CASE18,'SMAA'):.6f}",f"{value(a,m,'SMAA'):.6f}",f"{p['mean']:+.3f}%",interval(p)])
     text=f'''# ⑲ AA 오버헤드 추가 최적화 결과 (2026-10-19)
 
-최종 유지/선정 구성은 **{NAMES[selected]}** (`{selected}`)다. {('⑲ 새 후보를 채택하지 않고 ⑱를 유지한다.' if selected==CASE18 else '⑲ 후보의 이득은 이번 GPU·두 장면의 측정 범위에 한정한다.')} 기존 ⑰·⑱와 final 8-case의 기본 설정은 변경하지 않았다.
+최종 유지/선정 구성은 **{NAMES[selected]}** (`{selected}`)다. {('⑲ 시험 구성을 채택하지 않고 ⑱를 유지한다.' if selected==CASE18 else '⑲ 후보의 이득은 이번 GPU·두 장면의 측정 범위에 한정한다.')} 기존 ⑰·⑱와 final 8-case의 기본 설정은 변경하지 않았다. 이 결과는 이번 네 구성의 비교이며, ⑱가 최적화 한계라는 증거가 아니다.
+
+**후속 감사 정정:** 기존 `Docs/Edge-History-Color-Blend-Optimization/method-ko.md`의 제외 기록에는 이전 edge의 지연 조회를 선행 조회로 바꿔 이미 채택했다고 명시돼 있다. 따라서 ⑲의 `LazyPreviousEdge`는 새로운 유망 기법이 아니라 ⑱ 조건에서 과거 선택을 재확인한 실험으로 분류한다. 이 기록을 최초 후보 선정에 충분히 반영하지 못했다. 아래 원시 수치·RGB hash는 그대로 보존하며 분류와 해석만 정정했다.
 
 {chr(10).join(selected_summary)}
 
@@ -96,7 +98,7 @@ RGBA8·Gather·결합은 두 장면에서 추가 이득을 확정하지 못해 �
 - **이전 edge 조회 지연**: current raw edge가 있으면 `current OR previous`가 이미 true다. current가 없는 픽셀에서만 기존 velocity sample_l와 previous-edge ld를 실행하도록 순서를 바꿨다. previous-only 픽셀도 계속 선택한다. [HLSL 논리식은 단락 평가를 하지 않으므로](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-operators) 명시적인 branch를 쓰고, 생성된 DXBC에서 두 조회가 분기 안에 있는지 확인했다. `lazy-previous-method-ko.md`에 통제 범위와 가정을 기록했다.
 - **통제 범위**: Original 공간 SMAA Ultra, camera/depth 재투영, current∪reprojected previous raw-edge 선택, paired pattern Off, Catmull-Rom 5-fetch RGB, fixed 0.8 weight, encoded-gamma2 blend와 resolved RGB feedback은 유지했다. Adaptive/object-motion/threshold/search length/precision/quality preset은 바꾸지 않았다. Intel 공식 TSCMAA 완전 포팅으로 표현하지 않는다.
 
-stencil/edge/weight clear 생략은 sparse write의 0 보장을 깨뜨리므로 적용하지 않았다. earlydepthstencil 강제는 discard와 stencil 기록 순서를 바꿀 수 있다. compute 전환과 품질 설정 변경은 이번 RGB 보존 최적화에 섞지 않았다. 추가 검토한 [shader-specified stencil reference](https://learn.microsoft.com/en-us/windows/win32/direct3d11/shader-specified-stencil-reference-value)는 optional D3D11.3 기능이며 [AMD/NVIDIA 발표 p46](https://gpuopen.com/download/Practical_DX12_Programming_Model_and_Hardware_Capabilities.pdf)은 depth output에 준하는 비용을 명시한다. 별도 support·stencil lifecycle·late-test 비용 gate가 필요하므로 현재 채택하지 않았다.
+stencil/edge/weight clear 생략은 sparse write의 0 보장을 깨뜨리므로 적용하지 않았다. earlydepthstencil 강제는 discard와 stencil 기록 순서를 바꿀 수 있다. compute 전환과 품질 설정 변경은 이번 RGB 보존 최적화에 섞지 않았다. 추가 검토한 [shader-specified stencil reference](https://learn.microsoft.com/en-us/windows/win32/direct3d11/shader-specified-stencil-reference-value)는 optional D3D11.3 기능이다. 기존 `Docs/Edge-History-Color-Blend-Cleanup/audit-ko.md`에는 실험 장치 미지원으로 기록돼 있으므로 현재 바로 적용 가능한 미시험 후보로 분류하지 않는다. ⑲에서 새 support probe를 실행했다는 뜻도 아니다. [AMD/NVIDIA 발표 p46](https://gpuopen.com/download/Practical_DX12_Programming_Model_and_Hardware_Capabilities.pdf)은 depth output에 준하는 비용을 명시한다.
 
 ## 별도 pass profile: 남아 있는 공간 비용
 

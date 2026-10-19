@@ -1,6 +1,8 @@
 # ⑲ AA 오버헤드 추가 최적화 결과 (2026-10-19)
 
-최종 유지/선정 구성은 **⑱ O2+O3** (`ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory`)다. ⑲ 새 후보를 채택하지 않고 ⑱를 유지한다. 기존 ⑰·⑱와 final 8-case의 기본 설정은 변경하지 않았다.
+최종 유지/선정 구성은 **⑱ O2+O3** (`ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory`)다. ⑲ 시험 구성을 채택하지 않고 ⑱를 유지한다. 기존 ⑰·⑱와 final 8-case의 기본 설정은 변경하지 않았다. 이 결과는 이번 네 구성의 비교이며, ⑱가 최적화 한계라는 증거가 아니다.
+
+**후속 감사 정정:** 기존 `Docs/Edge-History-Color-Blend-Optimization/method-ko.md`의 제외 기록에는 이전 edge의 지연 조회를 선행 조회로 바꿔 이미 채택했다고 명시돼 있다. 따라서 ⑲의 `LazyPreviousEdge`는 새로운 유망 기법이 아니라 ⑱ 조건에서 과거 선택을 재확인한 실험으로 분류한다. 이 기록을 최초 후보 선정에 충분히 반영하지 못했다. 아래 원시 수치·RGB hash는 그대로 보존하며 분류와 해석만 정정했다.
 
 - bistro: 유지한 ⑱ AA 0.136237 ms, temporal 0.008556 ms; ④ 대비 AA -14.23%.
 - minecraft: 유지한 ⑱ AA 0.233527 ms, temporal 0.029151 ms; ④ 대비 AA +2.21%.
@@ -16,11 +18,11 @@
 | bistro | ④ O-T2X-R | 0.158843 | — | 0.101759 | 0.033393 | — | +16.59% |
 | bistro | ⑰ 색 혼합 기준 | 0.148738 | -6.36% | 0.114595 | 0.010468 | -68.65% | +9.18% |
 | bistro | ⑱ O2+O3 | 0.136237 | -14.23% | 0.104021 | 0.008556 | -74.38% | — |
-| bistro | ⑲ 후보: 이전 edge 조회 지연 | 0.143838 | -9.44% | 0.111631 | 0.008537 | -74.43% | +5.58% |
+| bistro | ⑲ 재검증: 이전 edge 조회 지연 | 0.143838 | -9.44% | 0.111631 | 0.008537 | -74.43% | +5.58% |
 | minecraft | ④ O-T2X-R | 0.228485 | — | 0.169460 | 0.035034 | — | -2.16% |
 | minecraft | ⑰ 색 혼합 기준 | 0.249373 | +9.14% | 0.189969 | 0.035400 | +1.05% | +6.79% |
 | minecraft | ⑱ O2+O3 | 0.233527 | +2.21% | 0.180354 | 0.029151 | -16.79% | — |
-| minecraft | ⑲ 후보: 이전 edge 조회 지연 | 0.241114 | +5.53% | 0.187935 | 0.029159 | -16.77% | +3.25% |
+| minecraft | ⑲ 재검증: 이전 edge 조회 지연 | 0.241114 | +5.53% | 0.187935 | 0.029159 | -16.77% | +3.25% |
 
 AA는 `SMAA` GPU scope, 공간 처리는 `SF_Spatial`, temporal은 `SR_Resolve`다. camera velocity(`SR_CameraVelocity`)는 별도이며 AA에 포함된다. prepare/edge/weights/neighborhood와 GPU timestamp 범위의 경계 차이 때문에 세부 시간의 합이 AA와 완벽히 같을 필요는 없다. 전체 GPU 프레임과 wall frame은 별도 지표다. 전체 AA 절감률을 FPS 증가율로 읽지 않는다.
 
@@ -28,8 +30,8 @@ AA는 `SMAA` GPU scope, 공간 처리는 `SF_Spatial`, temporal은 `SR_Resolve`�
 
 | 장면 | 후보 | AA 변화 | AA paired 95% 하한 / 상한 | 공간 변화 | 공간 paired 95% 하한 / 상한 | WholeFrame 변화 | WholeFrame paired 95% 하한 / 상한 |
 |---|---|---|---|---|---|---|---|
-| bistro | ⑲ 후보: 이전 edge 조회 지연 | +5.580% | +5.118% / +6.043% | +7.318% | +6.880% / +7.755% | +0.625% | +0.202% / +1.047% |
-| minecraft | ⑲ 후보: 이전 edge 조회 지연 | +3.251% | +2.610% / +3.891% | +4.206% | +3.563% / +4.849% | +0.950% | +0.278% / +1.622% |
+| bistro | ⑲ 재검증: 이전 edge 조회 지연 | +5.580% | +5.118% / +6.043% | +7.318% | +6.880% / +7.755% | +0.625% | +0.202% / +1.047% |
+| minecraft | ⑲ 재검증: 이전 edge 조회 지연 | +3.251% | +2.610% / +3.891% | +4.206% | +3.563% / +4.849% | +0.950% | +0.278% / +1.622% |
 
 구간은 대응하는 6개 반복의 Student-t(df=5) 95% 구간이며 다중 비교 보정을 하지 않았다. 구간에 0이 포함되면 이번 반복에서 일관된 개선으로 확정하지 않는다. 여러 후보를 조사한 결과이므로 작은 차이를 보편적인 우위로 확대하지 않는다. p95/p99·run mean SD·wall 시간은 `performance.csv` 및 검증된 전체 `benchmark.json`에 있다.
 
@@ -57,7 +59,7 @@ RGBA8·Gather·결합은 두 장면에서 추가 이득을 확정하지 못해 �
 - **이전 edge 조회 지연**: current raw edge가 있으면 `current OR previous`가 이미 true다. current가 없는 픽셀에서만 기존 velocity sample_l와 previous-edge ld를 실행하도록 순서를 바꿨다. previous-only 픽셀도 계속 선택한다. [HLSL 논리식은 단락 평가를 하지 않으므로](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-operators) 명시적인 branch를 쓰고, 생성된 DXBC에서 두 조회가 분기 안에 있는지 확인했다. `lazy-previous-method-ko.md`에 통제 범위와 가정을 기록했다.
 - **통제 범위**: Original 공간 SMAA Ultra, camera/depth 재투영, current∪reprojected previous raw-edge 선택, paired pattern Off, Catmull-Rom 5-fetch RGB, fixed 0.8 weight, encoded-gamma2 blend와 resolved RGB feedback은 유지했다. Adaptive/object-motion/threshold/search length/precision/quality preset은 바꾸지 않았다. Intel 공식 TSCMAA 완전 포팅으로 표현하지 않는다.
 
-stencil/edge/weight clear 생략은 sparse write의 0 보장을 깨뜨리므로 적용하지 않았다. earlydepthstencil 강제는 discard와 stencil 기록 순서를 바꿀 수 있다. compute 전환과 품질 설정 변경은 이번 RGB 보존 최적화에 섞지 않았다. 추가 검토한 [shader-specified stencil reference](https://learn.microsoft.com/en-us/windows/win32/direct3d11/shader-specified-stencil-reference-value)는 optional D3D11.3 기능이며 [AMD/NVIDIA 발표 p46](https://gpuopen.com/download/Practical_DX12_Programming_Model_and_Hardware_Capabilities.pdf)은 depth output에 준하는 비용을 명시한다. 별도 support·stencil lifecycle·late-test 비용 gate가 필요하므로 현재 채택하지 않았다.
+stencil/edge/weight clear 생략은 sparse write의 0 보장을 깨뜨리므로 적용하지 않았다. earlydepthstencil 강제는 discard와 stencil 기록 순서를 바꿀 수 있다. compute 전환과 품질 설정 변경은 이번 RGB 보존 최적화에 섞지 않았다. 추가 검토한 [shader-specified stencil reference](https://learn.microsoft.com/en-us/windows/win32/direct3d11/shader-specified-stencil-reference-value)는 optional D3D11.3 기능이다. 기존 `Docs/Edge-History-Color-Blend-Cleanup/audit-ko.md`에는 실험 장치 미지원으로 기록돼 있으므로 현재 바로 적용 가능한 미시험 후보로 분류하지 않는다. ⑲에서 새 support probe를 실행했다는 뜻도 아니다. [AMD/NVIDIA 발표 p46](https://gpuopen.com/download/Practical_DX12_Programming_Model_and_Hardware_Capabilities.pdf)은 depth output에 준하는 비용을 명시한다.
 
 ## 별도 pass profile: 남아 있는 공간 비용
 
@@ -68,11 +70,11 @@ stencil/edge/weight clear 생략은 sparse write의 0 보장을 깨뜨리므로 
 | bistro | ④ O-T2X-R | 0.008017 | 0.026979 | 0.024598 | 0.042106 | 0.033432 |
 | bistro | ⑰ 색 혼합 기준 | 0.008071 | 0.027457 | 0.025163 | 0.053419 | 0.010299 |
 | bistro | ⑱ O2+O3 | 0.008041 | 0.027331 | 0.025014 | 0.042933 | 0.008440 |
-| bistro | ⑲ 후보: 이전 edge 조회 지연 | 0.008027 | 0.035044 | 0.025042 | 0.042967 | 0.008322 |
+| bistro | ⑲ 재검증: 이전 edge 조회 지연 | 0.008027 | 0.035044 | 0.025042 | 0.042967 | 0.008322 |
 | minecraft | ④ O-T2X-R | 0.007884 | 0.027862 | 0.085480 | 0.049187 | 0.034979 |
 | minecraft | ⑰ 색 혼합 기준 | 0.007977 | 0.034783 | 0.088186 | 0.061051 | 0.035655 |
 | minecraft | ⑱ O2+O3 | 0.007962 | 0.034736 | 0.088002 | 0.051127 | 0.029016 |
-| minecraft | ⑲ 후보: 이전 edge 조회 지연 | 0.007931 | 0.042574 | 0.088324 | 0.050965 | 0.029171 |
+| minecraft | ⑲ 재검증: 이전 edge 조회 지연 | 0.007931 | 0.042574 | 0.088324 | 0.050965 | 0.029171 |
 
 - bistro: 조회 지연 후보의 edge가 ⑱보다 +0.007713 ms 증가했다.
 - minecraft: 조회 지연 후보의 edge가 ⑱보다 +0.007838 ms 증가했다.

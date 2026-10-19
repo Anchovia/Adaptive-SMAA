@@ -4,6 +4,10 @@
 
 논문·학회 발표·공식 API 계약·제조사 가이드·공개 구현의 관련 본문/소스 구간을 검토했다. 100편의 논문 전체를 정독했다는 의미는 아니다. 중복 URL과 접근 실패, 본문을 읽을 수 없는 자료는 완료 개수에서 제외하며 개별 링크와 적용 판단은 `research-ledger.json`에 보존한다.
 
+## 후속 감사 정정
+
+자료 검토와 이번 네 구성의 실패는 ⑱의 최적화 한계나 가능한 모든 기법의 검증 완료를 의미하지 않는다. 기존 `Docs/Edge-History-Color-Blend-Optimization/method-ko.md`에는 이전 edge 선행 조회를 이미 채택한 기록이 있어, ⑲의 조회 지연은 과거 선택의 재검증으로 분류한다. 또한 기존 cleanup 감사에는 shader-specified stencil ref가 실험 장치 미지원으로 기록돼 있다. 이 두 기록을 최초 후보 선정·보류 사유에 충분히 반영하지 못한 점을 정정하며, 수치나 RGB 증거는 변경하지 않는다.
+
 ## 기준과 우선순위
 
 - 18 = `ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend` + `OPT-NeighborhoodNoDepth+PresentHistory`.
