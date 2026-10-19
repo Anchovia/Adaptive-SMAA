@@ -1,0 +1,79 @@
+{
+  "date_kst": "2026-10-19",
+  "branch": "experiment/edge-history-color-blend-optimization",
+  "resume_head": "1b7eaca00f01bb6c519609bcb55914480b0a9cf3",
+  "cleanup_dependency": "d2a6315c51de048c064164e5979ef54e86ee6408",
+  "original_case17": "5bdd18934d9924503aedc8fb27986a5bdcf11a43",
+  "build": {
+    "configuration": "Release x64",
+    "result": "PASS",
+    "warnings": [
+      "C4834 CMAA2Sample.cpp:165",
+      "C4100 CMAA2Sample.cpp:1443"
+    ],
+    "executable": "Projects/CMAA2/CMAA2.exe",
+    "sha256": "C83A5E29CB5A5F79ECF1BC3F2850CE4763FD921C957B4328DBDCDA8BE35C2638",
+    "log": "tmp/build-resume-20261019.log",
+    "source_sha256": {
+      "Projects/CMAA2/ColorBlendOptimization.inl": "C2548AD79D9809AB62B0B054178074A300FD9940C59D4D1348BB266BB7A6C917",
+      "Projects/CMAA2/CMAA2Sample.cpp": "9FB26BDE4B9304AD98E92E58F24C02EB7E37D58F1A43CB6A97C3BD33993B0E82",
+      "Projects/CMAA2/SMAA/SMAA.cpp": "E1E09C67DEC17F807FE0164EA0EF6190884E1AB602B25A4336A088DFEE483EA7",
+      "Projects/CMAA2/SMAA/vaSMAAWrapperDX11.cpp": "991D1464E38A6A000943F1F375C7FB7D902299FE3D385E655D359790297BFFF1"
+    }
+  },
+  "verification_tool_tests": {
+    "synthetic_lossless_png_cases": 12,
+    "result": "PASS",
+    "window_bootstrap_in_memory": "PASS",
+    "missing_window_setting_rejection": "PASS",
+    "legacy_five_mode_rejection": "PASS; does not revoke the earlier five-mode result",
+    "powershell_syntax": "PASS",
+    "excluded_opt_c_real_data_rejection": "PASS; rejected OPT-NeighborhoodNoDepth frame 57 at 1902x1039 despite historical Aggregate PASS"
+  },
+  "new_gpu_runs": [],
+  "execution_authorization": "Awaiting user reply for capture and performance scope; no CMAA2 launch this session",
+  "remaining": [
+    "Six-mode two-scene capture and exact RGB comparison",
+    "Direct lossless frame inspection and comparison GIFs",
+    "Explicitly authorized per-scene smoke/benchmark",
+    "Cleanup before/after ABBA",
+    "Visible alpha adoption decision",
+    "Final report"
+  ],
+  "storage_plan": {
+    "output_root": "C:/Users/USER/Desktop/research/tmp/c17-resume-20261019",
+    "labels": [
+      "opt-d"
+    ],
+    "modes_per_scene": 6,
+    "scenes": 2,
+    "frames_per_mode": 240,
+    "png_count": 2880,
+    "uncompressed_rgb_bytes": 17600716800,
+    "reserve_gib": 20,
+    "drive_free_bytes_at_review": {
+      "C": 194013245440,
+      "D": 784318939136
+    },
+    "estimates": [
+      {
+        "scene": "bistro",
+        "sample_run": "opt-b",
+        "sample_mode": "O-T2X-R",
+        "sample_count": 240,
+        "sample_mean_png_bytes": 1893631.6541666666,
+        "estimated_six_mode_bytes": 2726829582
+      },
+      {
+        "scene": "minecraft",
+        "sample_run": "opt-b",
+        "sample_mode": "O-T2X-R",
+        "sample_count": 240,
+        "sample_mean_png_bytes": 2445344.925,
+        "estimated_six_mode_bytes": 3521296692
+      }
+    ],
+    "status": "planned; output capture directory not created",
+    "deletions": "none"
+  }
+}

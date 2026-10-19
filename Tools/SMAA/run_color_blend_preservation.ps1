@@ -21,8 +21,15 @@ foreach($file in Get-ChildItem -LiteralPath (Join-Path $root 'Projects/CMAA2/SMA
 $harnessFile=Join-Path $root "Projects/CMAA2/ColorBlend$Harness.inl"
 if(($Harness -eq 'Preservation' -and $Phase -eq 'Profile') -or ($Harness -eq 'Optimization' -and $Phase -eq 'Diagnostic')){throw "Phase $Phase is not defined for the $Harness harness"}
 $harnessHash=(Get-FileHash -LiteralPath $harnessFile).Hash
-$commit=(& git -C $root rev-parse HEAD).Trim()
-$dirty=@(& git -C $root status --porcelain --untracked-files=no -- Projects/CMAA2).Count -ne 0
+# Trust only this selected worktree for this invocation, without changing global
+# Git settings when the sandbox user has a different SID from the owner.
+$gitOptions=@('-c','gc.auto=0','-c',"safe.directory=$($root.Replace('\','/'))",'-C',$root)
+$commitLines=@(& git @gitOptions rev-parse HEAD)
+if($LASTEXITCODE -ne 0 -or $commitLines.Count -ne 1){throw 'Cannot identify worktree commit'}
+$commit=$commitLines[0].Trim()
+$dirtyLines=@(& git @gitOptions status --porcelain --untracked-files=no -- Projects/CMAA2)
+if($LASTEXITCODE -ne 0){throw 'Cannot identify renderer working-tree state'}
+$dirty=$dirtyLines.Count -ne 0
 $records=@()
 if(Test-Path -LiteralPath $receipt){$records=@(Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json)}
 $recordHarness={param($r) if($r.harness){$r.harness}else{'Preservation'}}
@@ -31,6 +38,15 @@ if($Phase -eq 'Benchmark' -and !@($records | Where-Object {$_.scene -eq $Scene -
 if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count){throw 'Existing CMAA2 process; no new run started'}
 $settings=Join-Path $root 'Projects/CMAA2/ApplicationSettings.xml'
 $content=[System.IO.File]::ReadAllText($settings)
+# The excluded opt-c run persisted a resized window. Restore the established
+# cleanup capture geometry before launch; the in-process size check still guards
+# against changes during the run. Windowed is vaFullscreenState value 1.
+$windowSettings=[ordered]@{WindowPositionX=-1;WindowPositionY=-1;WindowClientSizeX=1920;WindowClientSizeY=1061;FullscreenState=1}
+foreach($entry in $windowSettings.GetEnumerator()){
+    $pattern="<$($entry.Key)>-?\d+</$($entry.Key)>"
+    if(([regex]::Matches($content,$pattern)).Count -ne 1){throw "Unexpected window setting: $($entry.Key)"}
+    $content=[regex]::Replace($content,$pattern,"<$($entry.Key)>$($entry.Value)</$($entry.Key)>")
+}
 if(([regex]::Matches($content,'<SceneChoice>\d+</SceneChoice>')).Count -ne 1){throw 'Unexpected initial scene settings'}
 $sceneIndex=if($Scene -eq 'bistro'){0}else{2}
 $content=[regex]::Replace($content,'<SceneChoice>\d+</SceneChoice>',"<SceneChoice>$sceneIndex</SceneChoice>")
@@ -58,7 +74,7 @@ if($text -notmatch 'Aggregate: PASS'){throw 'Aggregate PASS missing'}
 if($text -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or $text -match '(?im),\s*FAIL\s*(?:,|$)'){throw "Report contains a failed check: $report"}
 if((Get-FileHash -LiteralPath $exe).Hash -ne $hash){throw 'Executable changed during execution'}
 $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
-$records += [pscustomobject]@{harness=$Harness;label=$Label;scene=$Scene;phase=$Phase;window='hidden';arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
+$records += [pscustomobject]@{harness=$Harness;label=$Label;scene=$Scene;phase=$Phase;window='hidden';expected_resolution=@(1920,1061);arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
     git_head=$commit;renderer_dirty=$dirty;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');executable_sha256=$hash;harness_sha256=$harnessHash;
     renderer_sha256=$sources;report=$report;report_sha256=(Get-FileHash -LiteralPath $report).Hash;capture_root=$captureRoot}
 ConvertTo-Json -InputObject @($records) -Depth 5 | Set-Content -LiteralPath $receipt -Encoding utf8
