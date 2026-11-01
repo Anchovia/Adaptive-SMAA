@@ -223,13 +223,40 @@ float2 PersistenceSMAADepthEdgeDetectionPS(float2 texcoord,
     return edges;
 }
 
-bool PreviousRawEdgeAt(float2 uv) {
-    float2 previousUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+bool PreviousRawEdgeFrom(float2 uv, float2 velocity) {
+    float2 previousUV = uv - velocity;
     bool inBounds = all(previousUV >= 0.0) && all(previousUV < 1.0);
     int2 previousPixel = int2(floor(previousUV * SMAA_RT_METRICS.zw));
     bool previousEdge = any(previousRawEdges.Load(int3(previousPixel, 0)).rg > 0.0);
     return inBounds && previousEdge;
 }
+
+bool PreviousRawEdgeAt(float2 uv) {
+    return PreviousRawEdgeFrom(uv, velocityTex.SampleLevel(PointSampler, uv, 0).rg);
+}
+
+// Case 19: this draw computes the camera velocity instead of a separate full-screen
+// pass. Only retained pixels store it, and the resolve reads no others. The lookup uses
+// the float16 value that a separate velocity texture would have returned.
+#define MERGED_PERSISTENCE_EDGE_PS(name, edgeCall)                                        \
+void name(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0,                     \
+          float4 offset[3] : TEXCOORD1,                                                   \
+          out float2 edge : SV_TARGET0, out float2 velocity : SV_TARGET1) {               \
+    velocity = DX10_SMAAGenerateCameraVelocityPS(position, texcoord);                     \
+    bool oldEdge = PreviousRawEdgeFrom(texcoord, f16tof32(f32tof16(velocity)));           \
+    edge = edgeCall;                                                                      \
+    if (!(any(edge > 0.0) || oldEdge)) discard;                                           \
+}
+#if SMAA_PREDICATION
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceLumaEdgePS, PersistenceSMAALumaEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex))
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceLumaRawEdgePS, PersistenceSMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex))
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceColorEdgePS, PersistenceSMAAColorEdgeDetectionPS(texcoord, offset, colorTexGamma, depthTex))
+#else
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceLumaEdgePS, PersistenceSMAALumaEdgeDetectionPS(texcoord, offset, colorTexGamma))
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceLumaRawEdgePS, PersistenceSMAALumaRawEdgeDetectionPS(texcoord, offset, colorTexGamma))
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceColorEdgePS, PersistenceSMAAColorEdgeDetectionPS(texcoord, offset, colorTexGamma))
+#endif
+MERGED_PERSISTENCE_EDGE_PS(MergedPersistenceDepthEdgePS, PersistenceSMAADepthEdgeDetectionPS(texcoord, offset, depthTex))
 
 
 float2 PersistenceLumaRawEdgePS(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0, float4 offset[3] : TEXCOORD1) : SV_TARGET {

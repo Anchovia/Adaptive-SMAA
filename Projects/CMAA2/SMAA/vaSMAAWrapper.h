@@ -80,6 +80,8 @@ namespace VertexAsylum
         // Output-preserving optimizations of the selected feedback route: Off is case 17, both On is case 18.
         bool m_selectedNeighborhoodWithoutDepth = false;                    // Feedback neighborhood pass with depth disabled.
         bool m_selectedPresentHistory = false;                              // Present the next history (visible slot unbound).
+        bool m_selectedNeighborhoodWithoutVelocity = false;                 // Feedback neighborhood pass skips the unread velocity alpha.
+        bool m_selectedVelocityInEdgePass = false;                          // First SMAA pass computes the camera velocity (no separate pass).
 
         // Capture-only diagnostics; never enabled by timing commands.
         bool m_executionDiagnostics = false;
@@ -129,15 +131,19 @@ namespace VertexAsylum
         bool GetSelectedNeighborhoodWithoutDepth() const {return m_selectedNeighborhoodWithoutDepth;}
         void SetSelectedPresentHistory(bool enabled){m_selectedPresentHistory=enabled;}
         bool GetSelectedPresentHistory() const {return m_selectedPresentHistory;}
+        void SetSelectedNeighborhoodWithoutVelocity(bool enabled){m_selectedNeighborhoodWithoutVelocity=enabled;}
+        bool GetSelectedNeighborhoodWithoutVelocity() const {return m_selectedNeighborhoodWithoutVelocity;}
+        void SetSelectedVelocityInEdgePass(bool enabled){m_selectedVelocityInEdgePass=enabled;}
+        bool GetSelectedVelocityInEdgePass() const {return m_selectedVelocityInEdgePass;}
         // Non-null only for a frame drawn with present-history (case 18): the app presents
         // this texture instead of the render target bound for Draw().
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
         // The one definition of each compared temporal configuration. Case 18
         // (ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory)
         // is the selected-temporal baseline; its screen RGB equals case 17.
-        enum class TemporalRoute {NativeT2XR,Case17,Case18};
+        enum class TemporalRoute {NativeT2XR,Case17,Case18,Case18NoVelocityAlpha,Case19};
         void ApplyTemporalRoute(TemporalRoute route) {
-            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route==TemporalRoute::Case18;
+            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route>=TemporalRoute::Case18;
             SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(true);
             SetFirstEdgeStencilEnabled(true);SetSpatialFirstEdgeEnabled(selected);
             SetStencilUpstreamControl(false);SetTemporalSamplePatternEnabled(!selected);
@@ -145,15 +151,19 @@ namespace VertexAsylum
             SetResolvedRGBFeedbackEnabled(selected);SetCatmullRomHistoryRGBEnabled(selected);
             SetFixedHistoryWeight080Enabled(selected);SetSourceTemporalComponentEnabled(selected);
             SetSelectedNeighborhoodWithoutDepth(optimized);SetSelectedPresentHistory(optimized);
+            SetSelectedNeighborhoodWithoutVelocity(route>=TemporalRoute::Case18NoVelocityAlpha);
+            SetSelectedVelocityInEdgePass(route==TemporalRoute::Case19);
         }
         bool IsTemporalRoute(TemporalRoute route) const {
-            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route==TemporalRoute::Case18;
+            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route>=TemporalRoute::Case18;
             return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&GetFirstEdgeStencilEnabled()&&!GetStencilUpstreamControl()
                 &&GetSpatialFirstEdgeEnabled()==selected&&GetTemporalSamplePatternEnabled()==!selected
                 &&GetPreviousRawEdgesEnabled()==selected&&GetBilinearHistoryRGBEnabled()==selected
                 &&GetResolvedRGBFeedbackEnabled()==selected&&GetCatmullRomHistoryRGBEnabled()==selected
                 &&GetFixedHistoryWeight080Enabled()==selected&&GetSourceTemporalComponentEnabled()==selected
-                &&GetSelectedNeighborhoodWithoutDepth()==optimized&&GetSelectedPresentHistory()==optimized;
+                &&GetSelectedNeighborhoodWithoutDepth()==optimized&&GetSelectedPresentHistory()==optimized
+                &&GetSelectedNeighborhoodWithoutVelocity()==(route>=TemporalRoute::Case18NoVelocityAlpha)
+                &&GetSelectedVelocityInEdgePass()==(route==TemporalRoute::Case19);
         }
         void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
         bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}

@@ -251,6 +251,7 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     firstEdgeWeightCoverageTechnique=techniqueManagerInterface->CreateTechnique("FirstEdgeStencilWeightCoveragePS",defines);
     neighborhoodFeedbackSeedTechnique=techniqueManagerInterface->CreateTechnique("NeighborhoodFeedbackSeedPS",defines);
     neighborhoodFeedbackSeedNoDepthTechnique=techniqueManagerInterface->CreateTechnique("NeighborhoodFeedbackSeedNoDepthPS",defines);
+    neighborhoodFeedbackSeedNoVelocityTechnique=techniqueManagerInterface->CreateTechnique("NeighborhoodFeedbackSeedNoVelocityPS",defines);
     resolvedRGBFeedbackTechnique=techniqueManagerInterface->CreateTechnique("ResolvedRGBFeedbackPS",defines);
     resolvedRGBFeedbackCoverageTechnique=techniqueManagerInterface->CreateTechnique("ResolvedRGBFeedbackCoveragePS",defines);
     catmullRomRGBFeedbackTechnique=techniqueManagerInterface->CreateTechnique("CatmullRomRGBFeedbackPS",defines);
@@ -260,8 +261,10 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     sourceComponentTechnique=techniqueManagerInterface->CreateTechnique("SourceComponentPS",defines);
     sourceComponentCoverageTechnique=techniqueManagerInterface->CreateTechnique("SourceComponentCoveragePS",defines);
     const char *persistenceKinds[] = {"Luma", "LumaRaw", "Color", "Depth"};
-    for(int i=0;i<4;++i)
+    for(int i=0;i<4;++i) {
         eagerPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("EagerPersistence")+persistenceKinds[i]+"EdgePS").c_str(),defines);
+        mergedPersistenceEdgeTechniques[i]=techniqueManagerInterface->CreateTechnique((std::string("MergedPersistence")+persistenceKinds[i]+"EdgePS").c_str(),defines);
+    }
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -294,7 +297,7 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, bool previousRawEdges, bool previousValid, ID3D11RenderTargetView *feedbackRTV) {
+              int pass, ID3D11RenderTargetView *retainRTV, bool exactStencil, bool previousRawEdges, bool previousValid, ID3D11RenderTargetView *feedbackRTV, ID3D11RenderTargetView *velocityRTV) {
 //    HRESULT hr;
     // Diagnostic pass profile; each timer closes when the next stage starts.
     std::unique_ptr<vaScopeTimer> passTimer;
@@ -374,7 +377,8 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_colorTexGamma(context, srcGammaSRV);
     texturesInterface->SetResource_colorTex(context, srcSRV);
     texturesInterface->SetResource_depthTex(context, depthSRV);
-    texturesInterface->SetResource_velocityTex(context, velocitySRV);
+    // Case 19: the edge pass writes the velocity, so it cannot be bound as input here.
+    texturesInterface->SetResource_velocityTex(context, velocityRTV ? nullptr : velocitySRV);
 
     // And here we go!
     // The dedicated SMAA stencil must describe this frame, for every spatial route.
@@ -384,7 +388,7 @@ void SMAA::go(ID3D11DeviceContext * context,
         context->PSSetShaderResources(10,1,&oldRaw);
     }
     profilePass("SP_Edge");
-    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil, previousRawEdges);
+    edgesDetectionPass(context, dsv, input, retainRTV != nullptr || exactStencil, previousRawEdges, velocityRTV);
     if(previousRawEdges) {ID3D11ShaderResourceView *none=nullptr;context->PSSetShaderResources(10,1,&none);}
     profilePass("SP_Weights");
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
@@ -638,17 +642,18 @@ void SMAA::loadSearchTex() {
 }
 
 
-void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil, bool previousRawEdges) {
+void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil, bool previousRawEdges, ID3D11RenderTargetView *velocityRTV) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Edge Detection Pass");
 
     // Select the technique accordingly:
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
-    (previousRawEdges ? eagerPersistenceEdgeTechniques[int(input)] : exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
+    (velocityRTV ? mergedPersistenceEdgeTechniques[int(input)] : previousRawEdges ? eagerPersistenceEdgeTechniques[int(input)] : exactStencil ? exactEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
 
     // Do it!
-    context->OMSetRenderTargets(1, *edgesRT, dsv);
+    ID3D11RenderTargetView *targets[2] = {*edgesRT, velocityRTV};
+    context->OMSetRenderTargets(velocityRTV ? 2 : 1, targets, dsv);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
 }
@@ -744,7 +749,7 @@ void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderT
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    (feedbackRTV ? (neighborhoodWithoutDepth ? neighborhoodFeedbackSeedNoDepthTechnique : neighborhoodFeedbackSeedTechnique) :
+    (feedbackRTV ? (neighborhoodWithoutVelocity ? neighborhoodFeedbackSeedNoVelocityTechnique : neighborhoodWithoutDepth ? neighborhoodFeedbackSeedNoDepthTechnique : neighborhoodFeedbackSeedTechnique) :
         retainRTV ? neighborhoodRetainTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
     
     // Do the final pass!

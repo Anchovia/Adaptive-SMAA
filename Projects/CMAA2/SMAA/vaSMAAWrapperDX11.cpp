@@ -456,6 +456,10 @@ bool vaSMAAWrapperDX11::ValidateSelectedTemporalConfiguration( ) const
         VA_LOG_ERROR("Case13 Catmull-Rom RGB requires resolved RGB feedback");
         return false;
     }
+    if(GetSelectedVelocityInEdgePass() && (!feedback || !GetSelectedNeighborhoodWithoutVelocity())) {
+        VA_LOG_ERROR("Case19 velocity in the edge pass requires feedback and a neighborhood pass that reads no velocity");
+        return false;
+    }
     if(feedback && (!GetSpatialFirstEdgeEnabled() || !GetFirstEdgeStencilEnabled() ||
         !GetPreviousRawEdgesEnabled() || !GetBilinearHistoryRGBEnabled() ||
         GetTemporalSamplePatternEnabled() || !GetTemporalReprojectionEnabled() || GetStencilUpstreamControl())) {
@@ -555,16 +559,20 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
         m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
 
-        deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
-        vaGraphicsItem velocityRenderItem;
-        deviceContext.FillFullscreenPassRenderItem( velocityRenderItem );
-        velocityRenderItem.ConstantBuffers[1] = m_reprojectionConstantsBuffer;
-        velocityRenderItem.ShaderResourceViews[6] = optionalDepth;
-        velocityRenderItem.PixelShader = m_generateCameraVelocityPS;
-        const vaDrawResultFlags velocityResult = deviceContext.ExecuteSingleItem( velocityRenderItem );
-        deviceContext.SetRenderTarget( nullptr, nullptr, false );
-        if( velocityResult != vaDrawResultFlags::None )
-            return velocityResult;
+        // Case 19: the first SMAA pass computes and stores the velocity instead.
+        if( !GetSelectedVelocityInEdgePass( ) )
+        {
+            deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
+            vaGraphicsItem velocityRenderItem;
+            deviceContext.FillFullscreenPassRenderItem( velocityRenderItem );
+            velocityRenderItem.ConstantBuffers[1] = m_reprojectionConstantsBuffer;
+            velocityRenderItem.ShaderResourceViews[6] = optionalDepth;
+            velocityRenderItem.PixelShader = m_generateCameraVelocityPS;
+            const vaDrawResultFlags velocityResult = deviceContext.ExecuteSingleItem( velocityRenderItem );
+            deviceContext.SetRenderTarget( nullptr, nullptr, false );
+            if( velocityResult != vaDrawResultFlags::None )
+                return velocityResult;
+        }
 
         m_previousViewProj = currentUnjitteredViewProj;
         m_previousViewProjValid = true;
@@ -623,9 +631,15 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->setPassProfilingContext( m_passProfiling ? &deviceContext : nullptr );
                 m_smaa->setNeighborhoodWithoutDepth( feedback && m_selectedNeighborhoodWithoutDepth );
-                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
+                m_smaa->setNeighborhoodWithoutVelocity( feedback && m_selectedNeighborhoodWithoutVelocity );
+                const bool velocityInEdgePass = GetSelectedVelocityInEdgePass( );
+                if( velocityInEdgePass )
+                    m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->SetToAPISlot( deviceContext, 1 );
+                m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, velocityInEdgePass ? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
                     firstEdgeStencilRoute ? (presentHistory ? nullptr : visibleRTV) : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,
-                    nextHistoryRTV );
+                    nextHistoryRTV, velocityInEdgePass ? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetRTV( ) : nullptr );
+                if( velocityInEdgePass )
+                    m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->UnsetFromAPISlot( deviceContext, 1 );
             }
 
             // Without valid history the previous SRV is the current spatial colour (seed/reset).
@@ -791,9 +805,9 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         tech->SampleMask=0xFFFFFFFF;tech->StencilRef=1;
     };
 
-    if(name.substr(0,16)=="EagerPersistence") {
+    if(name.substr(0,16)=="EagerPersistence" || name.substr(0,17)=="MergedPersistence") {
         shaderMacros.push_back({"PERSISTENCE_EAGER_FETCH","1"});
-        const string entry=name.substr(5);
+        const string entry=name.substr(0,6)=="Merged"?name:name.substr(5);
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAAEdgeDetectionVS",inputElements,shaderMacros,true);
         tech->PS->CreateShaderFromFile(L"SMAA/PersistenceEdgeStencil.hlsl","ps_5_0",entry,shaderMacros,true);
         tech->DSS=m_DisableDepthReplaceStencil;tech->BS=m_NoBlending;
@@ -808,12 +822,16 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
         stencilGatedFeedbackResolve(L"SMAA/CatmullRomRGBFeedback.hlsl");            // case 13
     else if(name=="ResolvedRGBFeedbackPS" || name=="ResolvedRGBFeedbackCoveragePS")
         stencilGatedFeedbackResolve(L"SMAA/ResolvedRGBFeedback.hlsl");              // case 11
-    else if(name=="NeighborhoodFeedbackSeedPS" || name=="NeighborhoodFeedbackSeedNoDepthPS") {
+    else if(name=="NeighborhoodFeedbackSeedPS" || name=="NeighborhoodFeedbackSeedNoDepthPS" || name=="NeighborhoodFeedbackSeedNoVelocityPS") {
+        // The NoVelocity variant also leaves out the reprojection macro: same RGB, no velocity read,
+        // and the alpha stays the source alpha (nothing reads the packed velocity on this route).
+        if(name=="NeighborhoodFeedbackSeedNoVelocityPS")
+            shaderMacros.erase(std::remove_if(shaderMacros.begin(),shaderMacros.end(),[](const pair<string,string>&m){return m.first=="SMAA_REPROJECTION";}),shaderMacros.end());
         // Full-screen neighborhood blending into spatial, visible and next-history targets.
         // The NoDepth variant runs the same pixel shader with depth disabled (no depth writes).
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,"DX10_SMAANeighborhoodBlendingVS",inputElements,shaderMacros,true);
         tech->PS->CreateShaderFromFile(L"SMAA/ResolvedRGBFeedback.hlsl","ps_5_0","NeighborhoodFeedbackSeedPS",shaderMacros,true);
-        tech->DSS=name=="NeighborhoodFeedbackSeedNoDepthPS"?m_DisableDepthNoStencil:m_DisableDepthStencil;
+        tech->DSS=name=="NeighborhoodFeedbackSeedPS"?m_DisableDepthStencil:m_DisableDepthNoStencil;
         tech->BS=m_NoBlending;
         for(int i=0;i<4;++i)tech->BlendFactor[i]=0;
         tech->SampleMask=0xFFFFFFFF;tech->StencilRef=0;

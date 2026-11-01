@@ -15,7 +15,9 @@ RUNS=[ROOT/'tmp/color-blend-preservation-runs.json']+[Path(x) for x in os.enviro
 CASE17='ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend'
 NATIVE='O-T2X-R'
 CASE18=CASE17+'+OPT-NeighborhoodNoDepth+PresentHistory'
-MODES=[CASE17,CASE18,NATIVE]
+CASE18N=CASE18+'+NoVelocityAlpha'
+CASE19=CASE18N+'+VelocityInEdge'
+MODES=[CASE17,CASE18,NATIVE,CASE18N,CASE19]
 FRAME_COUNT=240
 SIZE=(1920,1061)
 

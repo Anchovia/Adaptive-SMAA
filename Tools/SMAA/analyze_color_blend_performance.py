@@ -39,7 +39,7 @@ def summarize(report):
             median=statistics.fmean(r[(mode,run,metric)]['median'] for run in runs),p95=statistics.fmean(r[(mode,run,metric)]['p95'] for run in runs),
             p99=statistics.fmean(r[(mode,run,metric)]['p99'] for run in runs),within_run_stddev=statistics.fmean(r[(mode,run,metric)]['stddev'] for run in runs),
             low1_fps=statistics.fmean(r[(mode,run,metric)]['low1_fps'] for run in runs)) for metric in metrics}
-    for control in [NATIVE,CASE17]:
+    for control in [NATIVE,CASE17,CASE17+'+OPT-NeighborhoodNoDepth+PresentHistory']:
         if control not in modes:continue
         for mode in modes:
             if mode==control:continue

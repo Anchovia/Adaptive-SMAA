@@ -2,7 +2,8 @@
 #include <cmath>
 
 // Paired harness for the selected-temporal baseline (same process, same timeline):
-// case 17 control, case 18 baseline and native case 4, each one TemporalRoute.
+// case 17 control, case 18 baseline, native case 4, the case 18 no-velocity-alpha step
+// and case 19 (velocity in the edge pass), each one TemporalRoute.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   Smoke/Benchmark: GPU timing, PNG/query/readback/pass timers Off.
 //   Profile:   diagnostic per-pass GPU timers On for every mode (not a speed claim).
@@ -62,6 +63,8 @@ public:
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend",Route::Case17});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory",Route::Case18});
         m_modes.push_back({"O-T2X-R",Route::NativeT2XR});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Case18NoVelocityAlpha});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::Case19});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -96,7 +99,9 @@ public:
                 m_rendered=false;m_lastProgress=now;
                 if(!Capturing()&&m_frame>=0) {
                     for(const auto name:{"WholeFrame","SMAA","SR_CameraVelocity","SF_Spatial","SR_Resolve"}) {
-                        const double t=Time(name);if(!std::isfinite(t)||t<=0)m_failed=true;
+                        // Case 19 issues no GPU work in the velocity scope; its reading may be zero.
+                        const bool mayBeZero=Current().route==Route::Case19&&!strcmp(name,"SR_CameraVelocity");
+                        const double t=Time(name);if(!std::isfinite(t)||t<0||(t==0&&!mayBeZero))m_failed=true;
                         m_samples[name].push_back(t);
                     }
                     if(m_phase==Phase::Profile)for(const auto name:{"SP_Prepare","SP_Edge","SP_Weights","SP_Neighborhood"}) {
@@ -123,7 +128,7 @@ public:
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
         bool ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
         ok=ok&&s->IsTemporalRoute(c.route);
-        ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route==Route::Case18));
+        ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route>=Route::Case18));
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         // Fixed output size: a window/display change during a run invalidates captures and timing.
         if(color->GetSizeX()!=1920||color->GetSizeY()!=1061){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
