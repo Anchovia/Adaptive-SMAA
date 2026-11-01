@@ -107,7 +107,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_executionCoverage;
         bool m_thinLineRawSaved=false;
         shared_ptr<vaTexture> m_historyWeightDiagnostic;
-        shared_ptr<vaTexture> m_presentedOutput;                    // present-history candidate: this frame's next history
+        shared_ptr<vaTexture> m_presentedOutput;                    // present-history (case 18): this frame's next history
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -610,11 +610,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11RenderTargetView * currentSpatialRTV = currentSpatial->SafeCast<vaTextureDX11*>( )->GetRTV( );
             ID3D11RenderTargetView * nextHistoryRTV = feedback? currentHistory->SafeCast<vaTextureDX11*>()->GetRTV() : nullptr;
             ID3D11RenderTargetView * visibleRTV = dstRT->SafeCast<vaTextureDX11*>()->GetRTV();
-            // Present-history candidate: the next history RGB equals the visible RGB, so the visible
+            // Present-history (case 18): the next history RGB equals the visible RGB, so the visible
             // slot is left unbound in neighborhood blending and the resolve; same shaders.
             const bool presentHistory = feedback && m_selectedPresentHistory;
             if( presentHistory && m_executionDiagnostics )
-            { VA_LOG_ERROR("Present-history candidate has no capture witnesses"); return vaDrawResultFlags::UnspecifiedError; }
+            { VA_LOG_ERROR("Present-history route has no capture witnesses"); return vaDrawResultFlags::UnspecifiedError; }
             ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
             ID3D11DepthStencilView * depthDSV = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
@@ -622,7 +622,6 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
                 m_smaa->setPassProfilingContext( m_passProfiling ? &deviceContext : nullptr );
-                m_smaa->setClearDepthWithStencil( feedback && m_selectedDepthStencilClear );
                 m_smaa->setNeighborhoodWithoutDepth( feedback && m_selectedNeighborhoodWithoutDepth );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode, GetTemporalSamplePatternEnabled()? SMAA::MODE_SMAA_T2X : SMAA::MODE_SMAA_1X, 0,
                     firstEdgeStencilRoute ? (presentHistory ? nullptr : visibleRTV) : nullptr, GetStencilUpstreamControl(), GetPreviousRawEdgesEnabled(), m_temporalHistoryValid,

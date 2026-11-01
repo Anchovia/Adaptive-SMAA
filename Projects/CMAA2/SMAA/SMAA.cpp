@@ -378,8 +378,7 @@ void SMAA::go(ID3D11DeviceContext * context,
 
     // And here we go!
     // The dedicated SMAA stencil must describe this frame, for every spatial route.
-    // No SMAA pass reads the depth plane, so clearing it with the stencil keeps every output.
-    if(dsv) context->ClearDepthStencilView(dsv, clearDepthWithStencil ? (D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL) : D3D11_CLEAR_STENCIL, 1.0f, 0);
+    if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
     if(previousRawEdges) {
         ID3D11ShaderResourceView *oldRaw=previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
         context->PSSetShaderResources(10,1,&oldRaw);
@@ -467,7 +466,7 @@ void SMAA::reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderR
     if(feedbackRTV) {
         assert(options.bilinearHistoryRGB && feedbackRTV!=output);
         assert(!options.fixedHistoryWeight080 || options.catmullRomHistoryRGB);
-        // Present-history candidate: the visible slot stays unbound, so the same shader writes
+        // Case 18: the visible slot stays unbound, so the same shader writes
         // only the next history (which the application then presents).
         ID3D11RenderTargetView *targets[4] = {options.presentHistory ? nullptr : output, feedbackRTV, coverage, weight};
         context->OMSetRenderTargets(coverage ? 4 : 2, targets, dsv);

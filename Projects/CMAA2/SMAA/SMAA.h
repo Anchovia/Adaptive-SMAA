@@ -162,7 +162,7 @@ class SMAA {
             bool catmullRomHistoryRGB = false;    // Normalized five-fetch Catmull-Rom history RGB (requires feedback).
             bool fixedHistoryWeight080 = false;   // Fixed selected history weight 0.8 (requires Catmull-Rom).
             bool sourceTemporalComponent = false; // Encoded-gamma2 colour blend on top of weight 0.8; only with valid history.
-            bool presentHistory = false;          // Candidate: visible slot unbound; the next history is presented.
+            bool presentHistory = false;          // Case 18: visible slot unbound; the next history is presented.
         };
         void reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
@@ -236,9 +236,7 @@ class SMAA {
 
         // Diagnostic-only GPU timers around the go() stages (null: off; timing commands keep it off).
         void setPassProfilingContext(VertexAsylum::vaRenderDeviceContext *context) { passProfilingContext = context; }
-        // Optimization candidate: also clear the never-read depth plane with the stencil (same outputs).
-        void setClearDepthWithStencil(bool enabled) { clearDepthWithStencil = enabled; }
-        // Optimization candidate: feedback neighborhood blending without the never-read depth writes.
+        // Case 18: feedback neighborhood blending without the never-read depth writes.
         void setNeighborhoodWithoutDepth(bool enabled) { neighborhoodWithoutDepth = enabled; }
 
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
@@ -369,7 +367,6 @@ class SMAA {
 
         bool orderDetected = false;
         VertexAsylum::vaRenderDeviceContext *passProfilingContext = nullptr;
-        bool clearDepthWithStencil = false;
         bool neighborhoodWithoutDepth = false;
 };
 

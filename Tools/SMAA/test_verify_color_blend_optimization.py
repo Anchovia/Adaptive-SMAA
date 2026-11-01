@@ -68,11 +68,11 @@ class CaptureValidationTests(unittest.TestCase):
         self.assertEqual(result['validation'], 'FAIL')
         self.assertIn(message, result['error'])
 
-    def test_complete_six_mode_capture_passes(self):
+    def test_complete_capture_passes(self):
         code, result = self.run_check()
         self.assertEqual(code, 0)
         self.assertEqual(result['validation'], 'PASS')
-        self.assertEqual(len(result['modes']), 6)
+        self.assertEqual(len(result['modes']), len(verifier.MODES))
 
     def test_missing_combined_mode_fails(self):
         combined = verifier.MODES[-2]

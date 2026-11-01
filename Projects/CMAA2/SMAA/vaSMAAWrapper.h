@@ -77,8 +77,7 @@ namespace VertexAsylum
         bool m_fixedHistoryWeight080Enabled = false;                        // Selected history weight fixed at 0.8.
         bool m_sourceTemporalComponentEnabled = false;                      // Encoded-gamma2 colour blend (case 17).
 
-        // Output-preserving optimization candidates for the selected feedback route (default Off).
-        bool m_selectedDepthStencilClear = false;                           // Clear SMAA depth+stencil instead of stencil only.
+        // Output-preserving optimizations of the selected feedback route: Off is case 17, both On is case 18.
         bool m_selectedNeighborhoodWithoutDepth = false;                    // Feedback neighborhood pass with depth disabled.
         bool m_selectedPresentHistory = false;                              // Present the next history (visible slot unbound).
 
@@ -126,15 +125,36 @@ namespace VertexAsylum
         bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
         void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
         void SetPassProfiling(bool enabled){m_passProfiling=enabled;}
-        void SetSelectedDepthStencilClear(bool enabled){m_selectedDepthStencilClear=enabled;}
-        bool GetSelectedDepthStencilClear() const {return m_selectedDepthStencilClear;}
         void SetSelectedNeighborhoodWithoutDepth(bool enabled){m_selectedNeighborhoodWithoutDepth=enabled;}
         bool GetSelectedNeighborhoodWithoutDepth() const {return m_selectedNeighborhoodWithoutDepth;}
         void SetSelectedPresentHistory(bool enabled){m_selectedPresentHistory=enabled;}
         bool GetSelectedPresentHistory() const {return m_selectedPresentHistory;}
-        // Non-null only for a frame drawn by the present-history candidate: the app presents
+        // Non-null only for a frame drawn with present-history (case 18): the app presents
         // this texture instead of the render target bound for Draw().
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
+        // The one definition of each compared temporal configuration. Case 18
+        // (ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory)
+        // is the selected-temporal baseline; its screen RGB equals case 17.
+        enum class TemporalRoute {NativeT2XR,Case17,Case18};
+        void ApplyTemporalRoute(TemporalRoute route) {
+            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route==TemporalRoute::Case18;
+            SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(true);
+            SetFirstEdgeStencilEnabled(true);SetSpatialFirstEdgeEnabled(selected);
+            SetStencilUpstreamControl(false);SetTemporalSamplePatternEnabled(!selected);
+            SetPreviousRawEdgesEnabled(selected);SetBilinearHistoryRGBEnabled(selected);
+            SetResolvedRGBFeedbackEnabled(selected);SetCatmullRomHistoryRGBEnabled(selected);
+            SetFixedHistoryWeight080Enabled(selected);SetSourceTemporalComponentEnabled(selected);
+            SetSelectedNeighborhoodWithoutDepth(optimized);SetSelectedPresentHistory(optimized);
+        }
+        bool IsTemporalRoute(TemporalRoute route) const {
+            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route==TemporalRoute::Case18;
+            return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&GetFirstEdgeStencilEnabled()&&!GetStencilUpstreamControl()
+                &&GetSpatialFirstEdgeEnabled()==selected&&GetTemporalSamplePatternEnabled()==!selected
+                &&GetPreviousRawEdgesEnabled()==selected&&GetBilinearHistoryRGBEnabled()==selected
+                &&GetResolvedRGBFeedbackEnabled()==selected&&GetCatmullRomHistoryRGBEnabled()==selected
+                &&GetFixedHistoryWeight080Enabled()==selected&&GetSourceTemporalComponentEnabled()==selected
+                &&GetSelectedNeighborhoodWithoutDepth()==optimized&&GetSelectedPresentHistory()==optimized;
+        }
         void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
         bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
         void SetBilinearHistoryRGBEnabled(bool enabled){if(m_bilinearHistoryRGBEnabled!=enabled){m_bilinearHistoryRGBEnabled=enabled;ResetTemporalHistory();}}

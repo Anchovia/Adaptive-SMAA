@@ -1,7 +1,7 @@
-"""Check that case-17 optimization candidates keep the case-17 RGB output.
+"""Check that the case-18 baseline keeps the case-17 RGB output.
 
-Within one Optimization capture every candidate must match the case-17 mode
-frame by frame; case 17 and native case 4 must also match a reference
+Within one Optimization capture case 18 must match the case-17 mode frame by
+frame; case 18, case 17 and native case 4 must also match a reference
 Preservation capture (cleanup build) and the original case-17 capture record.
 Hashes are SHA-256 of decoded RGB arrays, as in verify_color_blend_preservation.
 """
@@ -14,8 +14,8 @@ ROOT=Path(__file__).resolve().parents[2]
 RUNS=[ROOT/'tmp/color-blend-preservation-runs.json']+[Path(x) for x in os.environ.get('COLOR_BLEND_RUNS','').split(os.pathsep) if x]
 CASE17='ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend'
 NATIVE='O-T2X-R'
-MODES=[CASE17,CASE17+'+OPT-DepthStencilClear',CASE17+'+OPT-NeighborhoodNoDepth',
-       CASE17+'+OPT-PresentHistory',CASE17+'+OPT-NeighborhoodNoDepth+PresentHistory',NATIVE]
+CASE18=CASE17+'+OPT-NeighborhoodNoDepth+PresentHistory'
+MODES=[CASE17,CASE18,NATIVE]
 FRAME_COUNT=240
 SIZE=(1920,1061)
 

@@ -8,10 +8,10 @@ $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $runner=Join-Path $PSScriptRoot 'run_color_blend_preservation.ps1'
 foreach($scene in 'bistro','minecraft'){
-    $gate=Get-Content -LiteralPath (Join-Path $root "Docs/Edge-History-Color-Blend-Optimization/verify-opt-d-$scene.json") -Raw | ConvertFrom-Json
-    if($gate.validation -ne 'PASS' -or $gate.expected_modes -ne 6 -or $gate.frames_per_mode -ne 240){throw "RGB gate missing for $scene"}
+    $gate=Get-Content -LiteralPath (Join-Path $root "Docs/Selected-Temporal-Case18-Baseline/verify-$scene.json") -Raw | ConvertFrom-Json
+    if($gate.validation -ne 'PASS' -or $gate.expected_modes -ne 3 -or $gate.frames_per_mode -ne 240){throw "RGB gate missing for $scene"}
 }
-$visual=Get-Content -LiteralPath (Join-Path $root 'Docs/Edge-History-Color-Blend-Optimization/visual-inspection-opt-d.json') -Raw | ConvertFrom-Json
+$visual=Get-Content -LiteralPath (Join-Path $root 'Docs/Selected-Temporal-Case18-Baseline/visual-inspection.json') -Raw | ConvertFrom-Json
 if($visual.output_preservation_review -ne 'PASS'){throw 'Direct original-frame review is incomplete'}
 
 function Invoke-Item([string]$Harness,[string]$Phase,[string]$Scene,[string]$Label,[string]$Worktree){

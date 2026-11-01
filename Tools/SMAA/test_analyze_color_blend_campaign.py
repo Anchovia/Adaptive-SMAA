@@ -29,7 +29,7 @@ class TimingValidationTests(unittest.TestCase):
     def test_complete_table_passes(self):
         result = self.check()
         self.assertEqual(result['repeats'], 6)
-        self.assertEqual(len(result['modes']), 6)
+        self.assertEqual(len(result['modes']), len(MODES))
 
     def test_duplicate_row_rejected(self):
         self.lines.insert(-1, self.lines[5])
