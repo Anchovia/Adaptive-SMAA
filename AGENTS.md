@@ -49,3 +49,9 @@
 - 자동 실행 전 저장된 시작 장면을 요청 장면으로 맞춘다. 이 준비는 AA 계산이나 측정
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
+
+## 2026-11-02: ⑱ 선택적 temporal 기준선
+
+- 이후 출력 보존 최적화와 병목 분석은 `baseline/selected-temporal-case18`에서 독립 분기한다.
+- ④·⑰·⑱ 설정은 `vaSMAAWrapper::ApplyTemporalRoute`로만 정한다. 비교는 같은 실행의 ④와 ⑰을 대조군으로 쓴다.
+- 결과와 한계는 `Docs/Selected-Temporal-Case18-Baseline/readme-ko.md`를 따른다.
