@@ -1177,7 +1177,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     {
         finalOutColor = m_scratchPostProcessColor;
         finalOutColorIgnoreSRGBConvView = m_scratchPostProcessColor; //m_scratchPostProcessColorIgnoreSRGBConvView;
-        // Case-17 present-history candidate: SMAA's next history is this frame's final colour.
+        // Selected temporal route: SMAA's next history is this frame's final colour.
         if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected && m_SMAA->GetPresentedOutputOverride() != nullptr)
         {
             finalOutColor = m_SMAA->GetPresentedOutputOverride();
@@ -1683,114 +1683,6 @@ protected:
     virtual float   GetProgress() const override { return 0.5f; }
 };
 
-class BenchItemRecordSMAATemporalComparison : public AutoBenchToolWorkItem
-{
-    static const int    c_framePerSecond = 60;
-    const float         c_frameDeltaTime = 1.0f / (float)c_framePerSecond;
-    const int           m_captureFrameCount;
-    const int           m_warmupFrameCount;
-    float               m_captureStartTime;
-    int                 m_currentMode;
-    int                 m_currentFrame;
-    bool                m_started;
-    bool                m_isDone;
-    wstring             m_outputDirs[3];
-
-public:
-    BenchItemRecordSMAATemporalComparison(CMAA2Sample& parent, float startTime, int captureFrameCount, int warmupFrameCount)
-        : AutoBenchToolWorkItem(parent),
-        m_captureFrameCount(vaMath::Max(1, captureFrameCount)),
-        m_warmupFrameCount(vaMath::Max(0, warmupFrameCount)),
-        m_captureStartTime(startTime),
-        m_currentMode(0),
-        m_currentFrame(0),
-        m_started(false),
-        m_isDone(false)
-    {
-        const float minimumStartTime = m_warmupFrameCount * c_frameDeltaTime;
-        const float maximumStartTime = vaMath::Max(minimumStartTime,
-            parent.GetFlythroughCameraController()->GetTotalTime() - (m_captureFrameCount - 1) * c_frameDeltaTime);
-        m_captureStartTime = vaMath::Clamp(m_captureStartTime, minimumStartTime, maximumStartTime);
-    }
-
-protected:
-    virtual void Tick(AutoBenchTool& abTool, float deltaTime) override
-    {
-        deltaTime;
-
-        if (!m_started)
-        {
-            m_started = true;
-            m_parent.Settings().SceneChoice = CMAA2Sample::SceneSelectionType::LumberyardBistro;
-            m_parent.SetRequireDeterminism(true);
-            m_parent.SetFixedDeltaTime(c_frameDeltaTime);
-            m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed = std::numeric_limits<float>::infinity();
-
-            abTool.ReportStart();
-            m_outputDirs[0] = abTool.ReportGetDir() + L"V0_SMAA1X\\";
-            m_outputDirs[1] = abTool.ReportGetDir() + L"V1_NaiveT2X\\";
-            m_outputDirs[2] = abTool.ReportGetDir() + L"V2_ReprojectedT2X\\";
-            vaFileTools::EnsureDirectoryExists(m_outputDirs[0]);
-            vaFileTools::EnsureDirectoryExists(m_outputDirs[1]);
-            vaFileTools::EnsureDirectoryExists(m_outputDirs[2]);
-
-            abTool.ReportAddText("SMAA V0/V1/V2 temporal quality capture\r\n\r\n");
-            abTool.ReportAddText(vaStringTools::Format("Frame rate:    %d FPS\r\n", c_framePerSecond));
-            abTool.ReportAddText(vaStringTools::Format("Start time:    %.3f s\r\n", m_captureStartTime));
-            abTool.ReportAddText(vaStringTools::Format("Warm-up:       %d frames\r\n", m_warmupFrameCount));
-            abTool.ReportAddText(vaStringTools::Format("Capture:       %d frames per mode\r\n\r\n", m_captureFrameCount));
-
-            m_currentMode = 0;
-            m_currentFrame = -m_warmupFrameCount - 1;
-        }
-
-        m_currentFrame++;
-        if (m_currentFrame >= m_captureFrameCount)
-        {
-            m_currentMode++;
-            if (m_currentMode >= 3)
-            {
-                m_isDone = true;
-                abTool.ReportFinish();
-                return;
-            }
-            m_currentFrame = -m_warmupFrameCount;
-        }
-
-        const CMAA2Sample::AAType modes[3] = { CMAA2Sample::AAType::SMAA, CMAA2Sample::AAType::SMAA_T2x, CMAA2Sample::AAType::SMAA_T2x_Reprojected };
-        m_parent.Settings().CurrentAAOption = modes[m_currentMode];
-
-        const float playTime = m_captureStartTime + m_currentFrame * c_frameDeltaTime;
-        m_parent.GetFlythroughCameraController()->SetPlayTime(vaMath::Max(0.0f, playTime));
-    }
-
-    virtual void OnRender(AutoBenchTool&) override {}
-
-    virtual void OnRenderComparePoint(AutoBenchTool& abTool, vaImageCompareTool& imageCompareTool, vaRenderDeviceContext& renderContext,
-        const shared_ptr<vaTexture>& colorInOut, shared_ptr<vaPostProcess>& postProcess) override
-    {
-        abTool; imageCompareTool; postProcess;
-        if (m_currentMode < 3 && m_currentFrame >= 0 && m_currentFrame < m_captureFrameCount)
-        {
-            const char* modeNames[3] = { "V0_SMAA1X", "V1_NaiveT2X", "V2_ReprojectedT2X" };
-            const char* modeName = modeNames[m_currentMode];
-            const wstring fileName = m_outputDirs[m_currentMode] + vaStringTools::SimpleWiden(
-                vaStringTools::Format("%s_frame_%05d.png", modeName, m_currentFrame));
-            if (!colorInOut->SaveToPNGFile(renderContext, fileName))
-                VA_LOG_ERROR(L"Failed to save temporal comparison frame '%s'", fileName.c_str());
-        }
-    }
-
-    virtual bool IsDone(AutoBenchTool&) const override { return m_isDone; }
-
-    virtual float GetProgress() const override
-    {
-        const int framesPerMode = m_warmupFrameCount + m_captureFrameCount;
-        const int completedFrames = m_currentMode * framesPerMode + m_currentFrame + m_warmupFrameCount;
-        return vaMath::Clamp((float)completedFrames / (float)(framesPerMode * 3), 0.0f, 1.0f);
-    }
-};
-
 // for conversion to mpeg one option is to download ffmpeg and then do 'ffmpeg -r 60 -f image2 -s 1920x1080 -i SuperSampleReference_frame_%05d.png -vcodec libx264 -crf 13  -pix_fmt yuv420p outputvideo.mp4'
 class BenchItemRecordSSReference : public AutoBenchToolWorkItem
 {
@@ -1844,26 +1736,12 @@ protected:
     virtual float   GetProgress() const override { return (float)m_currentFrame / (c_totalFrameCount - 1); }
 };
 
-#include "BaselineVerification.inl"
-#include "StencilLifecycleVerification.inl"
-#include "SpatialFirstEdgeVerification.inl"
-#include "EdgePatternVerification.inl"
-#include "FirstEdgeStencilVerification.inl"
-#include "EdgeBilinearHistoryRGB.inl"
-#include "EdgeResolvedRGBFeedback.inl"
-#include "EdgeCatmullRomRGBFeedback.inl"
-#include "EdgeFixedWeightRGBFeedback.inl"
-#include "EdgeSourceTemporalComponent.inl"
-#include "ColorBlendPreservation.inl"
 #include "ColorBlendOptimization.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
-    static bool baselineCommandParsed=false;
-    if(!baselineCommandParsed){baselineCommandParsed=true;QueueBaselineVerification(m_parent,*this);QueueStencilLifecycleVerification(m_parent,*this);}
-    static bool spatialEdgeCommandParsed=false;
-    if(!spatialEdgeCommandParsed){spatialEdgeCommandParsed=true;QueueSpatialFirstEdgeVerification(m_parent,*this);QueueEdgePatternVerification(m_parent,*this);
-    QueueFirstEdgeStencilVerification(m_parent,*this);QueueEdgeBilinearHistoryRGB(m_parent,*this);QueueEdgeResolvedRGBFeedback(m_parent,*this);QueueEdgeCatmullRomRGBFeedback(m_parent,*this);QueueEdgeFixedWeightRGBFeedback(m_parent,*this);QueueEdgeSourceTemporalComponent(m_parent,*this);QueueColorBlendPreservation(m_parent,*this);QueueColorBlendOptimization(m_parent,*this);}
+    static bool commandParsed=false;
+    if(!commandParsed){commandParsed=true;QueueColorBlendOptimization(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)
@@ -2213,29 +2091,6 @@ void CMAA2Sample::UIPanelDraw()
                 }
                 ImGui::Separator();
 
-                ImGui::Text("SMAA temporal quality capture (60 FPS flythrough)");
-                ImGui::InputFloat("Capture start time (s)", &m_temporalComparisonStartTime, 0.5f, 1.0f, "%.2f");
-                ImGui::InputInt("Capture frames per mode", &m_temporalComparisonFrameCount);
-                ImGui::InputInt("Temporal warm-up frames", &m_temporalComparisonWarmupFrames);
-                m_temporalComparisonStartTime = vaMath::Max(0.0f, m_temporalComparisonStartTime);
-                m_temporalComparisonFrameCount = vaMath::Clamp(m_temporalComparisonFrameCount, 1, 1800);
-                m_temporalComparisonWarmupFrames = vaMath::Clamp(m_temporalComparisonWarmupFrames, 0, 600);
-
-                const vaVector2i temporalCaptureResolution = m_application.GetWindowClientAreaSize();
-                if (temporalCaptureResolution != vaVector2i(1920, 1080))
-                    ImGui::TextColored(ImVec4(1.0f, 0.65f, 0.0f, 1.0f), "Formal capture requires 1920 x 1080 (current: %d x %d)", temporalCaptureResolution.x, temporalCaptureResolution.y);
-                if (m_application.GetSettings().Vsync)
-                    ImGui::TextColored(ImVec4(1.0f, 0.25f, 0.25f, 1.0f), "Disable VSync before formal capture");
-                ImGui::TextDisabled("300 frames per mode uses approximately 1.5 GB at 1080p");
-
-                if (ImGui::Button("Capture SMAA V0 vs V1 vs V2"))
-                {
-                    m_autoBench->AddTask(std::make_shared<BenchItemRecordSMAATemporalComparison>(*this,
-                        m_temporalComparisonStartTime, m_temporalComparisonFrameCount, m_temporalComparisonWarmupFrames));
-                }
-                ImGui::SameLine();
-                ImGui::TextDisabled("PNG sequences are saved under AutoBench");
-                ImGui::Separator();
 #endif
                 const char* dx11 = "Run performance benchmarks (DX11)";
                 const char* dx12 = "Run performance benchmarks (DX12, not fully optimized)";

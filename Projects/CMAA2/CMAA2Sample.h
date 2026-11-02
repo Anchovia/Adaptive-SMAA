@@ -214,10 +214,6 @@ namespace VertexAsylum
         shared_ptr<AutoBenchTool>               m_autoBench;
         int                                     m_autoBenchPerfRunCount         = 4;
 
-        float                                   m_temporalComparisonStartTime   = 1.0f;
-        int                                     m_temporalComparisonFrameCount  = 300;
-        int                                     m_temporalComparisonWarmupFrames= 60;
-
         bool                                    m_requireDeterminism            = false;
         float                                   m_fixedDeltaTime                 = 0.0f;
 

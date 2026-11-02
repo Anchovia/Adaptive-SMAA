@@ -35,8 +35,6 @@
 //#include <d3d10.h>
 #include "RenderTarget.h"
 
-namespace VertexAsylum { class vaRenderDeviceContext; }
-
 /**
  * IMPORTANT NOTICE: please note that the documentation given in this file is
  * rather limited. We recommend first checking out SMAA.h in the root directory
@@ -110,6 +108,13 @@ class SMAA {
              const ExternalStorage &storage=ExternalStorage());
         ~SMAA();
 
+        // Outputs of go() on the edge-selective temporal route.
+        struct SelectedTemporalTargets {
+            ID3D11RenderTargetView *nextHistory;    // Second neighborhood output.
+            bool previousValid;                     // Previous raw edges belong to valid history.
+            ID3D11RenderTargetView *velocity;       // Case 19: the edge pass stores the camera velocity here (retained pixels only); depthSRV must be set. Null otherwise.
+        };
+
         /**
          * Mandatory input textures varies depending on 'input':
          *    INPUT_LUMA:
@@ -144,32 +149,15 @@ class SMAA {
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
                 int pass=0, // Selects the S2x or 4x pass (either 0 or 1).
-                // Research extensions (all default to the original SMAA behaviour):
-                ID3D11RenderTargetView *retainRTV=nullptr, // Second neighborhood-blending output (selected-temporal visible target).
-                bool exactStencil=false, // Edge pass stencil marks exactly the stored RG edges.
-                bool previousRawEdges=false, // Edge pass also marks camera-reprojected previous raw edges (stencil union; RG keeps current edges).
-                bool previousValid=false, // Previous raw edges belong to valid history; otherwise none are bound.
-                ID3D11RenderTargetView *feedbackRTV=nullptr, // Third neighborhood-blending output (next history seed).
-                ID3D11RenderTargetView *velocityRTV=nullptr); // Case 19: the edge pass computes the camera velocity and stores it here (retained pixels only); depthSRV must be set.
+                const SelectedTemporalTargets *selected=nullptr); // Edge-selective temporal route; null is original SMAA.
 
         /**
-         * Research extension: temporal resolve gated by the stencil written in
-         * the first-pass edge detection of go(). Only stencil-selected pixels
-         * run; the neighborhood pass already wrote the spatial result elsewhere.
-         * Options select one resolve shader; they are not cumulative switches.
+         * Temporal resolve of the edge-selective route, gated by the stencil written
+         * in the first pass of go(). Writes only the next history.
          */
-        struct FirstEdgeResolveOptions {
-            bool bilinearHistoryRGB = false;      // Bilinear history RGB with point-sampled alpha and native weight.
-            bool catmullRomHistoryRGB = false;    // Normalized five-fetch Catmull-Rom history RGB (requires feedback).
-            bool fixedHistoryWeight080 = false;   // Fixed selected history weight 0.8 (requires Catmull-Rom).
-            bool sourceTemporalComponent = false; // Encoded-gamma2 colour blend on top of weight 0.8; only with valid history.
-            bool presentHistory = false;          // Case 18: visible slot unbound; the next history is presented.
-        };
-        void reprojectFirstEdgeStencil(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+        void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-            ID3D11RenderTargetView *output, ID3D11DepthStencilView *dsv, const FirstEdgeResolveOptions &options,
-            ID3D11RenderTargetView *feedbackRTV=nullptr, // Next history (resolved RGB + current spatial alpha).
-            ID3D11RenderTargetView *coverage=nullptr, ID3D11RenderTargetView *weight=nullptr); // Capture-only witnesses.
+            ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed);
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -232,15 +220,6 @@ class SMAA {
         /**
          * These two are just for debugging purposes.
          */
-        void reprojectSpatialFirstEdges(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
-            ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity, ID3D11RenderTargetView *output);
-
-        // Diagnostic-only GPU timers around the go() stages (null: off; timing commands keep it off).
-        void setPassProfilingContext(VertexAsylum::vaRenderDeviceContext *context) { passProfilingContext = context; }
-        // Case 18: feedback neighborhood blending without the never-read depth writes.
-        void setNeighborhoodWithoutDepth(bool enabled) { neighborhoodWithoutDepth = enabled; }
-        void setNeighborhoodWithoutVelocity(bool enabled) { neighborhoodWithoutVelocity = enabled; }
-
         RenderTarget *getEdgesRenderTarget() { return edgesRT; }
         RenderTarget *getBlendRenderTarget() { return blendRT; }
 
@@ -301,10 +280,9 @@ class SMAA {
 
         void loadAreaTex();
         void loadSearchTex();
-        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, bool exactStencil=false, bool previousRawEdges=false, ID3D11RenderTargetView *velocityRTV=nullptr);
+        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, const SelectedTemporalTargets *selected=nullptr);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
-        void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, ID3D11RenderTargetView *retainRTV=nullptr, ID3D11RenderTargetView *feedbackRTV=nullptr);
-        SMAATechniqueInterface *firstEdgeResolveTechnique(const FirstEdgeResolveOptions &options, bool feedback, bool coverage, bool weight) const;
+        void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, const SelectedTemporalTargets *selected=nullptr);
 
         ID3D11Device *device;
         int width, height;
@@ -343,20 +321,8 @@ class SMAA {
         SMAATechniqueInterface *        edgeDetectionTechniques[4];
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
-        SMAATechniqueInterface *        spatialFirstEdgeTechnique;
-        // Research techniques. Each case selects one edge, neighborhood and resolve
-        // variant; "Coverage" variants add capture-only witness targets.
-        SMAATechniqueInterface *exactEdgeTechniques[4];
-        SMAATechniqueInterface *eagerPersistenceEdgeTechniques[4];
-        SMAATechniqueInterface *mergedPersistenceEdgeTechniques[4];
-        SMAATechniqueInterface *bilinearHistoryRGBTechnique, *bilinearHistoryRGBCoverageTechnique, *firstEdgeWeightCoverageTechnique;
-        SMAATechniqueInterface *neighborhoodRetainTechnique, *firstEdgeStencilTechnique, *firstEdgeStencilCoverageTechnique;
-        SMAATechniqueInterface *neighborhoodFeedbackSeedTechnique, *resolvedRGBFeedbackTechnique, *resolvedRGBFeedbackCoverageTechnique;
-        SMAATechniqueInterface *neighborhoodFeedbackSeedNoDepthTechnique;
-        SMAATechniqueInterface *neighborhoodFeedbackSeedNoVelocityTechnique;
-        SMAATechniqueInterface *catmullRomRGBFeedbackTechnique, *catmullRomRGBFeedbackCoverageTechnique;
-        SMAATechniqueInterface *fixedWeightRGBFeedbackTechnique, *fixedWeightRGBFeedbackCoverageTechnique;
-        SMAATechniqueInterface *sourceComponentTechnique, *sourceComponentCoverageTechnique;
+        SMAATechniqueInterface *selectedEdgeTechniques[2][4]; // [velocity in the edge pass][input]
+        SMAATechniqueInterface *selectedNeighborhoodTechnique, *selectedResolveTechnique, *selectedSeedResolveTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 
@@ -370,9 +336,6 @@ class SMAA {
         int msaaOrderMap[2];
 
         bool orderDetected = false;
-        VertexAsylum::vaRenderDeviceContext *passProfilingContext = nullptr;
-        bool neighborhoodWithoutDepth = false;
-        bool neighborhoodWithoutVelocity = false;
 };
 
 #endif

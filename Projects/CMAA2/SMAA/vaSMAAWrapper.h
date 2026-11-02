@@ -58,37 +58,11 @@ namespace VertexAsylum
         bool                        m_temporalReprojectionEnabled       = false;
         int                         m_temporalFrameIndex                = 0;
 
-        // Research ablation: projection jitter and spatial area pattern change together.
-        bool                        m_temporalSamplePatternEnabled = true;
-        vaVector2                   m_lastTemporalProjectionOffset = vaVector2(0,0);
-
-        // Selected-temporal research route. Defaults keep the native T2X(-R) path.
-        // Case 17 (ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend)
-        // enables every flag below except m_stencilUpstreamControl, with sample
-        // pattern Off and camera/depth reprojection On. Draw() rejects incomplete
-        // combinations of the feedback flags.
-        bool                        m_spatialFirstEdgeEnabled = false;      // Temporal only on first-pass edge pixels.
-        bool m_firstEdgeStencilEnabled = true;                              // Gate those pixels with the edge-pass stencil.
-        bool m_stencilUpstreamControl = false;                              // Exact-stencil edge pass on the native route (cost control).
-        bool m_previousRawEdgesEnabled = false;                             // Add camera-reprojected previous raw edges to the stencil.
-        bool m_bilinearHistoryRGBEnabled = false;                           // Bilinear history RGB, point alpha.
-        bool m_resolvedRGBFeedbackEnabled = false;                          // Next history = resolved RGB + current spatial alpha.
-        bool m_catmullRomHistoryRGBEnabled = false;                         // Normalized five-fetch Catmull-Rom history RGB.
-        bool m_fixedHistoryWeight080Enabled = false;                        // Selected history weight fixed at 0.8.
-        bool m_sourceTemporalComponentEnabled = false;                      // Encoded-gamma2 colour blend (case 17).
-
-        // Output-preserving optimizations of the selected feedback route: Off is case 17, both On is case 18.
-        bool m_selectedNeighborhoodWithoutDepth = false;                    // Feedback neighborhood pass with depth disabled.
-        bool m_selectedPresentHistory = false;                              // Present the next history (visible slot unbound).
-        bool m_selectedNeighborhoodWithoutVelocity = false;                 // Feedback neighborhood pass skips the unread velocity alpha.
-        bool m_selectedVelocityInEdgePass = false;                          // First SMAA pass computes the camera velocity (no separate pass).
-
-        // Capture-only diagnostics; never enabled by timing commands.
-        bool m_executionDiagnostics = false;
-        bool m_passProfiling = false;                                       // GPU timers per go() stage.
-        wstring m_thinLineTracePrefix;
-        uint64 m_lastResolveInvocations = 0, m_lastResolveSamples = 0;
-        bool m_executionQueryOK = false;
+        // Edge-selective temporal route; Off is the native T2X(-R) path. It uses no sample pattern,
+        // camera/depth reprojection only. The optional step computes the velocity in the edge pass.
+        bool                        m_selectedTemporal              = false;
+        bool                        m_velocityInEdgePass            = false;
+        vaVector2                   m_lastTemporalProjectionOffset  = vaVector2(0,0);
 
         //bool                        m_debugShowEdges;
 
@@ -119,101 +93,27 @@ namespace VertexAsylum
         }
         bool                        GetTemporalReprojectionEnabled( ) const { return m_temporalReprojectionEnabled; }
 
-        void SetFirstEdgeStencilEnabled(bool enabled) {
-            if(m_firstEdgeStencilEnabled!=enabled){m_firstEdgeStencilEnabled=enabled;ResetTemporalHistory();}
-        }
-        bool GetFirstEdgeStencilEnabled() const {return m_firstEdgeStencilEnabled;}
-        void SetStencilUpstreamControl(bool enabled){if(m_stencilUpstreamControl!=enabled){m_stencilUpstreamControl=enabled;ResetTemporalHistory();}}
-        bool GetStencilUpstreamControl() const {return m_stencilUpstreamControl;}
-        void SetExecutionDiagnostics(bool enabled){m_executionDiagnostics=enabled;}
-        void SetPassProfiling(bool enabled){m_passProfiling=enabled;}
-        void SetSelectedNeighborhoodWithoutDepth(bool enabled){m_selectedNeighborhoodWithoutDepth=enabled;}
-        bool GetSelectedNeighborhoodWithoutDepth() const {return m_selectedNeighborhoodWithoutDepth;}
-        void SetSelectedPresentHistory(bool enabled){m_selectedPresentHistory=enabled;}
-        bool GetSelectedPresentHistory() const {return m_selectedPresentHistory;}
-        void SetSelectedNeighborhoodWithoutVelocity(bool enabled){m_selectedNeighborhoodWithoutVelocity=enabled;}
-        bool GetSelectedNeighborhoodWithoutVelocity() const {return m_selectedNeighborhoodWithoutVelocity;}
-        void SetSelectedVelocityInEdgePass(bool enabled){m_selectedVelocityInEdgePass=enabled;}
-        bool GetSelectedVelocityInEdgePass() const {return m_selectedVelocityInEdgePass;}
-        // Non-null only for a frame drawn with present-history (case 18): the app presents
-        // this texture instead of the render target bound for Draw().
+        // The app presents this texture instead of the render target bound for Draw(); non-null
+        // only for a frame drawn on the selected route, whose next history is the final colour.
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
-        // The one definition of each compared temporal configuration. Case 18
-        // (ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory)
-        // is the selected-temporal baseline; its screen RGB equals case 17.
-        enum class TemporalRoute {NativeT2XR,Case17,Case18,Case18NoVelocityAlpha,Case19};
+        enum class TemporalRoute {NativeT2XR,Selected,SelectedVelocityInEdge};
         void ApplyTemporalRoute(TemporalRoute route) {
-            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route>=TemporalRoute::Case18;
             SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(true);
-            SetFirstEdgeStencilEnabled(true);SetSpatialFirstEdgeEnabled(selected);
-            SetStencilUpstreamControl(false);SetTemporalSamplePatternEnabled(!selected);
-            SetPreviousRawEdgesEnabled(selected);SetBilinearHistoryRGBEnabled(selected);
-            SetResolvedRGBFeedbackEnabled(selected);SetCatmullRomHistoryRGBEnabled(selected);
-            SetFixedHistoryWeight080Enabled(selected);SetSourceTemporalComponentEnabled(selected);
-            SetSelectedNeighborhoodWithoutDepth(optimized);SetSelectedPresentHistory(optimized);
-            SetSelectedNeighborhoodWithoutVelocity(route>=TemporalRoute::Case18NoVelocityAlpha);
-            SetSelectedVelocityInEdgePass(route==TemporalRoute::Case19);
+            m_selectedTemporal=route!=TemporalRoute::NativeT2XR;
+            m_velocityInEdgePass=route==TemporalRoute::SelectedVelocityInEdge;
+            ResetTemporalHistory();
         }
         bool IsTemporalRoute(TemporalRoute route) const {
-            const bool selected=route!=TemporalRoute::NativeT2XR,optimized=route>=TemporalRoute::Case18;
-            return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&GetFirstEdgeStencilEnabled()&&!GetStencilUpstreamControl()
-                &&GetSpatialFirstEdgeEnabled()==selected&&GetTemporalSamplePatternEnabled()==!selected
-                &&GetPreviousRawEdgesEnabled()==selected&&GetBilinearHistoryRGBEnabled()==selected
-                &&GetResolvedRGBFeedbackEnabled()==selected&&GetCatmullRomHistoryRGBEnabled()==selected
-                &&GetFixedHistoryWeight080Enabled()==selected&&GetSourceTemporalComponentEnabled()==selected
-                &&GetSelectedNeighborhoodWithoutDepth()==optimized&&GetSelectedPresentHistory()==optimized
-                &&GetSelectedNeighborhoodWithoutVelocity()==(route>=TemporalRoute::Case18NoVelocityAlpha)
-                &&GetSelectedVelocityInEdgePass()==(route==TemporalRoute::Case19);
+            return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
+                &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
         }
-        void SetPreviousRawEdgesEnabled(bool enabled){if(m_previousRawEdgesEnabled!=enabled){m_previousRawEdgesEnabled=enabled;ResetTemporalHistory();}}
-        bool GetPreviousRawEdgesEnabled() const {return m_previousRawEdgesEnabled;}
-        void SetBilinearHistoryRGBEnabled(bool enabled){if(m_bilinearHistoryRGBEnabled!=enabled){m_bilinearHistoryRGBEnabled=enabled;ResetTemporalHistory();}}
-        bool GetBilinearHistoryRGBEnabled() const {return m_bilinearHistoryRGBEnabled;}
-        void SetResolvedRGBFeedbackEnabled(bool enabled) {
-            if(m_resolvedRGBFeedbackEnabled!=enabled){m_resolvedRGBFeedbackEnabled=enabled;ResetTemporalHistory();}
-        }
-        bool GetResolvedRGBFeedbackEnabled() const {return m_resolvedRGBFeedbackEnabled;}
-        void SetCatmullRomHistoryRGBEnabled(bool enabled) {
-            if(m_catmullRomHistoryRGBEnabled!=enabled){m_catmullRomHistoryRGBEnabled=enabled;ResetTemporalHistory();}
-        }
-        bool GetCatmullRomHistoryRGBEnabled() const {return m_catmullRomHistoryRGBEnabled;}
-        void SetFixedHistoryWeight080Enabled(bool enabled) {
-            if(m_fixedHistoryWeight080Enabled!=enabled){m_fixedHistoryWeight080Enabled=enabled;ResetTemporalHistory();}
-        }
-        bool GetFixedHistoryWeight080Enabled() const {return m_fixedHistoryWeight080Enabled;}
-        void SetSourceTemporalComponentEnabled(bool enabled) {if(m_sourceTemporalComponentEnabled!=enabled){m_sourceTemporalComponentEnabled=enabled;ResetTemporalHistory();}}
-        bool GetSourceTemporalComponentEnabled() const {return m_sourceTemporalComponentEnabled;}
-        virtual bool SaveResolvedHistoryDiagnostic(vaRenderDeviceContext&,const wstring&){return false;}
-        virtual bool SaveHistoryWeightDiagnostic(vaRenderDeviceContext&,const wstring&){return false;}
-        void SetThinLineTracePrefix(const wstring &prefix){m_thinLineTracePrefix=prefix;}
-        virtual bool SaveThinLineTraceInputs(vaRenderDeviceContext&,const wstring&){return false;}
-        bool ExecutionQueryOK() const {return m_executionQueryOK;}
-        uint64 GetResolveInvocations() const {return m_lastResolveInvocations;}
-        uint64 GetResolveSamples() const {return m_lastResolveSamples;}
-        virtual bool SaveExecutionCoverage(vaRenderDeviceContext&,const wstring&){return false;}
-
-        void SetSpatialFirstEdgeEnabled(bool enabled) {
-            if(m_spatialFirstEdgeEnabled!=enabled){m_spatialFirstEdgeEnabled=enabled;ResetTemporalHistory();}
-        }
-        bool GetSpatialFirstEdgeEnabled() const {return m_spatialFirstEdgeEnabled;}
-        virtual bool SaveSpatialEdgeSnapshot(vaRenderDeviceContext &,const wstring &,bool,bool){return false;}
-
-        void SetTemporalSamplePatternEnabled(bool enabled) {
-            if(m_temporalSamplePatternEnabled!=enabled){m_temporalSamplePatternEnabled=enabled;ResetTemporalHistory();}
-        }
-        bool GetTemporalSamplePatternEnabled() const {return m_temporalSamplePatternEnabled;}
         vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}
-        bool HasZeroSubsampleIndices() const {
-            for(int i=0;i<4;++i)if(m_constants.subsampleIndices[i]!=0)return false;
-            return true;
-        }
-
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
         // Y while applying it to the projection matrix.
         vaVector2                   GetTemporalJitterOffset( ) const
         {
-            if(!m_temporalSamplePatternEnabled)return vaVector2(0,0);
+            if(m_selectedTemporal)return vaVector2(0,0);
             return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
         }
 
