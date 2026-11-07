@@ -4,10 +4,11 @@
 // Paired harness (same process, same timeline): native case 4, the selected route and
 // case 19 (velocity in the edge pass), each with Original and Adaptive SMAA.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
+//   ReferenceCapture: supersample spatial reference proxy on the same 240-frame timeline.
 //   Smoke/Benchmark: GPU timing, PNG/query/readback/pass timers Off.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
 public:
-    enum class Phase {Capture, Smoke, Benchmark};
+    enum class Phase {Capture, Smoke, Benchmark, Reference};
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
     struct Mode {const char *name; Route route; bool adaptive;};
@@ -18,13 +19,14 @@ private:
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
     std::map<std::string,std::vector<double>> m_samples;
-    bool Capturing() const {return m_phase==Phase::Capture;}
+    bool Capturing() const {return m_phase==Phase::Capture||m_phase==Phase::Reference;}
+    bool Reference() const {return m_phase==Phase::Reference;}
     Mode Current() const {return m_modes[m_run%2?m_modes.size()-1-m_slot:m_slot];}
     void Configure() {
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
-        m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
-        s->ApplyTemporalRoute(c.route,c.adaptive);
+        m_parent.Settings().CurrentAAOption=Reference()?CMAA2Sample::AAType::SuperSampleReference:CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+        if(!Reference())s->ApplyTemporalRoute(c.route,c.adaptive);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
         m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
@@ -56,6 +58,7 @@ public:
     BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output):
         AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
         m_measureFrames(phase==Phase::Smoke?240:4800),m_repeats(phase==Phase::Smoke?1:6),m_output(output) {
+        if(phase==Phase::Reference){m_modes.push_back({"SS-Reference",Route::NativeT2XR,false});return;}
         m_modes.push_back({"O-T2X-R",Route::NativeT2XR,false});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,false});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge,false});
@@ -78,11 +81,14 @@ public:
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
-                "Benchmark: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats. History reset at each 240-frame loop.\r\n"};
+                "Benchmark: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats. History reset at each 240-frame loop.\r\n",
+                "ReferenceCapture: SuperSampleReference PNG every frame, 60 warmup; no temporal history.\r\n"};
             tool.ReportAddText(phases[int(m_phase)]);
+            if(Reference())tool.ReportAddText(vaStringTools::Format("SS-Reference: %dx linear resolution, %dx%d within-frame grid, %dx MSAA. Spatial reference proxy, not temporal ground truth.\r\n",
+                m_parent.GetSSResScale(),m_parent.GetSSGridRes(),m_parent.GetSSGridRes(),m_parent.GetSSMSAASampleCount()));
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
-            static const wchar_t *dirs[]={L"/capture/",L"/smoke/",L"/timing/"};
+            static const wchar_t *dirs[]={L"/capture/",L"/smoke/",L"/timing/",L"/reference/"};
             m_output+=std::wstring(dirs[int(m_phase)])+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
             tool.ReportAddRowValues({"capture_root",vaStringTools::SimpleNarrow(m_output)});
             Configure();if(!Capturing())m_until=now+30;
@@ -118,10 +124,14 @@ public:
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
-        bool ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
-        ok=ok&&s->IsTemporalRoute(c.route,c.adaptive);
-        ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
-        const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        const auto jitter=s->GetLastTemporalProjectionOffset();bool ok;
+        if(Reference())ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SuperSampleReference;
+        else {
+            ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
+            ok=ok&&s->IsTemporalRoute(c.route,c.adaptive);
+            ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
+            ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        }
         // Fixed output size: a window/display change during a run invalidates captures and timing.
         if(color->GetSizeX()!=1920||color->GetSizeY()!=1061){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
@@ -137,7 +147,7 @@ public:
 static void QueueColorBlendOptimization(CMAA2Sample& parent,AutoBenchTool& tool) {
     using Phase=BenchItemColorBlendOptimization::Phase;
     static const std::pair<const wchar_t*,Phase> commands[]={
-        {L"smaaColorBlendOptimizationCapture",Phase::Capture},
+        {L"smaaColorBlendOptimizationCapture",Phase::Capture},{L"smaaColorBlendOptimizationReferenceCapture",Phase::Reference},
         {L"smaaColorBlendOptimizationSmoke",Phase::Smoke},{L"smaaColorBlendOptimizationBenchmark",Phase::Benchmark}};
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
         for(const auto& command:commands) {

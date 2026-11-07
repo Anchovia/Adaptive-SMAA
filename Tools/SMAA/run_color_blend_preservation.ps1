@@ -1,6 +1,6 @@
 param(
     [ValidateSet('Preservation','Optimization')][string]$Harness='Preservation',
-    [ValidateSet('Capture','Diagnostic','Profile','Smoke','Benchmark')][string]$Phase='Capture',
+    [ValidateSet('Capture','ReferenceCapture','Diagnostic','Profile','Smoke','Benchmark')][string]$Phase='Capture',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
     [string]$OutputRoot='D:\SMAAResearchCaptures\c17-cleanup-20261016',
@@ -20,7 +20,7 @@ foreach($file in Get-ChildItem -LiteralPath (Join-Path $root 'Projects/CMAA2/SMA
     $sources['Projects/CMAA2/SMAA/'+$file.Name]=(Get-FileHash -LiteralPath $file.FullName).Hash
 }
 $harnessFile=Join-Path $root "Projects/CMAA2/ColorBlend$Harness.inl"
-if(($Harness -eq 'Preservation' -and $Phase -eq 'Profile') -or ($Harness -eq 'Optimization' -and $Phase -eq 'Diagnostic')){throw "Phase $Phase is not defined for the $Harness harness"}
+if(($Harness -eq 'Preservation' -and $Phase -in 'Profile','ReferenceCapture') -or ($Harness -eq 'Optimization' -and $Phase -eq 'Diagnostic')){throw "Phase $Phase is not defined for the $Harness harness"}
 $harnessHash=(Get-FileHash -LiteralPath $harnessFile).Hash
 # Trust only this selected worktree for this invocation, without changing global
 # Git settings when the sandbox user has a different SID from the owner.
