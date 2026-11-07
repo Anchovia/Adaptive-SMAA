@@ -2,7 +2,7 @@
 #include <cmath>
 
 // Paired harness (same process, same timeline): native case 4, the selected route and
-// case 19 (velocity in the edge pass), each one TemporalRoute.
+// case 19 (velocity in the edge pass), each with Original and Adaptive SMAA.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   Smoke/Benchmark: GPU timing, PNG/query/readback/pass timers Off.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
@@ -10,7 +10,7 @@ public:
     enum class Phase {Capture, Smoke, Benchmark};
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
-    struct Mode {const char *name; Route route;};
+    struct Mode {const char *name; Route route; bool adaptive;};
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
@@ -24,7 +24,7 @@ private:
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
         m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
-        s->ApplyTemporalRoute(c.route);
+        s->ApplyTemporalRoute(c.route,c.adaptive);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
         m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
@@ -56,9 +56,12 @@ public:
     BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output):
         AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
         m_measureFrames(phase==Phase::Smoke?240:4800),m_repeats(phase==Phase::Smoke?1:6),m_output(output) {
-        m_modes.push_back({"O-T2X-R",Route::NativeT2XR});
-        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected});
-        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge});
+        m_modes.push_back({"O-T2X-R",Route::NativeT2XR,false});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,false});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge,false});
+        m_modes.push_back({"A-T2X-R",Route::NativeT2XR,true});
+        m_modes.push_back({"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,true});
+        m_modes.push_back({"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge,true});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -71,7 +74,7 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Selected-temporal minimal harness: native case4, selected route and case19.\r\n");
+            tool.ReportAddText("Selected-temporal harness: native case4, selected route and case19, each Original and Adaptive.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
@@ -116,7 +119,7 @@ public:
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
         bool ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
-        ok=ok&&s->IsTemporalRoute(c.route);
+        ok=ok&&s->IsTemporalRoute(c.route,c.adaptive);
         ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
         const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         // Fixed output size: a window/display change during a run invalidates captures and timing.

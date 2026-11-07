@@ -62,6 +62,7 @@ namespace VertexAsylum
         // camera/depth reprojection only. The optional step computes the velocity in the edge pass.
         bool                        m_selectedTemporal              = false;
         bool                        m_velocityInEdgePass            = false;
+        bool                        m_adaptiveSearch                = false;  // Adaptive SMAA spatial search
         vaVector2                   m_lastTemporalProjectionOffset  = vaVector2(0,0);
 
         //bool                        m_debugShowEdges;
@@ -97,14 +98,15 @@ namespace VertexAsylum
         // only for a frame drawn on the selected route, whose next history is the final colour.
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
         enum class TemporalRoute {NativeT2XR,Selected,SelectedVelocityInEdge};
-        void ApplyTemporalRoute(TemporalRoute route) {
+        void ApplyTemporalRoute(TemporalRoute route, bool adaptiveSearch=false) {
             SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(true);
+            m_adaptiveSearch=adaptiveSearch;
             m_selectedTemporal=route!=TemporalRoute::NativeT2XR;
             m_velocityInEdgePass=route==TemporalRoute::SelectedVelocityInEdge;
             ResetTemporalHistory();
         }
-        bool IsTemporalRoute(TemporalRoute route) const {
-            return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
+        bool IsTemporalRoute(TemporalRoute route, bool adaptiveSearch=false) const {
+            return m_adaptiveSearch==adaptiveSearch&&GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
                 &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
         }
         vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}

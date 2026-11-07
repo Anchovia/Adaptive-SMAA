@@ -68,6 +68,7 @@ public:
     virtual void                        SetResource_velocityTex    ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_edgesTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
     virtual void                        SetResource_blendTex       ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
+    virtual void                        SetResource_metaTex        ( ID3D11DeviceContext * context, ID3D11ShaderResourceView * pResource ) = 0;
 };
 
 class SMAATechniqueInterface
@@ -105,7 +106,8 @@ class SMAA {
          */
         SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, 
              Preset preset=PRESET_HIGH, bool predication=false, bool reprojection=false, const DXGI_ADAPTER_DESC *adapterDesc=NULL,
-             const ExternalStorage &storage=ExternalStorage());
+             const ExternalStorage &storage=ExternalStorage(),
+             bool adaptiveSearch=false); // Adaptive SMAA: contrast-tiered search lengths (SMAA_ADAPTIVE_SEARCH).
         ~SMAA();
 
         // Outputs of go() on the edge-selective temporal route.
@@ -293,6 +295,7 @@ class SMAA {
         RenderTarget *edgesRT;
         RenderTarget *previousRawEdgesRT = nullptr;
         RenderTarget *blendRT;
+        RenderTarget *metaRT = nullptr;     // Adaptive search tier; null for Original SMAA.
 
         ID3D11Texture2D *areaTex;
         ID3D11ShaderResourceView *areaTexSRV;
@@ -336,6 +339,7 @@ class SMAA {
         int msaaOrderMap[2];
 
         bool orderDetected = false;
+        bool adaptiveSearch = false;
 };
 
 #endif
