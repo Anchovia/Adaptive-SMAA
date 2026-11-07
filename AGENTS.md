@@ -50,8 +50,13 @@
   타임라인을 바꾸지 않는다. 초기 준비가 멈춘 실행은 기록만 보존하고, 정상 완료된
   독립 실행만 채택한다. 자세한 제외 기록은 ①의 excluded-startup-stalls.json에 있다.
 
-## 2026-11-02: ⑱ 선택적 temporal 기준선
+## 2026-11-02: ⑱ 선택적 temporal 기준선 (2026-11-07 교체)
 
-- 이후 출력 보존 최적화와 병목 분석은 `baseline/selected-temporal-case18`에서 독립 분기한다.
-- ④·⑰·⑱ 설정은 `vaSMAAWrapper::ApplyTemporalRoute`로만 정한다. 비교는 같은 실행의 ④와 ⑰을 대조군으로 쓴다.
-- 결과와 한계는 `Docs/Selected-Temporal-Case18-Baseline/readme-ko.md`를 따른다.
+- ⑱은 `baseline/selected-temporal-case18`에 보존한다. 결과와 한계는 그 브랜치의 `Docs/Selected-Temporal-Case18-Baseline/readme-ko.md`를 따른다.
+
+## 2026-11-07: 선택 경로와 19번 기준선
+
+- 이후 실험은 `baseline/selected-temporal`에서 독립 분기한다. 기준선은 선택 경로(주 기준선)와 19번 두 가지이며 `vaSMAAWrapper::ApplyTemporalRoute`의 `Selected`, `SelectedVelocityInEdge`로 고른다.
+- 성능은 같은 실행의 ④, 선택 경로, 19번과 짝지어 비교한다. 출력 보존이라고 말하려면 바꾼 쪽의 기준선과 240프레임 화면 RGB가 같아야 한다.
+- 19번은 ⑱·선택 경로와 RGB가 소수 픽셀 다르므로 선택 경로와 같은 출력이라고 쓰지 않는다.
+- 정의, 수치, 비교 규칙은 `Docs/Selected-Temporal-Baseline/readme-ko.md`를 따른다.
