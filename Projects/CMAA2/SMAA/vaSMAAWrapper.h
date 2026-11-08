@@ -141,7 +141,6 @@ namespace VertexAsylum
     protected:
         int                         GetTemporalFrameIndex( ) const       { return m_temporalFrameIndex; }
         void                        AdvanceTemporalFrame( )              { m_temporalFrameIndex = (m_temporalFrameIndex + 1) % 2; }
-        void                        RestartTemporalFrame( )              { m_temporalFrameIndex = 0; }
 
         // virtual void                UpdateConstants( vaRenderDeviceContext & renderContext );
 

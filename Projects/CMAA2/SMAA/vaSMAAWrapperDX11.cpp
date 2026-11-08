@@ -488,7 +488,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
-                const SMAA::SelectedTemporalTargets selected = { nextHistoryRTV, m_temporalHistoryValid, m_velocityInEdgePass ? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetRTV( ) : nullptr };
+                // Previous raw edges exist only when the previous frame was also drawn on the selected route.
+                const SMAA::SelectedTemporalTargets selected = { nextHistoryRTV, m_temporalHistoryValid && !m_lastFrameNative, m_velocityInEdgePass ? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetRTV( ) : nullptr };
                 if( m_velocityInEdgePass )
                     m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->SetToAPISlot( deviceContext, 1 );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, m_velocityInEdgePass ? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode,
@@ -514,15 +515,24 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             AdvanceTemporalFrame( );
             m_lastFrameNative = !selectedFrame;
 
-            // Case 22: switch routes from the next frame. The two routes keep different
-            // histories (native: spatial frame, selected: final colour), so the new route
-            // starts from a seeded history and jitter phase S0 instead of reusing the other one.
+            // Case 22: switch routes from the next frame and hand this frame's final colour to the
+            // new route as its previous history. The selected route already keeps its final colour in
+            // currentHistory. Native T2X-R keeps the spatial frame there and writes its final colour to
+            // dstRT, so that is copied in. (A seeded restart made the first frame after each switch a
+            // single unblended T2X or 1X frame.)
             if( m_stillSwitch && ( m_stillFrames >= m_stillFramesToNative ) != m_stillNative )
             {
+                if( !selectedFrame )
+                {
+                    if( dstRT->GetResourceFormat( ) == currentHistory->GetResourceFormat( ) && dstRT->GetSizeX( ) == currentHistory->GetSizeX( ) && dstRT->GetSizeY( ) == currentHistory->GetSizeY( ) )
+                        dx11Context->CopyResource( currentHistory->SafeCast<vaTextureDX11*>( )->GetResource( ), dstRT->SafeCast<vaTextureDX11*>( )->GetResource( ) );
+                    else
+                    {
+                        VA_LOG_WARNING( "SMAA case 22: output and history formats differ; the selected route starts from a seeded history" );
+                        m_temporalHistoryValid = false;
+                    }
+                }
                 m_stillNative = !m_stillNative;
-                RestartTemporalFrame( );
-                m_temporalHistoryValid = false;
-                m_smaa->resetFrame( );
             }
         }
         else

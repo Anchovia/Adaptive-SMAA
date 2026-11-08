@@ -52,10 +52,12 @@ SELECTED_VELOCITY_EDGE_PS(Color)
 SELECTED_VELOCITY_EDGE_PS(Depth)
 
 // Compiled without SMAA_REPROJECTION: the packed velocity alpha has no reader on this route.
+// History alpha is 0, the velocity alpha native T2X-R stores for a still camera, so case 22
+// can hand this history to native T2X-R without its velocity weight rejecting it.
 void SelectedNeighborhoodPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0, float4 offset : TEXCOORD1,
                             out float4 spatial : SV_TARGET0, out float4 history : SV_TARGET1) {
     spatial = DX10_SMAANeighborhoodBlendingPS(p, uv, offset);
-    history = spatial;
+    history = float4(spatial.rgb, 0.0);
 }
 
 float3 SelectedHistoryRGB(float2 uv) {
@@ -78,12 +80,12 @@ float3 EncodedToLinear(float3 v) {
 float4 SelectedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
     float4 current = SMAASamplePoint(colorTex, uv);
     float3 c = LinearToEncoded(current.rgb), h = LinearToEncoded(SelectedHistoryRGB(uv));
-    return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, 0.8))), current.a);
+    return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, 0.8))), 0.0);
 }
 
 // First frame and resets: the history is the current spatial colour.
 [earlydepthstencil]
 float4 SelectedSeedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
     float4 current = SMAASamplePoint(colorTex, uv);
-    return float4(lerp(current.rgb, SelectedHistoryRGB(uv), 0.8), current.a);
+    return float4(lerp(current.rgb, SelectedHistoryRGB(uv), 0.8), 0.0);
 }
