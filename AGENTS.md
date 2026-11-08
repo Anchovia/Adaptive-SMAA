@@ -60,3 +60,9 @@
 - 성능은 같은 실행의 ④, 선택 경로, 19번과 짝지어 비교한다. 출력 보존이라고 말하려면 바꾼 쪽의 기준선과 240프레임 화면 RGB가 같아야 한다.
 - 19번은 ⑱·선택 경로와 RGB가 소수 픽셀 다르므로 선택 경로와 같은 출력이라고 쓰지 않는다.
 - 정의, 수치, 비교 규칙은 `Docs/Selected-Temporal-Baseline/readme-ko.md`를 따른다.
+
+## 2026-11-09: 22번 (정지 중 ④, 이동 중 선택 경로)
+
+- `experiment/case22-still-t2x-switch`의 `TemporalRoute::StillNativeSwitch`다. 8-case를 늘리는 구성이 아니라 선택 경로의 정지 화면 품질을 보는 별도 비교 구성이다.
+- 정지 판정은 카메라 행렬만 본다(4프레임). 전환 시 직전 최종 출력을 다음 경로의 history로 넘긴다. history를 비우는 첫 구현(8ba9c53)은 전환 직후 한 프레임이 튀어 폐기했고 자료만 보존한다.
+- 성능은 사용자가 요청할 때만 잰다. 정의, 수치, 한계는 `Docs/Case22-Still-T2X-Switch/readme-ko.md`를 따른다.
