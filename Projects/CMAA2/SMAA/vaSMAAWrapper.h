@@ -62,6 +62,13 @@ namespace VertexAsylum
         // camera/depth reprojection only. The optional step computes the velocity in the edge pass.
         bool                        m_selectedTemporal              = false;
         bool                        m_velocityInEdgePass            = false;
+        // Case 22: the selected route while the camera moves; native T2X-R (paired jitter, full
+        // screen) once the unjittered camera has stayed the same for m_stillFramesToNative frames.
+        bool                        m_stillSwitch                   = false;
+        bool                        m_stillNative                   = false;    // route of the next frame
+        bool                        m_lastFrameNative               = false;    // route of the last drawn frame
+        int                         m_stillFrames                   = 0;
+        int                         m_stillFramesToNative           = 4;
         vaVector2                   m_lastTemporalProjectionOffset  = vaVector2(0,0);
 
         //bool                        m_debugShowEdges;
@@ -96,28 +103,33 @@ namespace VertexAsylum
         // The app presents this texture instead of the render target bound for Draw(); non-null
         // only for a frame drawn on the selected route, whose next history is the final colour.
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
-        enum class TemporalRoute {NativeT2XR,Selected,SelectedVelocityInEdge};
+        enum class TemporalRoute {NativeT2XR,Selected,SelectedVelocityInEdge,StillNativeSwitch};
         void ApplyTemporalRoute(TemporalRoute route) {
             SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(true);
             m_selectedTemporal=route!=TemporalRoute::NativeT2XR;
             m_velocityInEdgePass=route==TemporalRoute::SelectedVelocityInEdge;
+            m_stillSwitch=route==TemporalRoute::StillNativeSwitch;
             ResetTemporalHistory();
         }
         bool IsTemporalRoute(TemporalRoute route) const {
             return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
-                &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
+                &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge)&&m_stillSwitch==(route==TemporalRoute::StillNativeSwitch);
         }
+        // True when the next frame is drawn on the selected route (no jitter, edge-only resolve).
+        bool SelectedFrame() const {return m_selectedTemporal&&!(m_stillSwitch&&m_stillNative);}
+        bool LastFrameUsedNativeT2X() const {return m_lastFrameNative;}
         vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
         // Y while applying it to the projection matrix.
         vaVector2                   GetTemporalJitterOffset( ) const
         {
-            if(m_selectedTemporal)return vaVector2(0,0);
+            if(SelectedFrame())return vaVector2(0,0);
             return (m_temporalFrameIndex == 0)? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f );
         }
 
-        virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; }
+        // An explicit reset (first frame, mode, scene, camera cut, resize) also restarts case 22 on the selected route.
+        virtual void                ResetTemporalHistory( )             { m_temporalFrameIndex = 0; m_stillNative = false; m_stillFrames = 0; }
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
@@ -129,6 +141,7 @@ namespace VertexAsylum
     protected:
         int                         GetTemporalFrameIndex( ) const       { return m_temporalFrameIndex; }
         void                        AdvanceTemporalFrame( )              { m_temporalFrameIndex = (m_temporalFrameIndex + 1) % 2; }
+        void                        RestartTemporalFrame( )              { m_temporalFrameIndex = 0; }
 
         // virtual void                UpdateConstants( vaRenderDeviceContext & renderContext );
 

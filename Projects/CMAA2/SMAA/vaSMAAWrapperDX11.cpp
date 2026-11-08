@@ -437,6 +437,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 return velocityResult;
         }
 
+        // Case 22: count consecutive frames whose unjittered camera equals the previous frame's.
+        if( m_stillSwitch )
+        {
+            bool same = m_previousViewProjValid;
+            for( int r = 0; r < 4 && same; r++ )
+                for( int c = 0; c < 4 && same; c++ )
+                    same = fabsf( currentUnjitteredViewProj.m[r][c] - m_previousViewProj.m[r][c] ) <= 1e-6f * (std::max)( 1.0f, fabsf( m_previousViewProj.m[r][c] ) );
+            m_stillFrames = same ? m_stillFrames + 1 : 0;
+        }
+
         m_previousViewProj = currentUnjitteredViewProj;
         m_previousViewProjValid = true;
     }
@@ -460,6 +470,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             { VA_LOG_ERROR("The selected temporal route requires camera/depth reprojection"); return vaDrawResultFlags::UnspecifiedError; }
             assert( m_temporalHistory[0] != nullptr && m_temporalHistory[1] != nullptr );
             assert( m_smaa->getFrameIndex( ) == GetTemporalFrameIndex( ) );
+            const bool selectedFrame = SelectedFrame( );
 
             const int currentIndex = GetTemporalFrameIndex( );
             const int previousIndex = 1 - currentIndex;
@@ -468,7 +479,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
 
             // Selected route: the resolve reads this frame's spatial colour from a separate
             // texture because it writes the next history at the same pixels.
-            const auto currentSpatial=m_selectedTemporal?m_feedbackCurrentSpatial:currentHistory;
+            const auto currentSpatial=selectedFrame?m_feedbackCurrentSpatial:currentHistory;
             ID3D11RenderTargetView * currentSpatialRTV = currentSpatial->SafeCast<vaTextureDX11*>( )->GetRTV( );
             ID3D11RenderTargetView * nextHistoryRTV = currentHistory->SafeCast<vaTextureDX11*>()->GetRTV();
             ID3D11ShaderResourceView * spatialColorSRV = m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( );
@@ -481,7 +492,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 if( m_velocityInEdgePass )
                     m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->SetToAPISlot( deviceContext, 1 );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, m_velocityInEdgePass ? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode,
-                    m_selectedTemporal ? SMAA::MODE_SMAA_1X : SMAA::MODE_SMAA_T2X, 0, m_selectedTemporal ? &selected : nullptr );
+                    selectedFrame ? SMAA::MODE_SMAA_1X : SMAA::MODE_SMAA_T2X, 0, selectedFrame ? &selected : nullptr );
                 if( m_velocityInEdgePass )
                     m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->UnsetFromAPISlot( deviceContext, 1 );
             }
@@ -491,16 +502,28 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentSpatialSRV;
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
-                if( m_selectedTemporal )
+                if( selectedFrame )
                     m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, depthDSV, !m_temporalHistoryValid );
                 else
                     m_smaa->reproject( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>()->GetRTV() );
             }
-            if( m_selectedTemporal )
+            if( selectedFrame )
                 m_presentedOutput = currentHistory;
             m_temporalHistoryValid = true;
             m_smaa->nextFrame( );
             AdvanceTemporalFrame( );
+            m_lastFrameNative = !selectedFrame;
+
+            // Case 22: switch routes from the next frame. The two routes keep different
+            // histories (native: spatial frame, selected: final colour), so the new route
+            // starts from a seeded history and jitter phase S0 instead of reusing the other one.
+            if( m_stillSwitch && ( m_stillFrames >= m_stillFramesToNative ) != m_stillNative )
+            {
+                m_stillNative = !m_stillNative;
+                RestartTemporalFrame( );
+                m_temporalHistoryValid = false;
+                m_smaa->resetFrame( );
+            }
         }
         else
         {
