@@ -39,7 +39,9 @@ private:
         return n?n->GetFrameLastTotalTimeGPU()*1000.0:0;
     }
     void Summarize(AutoBenchTool& tool,const std::string& metric,std::vector<double> v) {
-        if(v.size()!=size_t(m_measureFrames)){m_failed=true;return;}
+        // "@still"/"@moving" metrics hold one half of the 240-frame timeline each.
+        const size_t expected=metric.find('@')==std::string::npos?size_t(m_measureFrames):size_t(m_measureFrames/2);
+        if(v.size()!=expected){m_failed=true;return;}
         double mean=0;for(double x:v)mean+=x;mean/=v.size();std::sort(v.begin(),v.end());
         double variance=0;for(double x:v)variance+=(x-mean)*(x-mean);variance/=v.size();
         const size_t tail=std::max(size_t(1),v.size()/100);double tailMean=0;
@@ -80,6 +82,7 @@ public:
                 "Benchmark: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats. History reset at each 240-frame loop.\r\n"};
             tool.ReportAddText(phases[int(m_phase)]);
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
+            tool.ReportAddText("metric@still: timeline phases 0-60 and 181-239; metric@moving: phases 61-180 (camera differs from the previous frame).\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             static const wchar_t *dirs[]={L"/capture/",L"/smoke/",L"/timing/"};
             m_output+=std::wstring(dirs[int(m_phase)])+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -98,6 +101,9 @@ public:
                         const bool mayBeZero=Current().route==Route::SelectedVelocityInEdge&&!strcmp(name,"SR_CameraVelocity");
                         const double t=Time(name);if(!std::isfinite(t)||t<0||(t==0&&!mayBeZero))m_failed=true;
                         m_samples[name].push_back(t);
+                        // Split by timeline phase: the camera moves on phases 61-180 (120 frames) and is
+                        // still on phases 0-60 and 181-239 (120 frames). Case 22 switches routes inside each half.
+                        if(strcmp(name,"SR_CameraVelocity")){const int p=m_frame%240;m_samples[std::string(name)+(p>=61&&p<=180?"@moving":"@still")].push_back(t);}
                     }
                     m_samples["WallFrame"].push_back((now-m_lastTick)*1000.0);
                 }
