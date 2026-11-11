@@ -407,13 +407,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return vaDrawResultFlags::ShadersStillCompiling; }
     }
 
+    // Recorded for every temporal frame (the harness checks the jitter with reprojection Off too).
+    if( GetTemporalModeEnabled( ) && optionalCamera != nullptr )
+        m_lastTemporalProjectionOffset = const_cast<vaCameraBase*>(optionalCamera)->GetSubpixelOffset();
+
     if( GetTemporalReprojectionEnabled( ) )
     {
         vaScopeTimer cameraTimer("SR_CameraVelocity", &deviceContext);
         if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
             return vaDrawResultFlags::ShadersStillCompiling;
 
-        m_lastTemporalProjectionOffset = const_cast<vaCameraBase*>(optionalCamera)->GetSubpixelOffset();
         const vaMatrix4x4 currentJitteredViewProj = optionalCamera->GetViewMatrix( ) * optionalCamera->GetProjMatrix( );
         vaCameraBase unjitteredCamera = *optionalCamera;
         vaVector2 zeroJitter( 0.0f, 0.0f );
