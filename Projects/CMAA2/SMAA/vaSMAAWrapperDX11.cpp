@@ -460,8 +460,11 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             //     blending writes the spatial result to the current spatial copy and the next history.
             //  2. resolveSelected(): stencil-selected pixels overwrite the next history, which the
             //     application then presents.
-            if( m_selectedTemporal && !GetTemporalReprojectionEnabled( ) )
-            { VA_LOG_ERROR("The selected temporal route requires camera/depth reprojection"); return vaDrawResultFlags::UnspecifiedError; }
+            // Without reprojection the selected route reads the previous edges and history at the
+            // same pixel (shaders compiled without SMAA_REPROJECTION). Case 19 computes the velocity
+            // in the edge pass and therefore needs reprojection.
+            if( m_velocityInEdgePass && !GetTemporalReprojectionEnabled( ) )
+            { VA_LOG_ERROR("Case 19 requires camera/depth reprojection"); return vaDrawResultFlags::UnspecifiedError; }
             assert( m_temporalHistory[0] != nullptr && m_temporalHistory[1] != nullptr );
             assert( m_smaa->getFrameIndex( ) == GetTemporalFrameIndex( ) );
 

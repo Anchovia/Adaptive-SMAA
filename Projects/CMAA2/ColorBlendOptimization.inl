@@ -1,8 +1,10 @@
 #include <map>
 #include <cmath>
 
-// Paired harness (same process, same timeline): native case 4, the selected route and
-// case 19 (velocity in the edge pass), each with Original and Adaptive SMAA.
+// Paired harness (same process, same timeline): native T2X, the selected route and case 19
+// (velocity in the edge pass), each with Original and Adaptive SMAA, with camera/depth
+// reprojection On, plus native T2X and the selected route with reprojection Off
+// (no-reprojection ablations O/A-T2X and O/A-ET2X). Case 19 exists only with reprojection.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   ReferenceCapture: supersample spatial reference proxy on the same 240-frame timeline.
 //   Smoke/Benchmark: GPU timing, PNG/query/readback/pass timers Off.
@@ -11,7 +13,7 @@ public:
     enum class Phase {Capture, Smoke, Benchmark, Reference};
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
-    struct Mode {const char *name; Route route; bool adaptive;};
+    struct Mode {const char *name; Route route; bool adaptive; bool reprojection=true;};
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
@@ -25,8 +27,9 @@ private:
     void Configure() {
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
-        m_parent.Settings().CurrentAAOption=Reference()?CMAA2Sample::AAType::SuperSampleReference:CMAA2Sample::AAType::SMAA_T2x_Reprojected;
-        if(!Reference())s->ApplyTemporalRoute(c.route,c.adaptive);
+        // The application derives the reprojection flag from the AA type every frame.
+        m_parent.Settings().CurrentAAOption=Reference()?CMAA2Sample::AAType::SuperSampleReference:c.reprojection?CMAA2Sample::AAType::SMAA_T2x_Reprojected:CMAA2Sample::AAType::SMAA_T2x;
+        if(!Reference())s->ApplyTemporalRoute(c.route,c.adaptive,c.reprojection);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
         m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
@@ -40,7 +43,9 @@ private:
         return n?n->GetFrameLastTotalTimeGPU()*1000.0:0;
     }
     void Summarize(AutoBenchTool& tool,const std::string& metric,std::vector<double> v) {
-        if(v.size()!=size_t(m_measureFrames)){m_failed=true;return;}
+        // "@still"/"@moving" metrics hold one half of the 240-frame timeline each.
+        const size_t expected=metric.find('@')==std::string::npos?size_t(m_measureFrames):size_t(m_measureFrames/2);
+        if(v.size()!=expected){m_failed=true;return;}
         double mean=0;for(double x:v)mean+=x;mean/=v.size();std::sort(v.begin(),v.end());
         double variance=0;for(double x:v)variance+=(x-mean)*(x-mean);variance/=v.size();
         const size_t tail=std::max(size_t(1),v.size()/100);double tailMean=0;
@@ -65,6 +70,11 @@ public:
         m_modes.push_back({"A-T2X-R",Route::NativeT2XR,true});
         m_modes.push_back({"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,true});
         m_modes.push_back({"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge,true});
+        // Reprojection Off: same-pixel history and previous edges, no camera velocity pass.
+        m_modes.push_back({"O-T2X",Route::NativeT2XR,false,false});
+        m_modes.push_back({"ABL-ET2X-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,false,false});
+        m_modes.push_back({"A-T2X",Route::NativeT2XR,true,false});
+        m_modes.push_back({"A-ABL-ET2X-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,true,false});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -77,8 +87,8 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Selected-temporal harness: native case4, selected route and case19, each Original and Adaptive.\r\n");
-            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
+            tool.ReportAddText("Selected-temporal harness: native T2X, selected route and case19 with reprojection, native T2X and selected route without it; each Original and Adaptive.\r\n");
+            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; -R modes camera/depth reprojection only, other modes same-pixel history.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
                 "Benchmark: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats. History reset at each 240-frame loop.\r\n",
@@ -87,6 +97,7 @@ public:
             if(Reference())tool.ReportAddText(vaStringTools::Format("SS-Reference: %dx linear resolution, %dx%d within-frame grid, %dx MSAA. Spatial reference proxy, not temporal ground truth.\r\n",
                 m_parent.GetSSResScale(),m_parent.GetSSGridRes(),m_parent.GetSSGridRes(),m_parent.GetSSMSAASampleCount()));
             tool.ReportAddText("timing columns: type,mode,run,metric,samples,mean_ms,median_ms,p95_ms,p99_ms,stddev_ms,slowest_one_percent_equivalent_fps\r\n");
+            tool.ReportAddText("metric@still: timeline phases 0-60 and 181-239; metric@moving: phases 61-180 (camera differs from the previous frame).\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             static const wchar_t *dirs[]={L"/capture/",L"/smoke/",L"/timing/",L"/reference/"};
             m_output+=std::wstring(dirs[int(m_phase)])+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
@@ -101,10 +112,14 @@ public:
                 m_rendered=false;m_lastProgress=now;
                 if(!Capturing()&&m_frame>=0) {
                     for(const auto name:{"WholeFrame","SMAA","SR_CameraVelocity","SF_Spatial","SR_Resolve"}) {
-                        // Case 19 issues no GPU work in the velocity scope; its reading may be zero.
-                        const bool mayBeZero=Current().route==Route::SelectedVelocityInEdge&&!strcmp(name,"SR_CameraVelocity");
+                        // Case 19 and the reprojection-Off modes issue no GPU work in the velocity scope.
+                        const bool noVelocity=Current().route==Route::SelectedVelocityInEdge||!Current().reprojection;
+                        const bool mayBeZero=noVelocity&&!strcmp(name,"SR_CameraVelocity");
                         const double t=Time(name);if(!std::isfinite(t)||t<0||(t==0&&!mayBeZero))m_failed=true;
                         m_samples[name].push_back(t);
+                        // Split by timeline phase: the camera moves on phases 61-180 (120 frames) and is
+                        // still on phases 0-60 and 181-239 (120 frames).
+                        if(strcmp(name,"SR_CameraVelocity")){const int p=m_frame%240;m_samples[std::string(name)+(p>=61&&p<=180?"@moving":"@still")].push_back(t);}
                     }
                     m_samples["WallFrame"].push_back((now-m_lastTick)*1000.0);
                 }
@@ -127,8 +142,8 @@ public:
         const auto jitter=s->GetLastTemporalProjectionOffset();bool ok;
         if(Reference())ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SuperSampleReference;
         else {
-            ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
-            ok=ok&&s->IsTemporalRoute(c.route,c.adaptive);
+            ok=m_parent.Settings().CurrentAAOption==(c.reprojection?CMAA2Sample::AAType::SMAA_T2x_Reprojected:CMAA2Sample::AAType::SMAA_T2x)&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled()==c.reprojection;
+            ok=ok&&s->IsTemporalRoute(c.route,c.adaptive,c.reprojection);
             ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
             ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         }

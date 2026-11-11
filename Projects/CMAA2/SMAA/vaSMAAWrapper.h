@@ -98,15 +98,18 @@ namespace VertexAsylum
         // only for a frame drawn on the selected route, whose next history is the final colour.
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride() const {return nullptr;}
         enum class TemporalRoute {NativeT2XR,Selected,SelectedVelocityInEdge};
-        void ApplyTemporalRoute(TemporalRoute route, bool adaptiveSearch=false) {
-            SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(true);
+        // reprojection=false gives the no-reprojection ablations (O/A-T2X, O/A-ET2X); the
+        // application must then select AAType::SMAA_T2x. Case 19 needs reprojection.
+        void ApplyTemporalRoute(TemporalRoute route, bool adaptiveSearch=false, bool reprojection=true) {
+            assert(reprojection||route!=TemporalRoute::SelectedVelocityInEdge);
+            SetTemporalModeEnabled(true);SetTemporalReprojectionEnabled(reprojection);
             m_adaptiveSearch=adaptiveSearch;
             m_selectedTemporal=route!=TemporalRoute::NativeT2XR;
             m_velocityInEdgePass=route==TemporalRoute::SelectedVelocityInEdge;
             ResetTemporalHistory();
         }
-        bool IsTemporalRoute(TemporalRoute route, bool adaptiveSearch=false) const {
-            return m_adaptiveSearch==adaptiveSearch&&GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
+        bool IsTemporalRoute(TemporalRoute route, bool adaptiveSearch=false, bool reprojection=true) const {
+            return m_adaptiveSearch==adaptiveSearch&&GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()==reprojection&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
                 &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
         }
         vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}

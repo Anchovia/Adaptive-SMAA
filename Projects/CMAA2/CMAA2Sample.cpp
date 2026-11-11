@@ -1178,7 +1178,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
         finalOutColor = m_scratchPostProcessColor;
         finalOutColorIgnoreSRGBConvView = m_scratchPostProcessColor; //m_scratchPostProcessColorIgnoreSRGBConvView;
         // Selected temporal route: SMAA's next history is this frame's final colour.
-        if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected && m_SMAA->GetPresentedOutputOverride() != nullptr)
+        if ((m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2x_Reprojected) && m_SMAA->GetPresentedOutputOverride() != nullptr)
         {
             finalOutColor = m_SMAA->GetPresentedOutputOverride();
             finalOutColorIgnoreSRGBConvView = finalOutColor;

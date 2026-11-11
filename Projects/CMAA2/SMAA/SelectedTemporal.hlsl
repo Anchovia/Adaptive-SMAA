@@ -20,6 +20,14 @@
 
 Texture2D previousRawEdges : register(t10);
 
+// Reprojection Off (O-ET2X, A-ET2X): a no-reprojection ablation that reads the previous raw
+// edges and the history at the same pixel. With SMAA_REPROJECTION the camera velocity is used.
+#if SMAA_REPROJECTION
+#define SELECTED_VELOCITY(uv) velocityTex.SampleLevel(PointSampler, uv, 0).rg
+#else
+#define SELECTED_VELOCITY(uv) float2(0.0, 0.0)
+#endif
+
 bool PreviousRawEdgeFrom(float2 uv, float2 velocity) {
     float2 previousUV = uv - velocity;
     bool inBounds = all(previousUV >= 0.0) && all(previousUV < 1.0);
@@ -31,7 +39,7 @@ bool PreviousRawEdgeFrom(float2 uv, float2 velocity) {
 #define SELECTED_EDGE_PS(kind)                                                                  \
 SMAA_EDGE_OUTPUT Selected##kind##EdgePS(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0, \
                               float4 offset[3] : TEXCOORD1) SMAA_EDGE_OUTPUT_SEMANTIC {             \
-    float2 velocity = velocityTex.SampleLevel(PointSampler, texcoord, 0).rg;                    \
+    float2 velocity = SELECTED_VELOCITY(texcoord);                                              \
     bool oldEdge = PreviousRawEdgeFrom(texcoord, velocity);                                     \
     SMAA_EDGE_OUTPUT edge = DX10_SMAA##kind##EdgeDetectionPS(position, texcoord, offset);       \
     if (!(any(EDGES_OF(edge) > 0.0) || oldEdge)) discard;                                       \
@@ -69,7 +77,7 @@ void SelectedNeighborhoodPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0, float
 }
 
 float3 SelectedHistoryRGB(float2 uv) {
-    float2 historyUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    float2 historyUV = uv - SELECTED_VELOCITY(uv);
     return SampleHistoryCatmullRom5Tap(colorTexPrev, LinearSampler, historyUV, SMAA_RT_METRICS.zw);
 }
 
