@@ -64,5 +64,5 @@
 ## 2026-11-09: 22번 (정지 중 ④, 이동 중 선택 경로)
 
 - `experiment/case22-still-t2x-switch`의 `TemporalRoute::StillNativeSwitch`다. 8-case를 늘리는 구성이 아니라 선택 경로의 정지 화면 품질을 보는 별도 비교 구성이다.
-- 정지 판정은 카메라 행렬만 본다(4프레임). 전환 시 직전 최종 출력을 다음 경로의 history로 넘긴다. history를 비우는 첫 구현(8ba9c53)은 전환 직후 한 프레임이 튀어 폐기했고 자료만 보존한다.
+- 정지 판정은 카메라 행렬만 본다(4프레임). 카메라 고정·물체 이동 장면에서는 ④의 고스팅이 그대로 나온다(stress object-motion으로 확인). 전환 시 직전 최종 출력을 다음 경로의 history로 넘긴다. history를 비우는 첫 구현(8ba9c53)은 전환 직후 한 프레임이 튀어 폐기했고 자료만 보존한다.
 - 성능은 사용자가 요청할 때만 잰다. 정의, 수치, 한계는 `Docs/Case22-Still-T2X-Switch/readme-ko.md`를 따른다.
