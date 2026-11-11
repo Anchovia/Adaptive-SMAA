@@ -62,7 +62,17 @@ namespace VertexAsylum
             LumberyardBistro,
             StaticImage,
             MinecraftLostEmpire,
+            SMAATemporalStressTest,     // procedural object-motion/thin-line fixture (from ca89855)
             
+            MaxValue
+        };
+
+        enum class SMAATemporalStressScenario : int32
+        {
+            ThinLinesCameraPan,
+            ObjectMotionDisocclusion,
+            CombinedCameraAndObjectMotion,
+
             MaxValue
         };
 
@@ -188,6 +198,14 @@ namespace VertexAsylum
 
         shared_ptr<vaScene>                     m_scenes[ (int32)SceneSelectionType::MaxValue ];
 
+        shared_ptr<vaSceneObject>               m_temporalStressMovingOccluder;
+        vector<shared_ptr<vaSceneObject>>       m_temporalStressRotorBlades;
+        vector<shared_ptr<vaRenderMesh>>        m_temporalStressMeshes;
+        vector<shared_ptr<vaRenderMaterial>>    m_temporalStressMaterials;
+        SMAATemporalStressScenario              m_temporalStressScenario = SMAATemporalStressScenario::ObjectMotionDisocclusion;
+        float                                   m_temporalStressTimeSeconds = 0.0f;
+        bool                                    m_temporalStressStateConfigured = false;
+
         shared_ptr<vaScene>                     m_currentScene;
         vaRenderSelection                       m_currentSceneMainRenderSelection;
         vaDrawResultFlags                       m_currentDrawResults = vaDrawResultFlags::None;
@@ -241,6 +259,8 @@ namespace VertexAsylum
 
         const char *                            GetAAName( AAType aaType );
         int                                     GetSSResScale( ) const              { return m_SSResScale; }
+        void                                    SetSMAATemporalStressTestState( SMAATemporalStressScenario scenario, float timeSeconds );
+        static const char *                     GetSMAATemporalStressScenarioName( SMAATemporalStressScenario scenario );
         int                                     GetSSGridRes( ) const               { return m_SSGridRes; }
         int                                     GetSSMSAASampleCount( ) const       { return m_SSMSAASampleCount; }
 

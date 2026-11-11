@@ -380,10 +380,177 @@ void CMAA2Sample::LoadAssetsAndScenes()
         m_scenes[(int32)SceneSelectionType::LumberyardBistro]->SetSkybox(GetRenderDevice(), "Media\\Bistro_Exterior_Dark_cube.dds", mat, 0.01f);
     }
 
+    // Deterministic SMAA temporal stress scene. This is deliberately separate
+    // from the research scenes so the quality tests never modify Bistro or
+    // Minecraft assets. The dark occluder moves across bright thin geometry,
+    // producing controlled object-motion and disocclusion regions. The rotor
+    // supplies fast diagonal subpixel edges.
+    {
+        shared_ptr<vaScene> scene = m_scenes[(int32)SceneSelectionType::SMAATemporalStressTest];
+        scene->Clear();
+        scene->Name() = "SMAA Temporal Stress Test";
+        scene->SetSkybox(GetRenderDevice(), "Media\\sky_cube.dds", vaMatrix3x3::Identity, 0.015f);
+        scene->Lights().push_back(std::make_shared<vaLight>(
+            vaLight::MakeAmbient("TemporalTestAmbient", vaVector3(0.55f, 0.55f, 0.55f))));
+        scene->Lights().push_back(std::make_shared<vaLight>(
+            vaLight::MakeDirectional("TemporalTestDirectional", vaVector3(0.8f, 0.8f, 0.8f),
+                vaVector3(-0.25f, 0.4f, -1.0f).Normalized())));
+
+        auto createMaterial = [this](const vaVector4& albedo, bool doubleSided)
+        {
+            shared_ptr<vaRenderMaterial> material =
+                GetRenderDevice().GetMaterialManager().CreateRenderMaterial(vaCore::GUIDCreate());
+            material->InitializeDefaultMaterial();
+            const int albedoIndex = material->FindInputByName("Albedo");
+            assert(albedoIndex >= 0);
+            vaRenderMaterial::MaterialInput albedoInput = material->GetInputs()[albedoIndex];
+            albedoInput.Value = vaRenderMaterial::MaterialInput::ValueVar(albedo);
+            material->SetInput(albedoIndex, albedoInput);
+            vaRenderMaterial::MaterialSettings settings = material->GetMaterialSettings();
+            settings.CastShadows = false;
+            settings.ReceiveShadows = false;
+            if(doubleSided)
+                settings.FaceCull = vaFaceCull::None;
+            material->SetMaterialSettings(settings);
+            m_temporalStressMaterials.push_back(material);
+            return material;
+        };
+
+        auto bindMaterial = [](const shared_ptr<vaRenderMesh>& mesh,
+            const shared_ptr<vaRenderMaterial>& material)
+        {
+            vaRenderMesh::SubPart part = mesh->GetPart();
+            part.CachedMaterialRef = material;
+            part.MaterialID = material->UIDObject_GetUID();
+            mesh->SetPart(part);
+        };
+
+        shared_ptr<vaRenderMaterial> brightMaterial = createMaterial(
+            vaVector4(0.92f, 0.95f, 1.0f, 1.0f), false);
+        shared_ptr<vaRenderMaterial> rotorMaterial = createMaterial(
+            vaVector4(1.0f, 0.32f, 0.06f, 1.0f), false);
+        shared_ptr<vaRenderMaterial> occluderMaterial = createMaterial(
+            vaVector4(0.025f, 0.03f, 0.04f, 1.0f), false);
+        shared_ptr<vaRenderMaterial> backdropMaterial = createMaterial(
+            vaVector4(0.12f, 0.16f, 0.22f, 1.0f), true);
+
+        shared_ptr<vaRenderMesh> brightCylinder = vaRenderMesh::CreateCylinder(
+            GetRenderDevice(), vaMatrix4x4::Identity, 1.0f, 1.0f, 1.0f, 12, false, false);
+        shared_ptr<vaRenderMesh> rotorCube = vaRenderMesh::CreateCube(
+            GetRenderDevice(), vaMatrix4x4::Identity, false);
+        shared_ptr<vaRenderMesh> occluderCube = vaRenderMesh::CreateCube(
+            GetRenderDevice(), vaMatrix4x4::Identity, false);
+        shared_ptr<vaRenderMesh> backdropPlane = vaRenderMesh::CreatePlane(
+            GetRenderDevice(), vaMatrix4x4::Identity, 1.0f, 1.0f);
+        bindMaterial(brightCylinder, brightMaterial);
+        bindMaterial(rotorCube, rotorMaterial);
+        bindMaterial(occluderCube, occluderMaterial);
+        bindMaterial(backdropPlane, backdropMaterial);
+        m_temporalStressMeshes = { brightCylinder, rotorCube, occluderCube, backdropPlane };
+
+        auto createObject = [&scene](const string& name, const shared_ptr<vaRenderMesh>& mesh,
+            const vaMatrix4x4& transform)
+        {
+            shared_ptr<vaSceneObject> object = scene->CreateObject(name, transform);
+            object->AddRenderMeshRef(mesh);
+            return object;
+        };
+
+        createObject("TemporalTestBackdrop", backdropPlane,
+            vaMatrix4x4::Scaling(5.2f, 3.6f, 1.0f)
+            * vaMatrix4x4::RotationX(0.5f * VA_PIf)
+            * vaMatrix4x4::Translation(0.0f, 2.8f, 2.7f));
+
+        // Repeated vertical and diagonal lines expose shimmer/crawling while
+        // the camera translates laterally by a subpixel-sensitive distance.
+        for(int lineIndex = -8; lineIndex <= 8; lineIndex++)
+        {
+            const float x = (float)lineIndex * 0.42f;
+            createObject(vaStringTools::Format("TemporalTestVerticalLine_%02d", lineIndex + 8),
+                brightCylinder,
+                vaMatrix4x4::Scaling(0.024f, 0.024f, 4.6f)
+                * vaMatrix4x4::Translation(x, 1.8f, 2.45f));
+        }
+        for(int lineIndex = -3; lineIndex <= 3; lineIndex++)
+        {
+            const float x = (float)lineIndex * 0.92f;
+            const float angle = (lineIndex & 1)? 0.24f * VA_PIf : -0.24f * VA_PIf;
+            createObject(vaStringTools::Format("TemporalTestDiagonalLine_%02d", lineIndex + 3),
+                brightCylinder,
+                vaMatrix4x4::Scaling(0.022f, 0.022f, 3.4f)
+                * vaMatrix4x4::RotationY(angle)
+                * vaMatrix4x4::Translation(x, 1.4f, 2.45f));
+        }
+
+        m_temporalStressMovingOccluder = createObject("TemporalTestMovingOccluder",
+            occluderCube,
+            vaMatrix4x4::Scaling(0.75f, 0.28f, 1.1f)
+            * vaMatrix4x4::Translation(-2.8f, -0.2f, 1.65f));
+
+        m_temporalStressRotorBlades.clear();
+        for(int bladeIndex = 0; bladeIndex < 4; bladeIndex++)
+        {
+            m_temporalStressRotorBlades.push_back(createObject(
+                vaStringTools::Format("TemporalTestRotorBlade_%d", bladeIndex),
+                rotorCube, vaMatrix4x4::Identity));
+        }
+    }
+
 #ifdef ENABLE_TEXTURE_REDUCTION_TOOL
     vaTextureReductionTestTool::SetSupportedByApp();
 #endif
 }
+
+const char* CMAA2Sample::GetSMAATemporalStressScenarioName(SMAATemporalStressScenario scenario)
+{
+    switch(scenario)
+    {
+    case SMAATemporalStressScenario::ThinLinesCameraPan:             return "thin-lines";
+    case SMAATemporalStressScenario::ObjectMotionDisocclusion:       return "object-motion";
+    case SMAATemporalStressScenario::CombinedCameraAndObjectMotion:  return "combined";
+    default:                                                         return "invalid";
+    }
+}
+
+void CMAA2Sample::SetSMAATemporalStressTestState(
+    SMAATemporalStressScenario scenario, float timeSeconds)
+{
+    assert(scenario >= SMAATemporalStressScenario::ThinLinesCameraPan
+        && scenario < SMAATemporalStressScenario::MaxValue);
+    m_temporalStressScenario = scenario;
+    m_temporalStressTimeSeconds = timeSeconds;
+    m_temporalStressStateConfigured = true;
+    const bool cameraMoves = scenario == SMAATemporalStressScenario::ThinLinesCameraPan
+        || scenario == SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+    const bool objectsMove = scenario == SMAATemporalStressScenario::ObjectMotionDisocclusion
+        || scenario == SMAATemporalStressScenario::CombinedCameraAndObjectMotion;
+
+    const float cameraPhase = timeSeconds * (2.0f * VA_PIf / 4.0f);
+    const float objectPhase = timeSeconds * (2.0f * VA_PIf / 3.0f);
+    const float cameraX = cameraMoves? 0.42f * vaMath::Sin(cameraPhase) : 0.0f;
+    const vaVector3 cameraPosition(cameraX, -10.0f, 2.65f);
+    m_camera->SetPosition(cameraPosition);
+    m_camera->SetOrientationLookAt(vaVector3(cameraX, 1.3f, 2.45f));
+
+    if(m_temporalStressMovingOccluder != nullptr)
+    {
+        const float occluderX = objectsMove? 2.75f * vaMath::Sin(objectPhase) : -2.8f;
+        m_temporalStressMovingOccluder->SetLocalTransform(
+            vaMatrix4x4::Scaling(0.75f, 0.28f, 1.1f)
+            * vaMatrix4x4::Translation(occluderX, -0.2f, 1.65f));
+    }
+
+    const float rotorAngle = objectsMove? timeSeconds * 2.4f * VA_PIf : 0.17f * VA_PIf;
+    for(int bladeIndex = 0; bladeIndex < (int)m_temporalStressRotorBlades.size(); bladeIndex++)
+    {
+        const float angle = rotorAngle + (float)bladeIndex * 0.5f * VA_PIf;
+        m_temporalStressRotorBlades[bladeIndex]->SetLocalTransform(
+            vaMatrix4x4::Scaling(1.25f, 0.10f, 0.075f)
+            * vaMatrix4x4::RotationY(angle)
+            * vaMatrix4x4::Translation(2.45f, 0.15f, 3.95f));
+    }
+}
+
 
 void CMAA2Sample::OnBeforeStopped()
 {
@@ -491,6 +658,23 @@ void CMAA2Sample::OnTick(float deltaTime)
     }
 
     m_camera->Tick(deltaTime, m_application.HasFocus() && !freezeMotionAndInput);
+
+    // The free-flight controller owns the camera during the regular tick. The
+    // stress capture needs an identical analytical camera pose for every mode,
+    // so apply it after controller input and rebuild the camera matrices with
+    // the controller temporarily detached.
+    if(m_settings.SceneChoice == CMAA2Sample::SceneSelectionType::SMAATemporalStressTest
+        && m_temporalStressStateConfigured)
+    {
+        shared_ptr<vaCameraControllerBase> previousController =
+            m_camera->GetAttachedController();
+        m_camera->AttachController(nullptr);
+        SetSMAATemporalStressTestState(
+            m_temporalStressScenario, m_temporalStressTimeSeconds);
+        m_camera->Tick(0.0f, false);
+        m_camera->AttachController(previousController);
+    }
+
 
     // Scene stuff
     {

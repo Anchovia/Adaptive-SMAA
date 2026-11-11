@@ -1,7 +1,7 @@
 param(
     [ValidateSet('Preservation','Optimization')][string]$Harness='Preservation',
     [ValidateSet('Capture','Diagnostic','Profile','Smoke','Benchmark')][string]$Phase='Capture',
-    [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
+    [ValidateSet('bistro','minecraft','thin-lines','object-motion','combined')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
     [string]$OutputRoot='D:\SMAAResearchCaptures\c17-cleanup-20261016',
     [string]$RetryReason='',
@@ -53,7 +53,9 @@ foreach($entry in $windowSettings.GetEnumerator()){
     $content=[regex]::Replace($content,$pattern,"<$($entry.Key)>$($entry.Value)</$($entry.Key)>")
 }
 if(([regex]::Matches($content,'<SceneChoice>\d+</SceneChoice>')).Count -ne 1){throw 'Unexpected initial scene settings'}
-$sceneIndex=if($Scene -eq 'bistro'){0}else{2}
+# Procedural stress scenarios share scene index 3 (SMAATemporalStressTest); they are capture-only.
+$sceneIndex=switch($Scene){'bistro'{0}'minecraft'{2}default{3}}
+if($sceneIndex -eq 3 -and $Phase -ne 'Capture'){throw 'The stress scene is capture-only'}
 $content=[regex]::Replace($content,'<SceneChoice>\d+</SceneChoice>',"<SceneChoice>$sceneIndex</SceneChoice>")
 $content=[regex]::Replace($content,'<CurrentAAOption>\d+</CurrentAAOption>','<CurrentAAOption>0</CurrentAAOption>')
 [System.IO.File]::WriteAllText($settings,$content)

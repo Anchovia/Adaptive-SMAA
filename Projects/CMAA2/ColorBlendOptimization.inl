@@ -4,17 +4,22 @@
 // Paired harness (same process, same timeline): native case 4, the selected route,
 // case 19 (velocity in the edge pass) and case 22 (native T2X-R while the camera is still,
 // the selected route while it moves), each one TemporalRoute.
-//   Capture:   RGB PNG for every frame of every mode (no diagnostics).
+//   Capture:   RGB PNG for every frame of every mode (no diagnostics). On the procedural stress
+//              scene (thin-lines/object-motion/combined) a supersample reference is captured too.
 //   Smoke/Benchmark: GPU timing, PNG/query/readback/pass timers Off.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
 public:
     enum class Phase {Capture, Smoke, Benchmark};
+    using Stress=CMAA2Sample::SMAATemporalStressScenario;
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
-    struct Mode {const char *name; Route route;};
+    struct Mode {const char *name; Route route; bool reference=false;};
     std::vector<Mode> m_modes;
     Phase m_phase;
+    Stress m_stress;
+    std::string m_sceneName;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
+    bool StressScene() const {return m_stress!=Stress::MaxValue;}
     int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
@@ -24,8 +29,8 @@ private:
     void Configure() {
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
-        m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
-        s->ApplyTemporalRoute(c.route);
+        m_parent.Settings().CurrentAAOption=c.reference?CMAA2Sample::AAType::SuperSampleReference:CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+        if(!c.reference)s->ApplyTemporalRoute(c.route);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
         m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
@@ -56,19 +61,23 @@ private:
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output):
-        AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
+    BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output,Stress stress=Stress::MaxValue):
+        AutoBenchToolWorkItem(parent),m_phase(phase),m_stress(stress),m_minecraft(minecraft),
         m_measureFrames(phase==Phase::Smoke?240:4800),m_repeats(phase==Phase::Smoke?1:6),m_output(output) {
+        m_sceneName=StressScene()?CMAA2Sample::GetSMAATemporalStressScenarioName(stress):(minecraft?"minecraft":"bistro");
         m_modes.push_back({"O-T2X-R",Route::NativeT2XR});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge});
         m_modes.push_back({"SWITCH-StillO-T2X-R-N4+MovingSelected",Route::StillNativeSwitch});
+        // 2x resolution, 3x3 grid, 8x MSAA, no history: a spatial reference proxy, not temporal ground truth.
+        if(StressScene())m_modes.push_back({"SS-Reference",Route::NativeT2XR,true});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
         if(!m_started) {
             m_started=true;m_parent.GetSMAA()->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
-            m_parent.Settings().SceneChoice=m_minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro;
+            m_parent.Settings().SceneChoice=StressScene()?CMAA2Sample::SceneSelectionType::SMAATemporalStressTest:
+                m_minecraft?CMAA2Sample::SceneSelectionType::MinecraftLostEmpire:CMAA2Sample::SceneSelectionType::LumberyardBistro;
             m_parent.SetRequireDeterminism(true);m_parent.SetFixedDeltaTime(1.0f/60.0f);
             m_parent.PostProcessTonemap()->Settings().AutoExposureAdaptationSpeed=std::numeric_limits<float>::infinity();
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
@@ -76,7 +85,8 @@ public:
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
             tool.ReportAddText("Selected-temporal harness: native case4, selected route, case19 and case22 (native T2X-R after 4 still camera frames, selected route while moving).\r\n");
-            tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
+            if(StressScene())tool.ReportAddText("Scene: SMAA Temporal Stress Test, scenario "+m_sceneName+"\r\nUltra; fixed60; procedural state at time frame/60 s (ca89855 timeline); camera fixed unless the scenario moves it; native paired pattern On; case17 pattern Off; camera/depth reprojection only, object motion vectors not connected. SS-Reference: 2x resolution, 3x3 grid, 8x MSAA, no history.\r\n");
+            else tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
                 "Benchmark: PNG/query/readback Off; 30s precondition; 300 warmup; 4800 frames x 6 alternating repeats. History reset at each 240-frame loop.\r\n"};
@@ -85,7 +95,7 @@ public:
             tool.ReportAddText("metric@still: timeline phases 0-60 and 181-239; metric@moving: phases 61-180 (camera differs from the previous frame).\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
             static const wchar_t *dirs[]={L"/capture/",L"/smoke/",L"/timing/"};
-            m_output+=std::wstring(dirs[int(m_phase)])+std::wstring(m_minecraft?L"minecraft/":L"bistro/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
+            m_output+=std::wstring(dirs[int(m_phase)])+vaStringTools::SimpleWiden(m_sceneName)+L"/"+report.substr(report.find_last_of(L"\\/")+1)+L"/";
             tool.ReportAddRowValues({"capture_root",vaStringTools::SimpleNarrow(m_output)});
             Configure();if(!Capturing())m_until=now+30;
         }else {
@@ -118,23 +128,29 @@ public:
         const auto c=Current();auto s=m_parent.GetSMAA();
         m_lastTick=now;const int phase=m_frame<0?0:m_frame%240;
         if(m_frame>=0&&phase==0)s->ResetTemporalHistory();
-        m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f);
+        // Stress scene: the scene state (and its fixed or panning camera) follows time frame/60 s, warm-up included.
+        if(StressScene())m_parent.SetSMAATemporalStressTestState(m_stress,float(m_frame)/60.0f);
+        else m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f+float(vaMath::Clamp(phase-60,0,120))/60.0f);
     }
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
-        bool ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
-        ok=ok&&s->IsTemporalRoute(c.route);
-        // Route actually drawn this frame; only case 22 may change it within a run.
-        const bool native=s->LastFrameUsedNativeT2X();
-        ok=ok&&(c.route==Route::StillNativeSwitch||native==(c.route==Route::NativeT2XR));
-        ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==!native);
-        const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(!native?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        const auto jitter=s->GetLastTemporalProjectionOffset();bool ok,native=false;
+        if(c.reference)ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SuperSampleReference;
+        else {
+            ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
+            ok=ok&&s->IsTemporalRoute(c.route);
+            // Route actually drawn this frame; only case 22 may change it within a run.
+            native=s->LastFrameUsedNativeT2X();
+            ok=ok&&(c.route==Route::StillNativeSwitch||native==(c.route==Route::NativeT2XR));
+            ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==!native);
+            ok=ok&&(!native?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        }
         // Fixed output size: a window/display change during a run invalidates captures and timing.
         if(color->GetSizeX()!=1920||color->GetSizeY()!=1061){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
         m_failed=m_failed||!ok;if(!Capturing()||m_frame<0)return;
-        tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),vaStringTools::Format("%.6f",jitter.x),vaStringTools::Format("%.6f",jitter.y),native?"native":"selected",ok?"PASS":"FAIL"});
+        tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),vaStringTools::Format("%.6f",jitter.x),vaStringTools::Format("%.6f",jitter.y),c.reference?"reference":native?"native":"selected",ok?"PASS":"FAIL"});
         const auto dir=m_output+vaStringTools::SimpleWiden(c.name)+L"/";vaFileTools::EnsureDirectoryExists(dir);
         if(!color->SaveToPNGFile(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d.png",m_frame))))m_failed=true;
     }
@@ -151,8 +167,12 @@ static void QueueColorBlendOptimization(CMAA2Sample& parent,AutoBenchTool& tool)
         for(const auto& command:commands) {
             if(_wcsicmp(p.first.c_str(),command.first)!=0)continue;
             std::wistringstream input(p.second);std::wstring scene,output;input>>scene>>output;
-            if((scene!=L"bistro"&&scene!=L"minecraft")||output.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");return;}
-            tool.AddTask(std::make_shared<BenchItemColorBlendOptimization>(parent,command.second,scene==L"minecraft",output));return;
+            using Stress=BenchItemColorBlendOptimization::Stress;
+            const Stress stress=scene==L"thin-lines"?Stress::ThinLinesCameraPan:scene==L"object-motion"?Stress::ObjectMotionDisocclusion:
+                scene==L"combined"?Stress::CombinedCameraAndObjectMotion:Stress::MaxValue;
+            if((scene!=L"bistro"&&scene!=L"minecraft"&&stress==Stress::MaxValue)||output.empty()){VA_LOG_ERROR("Expected scene (bistro, minecraft, thin-lines, object-motion, combined) and output path without spaces");return;}
+            if(stress!=Stress::MaxValue&&command.second!=Phase::Capture){VA_LOG_ERROR("The stress scene is capture-only");return;}
+            tool.AddTask(std::make_shared<BenchItemColorBlendOptimization>(parent,command.second,scene==L"minecraft",output,stress));return;
         }
     }
 }
