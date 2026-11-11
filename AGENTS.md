@@ -60,3 +60,9 @@
 - 성능은 같은 실행의 ④, 선택 경로, 19번과 짝지어 비교한다. 출력 보존이라고 말하려면 바꾼 쪽의 기준선과 240프레임 화면 RGB가 같아야 한다.
 - 19번은 ⑱·선택 경로와 RGB가 소수 픽셀 다르므로 선택 경로와 같은 출력이라고 쓰지 않는다.
 - 정의, 수치, 비교 규칙은 `Docs/Selected-Temporal-Baseline/readme-ko.md`를 따른다.
+
+## 2026-11-11: 선택 경로 위의 8-case
+
+- `experiment/selected-temporal-reprojection-off`가 8개 구성을 모두 가진다. Adaptive 브랜치(`experiment/adaptive-selected-temporal`)에서 분기했다.
+- `O/A-ET2X`는 선택 경로에서 이전 raw edge와 history를 같은 픽셀에서 읽는 no-reprojection ablation이다. 공식 TSCMAA 동작이 아니다. 19·21번은 reprojection On에만 있다.
+- 성능은 사용자가 요청할 때만 잰다. 정의, 수치, 한계는 `Docs/Selected-Temporal-Reprojection-Off/readme-ko.md`를 따른다.
