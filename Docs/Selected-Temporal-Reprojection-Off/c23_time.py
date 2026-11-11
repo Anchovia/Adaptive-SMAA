@@ -24,6 +24,8 @@ for (ph,s),r in sorted(sel.items()):
     for x,c in pairs:
         key=f'{x} vs {c}';paired[key]={}
         for met in METRICS:
+            # The velocity scope is empty for the reprojection-off modes; no ratio against zero.
+            if any(rows[(modes[c],i,met)]['mean']==0 for i in reps):continue
             pct=[100*(rows[(modes[x],i,met)]['mean']/rows[(modes[c],i,met)]['mean']-1) for i in reps]
             d=[rows[(modes[x],i,met)]['mean']-rows[(modes[c],i,met)]['mean'] for i in reps]
             paired[key][met]=dict(percent=a.ci(pct),delta_ms=a.ci(d))

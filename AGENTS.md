@@ -65,4 +65,4 @@
 
 - `experiment/selected-temporal-reprojection-off`가 8개 구성을 모두 가진다. Adaptive 브랜치(`experiment/adaptive-selected-temporal`)에서 분기했다.
 - `O/A-ET2X`는 선택 경로에서 이전 raw edge와 history를 같은 픽셀에서 읽는 no-reprojection ablation이다. 공식 TSCMAA 동작이 아니다. 19·21번은 reprojection On에만 있다.
-- 성능은 사용자가 요청할 때만 잰다. 정의, 수치, 한계는 `Docs/Selected-Temporal-Reprojection-Off/readme-ko.md`를 따른다.
+- 성능은 사용자가 요청할 때만 잰다(2026-11-11 측정: reprojection은 AA 17~37%, 프레임 1.6~4.7%를 더한다). 정의, 수치, 한계는 `Docs/Selected-Temporal-Reprojection-Off/readme-ko.md`를 따른다.
