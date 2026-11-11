@@ -11,7 +11,7 @@ sel={(r['phase'],r['scene']):r for r in runs if r['label']=='c22-t'}
 SEL='ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha'
 modes={'4':'O-T2X-R','sel':SEL,'19':SEL+'+VelocityInEdge','22':'SWITCH-StillO-T2X-R-N4+MovingSelected'}
 pairs=[('sel','4'),('19','4'),('22','4'),('22','sel'),('22','19')]
-METRICS=['SMAA','SF_Spatial','SR_CameraVelocity','SR_Resolve','WholeFrame']
+METRICS=['SMAA','SF_Spatial','SR_CameraVelocity','SR_Resolve','WholeFrame']+[f'{m}@{h}' for m in ('SMAA','SF_Spatial','SR_Resolve','WholeFrame') for h in ('still','moving')]
 out={}
 for (ph,s),r in sorted(sel.items()):
     print(ph,s,r['executable_sha256'][:12],r.get('gpu_before'),r['report'][-30:])
@@ -27,8 +27,9 @@ for (ph,s),r in sorted(sel.items()):
             d=[rows[(modes[x],i,met)]['mean']-rows[(modes[c],i,met)]['mean'] for i in reps]
             paired[key][met]=dict(percent=a.ci(pct),delta_ms=a.ci(d))
     out[s]=dict(report=r['report'],executable_sha256=r['executable_sha256'],repeats=len(reps),absolute=absolute,paired=paired)
-    for k in modes:print(f'  {k:>3}',' '.join(f"{met}={absolute[k][met]['mean']:.6f}" for met in METRICS))
+    for k in modes:print(f'  {k:>3}',' '.join(f"{met}={absolute[k][met]['mean']:.6f}" for met in METRICS if '@' not in met));print('      ',' '.join(f"{met}={absolute[k][met]['mean']:.6f}" for met in METRICS if '@' in met))
     for key,p in paired.items():
         f=lambda met:f"{met} {p[met]['percent']['mean']:+.3f}% [{p[met]['percent']['ci95'][0]:+.3f},{p[met]['percent']['ci95'][1]:+.3f}]"
         print(f'   {key:>10}:',' | '.join(f(m) for m in ['SMAA','SF_Spatial','SR_Resolve','WholeFrame']))
+        print(f'   {"":>10}  ',' | '.join(f(m) for m in ['SMAA@still','SMAA@moving','WholeFrame@still','WholeFrame@moving']))
 if len(sys.argv)>1:json.dump(out,open(sys.argv[1],'w',encoding='utf-8'),indent=1)
