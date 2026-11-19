@@ -1,16 +1,18 @@
 #include <map>
 #include <cmath>
 
-// Paired harness (same process, same timeline): native case 4, the selected route and
-// case 19 (velocity in the edge pass), each one TemporalRoute.
+// Paired harness (same process, same timeline), history rejection experiment: SMAA 1X, native
+// case 4, the selected route and the selected route with one history filter each
+// ((a) neighbourhood clamp, (b) previous depth, (c) velocity weight).
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
-//   Smoke/Benchmark: GPU timing, PNG/query/readback/pass timers Off.
+//   Smoke/Benchmark: GPU timing of the temporal modes, PNG/query/readback/pass timers Off.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
 public:
     enum class Phase {Capture, Smoke, Benchmark};
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
-    struct Mode {const char *name; Route route;};
+    using Filter=vaSMAAWrapper::SelectedHistoryFilter;
+    struct Mode {const char *name; Route route; Filter filter=Filter::None; bool spatial=false;};
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
@@ -23,8 +25,9 @@ private:
     void Configure() {
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
-        m_parent.Settings().CurrentAAOption=CMAA2Sample::AAType::SMAA_T2x_Reprojected;
-        s->ApplyTemporalRoute(c.route);
+        m_parent.Settings().CurrentAAOption=c.spatial?CMAA2Sample::AAType::SMAA:CMAA2Sample::AAType::SMAA_T2x_Reprojected;
+        s->SetSelectedHistoryFilter(c.filter);
+        if(!c.spatial)s->ApplyTemporalRoute(c.route);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
         m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
     }
@@ -56,9 +59,12 @@ public:
     BenchItemColorBlendOptimization(CMAA2Sample& parent,Phase phase,bool minecraft,std::wstring output):
         AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
         m_measureFrames(phase==Phase::Smoke?240:4800),m_repeats(phase==Phase::Smoke?1:6),m_output(output) {
+        if(m_phase==Phase::Capture)m_modes.push_back({"O-1X",Route::NativeT2XR,Filter::None,true});
         m_modes.push_back({"O-T2X-R",Route::NativeT2XR});
         m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected});
-        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryClamp3x3",Route::Selected,Filter::NeighborhoodClamp});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryPreviousDepth",Route::Selected,Filter::PreviousDepth});
+        m_modes.push_back({"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityWeight",Route::Selected,Filter::VelocityWeight});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -71,7 +77,7 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Selected-temporal minimal harness: native case4, selected route and case19.\r\n");
+            tool.ReportAddText("History rejection harness: SMAA 1X (capture only), native case4, selected route, selected route + (a) 3x3 clamp / (b) previous depth / (c) velocity weight.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
@@ -115,10 +121,15 @@ public:
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
-        bool ok=m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
-        ok=ok&&s->IsTemporalRoute(c.route);
-        ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
-        const auto jitter=s->GetLastTemporalProjectionOffset();ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        bool ok=s->GetSelectedHistoryFilter()==c.filter;
+        const auto jitter=s->GetLastTemporalProjectionOffset();
+        if(c.spatial)ok=ok&&m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA&&!s->GetTemporalModeEnabled()&&!s->GetTemporalReprojectionEnabled()&&s->GetPresentedOutputOverride()==nullptr;
+        else {
+            ok=ok&&m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA_T2x_Reprojected&&s->GetTemporalModeEnabled()&&s->GetTemporalReprojectionEnabled();
+            ok=ok&&s->IsTemporalRoute(c.route);
+            ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
+            ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
+        }
         // Fixed output size: a window/display change during a run invalidates captures and timing.
         if(color->GetSizeX()!=1920||color->GetSizeY()!=1061){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
