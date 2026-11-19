@@ -62,6 +62,7 @@ namespace VertexAsylum
         // camera/depth reprojection only. The optional step computes the velocity in the edge pass.
         bool                        m_selectedTemporal              = false;
         bool                        m_velocityInEdgePass            = false;
+        bool                        m_adaptiveSearch                = false;  // Adaptive SMAA spatial search
         vaVector2                   m_lastTemporalProjectionOffset  = vaVector2(0,0);
 
         //bool                        m_debugShowEdges;
@@ -108,6 +109,9 @@ namespace VertexAsylum
                 &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
         }
         vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}
+        // Adaptive SMAA (contrast-tiered search lengths) for SMAA 1X and every temporal route.
+        void SetAdaptiveSearch(bool enabled) {m_adaptiveSearch=enabled;}
+        bool GetAdaptiveSearch() const {return m_adaptiveSearch;}
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
         // Y while applying it to the projection matrix.
