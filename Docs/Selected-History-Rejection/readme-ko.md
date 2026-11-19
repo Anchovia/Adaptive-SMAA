@@ -1,6 +1,6 @@
 # 선택 경로 history 거르기 실험
 
-브랜치 `experiment/selected-history-rejection`의 기반 커밋은 `b6c3ebc`(`baseline/selected-temporal`)다. push하지 않았다. 2026-11-20에 구현과 품질 캡처, 분석을 했고 시간 측정은 하지 않았다.
+브랜치 `experiment/selected-history-rejection`의 기반 커밋은 `b6c3ebc`(`baseline/selected-temporal`)다. push하지 않았다. 2026-11-20에 구현, 품질 캡처와 분석, GPU 시간 측정을 했다.
 
 ## 관련 브랜치
 
@@ -30,7 +30,7 @@
 
 ## 하니스와 실행 (4e0dc89)
 
-캡처는 한 프로세스에서 O-1X, O-T2X-R, 선택 경로, 선택 경로+(a)(b)(c)의 여섯 mode를 차례로 찍는다. 조건은 기존과 같다. Ultra, fixed 60 Hz, 정지 60 / 이동 120 / 정지 60프레임, mode마다 warm-up 60프레임, 1920×1061 숨김 창이다. 19번은 넣지 않았다. Smoke와 Benchmark 단계는 O-1X를 뺀 다섯 mode로 남겨 두었고 실행하지 않았다.
+캡처는 한 프로세스에서 O-1X, O-T2X-R, 선택 경로, 선택 경로+(a)(b)(c)의 여섯 mode를 차례로 찍는다. 조건은 기존과 같다. Ultra, fixed 60 Hz, 정지 60 / 이동 120 / 정지 60프레임, mode마다 warm-up 60프레임, 1920×1061 숨김 창이다. 19번은 넣지 않았다. Smoke와 Benchmark 단계는 O-1X를 뺀 다섯 mode를 잰다(아래 시간 측정).
 
 실행 전마다 CMAA2 프로세스 0개와 GPU P8(사용률 1~2%)을 확인했다. 실행은 clean runner로 장면마다 독립 프로세스 하나씩 했고 끝난 뒤 남은 CMAA2는 0개였다. 실행 기록은 `runs.json`에 있다.
 
@@ -134,6 +134,60 @@ Bistro 창틀 f120–125에서 선택 경로는 막대 한쪽에 어두운 띠�
 
 이동→정지 f178–183과 정지 f230–235의 창틀, 나뭇잎, 이음매 시트에서는 거르기 사이의 차이가 눈에 띄지 않았다. 정지 구간 출력은 네 방식 모두 프레임마다 바이트까지 같았다. O-1X와 최대 4~5단계 다른 화소가 Bistro에서 1.9~2.6%, Minecraft에서 16.9~21.0% 남았고 (c)가 가장 적었다. 이동 중 누적된 차이가 남은 것으로 보이지만 원인은 확인하지 않았다.
 
+## 시간 측정
+
+사용자 허락을 받아 2026-11-20 04:50~05:04에 GPU 시간을 쟀다. 같은 실행 파일(9A1E9D8C)로 장면마다 Smoke 다음 Benchmark를 독립 clean process로 돌렸다. Benchmark는 다섯 mode(O-T2X-R, 선택 경로, (a), (b), (c))를 한 프로세스에서 짝지어 잰다. 30초 대기와 warm-up 300프레임 뒤 4,800프레임씩 6회 재며 반복마다 mode 순서를 정방향과 역방향으로 바꾼다. 240프레임마다 history를 초기화하는 캡처와 같은 경로를 쓰고 PNG, query, readback은 끈다. 창을 숨겼으므로 engineering 분류다. RTX 3060 Ti, 드라이버 621.14, 1920×1061이다.
+
+| 단계 | 장면 | 보고서 | 실행 시간 |
+|---|---|---|---:|
+| Smoke | Bistro | `20261120_045044` | 40초 |
+| Smoke | Minecraft | `20261120_045134` | 35초 |
+| Benchmark | Bistro | `20261120_045219` | 478초 |
+| Benchmark | Minecraft | `20261120_050027` | 216초 |
+
+네 실행 모두 Aggregate PASS였고 끝난 뒤 남은 CMAA2는 0개였다. 실행 전 확인에서 CMAA2는 0개, GPU는 P8(사용률 0~3%)였고 게임이나 영상 프로그램은 없었으며 마지막 사용자 입력은 126~244초 전이었다. 다만 두 Benchmark 실행 중에 키보드나 마우스 입력이 한 번씩 있었다(Bistro는 시작 약 4분 뒤, Minecraft는 약 2분 뒤). 반복 6회의 편차는 아래 95% 구간처럼 작았다.
+
+변화율은 반복마다 같은 실행의 대조 mode와 비교한 뒤 평균했다. 대괄호는 반복 6회의 95% 구간(Student t)이다. AA 시간은 SMAA 범위 전체이고 카메라 velocity, 공간 SMAA, resolve와 (b)의 depth 복사를 포함한다.
+
+Bistro
+
+| mode | AA 시간 (µs) | ④ 대비 AA | 선택 경로 대비 AA | 전체 프레임 (ms) | 선택 경로 대비 전체 프레임 |
+|---|---:|---:|---:|---:|---:|
+| O-T2X-R (④) | 158.68 | | +22.95% [+22.55, +23.35] | 2.4437 | +1.34% [+0.90, +1.77] |
+| 선택 경로 | 129.06 | −18.67% [−18.93, −18.40] | | 2.4115 | |
+| +(a) 3×3 색 범위 | 132.04 | −16.78% [−17.13, −16.44] | +2.31% [+2.17, +2.46] | 2.4145 | +0.12% [−0.18, +0.42] |
+| +(b) 이전 depth | 156.85 | −1.15% [−1.55, −0.75] | +21.53% [+21.39, +21.68] | 2.4425 | +1.29% [+1.01, +1.56] |
+| +(c) velocity 비중 | 135.73 | −14.46% [−14.94, −13.99] | +5.17% [+4.89, +5.44] | 2.4214 | +0.41% [−0.08, +0.90] |
+
+Minecraft
+
+| mode | AA 시간 (µs) | ④ 대비 AA | 선택 경로 대비 AA | 전체 프레임 (ms) | 선택 경로 대비 전체 프레임 |
+|---|---:|---:|---:|---:|---:|
+| O-T2X-R (④) | 227.46 | | +1.52% [+0.49, +2.55] | 1.1683 | +0.48% [−0.16, +1.13] |
+| 선택 경로 | 224.06 | −1.49% [−2.49, −0.49] | | 1.1627 | |
+| +(a) 3×3 색 범위 | 241.05 | +5.98% [+5.80, +6.15] | +7.59% [+6.51, +8.67] | 1.1787 | +1.38% [+0.93, +1.83] |
+| +(b) 이전 depth | 255.50 | +12.33% [+11.25, +13.42] | +14.03% [+13.90, +14.16] | 1.1941 | +2.70% [+2.32, +3.08] |
+| +(c) velocity 비중 | 232.94 | +2.41% [+2.23, +2.58] | +3.97% [+2.82, +5.11] | 1.1704 | +0.66% [+0.24, +1.09] |
+
+선택 경로의 ④ 대비 변화(Bistro −18.67%, Minecraft −1.49%)는 `tooling/selected-temporal-minimal`의 2026-11-03 측정(−18.71%, −1.60%)과 0.2%p 안에서 같았다. Smoke 한 번(240프레임)의 값도 같은 방향이었다(Bistro 선택 경로 −19.41%).
+
+선택 경로 대비 늘어난 시간을 범위별로 나누면 아래와 같다(µs, 대괄호는 95% 구간). 범위 밖은 SMAA 전체에서 세 범위(카메라 velocity, 공간 SMAA, resolve)를 뺀 값이다. 카메라 velocity는 모든 mode에서 같았다(23.7~23.9 µs).
+
+| 장면 | mode | 공간 SMAA | resolve | 범위 밖 |
+|---|---|---:|---:|---:|
+| Bistro | (a) | +0.08 [−0.08, +0.25] | +2.92 [+2.78, +3.06] | 0.00 |
+| Bistro | (b) | +0.19 [+0.03, +0.35] | +3.23 [+3.15, +3.31] | +24.36 [+24.33, +24.39] |
+| Bistro | (c) | +6.44 [+6.14, +6.73] | +0.24 [+0.08, +0.40] | 0.00 |
+| Minecraft | (a) | +0.35 [−1.40, +2.09] | +16.63 [+16.00, +17.26] | 0.00 |
+| Minecraft | (b) | +0.17 [+0.04, +0.30] | +6.87 [+6.70, +7.03] | +24.38 [+24.36, +24.40] |
+| Minecraft | (c) | +7.96 [+5.94, +9.98] | +0.92 [+0.38, +1.45] | 0.00 |
+
+(b)의 증가는 대부분 범위 밖의 raw depth 복사(CopyResource, R32 1920×1061)에서 생겼다. 두 장면 모두 24.4 µs로 같았다. 나머지는 resolve 안의 depth 비교였다(Bistro +3.2, Minecraft +6.9 µs).
+
+(c)의 증가는 공간 SMAA 범위에서 생겼다(Bistro +6.4, Minecraft +8.0 µs). 이 범위에서 (c)와 선택 경로가 다른 것은 neighborhood 셰이더 하나다. edge와 weights 셰이더는 같으므로 이 증가는 neighborhood 패스가 velocity를 읽어 alpha에 쓰는 비용이다. resolve 증가는 history alpha를 한 번 더 읽는 몫이다(+0.2, +0.9 µs). 기존 범위 timer로 나뉘었으므로 pass timer를 켠 별도 실행은 하지 않았다.
+
+(a)의 증가는 resolve 안의 3×3 이웃 읽기에서 생겼다. 선택 화소가 많은 Minecraft에서 +16.6 µs로 Bistro(+2.9 µs)보다 컸다.
+
 ## 정리
 
 채택 여부는 정하지 않았다. 확인한 사실만 적는다.
@@ -141,15 +195,18 @@ Bistro 창틀 f120–125에서 선택 경로는 막대 한쪽에 어두운 띠�
 - 이동 중 잔상 화소는 두 장면 모두 (b)가 가장 적었다(Bistro −67%, Minecraft −78%). (c)가 다음이었고(−44%, −72%) (a)가 가장 적게 줄였다(−13%, −50%).
 - 이동 구간 화면 전체의 기준 MAE와 PSNR은 두 장면 모두 (c)가 가장 좋았다. (c)의 PSNR은 Bistro 40.352, Minecraft 35.517로 두 장면 모두 O-1X(39.688, 34.779)보다 높았다.
 - (b)는 얇은 선(이음매, 의자 다리)에서 history를 거르는 화소가 늘어 O-1X의 끊김과 깜빡임이 일부 돌아왔다. 벽 가장자리 자리에 1px 세로 선이 몇 프레임 남는 현상도 있었다. 322ad90 문서가 적은 한계(중앙 한 점 depth 표본)와 맞는 위치다.
-- (c)는 지정된 얇은 선 ROI에서 선택 경로와 거의 같았고 잔상 얼룩과 세로 선이 보이지 않았다. neighborhood 패스가 alpha에 velocity를 쓰는 ⑱ 방식이므로 그 비용은 따로 측정해야 한다.
+- (c)는 지정된 얇은 선 ROI에서 선택 경로와 거의 같았고 잔상 얼룩과 세로 선이 보이지 않았다. neighborhood 패스가 alpha에 velocity를 쓰는 ⑱ 방식이라 공간 SMAA 범위가 Bistro 6.4 µs, Minecraft 8.0 µs 늘었다.
 - (a)는 얼룩을 없앴지만 흐림이 남았고 Bistro 창틀 띠는 거의 줄지 않았다.
 - 덤불 가장자리 흐림은 세 거르기 모두 줄이지 못했다.
+- 선택 경로 대비 AA 시간은 (a) +2.31% / +7.59%, (b) +21.53% / +14.03%, (c) +5.17% / +3.97%였다(Bistro / Minecraft). ④ 대비로는 Bistro에서 셋 다 빨랐고(−16.78%, −1.15%, −14.46%) Minecraft에서는 셋 다 느렸다(+5.98%, +12.33%, +2.41%).
+- (b)의 증가는 대부분 raw depth 복사(24.4 µs)에서 생겼다.
 
-시간 측정(smoke 포함)은 하지 않았다. Adaptive와의 결합도 하지 않았다.
+Adaptive와의 결합은 하지 않았다.
 
 ## 자료
 
 - 캡처: `D:/SMAAResearchCaptures/c25-history-rejection/rej/capture/bistro/20261120_035930`, `D:/SMAAResearchCaptures/c25-history-rejection/rej-r2/capture/minecraft/20261120_041350` (제외한 실행 `rej/capture/minecraft/20261120_040227`도 보존)
 - 프레임별 수치: `D:/SMAAResearchCaptures/c25-history-rejection/analysis/quality-{bistro,minecraft}.json`, 요약은 이 폴더의 `quality-*.json`, ROI 값은 `roi-*.json`
 - 시트: `D:/SMAAResearchCaptures/c25-history-rejection/sheets/` (원본 PNG nearest 확대, 색 보정 없음. `*-ghost-map-*.png`만 1/2 크기 오버레이)
-- 도구: `Tools/SMAA/analyze_selected_history_rejection.py`, `Tools/SMAA/selected_history_rejection_roi.py`, `Tools/SMAA/selected_history_rejection_sheets.py`
+- 시간: 이 폴더의 `timing.json`(Benchmark), `timing-smoke.json`(Smoke), 보고서는 worktree의 `Projects/CMAA2/AutoBench/` 아래 위 표의 폴더
+- 도구: `Tools/SMAA/analyze_selected_history_rejection.py`, `Tools/SMAA/selected_history_rejection_roi.py`, `Tools/SMAA/selected_history_rejection_sheets.py`, `Tools/SMAA/analyze_selected_history_rejection_timing.py`
