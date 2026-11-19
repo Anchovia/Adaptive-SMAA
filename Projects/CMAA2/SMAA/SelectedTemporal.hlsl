@@ -166,6 +166,31 @@ float4 SelectedResolveVelocityPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) 
     return SelectedBlend(current, SelectedHistoryRGB(uv), weight);
 }
 
+// (c') The weight of (c) from a velocity ping-pong instead of the packed alpha: the resolve reads
+// the current velocity at uv and the previous frame's velocity at historyUV = uv - velocity, both
+// float16 and per pixel (the alpha of (c) holds sqrt(5|v|) in 8 bits, antialiased by the
+// neighborhood pass). The neighborhood pass stays SelectedNeighborhoodPS.
+// Case 19 writes the velocity on retained pixels only. Its target is cleared to
+// SELECTED_VELOCITY_UNKNOWN before the edge pass, so a history position that was not retained in
+// the previous frame reads the sentinel. The default rule treats it as zero velocity (full weight at
+// rest, close to no history while the camera moves). The Keep variant uses the current velocity
+// instead, which keeps the 0.8 weight of the route without the filter.
+Texture2D previousVelocityTex : register(t12);
+#define SELECTED_VELOCITY_UNKNOWN 1024.0
+
+#define SELECTED_RESOLVE_VELOCITY_PINGPONG(name, unknown)                                            \
+[earlydepthstencil]                                                                                 \
+float4 name(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {                            \
+    float4 current = SMAASamplePoint(colorTex, uv);                                                 \
+    float2 v = velocityTex.SampleLevel(PointSampler, uv, 0).rg;                                      \
+    float2 vp = previousVelocityTex.SampleLevel(PointSampler, uv - v, 0).rg;                         \
+    if (any(abs(vp) > 0.5 * SELECTED_VELOCITY_UNKNOWN)) vp = unknown;                                \
+    float weight = 0.8 * saturate(1.0 - sqrt(abs(length(v) - length(vp))) * SMAA_REPROJECTION_WEIGHT_SCALE); \
+    return SelectedBlend(current, SelectedHistoryRGB(uv), weight);                                  \
+}
+SELECTED_RESOLVE_VELOCITY_PINGPONG(SelectedResolveVelocityPingPongPS, float2(0.0, 0.0))
+SELECTED_RESOLVE_VELOCITY_PINGPONG(SelectedResolveVelocityPingPongKeepPS, v)
+
 // First frame and resets: the history is the current spatial colour.
 [earlydepthstencil]
 float4 SelectedSeedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {

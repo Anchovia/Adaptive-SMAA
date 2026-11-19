@@ -37,7 +37,7 @@ namespace VertexAsylum
         // enum Mode { MODE_SMAA_1X, MODE_SMAA_T2X, MODE_SMAA_S2X, MODE_SMAA_4X, MODE_SMAA_COUNT = MODE_SMAA_4X };
         enum Preset { PRESET_LOW, PRESET_MEDIUM, PRESET_HIGH, PRESET_ULTRA, PRESET_CUSTOM, PRESET_COUNT = PRESET_CUSTOM };
         // History rejection experiment on the selected route; each filter is used on its own.
-        enum class SelectedHistoryFilter { None, NeighborhoodClamp, PreviousDepth, VelocityWeight };
+        enum class SelectedHistoryFilter { None, NeighborhoodClamp, PreviousDepth, VelocityWeight, VelocityPingPong, VelocityPingPongKeep };
 
         struct Settings
         {
@@ -110,7 +110,7 @@ namespace VertexAsylum
             return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
                 &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
         }
-        // Valid on the selected route only (not with the velocity in the edge pass).
+        // Valid on the selected route; with the velocity in the edge pass (case 19) only the ping-pong filters.
         void SetSelectedHistoryFilter(SelectedHistoryFilter filter) {
             if(m_selectedHistoryFilter!=filter){m_selectedHistoryFilter=filter;ResetTemporalHistory();}
         }

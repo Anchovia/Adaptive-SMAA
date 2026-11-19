@@ -156,12 +156,14 @@ class SMAA {
          * Temporal resolve of the edge-selective route, gated by the stencil written
          * in the first pass of go(). Writes only the next history.
          * filter: 0 none, 1 neighbourhood clamp, 2 previous depth (needs depth, previousDepth
-         * and the reprojection constants in slot b1), 3 velocity weight (needs velocityAlpha in go()).
+         * and the reprojection constants in slot b1), 3 velocity weight (needs velocityAlpha in go()),
+         * 4 velocity ping-pong and 5 its Keep variant (need previousVelocity).
          */
         void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
             ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
-            int filter=0, ID3D11ShaderResourceView *depth=nullptr, ID3D11ShaderResourceView *previousDepth=nullptr);
+            int filter=0, ID3D11ShaderResourceView *depth=nullptr, ID3D11ShaderResourceView *previousDepth=nullptr,
+            ID3D11ShaderResourceView *previousVelocity=nullptr);
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -327,7 +329,7 @@ class SMAA {
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *selectedEdgeTechniques[2][4]; // [velocity in the edge pass][input]
         SMAATechniqueInterface *selectedNeighborhoodTechnique, *selectedResolveTechnique, *selectedSeedResolveTechnique;
-        SMAATechniqueInterface *selectedNeighborhoodVelocityAlphaTechnique, *selectedFilterResolveTechniques[3]; // history rejection (a)(b)(c)
+        SMAATechniqueInterface *selectedNeighborhoodVelocityAlphaTechnique, *selectedFilterResolveTechniques[5]; // history rejection (a)(b)(c)(c')(c' Keep)
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 

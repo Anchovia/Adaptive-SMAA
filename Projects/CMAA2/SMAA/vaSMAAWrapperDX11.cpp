@@ -105,6 +105,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_presentedOutput;              // selected route: this frame's next history
         shared_ptr<vaTexture>       m_previousDepth;                // history rejection (b): the previous frame's raw depth
+        shared_ptr<vaTexture>       m_previousVelocity;             // history rejection (c'): the previous frame's velocity (ping-pong with m_temporalVelocity)
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
@@ -287,6 +288,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_feedbackCurrentSpatial = nullptr;
     m_temporalVelocity = nullptr;
     m_previousDepth = nullptr;
+    m_previousVelocity = nullptr;
     m_presentedOutput = nullptr;
     m_smaaReprojectionEnabled = false;
     ResetTemporalHistory( );
@@ -468,11 +470,26 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             //     application then presents.
             if( m_selectedTemporal && !GetTemporalReprojectionEnabled( ) )
             { VA_LOG_ERROR("The selected temporal route requires camera/depth reprojection"); return vaDrawResultFlags::UnspecifiedError; }
-            // History rejection experiment: selected route only (case 19 has no velocity input in
-            // the neighborhood pass). (b) keeps a copy of the raw depth for the next frame.
+            // History rejection experiment: (a)(b)(c) on the selected route only (case 19 has no velocity
+            // input in the neighborhood pass); (c') on both. (b) keeps a copy of the raw depth for the
+            // next frame and (c') swaps two velocity textures at the end of the frame.
             const SelectedHistoryFilter historyFilter = m_selectedTemporal? m_selectedHistoryFilter : SelectedHistoryFilter::None;
-            if( historyFilter != SelectedHistoryFilter::None && m_velocityInEdgePass )
-            { VA_LOG_ERROR("History rejection is defined for the selected route only"); return vaDrawResultFlags::UnspecifiedError; }
+            const bool velocityPingPong = historyFilter == SelectedHistoryFilter::VelocityPingPong || historyFilter == SelectedHistoryFilter::VelocityPingPongKeep;
+            if( historyFilter != SelectedHistoryFilter::None && !velocityPingPong && m_velocityInEdgePass )
+            { VA_LOG_ERROR("History rejection (a)(b)(c) is defined for the selected route only"); return vaDrawResultFlags::UnspecifiedError; }
+            if( velocityPingPong && (m_previousVelocity == nullptr || m_previousVelocity->GetSizeX( ) != m_temporalVelocity->GetSizeX( ) || m_previousVelocity->GetSizeY( ) != m_temporalVelocity->GetSizeY( )) )
+            {
+                m_previousVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource, vaResourceAccessFlags::Default );
+                m_temporalHistoryValid = false;     // no previous velocity yet
+            }
+            // Case 19 writes the velocity on retained pixels only: every other pixel of this frame's
+            // target holds the sentinel that the (c') resolve of the next frame reads as unknown.
+            if( velocityPingPong && m_velocityInEdgePass )
+            {
+                const float unknown[4] = { 1024.0f, 1024.0f, 0.0f, 0.0f };
+                dx11Context->ClearRenderTargetView( m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetRTV( ), unknown );
+            }
             const bool depthFilter = historyFilter == SelectedHistoryFilter::PreviousDepth;
             if( depthFilter )
             {
@@ -526,7 +543,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
                 if( m_selectedTemporal )
                     m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, depthDSV, !m_temporalHistoryValid,
                         int(historyFilter), depthFilter ? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr,
-                        depthFilter ? m_previousDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr );
+                        depthFilter ? m_previousDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr,
+                        velocityPingPong ? m_previousVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr );
                 else
                     m_smaa->reproject( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>()->GetRTV() );
                 if( depthFilter )
@@ -536,6 +554,9 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             // already unbound it from t6).
             if( depthFilter )
                 dx11Context->CopyResource( m_previousDepth->SafeCast<vaTextureDX11*>( )->GetResource( ), optionalDepth->SafeCast<vaTextureDX11*>( )->GetResource( ) );
+            // (c'): this frame's velocity becomes the previous one; the next frame writes the other texture.
+            if( velocityPingPong )
+                std::swap( m_temporalVelocity, m_previousVelocity );
             if( m_selectedTemporal )
                 m_presentedOutput = currentHistory;
             m_temporalHistoryValid = true;
