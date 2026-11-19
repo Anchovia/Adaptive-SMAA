@@ -1,0 +1,350 @@
+{
+ "scene": "minecraft",
+ "run": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej-r2\\capture\\minecraft\\20261120_041350",
+ "reference": "D:/SMAAResearchCaptures/c20-adaptive-20261107/c20-ref/reference/minecraft/20261107_172823/SS-Reference",
+ "modes": {
+  "O-1X": "O-1X",
+  "O-T2X-R": "O-T2X-R",
+  "selected": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+  "clamp3x3": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryClamp3x3",
+  "prevdepth": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryPreviousDepth",
+  "velocity": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityWeight"
+ },
+ "thresholds": {
+  "hist": 24,
+  "worse": 24
+ },
+ "phases": {
+  "pre": [
+   0,
+   59
+  ],
+  "moving": [
+   60,
+   179
+  ],
+  "transition": [
+   180,
+   209
+  ],
+  "settled": [
+   220,
+   239
+  ]
+ },
+ "checks": {
+  "O-1X": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "O-T2X-R": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "selected": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "clamp3x3": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "prevdepth": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "velocity": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "reference": {
+   "frames": 240,
+   "pass_": true
+  }
+ },
+ "bridges": {
+  "pose_O-1X": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej-r2\\capture\\minecraft\\20261120_041350\\O-1X",
+   "b": "D:\\SMAAResearchCaptures\\c24-minimal\\min-spatial\\spatial\\minecraft\\20261119_214145\\O-1X",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "reference_run_O-T2X-R": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej-r2\\capture\\minecraft\\20261120_041350\\O-T2X-R",
+   "b": "D:\\SMAAResearchCaptures\\c20-adaptive-20261107\\c20-a\\capture\\minecraft\\20261107_155425\\O-T2X-R",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "reference_run_selected": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej-r2\\capture\\minecraft\\20261120_041350\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "b": "D:\\SMAAResearchCaptures\\c20-adaptive-20261107\\c20-a\\capture\\minecraft\\20261107_155425\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "base_O-T2X-R": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej-r2\\capture\\minecraft\\20261120_041350\\O-T2X-R",
+   "b": "D:\\SMAAResearchCaptures\\c24-minimal\\base\\capture\\minecraft\\20261119_214715\\O-T2X-R",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "base_selected": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej-r2\\capture\\minecraft\\20261120_041350\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "b": "D:\\SMAAResearchCaptures\\c24-minimal\\base\\capture\\minecraft\\20261119_214715\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  }
+ },
+ "all_checks_pass": true,
+ "summary": {
+  "pre": {
+   "O-1X": {
+    "mae": 0.7691991635249761,
+    "psnr": 36.612120495412555,
+    "err_on_base_ghost": null
+   },
+   "O-T2X-R": {
+    "mae": 0.7224676176824797,
+    "psnr": 38.660591422048356,
+    "ghost_mean": 2304.4666666666667,
+    "ghost_max": 11064,
+    "ghost_max_f": 0,
+    "hist_mean": 19203.5,
+    "err_on_base_ghost": null
+   },
+   "selected": {
+    "mae": 0.7691991635249761,
+    "psnr": 36.612120495412555,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "clamp3x3": {
+    "mae": 0.7691991635249761,
+    "psnr": 36.612120495412555,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "prevdepth": {
+    "mae": 0.7691991635249761,
+    "psnr": 36.612120495412555,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "velocity": {
+    "mae": 0.7691991635249761,
+    "psnr": 36.612120495412555,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   }
+  },
+  "moving": {
+   "O-1X": {
+    "mae": 1.5174399738083395,
+    "psnr": 34.77909661520175,
+    "err_on_base_ghost": 7.571933175395601
+   },
+   "O-T2X-R": {
+    "mae": 1.9873554290697977,
+    "psnr": 34.423941391145156,
+    "ghost_mean": 7903.5,
+    "ghost_max": 10128,
+    "ghost_max_f": 168,
+    "hist_mean": 38095.36666666667,
+    "err_on_base_ghost": 16.41579510608555
+   },
+   "selected": {
+    "mae": 1.8545420631959717,
+    "psnr": 33.872891378736306,
+    "ghost_mean": 14298.883333333333,
+    "ghost_max": 34508,
+    "ghost_max_f": 86,
+    "hist_mean": 35357.933333333334,
+    "err_on_base_ghost": 49.36214144396447
+   },
+   "clamp3x3": {
+    "mae": 1.7303504239100078,
+    "psnr": 34.777358210428524,
+    "ghost_mean": 7116.316666666667,
+    "ghost_max": 14012,
+    "ghost_max_f": 86,
+    "hist_mean": 26779.55,
+    "err_on_base_ghost": 34.27751322681349
+   },
+   "prevdepth": {
+    "mae": 1.6872085850503542,
+    "psnr": 34.86700071126481,
+    "ghost_mean": 3179.4166666666665,
+    "ghost_max": 4207,
+    "ghost_max_f": 97,
+    "hist_mean": 15974.483333333334,
+    "err_on_base_ghost": 15.279564027300369
+   },
+   "velocity": {
+    "mae": 1.6279114946045832,
+    "psnr": 35.51657064738368,
+    "ghost_mean": 3986.2833333333333,
+    "ghost_max": 4981,
+    "ghost_max_f": 61,
+    "hist_mean": 22784.408333333333,
+    "err_on_base_ghost": 22.72890476243854
+   }
+  },
+  "transition": {
+   "O-1X": {
+    "mae": 1.5694432990365488,
+    "psnr": 34.653620399276896,
+    "err_on_base_ghost": 22.33350714659782
+   },
+   "O-T2X-R": {
+    "mae": 1.5171751677749847,
+    "psnr": 36.221287196684635,
+    "ghost_mean": 3982.6666666666665,
+    "ghost_max": 10178,
+    "ghost_max_f": 180,
+    "hist_mean": 33654.833333333336,
+    "err_on_base_ghost": 38.694651668836826
+   },
+   "selected": {
+    "mae": 1.5724641978217617,
+    "psnr": 35.00599312882705,
+    "ghost_mean": 621.6666666666666,
+    "ghost_max": 8726,
+    "ghost_max_f": 180,
+    "hist_mean": 2375.4333333333334,
+    "err_on_base_ghost": 54.48224469768509
+   },
+   "clamp3x3": {
+    "mae": 1.5708782987747407,
+    "psnr": 35.010796052132875,
+    "ghost_mean": 461.1333333333333,
+    "ghost_max": 6160,
+    "ghost_max_f": 180,
+    "hist_mean": 2122.766666666667,
+    "err_on_base_ghost": 50.144203884071636
+   },
+   "prevdepth": {
+    "mae": 1.5750169793084796,
+    "psnr": 34.89530536039768,
+    "ghost_mean": 243.76666666666668,
+    "ghost_max": 3299,
+    "ghost_max_f": 180,
+    "hist_mean": 1261.7666666666667,
+    "err_on_base_ghost": 31.534766484033877
+   },
+   "velocity": {
+    "mae": 1.5318438285422562,
+    "psnr": 34.97940986054994,
+    "ghost_mean": 154.23333333333332,
+    "ghost_max": 4411,
+    "ghost_max_f": 180,
+    "hist_mean": 906.3666666666667,
+    "err_on_base_ghost": 31.163709983011074
+   }
+  },
+  "settled": {
+   "O-1X": {
+    "mae": 1.5694432990365486,
+    "psnr": 34.6536203992769,
+    "err_on_base_ghost": null
+   },
+   "O-T2X-R": {
+    "mae": 1.471707115928369,
+    "psnr": 36.38471844375225,
+    "ghost_mean": 3564.0,
+    "ghost_max": 3564,
+    "ghost_max_f": 220,
+    "hist_mean": 33212.0,
+    "err_on_base_ghost": null
+   },
+   "selected": {
+    "mae": 1.5714881793905122,
+    "psnr": 34.83859866866366,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "clamp3x3": {
+    "mae": 1.5729369567493978,
+    "psnr": 34.832616900865936,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "prevdepth": {
+    "mae": 1.5747908812441094,
+    "psnr": 34.785333423409604,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "velocity": {
+    "mae": 1.533720153942821,
+    "psnr": 34.864765057376886,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   }
+  }
+ },
+ "per_frame_json": "D:/SMAAResearchCaptures/c25-history-rejection/analysis/quality-minecraft.json"
+}

@@ -1,0 +1,350 @@
+{
+ "scene": "bistro",
+ "run": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej\\capture\\bistro\\20261120_035930",
+ "reference": "D:/SMAAResearchCaptures/c20-adaptive-20261107/c20-ref/reference/bistro/20261107_172725/SS-Reference",
+ "modes": {
+  "O-1X": "O-1X",
+  "O-T2X-R": "O-T2X-R",
+  "selected": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+  "clamp3x3": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryClamp3x3",
+  "prevdepth": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryPreviousDepth",
+  "velocity": "ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityWeight"
+ },
+ "thresholds": {
+  "hist": 24,
+  "worse": 24
+ },
+ "phases": {
+  "pre": [
+   0,
+   59
+  ],
+  "moving": [
+   60,
+   179
+  ],
+  "transition": [
+   180,
+   209
+  ],
+  "settled": [
+   220,
+   239
+  ]
+ },
+ "checks": {
+  "O-1X": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "O-T2X-R": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "selected": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "clamp3x3": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "prevdepth": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "velocity": {
+   "frames": 240,
+   "exact_names": true,
+   "damaged_or_missing": [],
+   "size": [
+    1920,
+    1061
+   ],
+   "pass_": true
+  },
+  "reference": {
+   "frames": 240,
+   "pass_": true
+  }
+ },
+ "bridges": {
+  "pose_O-1X": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej\\capture\\bistro\\20261120_035930\\O-1X",
+   "b": "D:\\SMAAResearchCaptures\\c24-minimal\\min-spatial\\spatial\\bistro\\20261119_213752\\O-1X",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "reference_run_O-T2X-R": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej\\capture\\bistro\\20261120_035930\\O-T2X-R",
+   "b": "D:\\SMAAResearchCaptures\\c20-adaptive-20261107\\c20-a\\capture\\bistro\\20261107_155151\\O-T2X-R",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "reference_run_selected": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej\\capture\\bistro\\20261120_035930\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "b": "D:\\SMAAResearchCaptures\\c20-adaptive-20261107\\c20-a\\capture\\bistro\\20261107_155151\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "base_O-T2X-R": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej\\capture\\bistro\\20261120_035930\\O-T2X-R",
+   "b": "D:\\SMAAResearchCaptures\\c24-minimal\\base\\capture\\bistro\\20261119_214525\\O-T2X-R",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  },
+  "base_selected": {
+   "a": "D:\\SMAAResearchCaptures\\c25-history-rejection\\rej\\capture\\bistro\\20261120_035930\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "b": "D:\\SMAAResearchCaptures\\c24-minimal\\base\\capture\\bistro\\20261119_214525\\ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",
+   "identical": 240,
+   "frames": 240,
+   "pass_": true
+  }
+ },
+ "all_checks_pass": true,
+ "summary": {
+  "pre": {
+   "O-1X": {
+    "mae": 0.6764687156377629,
+    "psnr": 39.98640384318234,
+    "err_on_base_ghost": null
+   },
+   "O-T2X-R": {
+    "mae": 0.5632423579476035,
+    "psnr": 42.35956374651474,
+    "ghost_mean": 775.5833333333334,
+    "ghost_max": 2934,
+    "ghost_max_f": 0,
+    "hist_mean": 5844.6,
+    "err_on_base_ghost": null
+   },
+   "selected": {
+    "mae": 0.6764687156377629,
+    "psnr": 39.98640384318234,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "clamp3x3": {
+    "mae": 0.6764687156377629,
+    "psnr": 39.98640384318234,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "prevdepth": {
+    "mae": 0.6764687156377629,
+    "psnr": 39.98640384318234,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "velocity": {
+    "mae": 0.6764687156377629,
+    "psnr": 39.98640384318234,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 0,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   }
+  },
+  "moving": {
+   "O-1X": {
+    "mae": 0.6926216232284357,
+    "psnr": 39.687989525157704,
+    "err_on_base_ghost": 10.820451772940203
+   },
+   "O-T2X-R": {
+    "mae": 0.7349747069392083,
+    "psnr": 40.39066157075631,
+    "ghost_mean": 1466.3666666666666,
+    "ghost_max": 1955,
+    "ghost_max_f": 107,
+    "hist_mean": 7590.783333333334,
+    "err_on_base_ghost": 21.243427099180945
+   },
+   "selected": {
+    "mae": 0.7217803579454218,
+    "psnr": 39.29962872512227,
+    "ghost_mean": 2189.0666666666666,
+    "ghost_max": 2687,
+    "ghost_max_f": 177,
+    "hist_mean": 5725.666666666667,
+    "err_on_base_ghost": 58.64241927537362
+   },
+   "clamp3x3": {
+    "mae": 0.7149712366259992,
+    "psnr": 39.44608175835466,
+    "ghost_mean": 1895.9333333333334,
+    "ghost_max": 2237,
+    "ghost_max_f": 146,
+    "hist_mean": 5236.708333333333,
+    "err_on_base_ghost": 52.81592758880117
+   },
+   "prevdepth": {
+    "mae": 0.693879621993577,
+    "psnr": 40.015251397117126,
+    "ghost_mean": 732.25,
+    "ghost_max": 1008,
+    "ghost_max_f": 169,
+    "hist_mean": 2947.5833333333335,
+    "err_on_base_ghost": 23.965563506858274
+   },
+   "velocity": {
+    "mae": 0.6895312336370301,
+    "psnr": 40.352261012927286,
+    "ghost_mean": 1224.5166666666667,
+    "ghost_max": 1536,
+    "ghost_max_f": 114,
+    "hist_mean": 4680.208333333333,
+    "err_on_base_ghost": 38.903795442235534
+   }
+  },
+  "transition": {
+   "O-1X": {
+    "mae": 0.7092302368049012,
+    "psnr": 39.23183466139993,
+    "err_on_base_ghost": 12.04046047240244
+   },
+   "O-T2X-R": {
+    "mae": 0.5981585059081228,
+    "psnr": 41.73654681227995,
+    "ghost_mean": 842.3333333333334,
+    "ghost_max": 1555,
+    "ghost_max_f": 180,
+    "hist_mean": 7514.833333333333,
+    "err_on_base_ghost": 16.09212918755558
+   },
+   "selected": {
+    "mae": 0.7003777173438755,
+    "psnr": 39.59045764084849,
+    "ghost_mean": 195.93333333333334,
+    "ghost_max": 2543,
+    "ghost_max_f": 180,
+    "hist_mean": 706.1,
+    "err_on_base_ghost": 44.582291241282846
+   },
+   "clamp3x3": {
+    "mae": 0.6999263775438964,
+    "psnr": 39.5905819130637,
+    "ghost_mean": 170.63333333333333,
+    "ghost_max": 2111,
+    "ghost_max_f": 180,
+    "hist_mean": 653.3333333333334,
+    "err_on_base_ghost": 42.34755800929338
+   },
+   "prevdepth": {
+    "mae": 0.7010630148881207,
+    "psnr": 39.53306096876221,
+    "ghost_mean": 75.16666666666667,
+    "ghost_max": 840,
+    "ghost_max_f": 180,
+    "hist_mean": 393.73333333333335,
+    "err_on_base_ghost": 28.835665366288513
+   },
+   "velocity": {
+    "mae": 0.6972404178448003,
+    "psnr": 39.57108157063989,
+    "ghost_mean": 44.7,
+    "ghost_max": 1158,
+    "ghost_max_f": 180,
+    "hist_mean": 278.2,
+    "err_on_base_ghost": 24.59545239363445
+   }
+  },
+  "settled": {
+   "O-1X": {
+    "mae": 0.7092302368049012,
+    "psnr": 39.231834655295316,
+    "err_on_base_ghost": null
+   },
+   "O-T2X-R": {
+    "mae": 0.582825492198136,
+    "psnr": 41.86418257312721,
+    "ghost_mean": 793.0,
+    "ghost_max": 793,
+    "ghost_max_f": 220,
+    "hist_mean": 7428.0,
+    "err_on_base_ghost": null
+   },
+   "selected": {
+    "mae": 0.702162415567075,
+    "psnr": 39.428576238269656,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "clamp3x3": {
+    "mae": 0.7020719283432821,
+    "psnr": 39.42800072868205,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "prevdepth": {
+    "mae": 0.7038720186668761,
+    "psnr": 39.3816827395872,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   },
+   "velocity": {
+    "mae": 0.7000542105194262,
+    "psnr": 39.418114780491294,
+    "ghost_mean": 0.0,
+    "ghost_max": 0,
+    "ghost_max_f": 220,
+    "hist_mean": 0.0,
+    "err_on_base_ghost": null
+   }
+  }
+ },
+ "per_frame_json": "D:/SMAAResearchCaptures/c25-history-rejection/analysis/quality-bistro.json"
+}
