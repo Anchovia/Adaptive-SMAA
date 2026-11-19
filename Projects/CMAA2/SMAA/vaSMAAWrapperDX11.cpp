@@ -104,10 +104,12 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_feedbackCurrentSpatial;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
         shared_ptr<vaTexture>       m_presentedOutput;              // selected route: this frame's next history
+        shared_ptr<vaTexture>       m_previousDepth;                // history rejection (b): the previous frame's raw depth
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
         bool                        m_smaaReprojectionEnabled        = false;
         vaMatrix4x4                 m_previousViewProj               = vaMatrix4x4::Identity;
+        vaVector4                   m_previousDepthUnpack            = vaVector4(0,0,0,0);
 
         SMAAReprojectionConstants   m_reprojectionConstants;
         vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
@@ -284,6 +286,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[1] = nullptr;
     m_feedbackCurrentSpatial = nullptr;
     m_temporalVelocity = nullptr;
+    m_previousDepth = nullptr;
     m_presentedOutput = nullptr;
     m_smaaReprojectionEnabled = false;
     ResetTemporalHistory( );
@@ -416,10 +419,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         unjitteredCamera.SetSubpixelOffset( zeroJitter );
         unjitteredCamera.Tick( 0.0f, false );
         const vaMatrix4x4 currentUnjitteredViewProj = unjitteredCamera.GetViewMatrix( ) * unjitteredCamera.GetProjMatrix( );
+        // Depth unpack of this projection (322ad90): viewDepth = x / (y - deviceDepth).
+        const vaMatrix4x4 currentProjection = unjitteredCamera.GetProjMatrix( );
+        vaVector4 currentDepthUnpack( -currentProjection.m[3][2], currentProjection.m[2][2], 0.0f, 0.0f );
+        if( currentDepthUnpack.x * currentDepthUnpack.y < 0.0f )
+            currentDepthUnpack.y = -currentDepthUnpack.y;
 
         m_reprojectionConstants.CurrentViewProjInv = currentJitteredViewProj.Inverse( );
         m_reprojectionConstants.CurrentUnjitteredViewProj = currentUnjitteredViewProj;
         m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : currentUnjitteredViewProj;
+        m_reprojectionConstants.PreviousDepthUnpack = m_previousViewProjValid? m_previousDepthUnpack : currentDepthUnpack;
         m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
 
         // Case 19: the first SMAA pass computes and stores the velocity instead.
@@ -438,6 +447,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         }
 
         m_previousViewProj = currentUnjitteredViewProj;
+        m_previousDepthUnpack = currentDepthUnpack;
         m_previousViewProjValid = true;
     }
 
@@ -458,6 +468,25 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             //     application then presents.
             if( m_selectedTemporal && !GetTemporalReprojectionEnabled( ) )
             { VA_LOG_ERROR("The selected temporal route requires camera/depth reprojection"); return vaDrawResultFlags::UnspecifiedError; }
+            // History rejection experiment: selected route only (case 19 has no velocity input in
+            // the neighborhood pass). (b) keeps a copy of the raw depth for the next frame.
+            const SelectedHistoryFilter historyFilter = m_selectedTemporal? m_selectedHistoryFilter : SelectedHistoryFilter::None;
+            if( historyFilter != SelectedHistoryFilter::None && m_velocityInEdgePass )
+            { VA_LOG_ERROR("History rejection is defined for the selected route only"); return vaDrawResultFlags::UnspecifiedError; }
+            const bool depthFilter = historyFilter == SelectedHistoryFilter::PreviousDepth;
+            if( depthFilter )
+            {
+                if( optionalDepth == nullptr || optionalDepth->GetSRVFormat( ) != vaResourceFormat::R32_FLOAT
+                    || optionalDepth->GetSizeX( ) != inputColor->GetSizeX( ) || optionalDepth->GetSizeY( ) != inputColor->GetSizeY( ) )
+                { VA_LOG_ERROR("History rejection (b) needs an R32_FLOAT depth of the output size"); return vaDrawResultFlags::UnspecifiedError; }
+                if( m_previousDepth == nullptr || m_previousDepth->GetSizeX( ) != optionalDepth->GetSizeX( ) || m_previousDepth->GetSizeY( ) != optionalDepth->GetSizeY( ) )
+                {
+                    m_previousDepth = vaTexture::Create2D( optionalDepth->GetRenderDevice( ), optionalDepth->GetResourceFormat( ), optionalDepth->GetSizeX( ), optionalDepth->GetSizeY( ),
+                        1, 1, 1, vaResourceBindSupportFlags::ShaderResource, vaResourceAccessFlags::Default, optionalDepth->GetSRVFormat( ),
+                        vaResourceFormat::Unknown, vaResourceFormat::Unknown, vaResourceFormat::Unknown, vaTextureFlags::None, optionalDepth->GetContentsType( ) );
+                    m_temporalHistoryValid = false;     // the new copy holds no previous frame yet
+                }
+            }
             assert( m_temporalHistory[0] != nullptr && m_temporalHistory[1] != nullptr );
             assert( m_smaa->getFrameIndex( ) == GetTemporalFrameIndex( ) );
 
@@ -477,7 +506,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * velocitySRV = GetTemporalReprojectionEnabled( )? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
             {
                 vaScopeTimer spatialTimer("SF_Spatial", &deviceContext);
-                const SMAA::SelectedTemporalTargets selected = { nextHistoryRTV, m_temporalHistoryValid, m_velocityInEdgePass ? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetRTV( ) : nullptr };
+                const SMAA::SelectedTemporalTargets selected = { nextHistoryRTV, m_temporalHistoryValid, m_velocityInEdgePass ? m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetRTV( ) : nullptr,
+                    historyFilter == SelectedHistoryFilter::VelocityWeight };
                 if( m_velocityInEdgePass )
                     m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->SetToAPISlot( deviceContext, 1 );
                 m_smaa->go( dx11Context, colorGammaSRV, spatialColorSRV, m_velocityInEdgePass ? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr, velocitySRV, currentSpatialRTV, depthDSV, inputMode,
@@ -491,11 +521,21 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentSpatialSRV;
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
+                if( depthFilter )
+                    m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->SetToAPISlot( deviceContext, 1 );
                 if( m_selectedTemporal )
-                    m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, depthDSV, !m_temporalHistoryValid );
+                    m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, depthDSV, !m_temporalHistoryValid,
+                        int(historyFilter), depthFilter ? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr,
+                        depthFilter ? m_previousDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr );
                 else
                     m_smaa->reproject( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>()->GetRTV() );
+                if( depthFilter )
+                    m_reprojectionConstantsBuffer.GetBuffer()->SafeCast<vaConstantBufferDX11*>()->UnsetFromAPISlot( deviceContext, 1 );
             }
+            // (b): this frame's raw depth is the next frame's previous depth (resolveSelected has
+            // already unbound it from t6).
+            if( depthFilter )
+                dx11Context->CopyResource( m_previousDepth->SafeCast<vaTextureDX11*>( )->GetResource( ), optionalDepth->SafeCast<vaTextureDX11*>( )->GetResource( ) );
             if( m_selectedTemporal )
                 m_presentedOutput = currentHistory;
             m_temporalHistoryValid = true;
@@ -627,8 +667,9 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     // Edge-selective temporal route: the edge pass marks the stencil, the neighborhood pass
     // ignores it and writes no depth, and the resolve runs on the marked pixels.
     if(name.substr(0,8)=="Selected") {
-        const bool edge=name.find("EdgePS")!=string::npos, neighborhood=name=="SelectedNeighborhoodPS";
-        if(neighborhood)
+        const bool edge=name.find("EdgePS")!=string::npos, neighborhood=name.find("Neighborhood")!=string::npos;
+        // The velocity-alpha variant (history rejection c) keeps SMAA_REPROJECTION.
+        if(name=="SelectedNeighborhoodPS")
             shaderMacros.erase(std::remove_if(shaderMacros.begin(),shaderMacros.end(),[](const pair<string,string>&m){return m.first=="SMAA_REPROJECTION";}),shaderMacros.end());
         tech->VS->CreateShaderAndILFromFile(shaderFileName,vsVersion,edge?"DX10_SMAAEdgeDetectionVS":neighborhood?"DX10_SMAANeighborhoodBlendingVS":"DX10_SMAAResolveVS",inputElements,shaderMacros,true);
         tech->PS->CreateShaderFromFile(L"SMAA/SelectedTemporal.hlsl","ps_5_0",name,shaderMacros,true);

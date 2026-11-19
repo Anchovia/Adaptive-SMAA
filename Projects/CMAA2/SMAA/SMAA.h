@@ -113,6 +113,7 @@ class SMAA {
             ID3D11RenderTargetView *nextHistory;    // Second neighborhood output.
             bool previousValid;                     // Previous raw edges belong to valid history.
             ID3D11RenderTargetView *velocity;       // Case 19: the edge pass stores the camera velocity here (retained pixels only); depthSRV must be set. Null otherwise.
+            bool velocityAlpha;                     // History rejection (c): neighborhood blending packs the velocity magnitude into alpha.
         };
 
         /**
@@ -154,10 +155,13 @@ class SMAA {
         /**
          * Temporal resolve of the edge-selective route, gated by the stencil written
          * in the first pass of go(). Writes only the next history.
+         * filter: 0 none, 1 neighbourhood clamp, 2 previous depth (needs depth, previousDepth
+         * and the reprojection constants in slot b1), 3 velocity weight (needs velocityAlpha in go()).
          */
         void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-            ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed);
+            ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
+            int filter=0, ID3D11ShaderResourceView *depth=nullptr, ID3D11ShaderResourceView *previousDepth=nullptr);
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -323,6 +327,7 @@ class SMAA {
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *selectedEdgeTechniques[2][4]; // [velocity in the edge pass][input]
         SMAATechniqueInterface *selectedNeighborhoodTechnique, *selectedResolveTechnique, *selectedSeedResolveTechnique;
+        SMAATechniqueInterface *selectedNeighborhoodVelocityAlphaTechnique, *selectedFilterResolveTechniques[3]; // history rejection (a)(b)(c)
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 

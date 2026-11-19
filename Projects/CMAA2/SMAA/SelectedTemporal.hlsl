@@ -81,6 +81,91 @@ float4 SelectedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TAR
     return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, 0.8))), current.a);
 }
 
+// History rejection experiment: each filter below is a separate entry point that changes only
+// how much of the history the selected pixel keeps. Selection, Catmull-Rom sampling, the 0.8
+// weight, feedback and the absent jitter stay as in SelectedResolvePS.
+
+float4 SelectedBlend(float4 current, float3 historyLinear, float weight) {
+    float3 c = LinearToEncoded(current.rgb), h = LinearToEncoded(historyLinear);
+    return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, weight))), current.a);
+}
+
+// (a) Clamp the history to the per-channel min/max of the current spatial 3x3 neighbourhood.
+// The clamp runs on linear values; the transfer is monotonic per channel, so this equals the
+// same clamp on encoded values.
+[earlydepthstencil]
+float4 SelectedResolveClampPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    int2 pixel = int2(p.xy), last = int2(SMAA_RT_METRICS.zw) - 1;
+    float3 lo = current.rgb, hi = current.rgb;
+    [unroll] for (int y = -1; y <= 1; ++y)
+        [unroll] for (int x = -1; x <= 1; ++x) {
+            float3 n = colorTex.Load(int3(clamp(pixel + int2(x, y), int2(0, 0), last), 0)).rgb;
+            lo = min(lo, n); hi = max(hi, n);
+        }
+    return SelectedBlend(current, clamp(SelectedHistoryRGB(uv), lo, hi), 0.8);
+}
+
+// (b) Previous-depth disocclusion test after 322ad90: the current pixel is moved into the
+// previous camera, and its expected previous depth is compared with the previous frame's depth
+// at the history position (centre point sample, clamped address like the colour history).
+// A mismatch keeps the current spatial colour (history weight 0).
+Texture2D<float> previousDepthTex : register(t11);
+// Tolerances of the 322ad90 gate: absolute in view-depth units plus a share of the expected depth.
+#define SELECTED_DEPTH_ABSOLUTE_TOLERANCE 0.01
+#define SELECTED_DEPTH_RELATIVE_TOLERANCE 0.005
+
+bool SelectedPreviousDepthMatches(float2 uv, int2 pixel, float2 historyUV) {
+    float depth = depthTex.Load(int3(pixel, 0)).r;
+    float4 world = mul(g_SMAAReprojection.CurrentViewProjInv, float4(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, depth, 1.0));
+    world /= world.w;
+    float4 previousClip = mul(g_SMAAReprojection.PreviousViewProj, world);
+    if (!(previousClip.w > 1.0e-6))
+        return false;
+    float expected = previousClip.z / previousClip.w;
+    float actual = previousDepthTex.SampleLevel(PointSampler, historyUV, 0.0);
+    if (!(expected >= 0.0 && expected <= 1.0 && actual >= 0.0 && actual <= 1.0))
+        return false;
+    float unpackMul = g_SMAAReprojection.PreviousDepthUnpack.x, unpackAdd = g_SMAAReprojection.PreviousDepthUnpack.y;
+    float expectedDenominator = unpackAdd - expected, actualDenominator = unpackAdd - actual;
+    if (abs(expectedDenominator) <= 1.0e-8 || abs(actualDenominator) <= 1.0e-8)
+        return false;
+    float expectedView = unpackMul / expectedDenominator, actualView = unpackMul / actualDenominator;
+    if (!(expectedView > 0.0 && actualView > 0.0 && expectedView < 3.4e38 && actualView < 3.4e38))
+        return false;
+    float tolerance = SELECTED_DEPTH_ABSOLUTE_TOLERANCE + SELECTED_DEPTH_RELATIVE_TOLERANCE * expectedView;
+    return abs(actualView - expectedView) <= tolerance;
+}
+
+[earlydepthstencil]
+float4 SelectedResolveDepthPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float2 historyUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    [branch] if (!SelectedPreviousDepthMatches(uv, int2(p.xy), historyUV))
+        return current;
+    return SelectedBlend(current, SelectedHistoryRGB(uv), 0.8);
+}
+
+// (c) Velocity weighting as in the official SMAA resolve (O-T2X-R), scaled to the 0.8 weight.
+// SelectedNeighborhoodVelocityAlphaPS (compiled with SMAA_REPROJECTION) packs
+// sqrt(5 * |velocity|) into the spatial and history alpha, and the resolve keeps current.a, so
+// the history alpha at historyUV holds the previous frame's velocity magnitude.
+void SelectedNeighborhoodVelocityAlphaPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0, float4 offset : TEXCOORD1,
+                                         out float4 spatial : SV_TARGET0, out float4 history : SV_TARGET1) {
+    spatial = DX10_SMAANeighborhoodBlendingPS(p, uv, offset);
+    history = spatial;
+}
+
+[earlydepthstencil]
+float4 SelectedResolveVelocityPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float2 historyUV = uv - velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    float previousA = SMAASamplePoint(colorTexPrev, historyUV).a;
+    float delta = abs(current.a * current.a - previousA * previousA) / 5.0;
+    float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    return SelectedBlend(current, SelectedHistoryRGB(uv), weight);
+}
+
 // First frame and resets: the history is the current spatial colour.
 [earlydepthstencil]
 float4 SelectedSeedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {

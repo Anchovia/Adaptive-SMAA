@@ -244,6 +244,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     selectedNeighborhoodTechnique=techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodPS",defines);
     selectedResolveTechnique=techniqueManagerInterface->CreateTechnique("SelectedResolvePS",defines);
     selectedSeedResolveTechnique=techniqueManagerInterface->CreateTechnique("SelectedSeedResolvePS",defines);
+    selectedNeighborhoodVelocityAlphaTechnique=techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodVelocityAlphaPS",defines);
+    const char *filterResolves[] = {"SelectedResolveClampPS", "SelectedResolveDepthPS", "SelectedResolveVelocityPS"};
+    for(int i=0;i<3;++i)selectedFilterResolveTechniques[i]=techniqueManagerInterface->CreateTechnique(filterResolves[i],defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -387,7 +390,8 @@ void SMAA::go(ID3D11DeviceContext * context,
 
 void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed) {
+    ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
+    int filter, ID3D11ShaderResourceView *depth, ID3D11ShaderResourceView *previousDepth) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -398,13 +402,23 @@ void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceVie
     texturesInterface->SetResource_colorTex(context, current);
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
-    (seed ? selectedSeedResolveTechnique : selectedResolveTechnique)->ApplyStates(context);
+    const bool depthFilter = !seed && filter == 2;
+    if(depthFilter) {
+        texturesInterface->SetResource_depthTex(context, depth);
+        context->PSSetShaderResources(11, 1, &previousDepth);
+    }
+    (seed ? selectedSeedResolveTechnique : filter == 0 ? selectedResolveTechnique : selectedFilterResolveTechniques[filter - 1])->ApplyStates(context);
     context->OMSetRenderTargets(1, &nextHistory, dsv);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
     texturesInterface->SetResource_colorTex(context, nullptr);
     texturesInterface->SetResource_colorTexPrev(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
+    if(depthFilter) {
+        ID3D11ShaderResourceView *none = nullptr;
+        texturesInterface->SetResource_depthTex(context, nullptr);
+        context->PSSetShaderResources(11, 1, &none);
+    }
 }
 
 void SMAA::reproject(ID3D11DeviceContext * context,
@@ -671,7 +685,7 @@ void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderT
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    (selected ? selectedNeighborhoodTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
+    (selected ? (selected->velocityAlpha ? selectedNeighborhoodVelocityAlphaTechnique : selectedNeighborhoodTechnique) : neighborhoodBlendingTechnique)->ApplyStates( context );
 
     // Do the final pass!
     ID3D11RenderTargetView *targets[2] = {dstRTV, selected ? selected->nextHistory : nullptr};

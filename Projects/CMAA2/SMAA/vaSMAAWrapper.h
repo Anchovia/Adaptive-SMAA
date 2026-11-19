@@ -36,6 +36,8 @@ namespace VertexAsylum
     public:
         // enum Mode { MODE_SMAA_1X, MODE_SMAA_T2X, MODE_SMAA_S2X, MODE_SMAA_4X, MODE_SMAA_COUNT = MODE_SMAA_4X };
         enum Preset { PRESET_LOW, PRESET_MEDIUM, PRESET_HIGH, PRESET_ULTRA, PRESET_CUSTOM, PRESET_COUNT = PRESET_CUSTOM };
+        // History rejection experiment on the selected route; each filter is used on its own.
+        enum class SelectedHistoryFilter { None, NeighborhoodClamp, PreviousDepth, VelocityWeight };
 
         struct Settings
         {
@@ -62,6 +64,7 @@ namespace VertexAsylum
         // camera/depth reprojection only. The optional step computes the velocity in the edge pass.
         bool                        m_selectedTemporal              = false;
         bool                        m_velocityInEdgePass            = false;
+        SelectedHistoryFilter       m_selectedHistoryFilter         = SelectedHistoryFilter::None;
         vaVector2                   m_lastTemporalProjectionOffset  = vaVector2(0,0);
 
         //bool                        m_debugShowEdges;
@@ -107,6 +110,11 @@ namespace VertexAsylum
             return GetTemporalModeEnabled()&&GetTemporalReprojectionEnabled()&&m_selectedTemporal==(route!=TemporalRoute::NativeT2XR)
                 &&m_velocityInEdgePass==(route==TemporalRoute::SelectedVelocityInEdge);
         }
+        // Valid on the selected route only (not with the velocity in the edge pass).
+        void SetSelectedHistoryFilter(SelectedHistoryFilter filter) {
+            if(m_selectedHistoryFilter!=filter){m_selectedHistoryFilter=filter;ResetTemporalHistory();}
+        }
+        SelectedHistoryFilter GetSelectedHistoryFilter() const {return m_selectedHistoryFilter;}
         vaVector2 GetLastTemporalProjectionOffset() const {return m_lastTemporalProjectionOffset;}
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips

@@ -40,10 +40,13 @@ struct SMAAReprojectionConstants
     float4x4 CurrentViewProjInv;
     float4x4 CurrentUnjitteredViewProj;
     float4x4 PreviousViewProj;
+    // xy: previous projection depth unpack, viewDepth = x / (y - deviceDepth) (history rejection experiment).
+    float4 PreviousDepthUnpack;
 #else
     VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
     VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
     VertexAsylum::vaMatrix4x4 PreviousViewProj;
+    VertexAsylum::vaVector4 PreviousDepthUnpack;
 #endif
 };
 
