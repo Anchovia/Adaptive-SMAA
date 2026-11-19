@@ -102,7 +102,7 @@ using namespace VertexAsylum;
 // #pragma endregion
 
 
-SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage)
+SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsInterface, SMAATexturesInterface * texturesInterface, SMAATechniqueManagerInterface * techniqueManagerInterface, int width, int height, Preset preset, bool predication, bool reprojection, const DXGI_ADAPTER_DESC *adapterDesc, const ExternalStorage &storage, bool adaptiveSearch)
         : device(device),
           shaderConstantsInterface(shaderConstantsInterface), texturesInterface(texturesInterface), techniqueManagerInterface(techniqueManagerInterface), 
           width(width),
@@ -155,6 +155,11 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
         defines.push_back(reprojectionMacro);
     }
 
+    if (adaptiveSearch) {
+        D3D_SHADER_MACRO adaptiveSearchMacro = { "SMAA_ADAPTIVE_SEARCH", "1" };
+        defines.push_back(adaptiveSearchMacro);
+    }
+
     // Setup the target macro:
     //if (dx10_1) {
         D3D_SHADER_MACRO dx101Macro = { "SMAA_HLSL_4_1", "1" };
@@ -185,7 +190,8 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
 
     // In NVIDIA cards R8G8 is slower, avoid it:
     bool isNVIDIACard = adapterDesc? adapterDesc->VendorId == 0x10DE : false;
-    DXGI_FORMAT format = isNVIDIACard? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R8G8_UNORM;
+    // Adaptive SMAA keeps its search tier in the third channel of an RGBA8 edge target.
+    DXGI_FORMAT format = (isNVIDIACard || adaptiveSearch)? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R8G8_UNORM;
 
     // If storage for the edges is not specified we will create it:
     if (storage.edgesRTV != nullptr && storage.edgesSRV != nullptr)

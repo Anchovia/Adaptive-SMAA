@@ -4,7 +4,7 @@
 
 // Same edge equations as SMAA.hlsl, except that a pixel without a current edge returns
 // zero instead of discarding, so the entry points below decide whether to keep it.
-#define discard return float2(0.0, 0.0)
+#define discard return (SMAA_EDGE_OUTPUT)0
 #include "SMAAWrapper.hlsl"
 #undef discard
 #include "CatmullRomHistory5Tap.hlsli"
@@ -20,12 +20,12 @@ bool PreviousRawEdgeFrom(float2 uv, float2 velocity) {
 }
 
 #define SELECTED_EDGE_PS(kind)                                                            \
-float2 Selected##kind##EdgePS(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0, \
+SMAA_EDGE_OUTPUT Selected##kind##EdgePS(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0, \
                               float4 offset[3] : TEXCOORD1) : SV_TARGET {                 \
     float2 velocity = velocityTex.SampleLevel(PointSampler, texcoord, 0).rg;              \
     bool oldEdge = PreviousRawEdgeFrom(texcoord, velocity);                               \
-    float2 edge = DX10_SMAA##kind##EdgeDetectionPS(position, texcoord, offset);           \
-    if (!(any(edge > 0.0) || oldEdge)) discard;                                           \
+    SMAA_EDGE_OUTPUT edge = DX10_SMAA##kind##EdgeDetectionPS(position, texcoord, offset); \
+    if (!(any(edge.rg > 0.0) || oldEdge)) discard;                                        \
     return edge;                                                                          \
 }
 
@@ -35,11 +35,11 @@ float2 Selected##kind##EdgePS(float4 position : SV_POSITION, float2 texcoord : T
 #define SELECTED_VELOCITY_EDGE_PS(kind)                                                           \
 void Selected##kind##VelocityEdgePS(float4 position : SV_POSITION, float2 texcoord : TEXCOORD0,   \
                                     float4 offset[3] : TEXCOORD1,                                 \
-                                    out float2 edge : SV_TARGET0, out float2 velocity : SV_TARGET1) { \
+                                    out SMAA_EDGE_OUTPUT edge : SV_TARGET0, out float2 velocity : SV_TARGET1) { \
     velocity = DX10_SMAAGenerateCameraVelocityPS(position, texcoord);                             \
     bool oldEdge = PreviousRawEdgeFrom(texcoord, f16tof32(f32tof16(velocity)));                   \
     edge = DX10_SMAA##kind##EdgeDetectionPS(position, texcoord, offset);                          \
-    if (!(any(edge > 0.0) || oldEdge)) discard;                                                   \
+    if (!(any(edge.rg > 0.0) || oldEdge)) discard;                                                \
 }
 
 SELECTED_EDGE_PS(Luma)

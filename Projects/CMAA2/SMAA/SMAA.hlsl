@@ -323,6 +323,46 @@
 #define SMAA_CORNER_ROUNDING 25
 #endif
 
+/**
+ * Adaptive SMAA: the edge pass stores a contrast tier of finalDelta (below SMAA_ADAPTIVE_T1: 0,
+ * below SMAA_ADAPTIVE_T2: 0.5, else 1) in the third channel of an RGBA8 edge target, and the
+ * blending weight pass searches SMAA_ADAPTIVE_STEPS0, SMAA_ADAPTIVE_STEPS1 or SMAA_MAX_SEARCH_STEPS
+ * orthogonal steps by that tier. Per preset, every finalDelta band changes at most 1% of its edges
+ * by more than 8/255 against the preset's Original (experiment/adaptive-tier-validation). The top
+ * tier replaces the preset's orthogonal maximum; diagonal searches keep the preset length.
+ */
+#if defined(SMAA_ADAPTIVE_SEARCH)
+#if defined(SMAA_PRESET_LOW)
+#define SMAA_ADAPTIVE_T1 (51.5 / 255.0)
+#define SMAA_ADAPTIVE_T2 (63.5 / 255.0)
+#define SMAA_ADAPTIVE_STEPS0 2
+#define SMAA_ADAPTIVE_STEPS1 3
+#define SMAA_ADAPTIVE_STEPS2 4
+#elif defined(SMAA_PRESET_MEDIUM)
+#define SMAA_ADAPTIVE_T1 (38.5 / 255.0)
+#define SMAA_ADAPTIVE_T2 (76.5 / 255.0)
+#define SMAA_ADAPTIVE_STEPS0 3
+#define SMAA_ADAPTIVE_STEPS1 6
+#define SMAA_ADAPTIVE_STEPS2 8
+#elif defined(SMAA_PRESET_HIGH)
+#define SMAA_ADAPTIVE_T1 (31.5 / 255.0)
+#define SMAA_ADAPTIVE_T2 (51.5 / 255.0)
+#define SMAA_ADAPTIVE_STEPS0 2
+#define SMAA_ADAPTIVE_STEPS1 6
+#define SMAA_ADAPTIVE_STEPS2 12
+#elif defined(SMAA_PRESET_ULTRA)
+#define SMAA_ADAPTIVE_T1 (19.5 / 255.0)
+#define SMAA_ADAPTIVE_T2 (51.5 / 255.0)
+#define SMAA_ADAPTIVE_STEPS0 3
+#define SMAA_ADAPTIVE_STEPS1 8
+#define SMAA_ADAPTIVE_STEPS2 20
+#else
+#error Adaptive SMAA needs one of the four presets
+#endif
+#undef SMAA_MAX_SEARCH_STEPS
+#define SMAA_MAX_SEARCH_STEPS SMAA_ADAPTIVE_STEPS2
+#endif
+
 //-----------------------------------------------------------------------------
 // Configurable Defines
 
@@ -680,13 +720,25 @@ void SMAANeighborhoodBlendingVS(float2 texcoord,
 //-----------------------------------------------------------------------------
 // Edge Detection Pixel Shaders (First Pass)
 
+#if defined(SMAA_ADAPTIVE_SEARCH)
+#define SMAA_EDGE_OUTPUT float3
+float3 SMAAEncodeEdgeOutput(float2 edges, float finalDelta) {
+    return float3(edges, finalDelta < SMAA_ADAPTIVE_T1? 0.0 : (finalDelta < SMAA_ADAPTIVE_T2? 0.5 : 1.0));
+}
+#else
+#define SMAA_EDGE_OUTPUT float2
+float2 SMAAEncodeEdgeOutput(float2 edges, float finalDelta) {
+    return edges;
+}
+#endif
+
 /**
  * Luma raw Edge Detection (colorTex is luma-only in .r)
  *
  * IMPORTANT NOTICE: luma edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float2 SMAALumaRawEdgeDetectionPS(float2 texcoord,
+SMAA_EDGE_OUTPUT SMAALumaRawEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
                                SMAATexture2D(colorTex)
                                #if SMAA_PREDICATION
@@ -743,7 +795,7 @@ float2 SMAALumaRawEdgeDetectionPS(float2 texcoord,
     // Local contrast adaptation:
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
-    return edges;
+    return SMAAEncodeEdgeOutput(edges, finalDelta);
 }
 
 /**
@@ -752,7 +804,7 @@ float2 SMAALumaRawEdgeDetectionPS(float2 texcoord,
  * IMPORTANT NOTICE: luma edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float2 SMAALumaEdgeDetectionPS(float2 texcoord,
+SMAA_EDGE_OUTPUT SMAALumaEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
                                SMAATexture2D(colorTex)
                                #if SMAA_PREDICATION
@@ -802,7 +854,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
     // Local contrast adaptation:
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
-    return edges;
+    return SMAAEncodeEdgeOutput(edges, finalDelta);
 }
 
 /**
@@ -811,7 +863,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
  * IMPORTANT NOTICE: color edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float2 SMAAColorEdgeDetectionPS(float2 texcoord,
+SMAA_EDGE_OUTPUT SMAAColorEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
                                 SMAATexture2D(colorTex)
                                 #if SMAA_PREDICATION
@@ -872,13 +924,13 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
     // Local contrast adaptation:
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 
-    return edges;
+    return SMAAEncodeEdgeOutput(edges, finalDelta);
 }
 
 /**
  * Depth Edge Detection
  */
-float2 SMAADepthEdgeDetectionPS(float2 texcoord,
+SMAA_EDGE_OUTPUT SMAADepthEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
                                 SMAATexture2D(depthTex)) {
     float3 neighbours = SMAAGatherNeighbours(texcoord, offset, SMAATexturePass2D(depthTex));
@@ -888,7 +940,7 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord,
     if (dot(edges, float2(1.0, 1.0)) == 0.0)
         discard;
 
-    return edges;
+    return SMAAEncodeEdgeOutput(edges, 1.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -1208,6 +1260,15 @@ void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex), inout float2 weigh
 //-----------------------------------------------------------------------------
 // Blending Weight Calculation Pixel Shader (Second Pass)
 
+#if defined(SMAA_ADAPTIVE_SEARCH)
+// At the top tier the search keeps the Original end (offset[2], interpolated from the VS), so an
+// untrimmed search matches Original exactly; the shorter tiers end inside their last step and run
+// exactly maxSearchSteps iterations.
+#define SMAA_SEARCH_END(originalEnd, origin, sign, pixelSize) (maxSearchSteps == SMAA_MAX_SEARCH_STEPS? originalEnd : origin sign 2.0 * float(maxSearchSteps) * pixelSize)
+#else
+#define SMAA_SEARCH_END(originalEnd, origin, sign, pixelSize) originalEnd
+#endif
+
 float4 SMAABlendingWeightCalculationPS(float2 texcoord,
                                        float2 pixcoord,
                                        float4 offset[3],
@@ -1217,7 +1278,14 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
                                        float4 subsampleIndices) { // Just pass zero for SMAA 1x, see @SUBSAMPLE_INDICES.
     float4 weights = float4(0.0, 0.0, 0.0, 0.0);
 
+    #if defined(SMAA_ADAPTIVE_SEARCH)
+    // 0.5 is stored as 128/255 and still selects the middle tier.
+    float3 edgesTier = SMAASamplePoint(edgesTex, texcoord).rgb;
+    float2 e = edgesTier.rg;
+    int maxSearchSteps = edgesTier.b < 0.25? SMAA_ADAPTIVE_STEPS0 : (edgesTier.b < 0.75? SMAA_ADAPTIVE_STEPS1 : SMAA_MAX_SEARCH_STEPS);
+    #else
     float2 e = SMAASample(edgesTex, texcoord).rg;
+    #endif
 
     SMAA_BRANCH
     if (e.g > 0.0) { // Edge at north
@@ -1236,7 +1304,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
         // Find the distance to the left:
         float3 coords;
-        coords.x = SMAASearchXLeft(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].xy, offset[2].x);
+        coords.x = SMAASearchXLeft(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].xy, SMAA_SEARCH_END(offset[2].x, texcoord.x, -, SMAA_RT_METRICS.x));
         coords.y = offset[1].y; // offset[1].y = texcoord.y - 0.25 * SMAA_RT_METRICS.y (@CROSSING_OFFSET)
         d.x = coords.x;
 
@@ -1246,7 +1314,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         float e1 = SMAASampleLevelZero(edgesTex, coords.xy).r;
 
         // Find the distance to the right:
-        coords.z = SMAASearchXRight(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].zw, offset[2].y);
+        coords.z = SMAASearchXRight(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].zw, SMAA_SEARCH_END(offset[2].y, texcoord.x, +, SMAA_RT_METRICS.x));
         d.y = coords.z;
 
         // We want the distances to be in pixel units (doing this here allow to
@@ -1280,7 +1348,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
         // Find the distance to the top:
         float3 coords;
-        coords.y = SMAASearchYUp(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].xy, offset[2].z);
+        coords.y = SMAASearchYUp(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].xy, SMAA_SEARCH_END(offset[2].z, texcoord.y, -, SMAA_RT_METRICS.y));
         coords.x = offset[0].x; // offset[1].x = texcoord.x - 0.25 * SMAA_RT_METRICS.x;
         d.x = coords.y;
 
@@ -1288,7 +1356,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         float e1 = SMAASampleLevelZero(edgesTex, coords.xy).g;
 
         // Find the distance to the bottom:
-        coords.z = SMAASearchYDown(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].zw, offset[2].w);
+        coords.z = SMAASearchYDown(SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].zw, SMAA_SEARCH_END(offset[2].w, texcoord.y, +, SMAA_RT_METRICS.y));
         d.y = coords.z;
 
         // We want the distances to be in pixel units:
