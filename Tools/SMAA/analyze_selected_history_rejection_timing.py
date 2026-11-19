@@ -15,6 +15,8 @@ import analyze_color_blend_performance as p
 SEL = 'ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha'
 MODES = [('O-T2X-R', 'O-T2X-R'), ('selected', SEL), ('clamp3x3', SEL + '+HistoryClamp3x3'),
          ('prevdepth', SEL + '+HistoryPreviousDepth'), ('velocity', SEL + '+HistoryVelocityWeight')]
+# (result key, control mode): every other mode is paired per repeat against each control.
+CONTROLS = [('vs_native', 'O-T2X-R'), ('vs_selected', SEL)]
 METRICS = ['SMAA', 'WholeFrame', 'SR_CameraVelocity', 'SF_Spatial', 'SR_Resolve', 'outside', 'WallFrame']
 
 
@@ -33,18 +35,20 @@ def scene(report):
             for metric in ('SMAA', 'WholeFrame', 'SR_CameraVelocity', 'SF_Spatial', 'SR_Resolve', 'WallFrame'):
                 assert (m, run, metric) in r, (m, run, metric)
                 assert r[(m, run, metric)]['samples'] == r[(SEL, runs[0], 'SMAA')]['samples'], (m, run, metric)
-    res = dict(report=str(report), repeats=len(runs), samples_per_repeat=r[(SEL, runs[0], 'SMAA')]['samples'],
-               absolute={}, vs_native={}, vs_selected={})
+    res = dict(report=str(report), repeats=len(runs), samples_per_repeat=r[(SEL, runs[0], 'SMAA')]['samples'], absolute={})
+    for key, _ in CONTROLS:
+        res[key] = {}
     for k, m in MODES:
         res['absolute'][k] = {metric: p.ci([value(m, run, metric) for run in runs]) for metric in METRICS}
-        for control, out in (('O-T2X-R', res['vs_native']), (SEL, res['vs_selected'])):
+        for out, control in ((res[key], c) for key, c in CONTROLS):
             if m == control:
                 continue
             out[k] = {}
             for metric in METRICS:
                 delta = [value(m, run, metric) - value(control, run, metric) for run in runs]
                 entry = dict(delta_us=p.ci([1000 * d for d in delta]))
-                if metric != 'outside':
+                # Case 19 issues no work in the velocity scope; a zero control has no percentage.
+                if metric != 'outside' and all(value(control, run, metric) != 0 for run in runs):
                     entry['percent'] = p.ci([100 * (value(m, run, metric) / value(control, run, metric) - 1) for run in runs])
                 out[k][metric] = entry
     return res
@@ -72,7 +76,7 @@ def main():
             a = s['absolute'][k]
             print(f"  {k:10} SMAA {a['SMAA']['mean']*1000:8.2f} us  Whole {a['WholeFrame']['mean']:.4f} ms  vel {a['SR_CameraVelocity']['mean']*1000:6.2f}"
                   f"  spatial {a['SF_Spatial']['mean']*1000:7.2f}  resolve {a['SR_Resolve']['mean']*1000:6.2f}  outside {a['outside']['mean']*1000:6.2f}")
-        for title, part in (('vs O-T2X-R', s['vs_native']), ('vs selected', s['vs_selected'])):
+        for title, part in ((key, s[key]) for key, _ in CONTROLS):
             print(' ', title)
             for k, v in part.items():
                 print(f"    {k:10} SMAA % {fmt(v['SMAA']['percent'])}  Whole % {fmt(v['WholeFrame']['percent'])}  "
