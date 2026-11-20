@@ -246,8 +246,9 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     selectedSeedResolveTechnique=techniqueManagerInterface->CreateTechnique("SelectedSeedResolvePS",defines);
     selectedNeighborhoodVelocityAlphaTechnique=techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodVelocityAlphaPS",defines);
     const char *filterResolves[] = {"SelectedResolveClampPS", "SelectedResolveDepthPS", "SelectedResolveVelocityPS",
-        "SelectedResolveVelocityPingPongPS", "SelectedResolveVelocityPingPongKeepPS"};
-    for(int i=0;i<5;++i)selectedFilterResolveTechniques[i]=techniqueManagerInterface->CreateTechnique(filterResolves[i],defines);
+        "SelectedResolveVelocityPingPongPS", "SelectedResolveVelocityPingPongKeepPS",
+        "SelectedResolveVelocityCross5PS", "SelectedResolveVelocityFootprint12PS"};
+    for(int i=0;i<7;++i)selectedFilterResolveTechniques[i]=techniqueManagerInterface->CreateTechnique(filterResolves[i],defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -409,7 +410,7 @@ void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceVie
         texturesInterface->SetResource_depthTex(context, depth);
         context->PSSetShaderResources(11, 1, &previousDepth);
     }
-    const bool velocityPingPong = !seed && (filter == 4 || filter == 5);
+    const bool velocityPingPong = !seed && filter >= 4 && filter <= 7;
     if(velocityPingPong) context->PSSetShaderResources(12, 1, &previousVelocity);
     (seed ? selectedSeedResolveTechnique : filter == 0 ? selectedResolveTechnique : selectedFilterResolveTechniques[filter - 1])->ApplyStates(context);
     context->OMSetRenderTargets(1, &nextHistory, dsv);

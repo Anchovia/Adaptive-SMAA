@@ -157,7 +157,8 @@ class SMAA {
          * in the first pass of go(). Writes only the next history.
          * filter: 0 none, 1 neighbourhood clamp, 2 previous depth (needs depth, previousDepth
          * and the reprojection constants in slot b1), 3 velocity weight (needs velocityAlpha in go()),
-         * 4 velocity ping-pong and 5 its Keep variant (need previousVelocity).
+         * 4 velocity ping-pong, 5 its Keep variant, 6 and 7 its Cross5 and Footprint12 variants
+         * (need previousVelocity).
          */
         void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
@@ -329,7 +330,7 @@ class SMAA {
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *selectedEdgeTechniques[2][4]; // [velocity in the edge pass][input]
         SMAATechniqueInterface *selectedNeighborhoodTechnique, *selectedResolveTechnique, *selectedSeedResolveTechnique;
-        SMAATechniqueInterface *selectedNeighborhoodVelocityAlphaTechnique, *selectedFilterResolveTechniques[5]; // history rejection (a)(b)(c)(c')(c' Keep)
+        SMAATechniqueInterface *selectedNeighborhoodVelocityAlphaTechnique, *selectedFilterResolveTechniques[7]; // history rejection (a)(b)(c)(c')(c' Keep, Cross5, Footprint12)
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 

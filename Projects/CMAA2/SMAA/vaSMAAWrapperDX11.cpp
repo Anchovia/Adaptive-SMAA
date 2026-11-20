@@ -474,7 +474,8 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             // input in the neighborhood pass); (c') on both. (b) keeps a copy of the raw depth for the
             // next frame and (c') swaps two velocity textures at the end of the frame.
             const SelectedHistoryFilter historyFilter = m_selectedTemporal? m_selectedHistoryFilter : SelectedHistoryFilter::None;
-            const bool velocityPingPong = historyFilter == SelectedHistoryFilter::VelocityPingPong || historyFilter == SelectedHistoryFilter::VelocityPingPongKeep;
+            const bool velocityPingPong = historyFilter == SelectedHistoryFilter::VelocityPingPong || historyFilter == SelectedHistoryFilter::VelocityPingPongKeep
+                || historyFilter == SelectedHistoryFilter::VelocityPingPongCross5 || historyFilter == SelectedHistoryFilter::VelocityPingPongFootprint12;
             if( historyFilter != SelectedHistoryFilter::None && !velocityPingPong && m_velocityInEdgePass )
             { VA_LOG_ERROR("History rejection (a)(b)(c) is defined for the selected route only"); return vaDrawResultFlags::UnspecifiedError; }
             if( velocityPingPong && (m_previousVelocity == nullptr || m_previousVelocity->GetSizeX( ) != m_temporalVelocity->GetSizeX( ) || m_previousVelocity->GetSizeY( ) != m_temporalVelocity->GetSizeY( )) )

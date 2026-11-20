@@ -191,6 +191,59 @@ float4 name(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {        
 SELECTED_RESOLVE_VELOCITY_PINGPONG(SelectedResolveVelocityPingPongPS, float2(0.0, 0.0))
 SELECTED_RESOLVE_VELOCITY_PINGPONG(SelectedResolveVelocityPingPongKeepPS, v)
 
+// (c') footprint variants: the speed difference of (c') is taken as the largest one over a set of
+// previous-velocity texels around historyUV instead of the single texel under it. The weight formula,
+// the unknown rule (zero) and the history sample stay those of (c'). Texels are loaded with the
+// coordinates clamped to the target, as the clamp samplers of the history and of (c') do.
+//   Cross5: the texel (c') reads, n = floor(historyUV * size), and its four neighbours. The colour
+//     of the previous output at n comes from n and, through the neighbourhood blending of SMAA,
+//     from at most one of these neighbours.
+//   Footprint12: the twelve texels SampleHistoryCatmullRom5Tap reads, with i = floor(position - 0.5):
+//     rows j and j+1 over columns i-1..i+2, and columns i and i+1 over rows j-1 and j+2. It holds
+//     the Cross5 set of n (n is i or i+1 on each axis).
+// Every set holds the texel of (c'), so the weight never exceeds the (c') weight.
+float SelectedPreviousSpeedDelta(int2 texel, int2 maxTexel, float speed) {
+    float2 vp = previousVelocityTex.Load(int3(clamp(texel, int2(0, 0), maxTexel), 0)).rg;
+    if (any(abs(vp) > 0.5 * SELECTED_VELOCITY_UNKNOWN)) vp = float2(0.0, 0.0);
+    return abs(speed - length(vp));
+}
+
+[earlydepthstencil]
+float4 SelectedResolveVelocityCross5PS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float2 v = velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    float speed = length(v);
+    int2 maxTexel = int2(SMAA_RT_METRICS.zw) - 1;
+    int2 n = int2(floor((uv - v) * SMAA_RT_METRICS.zw));
+    float delta = SelectedPreviousSpeedDelta(n, maxTexel, speed);
+    delta = max(delta, SelectedPreviousSpeedDelta(n + int2(-1, 0), maxTexel, speed));
+    delta = max(delta, SelectedPreviousSpeedDelta(n + int2(1, 0), maxTexel, speed));
+    delta = max(delta, SelectedPreviousSpeedDelta(n + int2(0, -1), maxTexel, speed));
+    delta = max(delta, SelectedPreviousSpeedDelta(n + int2(0, 1), maxTexel, speed));
+    float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    return SelectedBlend(current, SelectedHistoryRGB(uv), weight);
+}
+
+[earlydepthstencil]
+float4 SelectedResolveVelocityFootprint12PS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float2 v = velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    float speed = length(v);
+    int2 maxTexel = int2(SMAA_RT_METRICS.zw) - 1;
+    int2 b = int2(floor((uv - v) * SMAA_RT_METRICS.zw - 0.5));
+    float delta = 0.0;
+    [unroll] for (int x = -1; x <= 2; ++x) {
+        delta = max(delta, SelectedPreviousSpeedDelta(b + int2(x, 0), maxTexel, speed));
+        delta = max(delta, SelectedPreviousSpeedDelta(b + int2(x, 1), maxTexel, speed));
+    }
+    [unroll] for (int column = 0; column <= 1; ++column) {
+        delta = max(delta, SelectedPreviousSpeedDelta(b + int2(column, -1), maxTexel, speed));
+        delta = max(delta, SelectedPreviousSpeedDelta(b + int2(column, 2), maxTexel, speed));
+    }
+    float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    return SelectedBlend(current, SelectedHistoryRGB(uv), weight);
+}
+
 // First frame and resets: the history is the current spatial colour.
 [earlydepthstencil]
 float4 SelectedSeedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
