@@ -87,7 +87,7 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Selected-temporal minimal harness: native case4, selected route (alone and + (c') Cross5) and case19, each with Original and Adaptive SMAA; or SMAA 1X at four presets.\r\n"); or SMAA 1X at four presets.\r\n");
+            tool.ReportAddText("Selected-temporal minimal harness: native case4, selected route (alone and + (c') Cross5) and case19, each with Original and Adaptive SMAA; or SMAA 1X at four presets.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra (SpatialCapture: preset per mode); fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
