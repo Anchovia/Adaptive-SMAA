@@ -1,0 +1,20 @@
+이 묶음에 들어간 외부 파일의 출처
+
+ReShade 6.8.0
+  game-folder\dxgi.dll은 ReShade64.dll, other-games\ReShade32.dll은 ReShade32.dll을 이름만 바꾸거나 그대로 넣은 것이다.
+  ReShade_Setup_6.8.0.exe(SHA-256 207aea16205fbf952bc8fe1879966672454cf04002e7ad34237c7990a5b3c0b4)에
+  들어 있는 압축 데이터에서 설치 프로그램을 실행하지 않고 꺼냈다. 파일 내용은 바꾸지 않았다.
+  https://reshade.me , https://github.com/crosire/reshade (BSD 3-Clause, Copyright Patrick Mours)
+
+ReShade.fxh, ReShadeUI.fxh
+  https://github.com/crosire/reshade-shaders slim 브랜치 커밋 fd0022170615ce0d8162d219bff07232fa6dd84f. 바꾸지 않았다.
+
+SMAA.fx, SMAA.fxh, AreaTex.png, SearchTex.png
+  https://github.com/CeeJayDK/SweetFX 커밋 93ddf39b357f5da534ed6d34ba4ec8cc7dcfa361. 바꾸지 않았다.
+  SweetFX 라이선스는 SweetFX-LICENSE.txt(MIT)에 있다.
+  SMAA 알고리즘과 원본 코드는 Jorge Jimenez, Jose I. Echevarria, Belen Masia, Fernando Navarro, Diego Gutierrez의
+  저작물이며 허가 문구는 SMAA.fxh 머리말에 있다.
+
+AdaptiveSMAA.fx, AdaptiveSMAA.fxh
+  위 SweetFX의 SMAA.fx와 SMAA.fxh에 Adaptive SMAA 단계 탐색을 더한 파일이다. 원본 저작권과 허가 문구를 그대로 두었고
+  바꾼 내용은 각 파일 머리말에 적었다. 공식 SMAA나 SweetFX 배포본이 아니다.
