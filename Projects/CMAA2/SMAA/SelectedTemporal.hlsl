@@ -81,6 +81,27 @@ float4 SelectedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TAR
     return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, 0.8))), current.a);
 }
 
+// (c') Cross5 (experiment/selected-history-velocity-footprint): the weight of the official SMAA
+// reprojection, 0.8 * saturate(1 - sqrt(| |v| - |v_prev| |) * SMAA_REPROJECTION_WEIGHT_SCALE), where v_prev
+// is the previous-frame velocity that differs most in speed among the texel under the history position
+// and its four neighbours (the previous output mixed its colour there from at most one of them). The
+// previous velocity is the other of two velocity textures swapped every frame (clamped like the history).
+Texture2D previousVelocityTex : register(t12);
+
+[earlydepthstencil]
+float4 SelectedResolveVelocityCross5PS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float2 v = velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    int2 n = int2(floor((uv - v) * SMAA_RT_METRICS.zw)), last = int2(SMAA_RT_METRICS.zw) - 1;
+    const int2 offsets[5] = { int2(0, 0), int2(-1, 0), int2(1, 0), int2(0, -1), int2(0, 1) };
+    float delta = 0.0;
+    [unroll] for (int i = 0; i < 5; ++i)
+        delta = max(delta, abs(length(v) - length(previousVelocityTex.Load(int3(clamp(n + offsets[i], int2(0, 0), last), 0)).rg)));
+    float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    float3 c = LinearToEncoded(current.rgb), h = LinearToEncoded(SelectedHistoryRGB(uv));
+    return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, weight))), current.a);
+}
+
 // First frame and resets: the history is the current spatial colour.
 [earlydepthstencil]
 float4 SelectedSeedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {

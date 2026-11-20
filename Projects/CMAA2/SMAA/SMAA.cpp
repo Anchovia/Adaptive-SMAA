@@ -250,6 +250,7 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     selectedNeighborhoodTechnique=techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodPS",defines);
     selectedResolveTechnique=techniqueManagerInterface->CreateTechnique("SelectedResolvePS",defines);
     selectedSeedResolveTechnique=techniqueManagerInterface->CreateTechnique("SelectedSeedResolvePS",defines);
+    selectedCross5ResolveTechnique=techniqueManagerInterface->CreateTechnique("SelectedResolveVelocityCross5PS",defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
 
@@ -393,7 +394,8 @@ void SMAA::go(ID3D11DeviceContext * context,
 
 void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
     ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-    ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed) {
+    ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
+    ID3D11ShaderResourceView *previousVelocity) {
     SaveViewportsScope saveViewport(context);
     SaveRenderTargetsScope saveRenderTargets(context);
     SaveInputLayoutScope saveInputLayout(context);
@@ -404,13 +406,16 @@ void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceVie
     texturesInterface->SetResource_colorTex(context, current);
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
-    (seed ? selectedSeedResolveTechnique : selectedResolveTechnique)->ApplyStates(context);
+    const bool cross5 = !seed && previousVelocity != nullptr;
+    if(cross5) context->PSSetShaderResources(12, 1, &previousVelocity);
+    (seed ? selectedSeedResolveTechnique : cross5 ? selectedCross5ResolveTechnique : selectedResolveTechnique)->ApplyStates(context);
     context->OMSetRenderTargets(1, &nextHistory, dsv);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
     texturesInterface->SetResource_colorTex(context, nullptr);
     texturesInterface->SetResource_colorTexPrev(context, nullptr);
     texturesInterface->SetResource_velocityTex(context, nullptr);
+    if(cross5) {ID3D11ShaderResourceView *none = nullptr; context->PSSetShaderResources(12, 1, &none);}
 }
 
 void SMAA::reproject(ID3D11DeviceContext * context,

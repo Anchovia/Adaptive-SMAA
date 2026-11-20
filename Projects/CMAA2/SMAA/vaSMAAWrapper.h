@@ -63,6 +63,7 @@ namespace VertexAsylum
         bool                        m_selectedTemporal              = false;
         bool                        m_velocityInEdgePass            = false;
         bool                        m_adaptiveSearch                = false;  // Adaptive SMAA spatial search
+        bool                        m_selectedCross5                = false;  // (c') Cross5 history weight on the selected route
         vaVector2                   m_lastTemporalProjectionOffset  = vaVector2(0,0);
 
         //bool                        m_debugShowEdges;
@@ -112,6 +113,9 @@ namespace VertexAsylum
         // Adaptive SMAA (contrast-tiered search lengths) for SMAA 1X and every temporal route.
         void SetAdaptiveSearch(bool enabled) {m_adaptiveSearch=enabled;}
         bool GetAdaptiveSearch() const {return m_adaptiveSearch;}
+        // (c') Cross5 history weight on the selected route (not defined for case 19).
+        void SetSelectedCross5(bool enabled) {if(m_selectedCross5!=enabled){m_selectedCross5=enabled;ResetTemporalHistory();}}
+        bool GetSelectedCross5() const {return m_selectedCross5;}
         // frame 0/S0 uses SMAA jitter (+0.25, -0.25), while frame 1/S1 uses
         // (-0.25, +0.25) in clip space. vaCameraBase::SetSubpixelOffset flips
         // Y while applying it to the projection matrix.

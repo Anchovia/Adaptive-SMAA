@@ -103,6 +103,7 @@ namespace VertexAsylum
         shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
         shared_ptr<vaTexture>       m_feedbackCurrentSpatial;
         shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_previousVelocity;             // (c') Cross5: the previous frame's velocity (swapped with m_temporalVelocity)
         shared_ptr<vaTexture>       m_presentedOutput;              // selected route: this frame's next history
         bool                        m_temporalHistoryValid           = false;
         bool                        m_previousViewProjValid          = false;
@@ -285,6 +286,7 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_temporalHistory[1] = nullptr;
     m_feedbackCurrentSpatial = nullptr;
     m_temporalVelocity = nullptr;
+    m_previousVelocity = nullptr;
     m_presentedOutput = nullptr;
     m_smaaReprojectionEnabled = false;
     m_smaaAdaptiveSearch = false;
@@ -463,6 +465,16 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             { VA_LOG_ERROR("The selected temporal route requires camera/depth reprojection"); return vaDrawResultFlags::UnspecifiedError; }
             assert( m_temporalHistory[0] != nullptr && m_temporalHistory[1] != nullptr );
             assert( m_smaa->getFrameIndex( ) == GetTemporalFrameIndex( ) );
+            // (c') Cross5 reads the previous frame's velocity from a second texture; a new one starts from a seed frame.
+            const bool cross5 = m_selectedTemporal && m_selectedCross5;
+            if( cross5 && m_velocityInEdgePass )
+            { VA_LOG_ERROR("Cross5 is defined for the selected route only"); return vaDrawResultFlags::UnspecifiedError; }
+            if( cross5 && (m_previousVelocity == nullptr || m_previousVelocity->GetSizeX( ) != m_temporalVelocity->GetSizeX( ) || m_previousVelocity->GetSizeY( ) != m_temporalVelocity->GetSizeY( )) )
+            {
+                m_previousVelocity = vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+                    vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource, vaResourceAccessFlags::Default );
+                m_temporalHistoryValid = false;
+            }
 
             const int currentIndex = GetTemporalFrameIndex( );
             const int previousIndex = 1 - currentIndex;
@@ -495,10 +507,13 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             {
                 vaScopeTimer resolveTimer("SR_Resolve", &deviceContext);
                 if( m_selectedTemporal )
-                    m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, depthDSV, !m_temporalHistoryValid );
+                    m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, depthDSV, !m_temporalHistoryValid,
+                        cross5 ? m_previousVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr );
                 else
                     m_smaa->reproject( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, dstRT->SafeCast<vaTextureDX11*>()->GetRTV() );
             }
+            if( cross5 )
+                std::swap( m_temporalVelocity, m_previousVelocity );
             if( m_selectedTemporal )
                 m_presentedOutput = currentHistory;
             m_temporalHistoryValid = true;

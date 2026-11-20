@@ -158,7 +158,8 @@ class SMAA {
          */
         void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
-            ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed);
+            ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
+            ID3D11ShaderResourceView *previousVelocity=nullptr); // non-null: (c') Cross5 resolve
 
         void reproject(ID3D11DeviceContext * context,
                        ID3D11ShaderResourceView *currentSRV,
@@ -323,7 +324,7 @@ class SMAA {
         SMAATechniqueInterface *        blendingWeightCalculationTechnique;
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *selectedEdgeTechniques[2][4]; // [velocity in the edge pass][input]
-        SMAATechniqueInterface *selectedNeighborhoodTechnique, *selectedResolveTechnique, *selectedSeedResolveTechnique;
+        SMAATechniqueInterface *selectedNeighborhoodTechnique, *selectedResolveTechnique, *selectedSeedResolveTechnique, *selectedCross5ResolveTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
 
