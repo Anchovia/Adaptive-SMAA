@@ -1737,11 +1737,12 @@ protected:
 };
 
 #include "ColorBlendOptimization.inl"
+#include "ReShadeStill.inl"
 
 void AutoBenchTool::Tick(float deltaTime)
 {
     static bool commandParsed=false;
-    if(!commandParsed){commandParsed=true;QueueColorBlendOptimization(m_parent,*this);}
+    if(!commandParsed){commandParsed=true;QueueColorBlendOptimization(m_parent,*this);QueueReShadeStill(m_parent,*this);}
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)
