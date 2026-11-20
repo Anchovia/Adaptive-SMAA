@@ -1,9 +1,9 @@
 #include <map>
 #include <cmath>
 
-// Paired harness (same process, same timeline), velocity ping-pong experiment: SMAA 1X, native
-// case 4, the selected route alone, with (c) velocity weight and with (c') velocity ping-pong, and
-// case 19 alone and with (c'). The capture also holds the (c') Keep variant of case 19 (diagnostic).
+// Paired harness (same process, same timeline), velocity footprint experiment: SMAA 1X, native
+// case 4, the selected route alone, with (c) velocity weight, with (c') velocity ping-pong and with
+// its Cross5 and Footprint12 variants, and case 19 alone, with (c') and with the two variants.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   Smoke/Benchmark: GPU timing of the temporal modes, PNG/query/readback/pass timers Off.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
@@ -60,16 +60,21 @@ public:
         AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
         m_measureFrames(phase==Phase::Smoke?240:4800),m_repeats(phase==Phase::Smoke?1:6),m_output(output) {
         static const char *sel="ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha";
+        static const std::string c19=std::string(sel)+"+VelocityInEdge";
         static const std::string names[]={sel,std::string(sel)+"+HistoryVelocityWeight",std::string(sel)+"+HistoryVelocityPingPong",
-            std::string(sel)+"+VelocityInEdge",std::string(sel)+"+VelocityInEdge+HistoryVelocityPingPong",std::string(sel)+"+VelocityInEdge+HistoryVelocityPingPongKeepUnknown"};
+            std::string(sel)+"+HistoryVelocityPingPongCross5",std::string(sel)+"+HistoryVelocityPingPongFootprint12",
+            c19,c19+"+HistoryVelocityPingPong",c19+"+HistoryVelocityPingPongCross5",c19+"+HistoryVelocityPingPongFootprint12"};
         if(m_phase==Phase::Capture)m_modes.push_back({"O-1X",Route::NativeT2XR,Filter::None,true});
         m_modes.push_back({"O-T2X-R",Route::NativeT2XR});
         m_modes.push_back({names[0].c_str(),Route::Selected});
         m_modes.push_back({names[1].c_str(),Route::Selected,Filter::VelocityWeight});
         m_modes.push_back({names[2].c_str(),Route::Selected,Filter::VelocityPingPong});
-        m_modes.push_back({names[3].c_str(),Route::SelectedVelocityInEdge});
-        m_modes.push_back({names[4].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPong});
-        if(m_phase==Phase::Capture)m_modes.push_back({names[5].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPongKeep});
+        m_modes.push_back({names[3].c_str(),Route::Selected,Filter::VelocityPingPongCross5});
+        m_modes.push_back({names[4].c_str(),Route::Selected,Filter::VelocityPingPongFootprint12});
+        m_modes.push_back({names[5].c_str(),Route::SelectedVelocityInEdge});
+        m_modes.push_back({names[6].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPong});
+        m_modes.push_back({names[7].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPongCross5});
+        m_modes.push_back({names[8].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPongFootprint12});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -82,7 +87,7 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Velocity ping-pong harness: SMAA 1X (capture only), native case4, selected route (+(c) velocity weight, +(c') velocity ping-pong), case19 (+(c'); capture also +(c') Keep unknown).\r\n");
+            tool.ReportAddText("Velocity footprint harness: SMAA 1X (capture only), native case4, selected route (+(c) velocity weight, +(c') velocity ping-pong, +(c') Cross5, +(c') Footprint12), case19 (+(c'), +(c') Cross5, +(c') Footprint12).\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
