@@ -1,0 +1,15 @@
+#version 330 compatibility
+// Pass 2: SMAA blending weights.
+#include "/lib/common.glsl"
+#define SMAA_INCLUDE_PS 0
+#include "/lib/SMAA.glsl"
+
+out vec2 texcoord;
+out vec2 pixcoord;
+out vec4 offset[3];
+
+void main() {
+    gl_Position = ftransform();
+    texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    SMAABlendingWeightCalculationVS(texcoord, pixcoord, offset);
+}
