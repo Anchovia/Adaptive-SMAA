@@ -18,7 +18,7 @@ private:
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
-    int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats,m_width=-1,m_height=-1;
+    int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats,m_width=-1,m_height=-1,m_fullscreen=-1;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
     std::map<std::string,std::vector<double>> m_samples;
@@ -147,6 +147,10 @@ public:
         // Fixed output size within a run (the first rendered frame; the runner checks it against the requested
         // window size): a window/display change during a run invalidates captures and timing.
         if(m_width<0){m_width=int(color->GetSizeX());m_height=int(color->GetSizeY());}
+        // The window state too (a fullscreen run that falls back to a window keeps its size but not its state).
+        const int fullscreen=int(m_parent.GetApplication().GetFullscreenState());
+        if(m_fullscreen<0)m_fullscreen=fullscreen;
+        if(fullscreen!=m_fullscreen){ok=false;tool.ReportAddRowValues({"failed_window_state",c.name,std::to_string(m_frame),std::to_string(fullscreen),"FAIL"});}
         if(int(color->GetSizeX())!=m_width||int(color->GetSizeY())!=m_height){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
         m_failed=m_failed||!ok;if(!Capturing()||m_frame<0)return;

@@ -12,7 +12,9 @@ param(
     [ValidateRange(64,8192)][int]$ClientHeight=1061,
     # Window position (outer rectangle, pixels); -1 lets the application place it.
     [int]$WindowX=-1,
-    [int]$WindowY=-1
+    [int]$WindowY=-1,
+    # vaFullscreenState: 1 Windowed, 2 Fullscreen (exclusive), 3 Fullscreen Borderless. The report must show it.
+    [ValidateSet(1,2,3)][int]$FullscreenState=1
 )
 # One clean CMAA2 process per command for the case-17 preservation/optimization harnesses.
 # Records executable, renderer source and report hashes for every completed run.
@@ -53,7 +55,7 @@ $content=[System.IO.File]::ReadAllText($settings)
 # The excluded opt-c run persisted a resized window. Restore the established
 # cleanup capture geometry before launch; the in-process size check still guards
 # against changes during the run. Windowed is vaFullscreenState value 1.
-$windowSettings=[ordered]@{WindowPositionX=$WindowX;WindowPositionY=$WindowY;WindowClientSizeX=$ClientWidth;WindowClientSizeY=$ClientHeight;FullscreenState=1}
+$windowSettings=[ordered]@{WindowPositionX=$WindowX;WindowPositionY=$WindowY;WindowClientSizeX=$ClientWidth;WindowClientSizeY=$ClientHeight;FullscreenState=$FullscreenState}
 foreach($entry in $windowSettings.GetEnumerator()){
     $pattern="<$($entry.Key)>-?\d+</$($entry.Key)>"
     if(([regex]::Matches($content,$pattern)).Count -ne 1){throw "Unexpected window setting: $($entry.Key)"}
@@ -86,9 +88,11 @@ $text=Get-Content -LiteralPath $report -Raw
 if($text -notmatch 'Aggregate: PASS'){throw 'Aggregate PASS missing'}
 if($text -match '(?im)^\s*Aggregate[^\r\n]*\bFAIL\b' -or $text -match '(?im),\s*FAIL\s*(?:,|$)'){throw "Report contains a failed check: $report"}
 if($text -notmatch "Resolution:\s*$ClientWidth\s*x\s*$ClientHeight\b"){throw "Report does not have the fixed output resolution ${ClientWidth}x${ClientHeight}: $report"}
+$fullscreenLabel=@{1='Windowed';2='Fullscreen';3='Fullscreen Borderless'}[$FullscreenState]
+if($text -notmatch "(?m)^Fullscreen:\s*$([regex]::Escape($fullscreenLabel))\s*$"){throw "Report does not have the requested window state ${fullscreenLabel}: $report"}
 if((Get-FileHash -LiteralPath $exe).Hash -ne $hash){throw 'Executable changed during execution'}
 $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
-$records += [pscustomobject]@{harness=$Harness;label=$Label;scene=$Scene;phase=$Phase;window=$(if($Visible){'visible'}else{'hidden'});expected_resolution=@($ClientWidth,$ClientHeight);window_position=@($WindowX,$WindowY);arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
+$records += [pscustomobject]@{harness=$Harness;label=$Label;scene=$Scene;phase=$Phase;window=$(if($Visible){'visible'}else{'hidden'});expected_resolution=@($ClientWidth,$ClientHeight);window_position=@($WindowX,$WindowY);fullscreen_state=$fullscreenLabel;arguments=$arguments;scene_bootstrap=$sceneIndex;retry_reason=$RetryReason;
     worktree_root=$root;gpu_before=$gpuBefore;gpu_processes_before=$gpuProcessesBefore;
     git_head=$commit;renderer_dirty=$dirty;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');executable_sha256=$hash;harness_sha256=$harnessHash;
     renderer_sha256=$sources;report=$report;report_sha256=(Get-FileHash -LiteralPath $report).Hash;capture_root=$captureRoot}
