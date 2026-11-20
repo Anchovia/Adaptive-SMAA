@@ -1,9 +1,9 @@
 #include <map>
 #include <cmath>
 
-// Paired harness (same process, same timeline), velocity footprint experiment: SMAA 1X, native
-// case 4, the selected route alone, with (c) velocity weight, with (c') velocity ping-pong and with
-// its Cross5 and Footprint12 variants, and case 19 alone, with (c') and with the two variants.
+// Paired harness (same process, same timeline), Adaptive + selected route + (c') Cross5: SMAA 1X
+// (Original and Adaptive, Ultra), native case 4, and the selected route alone and with (c') Cross5,
+// each with Original and Adaptive SMAA.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   Smoke/Benchmark: GPU timing of the temporal modes, PNG/query/readback/pass timers Off.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
@@ -12,7 +12,7 @@ public:
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
     using Filter=vaSMAAWrapper::SelectedHistoryFilter;
-    struct Mode {const char *name; Route route; Filter filter=Filter::None; bool spatial=false;};
+    struct Mode {const char *name; Route route; Filter filter=Filter::None; bool spatial=false; bool adaptive=false;};
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
@@ -26,7 +26,7 @@ private:
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
         m_parent.Settings().CurrentAAOption=c.spatial?CMAA2Sample::AAType::SMAA:CMAA2Sample::AAType::SMAA_T2x_Reprojected;
-        s->SetSelectedHistoryFilter(c.filter);
+        s->SetSelectedHistoryFilter(c.filter);s->SetAdaptiveSearch(c.adaptive);
         if(!c.spatial)s->ApplyTemporalRoute(c.route);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
         m_samples.clear();m_rendered=false;m_lastProgress=m_lastTick=m_parent.GetApplication().GetTimeFromStart();
@@ -60,21 +60,17 @@ public:
         AutoBenchToolWorkItem(parent),m_phase(phase),m_minecraft(minecraft),
         m_measureFrames(phase==Phase::Smoke?240:4800),m_repeats(phase==Phase::Smoke?1:6),m_output(output) {
         static const char *sel="ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha";
-        static const std::string c19=std::string(sel)+"+VelocityInEdge";
-        static const std::string names[]={sel,std::string(sel)+"+HistoryVelocityWeight",std::string(sel)+"+HistoryVelocityPingPong",
-            std::string(sel)+"+HistoryVelocityPingPongCross5",std::string(sel)+"+HistoryVelocityPingPongFootprint12",
-            c19,c19+"+HistoryVelocityPingPong",c19+"+HistoryVelocityPingPongCross5",c19+"+HistoryVelocityPingPongFootprint12"};
-        if(m_phase==Phase::Capture)m_modes.push_back({"O-1X",Route::NativeT2XR,Filter::None,true});
+        static const std::string names[]={sel,std::string(sel)+"+HistoryVelocityPingPongCross5",
+            std::string("A-")+sel,std::string("A-")+sel+"+HistoryVelocityPingPongCross5"};
+        if(m_phase==Phase::Capture) {
+            m_modes.push_back({"O-1X",Route::NativeT2XR,Filter::None,true});
+            m_modes.push_back({"A-1X",Route::NativeT2XR,Filter::None,true,true});
+        }
         m_modes.push_back({"O-T2X-R",Route::NativeT2XR});
         m_modes.push_back({names[0].c_str(),Route::Selected});
-        m_modes.push_back({names[1].c_str(),Route::Selected,Filter::VelocityWeight});
-        m_modes.push_back({names[2].c_str(),Route::Selected,Filter::VelocityPingPong});
-        m_modes.push_back({names[3].c_str(),Route::Selected,Filter::VelocityPingPongCross5});
-        m_modes.push_back({names[4].c_str(),Route::Selected,Filter::VelocityPingPongFootprint12});
-        m_modes.push_back({names[5].c_str(),Route::SelectedVelocityInEdge});
-        m_modes.push_back({names[6].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPong});
-        m_modes.push_back({names[7].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPongCross5});
-        m_modes.push_back({names[8].c_str(),Route::SelectedVelocityInEdge,Filter::VelocityPingPongFootprint12});
+        m_modes.push_back({names[1].c_str(),Route::Selected,Filter::VelocityPingPongCross5});
+        m_modes.push_back({names[2].c_str(),Route::Selected,Filter::None,false,true});
+        m_modes.push_back({names[3].c_str(),Route::Selected,Filter::VelocityPingPongCross5,false,true});
     }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
@@ -87,7 +83,7 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Velocity footprint harness: SMAA 1X (capture only), native case4, selected route (+(c) velocity weight, +(c') velocity ping-pong, +(c') Cross5, +(c') Footprint12), case19 (+(c'), +(c') Cross5, +(c') Footprint12).\r\n");
+            tool.ReportAddText("Adaptive + Cross5 harness: SMAA 1X Original/Adaptive (capture only), native case4, selected route and selected route + (c') Cross5, each Original and Adaptive (Ultra 1% tiers, RGBA8 edge target).\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra; fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
@@ -131,7 +127,7 @@ public:
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
-        bool ok=s->GetSelectedHistoryFilter()==c.filter;
+        bool ok=s->GetSelectedHistoryFilter()==c.filter&&s->GetAdaptiveSearch()==c.adaptive;
         const auto jitter=s->GetLastTemporalProjectionOffset();
         if(c.spatial)ok=ok&&m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA&&!s->GetTemporalModeEnabled()&&!s->GetTemporalReprojectionEnabled()&&s->GetPresentedOutputOverride()==nullptr;
         else {
