@@ -1,0 +1,706 @@
+{
+  "attempts": [
+    {
+      "label": "bistro-1 (first attempt)",
+      "result": "not started",
+      "failure": "User input 37 s ago; not starting",
+      "note": "The script then waited for 60 s without input before starting the same label."
+    }
+  ],
+  "runs": [
+    {
+      "label": "bistro-1",
+      "scene": "bistro",
+      "result": "PASS",
+      "failure": "",
+      "remaining_cmaa2": 0,
+      "test_copy_removed": true,
+      "build_folder_dxgi": false,
+      "idle_seconds_at_start": 102.828,
+      "gpu_before": [
+        "NVIDIA GeForce RTX 3060 Ti, 621.14, P8, 2 %, 280 MiB"
+      ],
+      "gpu_processes_before": [
+        "Sat Nov 21 02:11:05 2026       ",
+        "+-----------------------------------------------------------------------------------------+",
+        "| NVIDIA-SMI 621.14                 KMD Version: 621.14        CUDA UMD Version: 13.5     |",
+        "+-----------------------------------------+------------------------+----------------------+",
+        "| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |",
+        "| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |",
+        "|                                         |                        |               MIG M. |",
+        "|=========================================+========================+======================|",
+        "|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:08:00.0  On |                  N/A |",
+        "|  0%   30C    P8             14W /  225W |     280MiB /   8192MiB |      2%      Default |",
+        "|                                         |                        |                  N/A |",
+        "+-----------------------------------------+------------------------+----------------------+",
+        "",
+        "+-----------------------------------------------------------------------------------------+",
+        "| Processes:                                                                              |",
+        "|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |",
+        "|        ID   ID                                                               Usage      |",
+        "|=========================================================================================|",
+        "|    0   N/A  N/A            6516    C+G   ...h_cw5n1h2txyewy\\SearchApp.exe      N/A      |",
+        "|    0   N/A  N/A           11720    C+G   C:\\Windows\\explorer.exe               N/A      |",
+        "|    0   N/A  N/A           12188    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |",
+        "|    0   N/A  N/A           12956    C+G   ...h_cw5n1h2txyewy\\SearchApp.exe      N/A      |",
+        "|    0   N/A  N/A           13136    C+G   ...se 3 Host\\Razer Synapse 3.exe      N/A      |",
+        "|    0   N/A  N/A           13956    C+G   ..._pzs8sxrjxfjjc\\app\\claude.exe      N/A      |",
+        "|    0   N/A  N/A           14632    C+G   ...em_tray\\lghub_system_tray.exe      N/A      |",
+        "|    0   N/A  N/A           19616    C+G   ....0.4341.60\\msedgewebview2.exe      N/A      |",
+        "|    0   N/A  N/A           19868    C+G   ..._pzs8sxrjxfjjc\\app\\claude.exe      N/A      |",
+        "+-----------------------------------------------------------------------------------------+"
+      ],
+      "executable_sha256": "D159F52C4DEF623399B02C34C76A1CF326AA3966DCD730EC847FDA0B0118C01F",
+      "bundle": "D:\\SMAAResearchCaptures\\reshade\\bundle-staging",
+      "bundle_manifest_sha256": "7136AA5383927510CEBED1C319161964CB104D6E617CFC6AD5FBC73845219F2A",
+      "reshade_errors": [],
+      "reshade_warnings": [],
+      "reshade_compiled": [
+        "02:11:09:480 [16692] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.279000 s.",
+        "02:11:09:507 [ 8348] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.305000 s.",
+        "02:11:26:431 [ 6524] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.006000 s.",
+        "02:11:26:557 [13920] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.133000 s.",
+        "02:11:30:077 [11012] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.006000 s.",
+        "02:11:30:078 [20852] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s.",
+        "02:11:39:660 [ 4432] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.006000 s.",
+        "02:11:39:660 [15428] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s.",
+        "02:11:43:257 [13472] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.005000 s.",
+        "02:11:43:258 [13056] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s.",
+        "02:11:52:838 [23064] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.005000 s.",
+        "02:11:52:838 [18668] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s."
+      ],
+      "env_folders_before": {
+        "C:\\Users\\USER\\AppData\\Local\\Temp\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Local\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Roaming\\ReShade": -1,
+        "C:\\ProgramData\\ReShade": -1
+      },
+      "env_folders_after": {
+        "C:\\Users\\USER\\AppData\\Local\\Temp\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Local\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Roaming\\ReShade": -1,
+        "C:\\ProgramData\\ReShade": -1
+      },
+      "shots": [
+        {
+          "pose": 0,
+          "step": "original",
+          "preset": "Original-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_1 Original-SMAA-Ultra After.png",
+          "before_sha256": "B17E0BA0536C25367221F1E2F89AA10A1899E765A012519D49275BB658F4F7EE",
+          "after_sha256": "61E54B8135693BB5B1CE3C3B9CF38033F1D9CB45E2AE6E0D426682C7A9A7E229"
+        },
+        {
+          "pose": 0,
+          "step": "adaptive",
+          "preset": "Adaptive-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_2 Adaptive-SMAA-Ultra After.png",
+          "before_sha256": "B17E0BA0536C25367221F1E2F89AA10A1899E765A012519D49275BB658F4F7EE",
+          "after_sha256": "2D8FB3BFA8E6A398663A92C20DD1762752AA82BAD38A9B6CDFB8A972606BD72F"
+        },
+        {
+          "pose": 0,
+          "step": "tierview",
+          "preset": "Adaptive-SMAA-Ultra-TierView",
+          "reloaded": false,
+          "source_after": "shot_3 Adaptive-SMAA-Ultra-TierView After.png",
+          "before_sha256": "B17E0BA0536C25367221F1E2F89AA10A1899E765A012519D49275BB658F4F7EE",
+          "after_sha256": "2344EC63A0C6C4ED1E4B5086F1CA615E3BBE3F7B2044B33EF16AE523824951E1"
+        },
+        {
+          "pose": 0,
+          "step": "tiersatmax",
+          "preset": "Adaptive-SMAA-Ultra-TiersAtMax",
+          "reloaded": true,
+          "source_after": "shot_4 Adaptive-SMAA-Ultra-TiersAtMax After.png",
+          "before_sha256": "B17E0BA0536C25367221F1E2F89AA10A1899E765A012519D49275BB658F4F7EE",
+          "after_sha256": "61E54B8135693BB5B1CE3C3B9CF38033F1D9CB45E2AE6E0D426682C7A9A7E229"
+        },
+        {
+          "pose": 1,
+          "step": "original",
+          "preset": "Original-SMAA-Ultra",
+          "reloaded": true,
+          "source_after": "shot_5 Original-SMAA-Ultra After.png",
+          "before_sha256": "C1236A527B4B0FEA6DF54586B84DB0A1D11627A50FF90EFB7606E2EA18F16C02",
+          "after_sha256": "B6DFC61AA99754F0CBB7F032ADD50C38587BE88CF40237409769F57FF095B1F7"
+        },
+        {
+          "pose": 1,
+          "step": "adaptive",
+          "preset": "Adaptive-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_6 Adaptive-SMAA-Ultra After.png",
+          "before_sha256": "C1236A527B4B0FEA6DF54586B84DB0A1D11627A50FF90EFB7606E2EA18F16C02",
+          "after_sha256": "E72E18DDCCD4597E70F41D1C50FE0C945F933BBBFEE1934939365A7922FC8773"
+        },
+        {
+          "pose": 1,
+          "step": "tierview",
+          "preset": "Adaptive-SMAA-Ultra-TierView",
+          "reloaded": false,
+          "source_after": "shot_7 Adaptive-SMAA-Ultra-TierView After.png",
+          "before_sha256": "C1236A527B4B0FEA6DF54586B84DB0A1D11627A50FF90EFB7606E2EA18F16C02",
+          "after_sha256": "3277B39A60B9B003B82F1F328E09F3A201BD040E6BD388F631066C6B2715FEA0"
+        },
+        {
+          "pose": 1,
+          "step": "tiersatmax",
+          "preset": "Adaptive-SMAA-Ultra-TiersAtMax",
+          "reloaded": true,
+          "source_after": "shot_8 Adaptive-SMAA-Ultra-TiersAtMax After.png",
+          "before_sha256": "C1236A527B4B0FEA6DF54586B84DB0A1D11627A50FF90EFB7606E2EA18F16C02",
+          "after_sha256": "B6DFC61AA99754F0CBB7F032ADD50C38587BE88CF40237409769F57FF095B1F7"
+        },
+        {
+          "pose": 2,
+          "step": "original",
+          "preset": "Original-SMAA-Ultra",
+          "reloaded": true,
+          "source_after": "shot_9 Original-SMAA-Ultra After.png",
+          "before_sha256": "030899BFEE4CB5404E7DEBB9080B1F04145CB38FBBB7A06232766D050D8EF9A5",
+          "after_sha256": "409461A20160A24DE149A748996DFABE0B4AB12E61C29D8605C86D0969CB2C94"
+        },
+        {
+          "pose": 2,
+          "step": "adaptive",
+          "preset": "Adaptive-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_10 Adaptive-SMAA-Ultra After.png",
+          "before_sha256": "030899BFEE4CB5404E7DEBB9080B1F04145CB38FBBB7A06232766D050D8EF9A5",
+          "after_sha256": "098DB63A8DFD82F8C31196062C1EFE4FDFCE542DD712F30905DF9E87C3E393E1"
+        },
+        {
+          "pose": 2,
+          "step": "tierview",
+          "preset": "Adaptive-SMAA-Ultra-TierView",
+          "reloaded": false,
+          "source_after": "shot_11 Adaptive-SMAA-Ultra-TierView After.png",
+          "before_sha256": "030899BFEE4CB5404E7DEBB9080B1F04145CB38FBBB7A06232766D050D8EF9A5",
+          "after_sha256": "B7B5B71BF63421CF38146FB3F5191C0691AF086672A579027F4313FDEDA04DC8"
+        },
+        {
+          "pose": 2,
+          "step": "tiersatmax",
+          "preset": "Adaptive-SMAA-Ultra-TiersAtMax",
+          "reloaded": true,
+          "source_after": "shot_12 Adaptive-SMAA-Ultra-TiersAtMax After.png",
+          "before_sha256": "030899BFEE4CB5404E7DEBB9080B1F04145CB38FBBB7A06232766D050D8EF9A5",
+          "after_sha256": "409461A20160A24DE149A748996DFABE0B4AB12E61C29D8605C86D0969CB2C94"
+        }
+      ],
+      "events": [
+        {
+          "utc": "2026-11-20T17:11:06.8546776Z",
+          "event": "started PID 22564"
+        },
+        {
+          "utc": "2026-11-20T17:11:13.8340272Z",
+          "event": "ready 0"
+        },
+        {
+          "utc": "2026-11-20T17:11:19.0658895Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:20.0015712Z",
+          "event": "saved p0_original"
+        },
+        {
+          "utc": "2026-11-20T17:11:20.1613396Z",
+          "event": "key adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:11:22.3405461Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:23.1980459Z",
+          "event": "saved p0_adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:11:23.3619425Z",
+          "event": "key tierview"
+        },
+        {
+          "utc": "2026-11-20T17:11:25.5293469Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:26.4089705Z",
+          "event": "saved p0_tierview"
+        },
+        {
+          "utc": "2026-11-20T17:11:26.5802442Z",
+          "event": "key tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:11:28.7773944Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:29.6396761Z",
+          "event": "saved p0_tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:11:30.0552372Z",
+          "event": "ready 1"
+        },
+        {
+          "utc": "2026-11-20T17:11:30.2199861Z",
+          "event": "key original"
+        },
+        {
+          "utc": "2026-11-20T17:11:32.3995801Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:33.2487118Z",
+          "event": "saved p1_original"
+        },
+        {
+          "utc": "2026-11-20T17:11:33.4226423Z",
+          "event": "key adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:11:35.5878463Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:36.4529235Z",
+          "event": "saved p1_adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:11:36.6249039Z",
+          "event": "key tierview"
+        },
+        {
+          "utc": "2026-11-20T17:11:38.7906748Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:39.6397681Z",
+          "event": "saved p1_tierview"
+        },
+        {
+          "utc": "2026-11-20T17:11:39.7981764Z",
+          "event": "key tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:11:41.9768167Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:42.8168971Z",
+          "event": "saved p1_tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:11:43.2385849Z",
+          "event": "ready 2"
+        },
+        {
+          "utc": "2026-11-20T17:11:43.4033784Z",
+          "event": "key original"
+        },
+        {
+          "utc": "2026-11-20T17:11:45.5830129Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:46.4237392Z",
+          "event": "saved p2_original"
+        },
+        {
+          "utc": "2026-11-20T17:11:46.5890256Z",
+          "event": "key adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:11:48.7666038Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:49.6211483Z",
+          "event": "saved p2_adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:11:49.7881140Z",
+          "event": "key tierview"
+        },
+        {
+          "utc": "2026-11-20T17:11:51.9662527Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:52.8197665Z",
+          "event": "saved p2_tierview"
+        },
+        {
+          "utc": "2026-11-20T17:11:52.9887913Z",
+          "event": "key tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:11:55.1720995Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:11:56.0126844Z",
+          "event": "saved p2_tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:11:57.3642461Z",
+          "event": "exited 0"
+        }
+      ],
+      "output": "D:/SMAAResearchCaptures/rs1/bistro-1"
+    },
+    {
+      "label": "minecraft-1",
+      "scene": "minecraft",
+      "result": "PASS",
+      "failure": "",
+      "remaining_cmaa2": 0,
+      "test_copy_removed": true,
+      "build_folder_dxgi": false,
+      "idle_seconds_at_start": 181.812,
+      "gpu_before": [
+        "NVIDIA GeForce RTX 3060 Ti, 621.14, P8, 2 %, 278 MiB"
+      ],
+      "gpu_processes_before": [
+        "Sat Nov 21 02:12:24 2026       ",
+        "+-----------------------------------------------------------------------------------------+",
+        "| NVIDIA-SMI 621.14                 KMD Version: 621.14        CUDA UMD Version: 13.5     |",
+        "+-----------------------------------------+------------------------+----------------------+",
+        "| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |",
+        "| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |",
+        "|                                         |                        |               MIG M. |",
+        "|=========================================+========================+======================|",
+        "|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:08:00.0  On |                  N/A |",
+        "| 30%   37C    P8             15W /  225W |     278MiB /   8192MiB |      2%      Default |",
+        "|                                         |                        |                  N/A |",
+        "+-----------------------------------------+------------------------+----------------------+",
+        "",
+        "+-----------------------------------------------------------------------------------------+",
+        "| Processes:                                                                              |",
+        "|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |",
+        "|        ID   ID                                                               Usage      |",
+        "|=========================================================================================|",
+        "|    0   N/A  N/A            6516    C+G   ...h_cw5n1h2txyewy\\SearchApp.exe      N/A      |",
+        "|    0   N/A  N/A           11720    C+G   C:\\Windows\\explorer.exe               N/A      |",
+        "|    0   N/A  N/A           12188    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |",
+        "|    0   N/A  N/A           12956    C+G   ...h_cw5n1h2txyewy\\SearchApp.exe      N/A      |",
+        "|    0   N/A  N/A           13136    C+G   ...se 3 Host\\Razer Synapse 3.exe      N/A      |",
+        "|    0   N/A  N/A           13956    C+G   ..._pzs8sxrjxfjjc\\app\\claude.exe      N/A      |",
+        "|    0   N/A  N/A           14632    C+G   ...em_tray\\lghub_system_tray.exe      N/A      |",
+        "|    0   N/A  N/A           19616    C+G   ....0.4341.60\\msedgewebview2.exe      N/A      |",
+        "|    0   N/A  N/A           19868    C+G   ..._pzs8sxrjxfjjc\\app\\claude.exe      N/A      |",
+        "+-----------------------------------------------------------------------------------------+"
+      ],
+      "executable_sha256": "D159F52C4DEF623399B02C34C76A1CF326AA3966DCD730EC847FDA0B0118C01F",
+      "bundle": "D:\\SMAAResearchCaptures\\reshade\\bundle-staging",
+      "bundle_manifest_sha256": "7136AA5383927510CEBED1C319161964CB104D6E617CFC6AD5FBC73845219F2A",
+      "reshade_errors": [],
+      "reshade_warnings": [],
+      "reshade_compiled": [
+        "02:12:27:599 [22676] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.190000 s.",
+        "02:12:27:606 [14084] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.197000 s.",
+        "02:12:44:716 [ 8348] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.005000 s.",
+        "02:12:44:850 [11012] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.140000 s.",
+        "02:12:48:129 [20476] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.006000 s.",
+        "02:12:48:129 [22068] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s.",
+        "02:12:57:733 [12052] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.005000 s.",
+        "02:12:57:734 [23228] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s.",
+        "02:13:01:121 [22900] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s.",
+        "02:13:01:121 [20044] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.006000 s.",
+        "02:13:10:727 [21692] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\SweetFX\\SMAA.fx' in 0.006000 s.",
+        "02:13:10:727 [ 9780] | INFO  | Successfully compiled 'C:\\Users\\USER\\Desktop\\research\\tmp\\worktrees\\reshade-adaptive-smaa\\Projects\\CMAA2_RS\\reshade-shaders\\Shaders\\AdaptiveSMAA\\AdaptiveSMAA.fx' in 0.006000 s."
+      ],
+      "env_folders_before": {
+        "C:\\Users\\USER\\AppData\\Local\\Temp\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Local\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Roaming\\ReShade": -1,
+        "C:\\ProgramData\\ReShade": -1
+      },
+      "env_folders_after": {
+        "C:\\Users\\USER\\AppData\\Local\\Temp\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Local\\ReShade": -1,
+        "C:\\Users\\USER\\AppData\\Roaming\\ReShade": -1,
+        "C:\\ProgramData\\ReShade": -1
+      },
+      "shots": [
+        {
+          "pose": 0,
+          "step": "original",
+          "preset": "Original-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_1 Original-SMAA-Ultra After.png",
+          "before_sha256": "7FC125E92D991C3FADFD54068B946C6F3F464C130DC7E28D9E2D891AB5801179",
+          "after_sha256": "E2BF857B7F8B1C22B3B9039B16C454CB8F298A1C02CDFC4BEAE8DFF7311AF164"
+        },
+        {
+          "pose": 0,
+          "step": "adaptive",
+          "preset": "Adaptive-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_2 Adaptive-SMAA-Ultra After.png",
+          "before_sha256": "7FC125E92D991C3FADFD54068B946C6F3F464C130DC7E28D9E2D891AB5801179",
+          "after_sha256": "F6F0EC6A81798C1DAE12A712608CA5F2A4979DD577804BB0FB82B563F4D92B50"
+        },
+        {
+          "pose": 0,
+          "step": "tierview",
+          "preset": "Adaptive-SMAA-Ultra-TierView",
+          "reloaded": false,
+          "source_after": "shot_3 Adaptive-SMAA-Ultra-TierView After.png",
+          "before_sha256": "7FC125E92D991C3FADFD54068B946C6F3F464C130DC7E28D9E2D891AB5801179",
+          "after_sha256": "7C84AB85477D9EFA4CF700820959912789D5CE0261163A377CC8B78363C54E0D"
+        },
+        {
+          "pose": 0,
+          "step": "tiersatmax",
+          "preset": "Adaptive-SMAA-Ultra-TiersAtMax",
+          "reloaded": true,
+          "source_after": "shot_4 Adaptive-SMAA-Ultra-TiersAtMax After.png",
+          "before_sha256": "7FC125E92D991C3FADFD54068B946C6F3F464C130DC7E28D9E2D891AB5801179",
+          "after_sha256": "E2BF857B7F8B1C22B3B9039B16C454CB8F298A1C02CDFC4BEAE8DFF7311AF164"
+        },
+        {
+          "pose": 1,
+          "step": "original",
+          "preset": "Original-SMAA-Ultra",
+          "reloaded": true,
+          "source_after": "shot_5 Original-SMAA-Ultra After.png",
+          "before_sha256": "A2C92D38EC0A28BC9753595DBF506B7EBC8BD253B6FE99FA27AA6921B0723A66",
+          "after_sha256": "7FB11C0C866A51F3C270E6F0B73DC400934C68D545EC41AFAFFE49389BDDAE30"
+        },
+        {
+          "pose": 1,
+          "step": "adaptive",
+          "preset": "Adaptive-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_6 Adaptive-SMAA-Ultra After.png",
+          "before_sha256": "A2C92D38EC0A28BC9753595DBF506B7EBC8BD253B6FE99FA27AA6921B0723A66",
+          "after_sha256": "AE672AF82EAB69DBD0E12C5903FB74FD33812347E5975819B92CA0DC74AF9738"
+        },
+        {
+          "pose": 1,
+          "step": "tierview",
+          "preset": "Adaptive-SMAA-Ultra-TierView",
+          "reloaded": false,
+          "source_after": "shot_7 Adaptive-SMAA-Ultra-TierView After.png",
+          "before_sha256": "A2C92D38EC0A28BC9753595DBF506B7EBC8BD253B6FE99FA27AA6921B0723A66",
+          "after_sha256": "765224BD8FE276714A0ECD2C79D5A6AB297793F164149240E8DCD8C8F37A2721"
+        },
+        {
+          "pose": 1,
+          "step": "tiersatmax",
+          "preset": "Adaptive-SMAA-Ultra-TiersAtMax",
+          "reloaded": true,
+          "source_after": "shot_8 Adaptive-SMAA-Ultra-TiersAtMax After.png",
+          "before_sha256": "A2C92D38EC0A28BC9753595DBF506B7EBC8BD253B6FE99FA27AA6921B0723A66",
+          "after_sha256": "7FB11C0C866A51F3C270E6F0B73DC400934C68D545EC41AFAFFE49389BDDAE30"
+        },
+        {
+          "pose": 2,
+          "step": "original",
+          "preset": "Original-SMAA-Ultra",
+          "reloaded": true,
+          "source_after": "shot_9 Original-SMAA-Ultra After.png",
+          "before_sha256": "93518C8FC90EBD9F4DF1646EB80703384A103D5CF61340156C524AFE0D2DA800",
+          "after_sha256": "17BA6C016C35F2A30F236C2278073EF12576AE5711A448998102E7243682C459"
+        },
+        {
+          "pose": 2,
+          "step": "adaptive",
+          "preset": "Adaptive-SMAA-Ultra",
+          "reloaded": false,
+          "source_after": "shot_10 Adaptive-SMAA-Ultra After.png",
+          "before_sha256": "93518C8FC90EBD9F4DF1646EB80703384A103D5CF61340156C524AFE0D2DA800",
+          "after_sha256": "8CAC53034F764C5171FB2D6F9BA231A68B66FE96B7EBE9BF9425C9502C3A81E2"
+        },
+        {
+          "pose": 2,
+          "step": "tierview",
+          "preset": "Adaptive-SMAA-Ultra-TierView",
+          "reloaded": false,
+          "source_after": "shot_11 Adaptive-SMAA-Ultra-TierView After.png",
+          "before_sha256": "93518C8FC90EBD9F4DF1646EB80703384A103D5CF61340156C524AFE0D2DA800",
+          "after_sha256": "236301B0EFD6DEDDDBA6BC405EC28A22521D1699615FE9EC6957BC195F8E2D38"
+        },
+        {
+          "pose": 2,
+          "step": "tiersatmax",
+          "preset": "Adaptive-SMAA-Ultra-TiersAtMax",
+          "reloaded": true,
+          "source_after": "shot_12 Adaptive-SMAA-Ultra-TiersAtMax After.png",
+          "before_sha256": "93518C8FC90EBD9F4DF1646EB80703384A103D5CF61340156C524AFE0D2DA800",
+          "after_sha256": "17BA6C016C35F2A30F236C2278073EF12576AE5711A448998102E7243682C459"
+        }
+      ],
+      "events": [
+        {
+          "utc": "2026-11-20T17:12:25.4828689Z",
+          "event": "started PID 11204"
+        },
+        {
+          "utc": "2026-11-20T17:12:32.2463281Z",
+          "event": "ready 0"
+        },
+        {
+          "utc": "2026-11-20T17:12:37.4621862Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:38.3192796Z",
+          "event": "saved p0_original"
+        },
+        {
+          "utc": "2026-11-20T17:12:38.4967593Z",
+          "event": "key adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:12:40.6752900Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:41.5136750Z",
+          "event": "saved p0_adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:12:41.6832931Z",
+          "event": "key tierview"
+        },
+        {
+          "utc": "2026-11-20T17:12:43.8615252Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:44.6979770Z",
+          "event": "saved p0_tierview"
+        },
+        {
+          "utc": "2026-11-20T17:12:44.8669884Z",
+          "event": "key tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:12:47.0465871Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:47.9032734Z",
+          "event": "saved p0_tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:12:48.1124942Z",
+          "event": "ready 1"
+        },
+        {
+          "utc": "2026-11-20T17:12:48.2771242Z",
+          "event": "key original"
+        },
+        {
+          "utc": "2026-11-20T17:12:50.4562869Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:51.3001323Z",
+          "event": "saved p1_original"
+        },
+        {
+          "utc": "2026-11-20T17:12:51.4623217Z",
+          "event": "key adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:12:53.6399022Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:54.5016348Z",
+          "event": "saved p1_adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:12:54.6610056Z",
+          "event": "key tierview"
+        },
+        {
+          "utc": "2026-11-20T17:12:56.8390784Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:12:57.7171615Z",
+          "event": "saved p1_tierview"
+        },
+        {
+          "utc": "2026-11-20T17:12:57.8761380Z",
+          "event": "key tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:13:00.0527337Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:13:00.8956433Z",
+          "event": "saved p1_tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:13:01.1045678Z",
+          "event": "ready 2"
+        },
+        {
+          "utc": "2026-11-20T17:13:01.2692987Z",
+          "event": "key original"
+        },
+        {
+          "utc": "2026-11-20T17:13:03.4478753Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:13:04.3069749Z",
+          "event": "saved p2_original"
+        },
+        {
+          "utc": "2026-11-20T17:13:04.4711338Z",
+          "event": "key adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:13:06.6376511Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:13:07.4975055Z",
+          "event": "saved p2_adaptive"
+        },
+        {
+          "utc": "2026-11-20T17:13:07.6591656Z",
+          "event": "key tierview"
+        },
+        {
+          "utc": "2026-11-20T17:13:09.8393757Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:13:10.7109019Z",
+          "event": "saved p2_tierview"
+        },
+        {
+          "utc": "2026-11-20T17:13:10.8764300Z",
+          "event": "key tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:13:13.0551218Z",
+          "event": "key F9 screenshot"
+        },
+        {
+          "utc": "2026-11-20T17:13:13.8973410Z",
+          "event": "saved p2_tiersatmax"
+        },
+        {
+          "utc": "2026-11-20T17:13:15.2323999Z",
+          "event": "exited 0"
+        }
+      ],
+      "output": "D:/SMAAResearchCaptures/rs1/minecraft-1"
+    }
+  ]
+}
