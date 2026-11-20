@@ -1,8 +1,8 @@
 #include <map>
 #include <cmath>
 
-// Paired harness (same process, same timeline): native case 4, the selected route and
-// case 19 (velocity in the edge pass), each one TemporalRoute, with Original and Adaptive SMAA.
+// Paired harness (same process, same timeline): native case 4, the selected route alone and with
+// (c') Cross5, and case 19 (velocity in the edge pass), with Original and Adaptive SMAA.
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   SpatialCapture: the same for SMAA 1X (no jitter, no history), Original and Adaptive at the
 //              four presets.
@@ -12,7 +12,7 @@ public:
     enum class Phase {Capture, Smoke, Benchmark, SpatialCapture};
 private:
     using Route=vaSMAAWrapper::TemporalRoute;
-    struct Mode {const char *name; Route route; bool adaptive; int preset=vaSMAAWrapper::PRESET_ULTRA;};
+    struct Mode {const char *name; Route route; bool adaptive; int preset=vaSMAAWrapper::PRESET_ULTRA; bool cross5=false;};
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
@@ -26,7 +26,7 @@ private:
     void Configure() {
         const auto c=Current();auto s=m_parent.GetSMAA();
         s->CleanupTemporaryResources();
-        s->GetSettings().Preset=(vaSMAAWrapper::Preset)c.preset;s->SetAdaptiveSearch(c.adaptive);
+        s->GetSettings().Preset=(vaSMAAWrapper::Preset)c.preset;s->SetAdaptiveSearch(c.adaptive);s->SetSelectedCross5(c.cross5);
         m_parent.Settings().CurrentAAOption=Spatial()?CMAA2Sample::AAType::SMAA:CMAA2Sample::AAType::SMAA_T2x_Reprojected;
         if(!Spatial())s->ApplyTemporalRoute(c.route);
         s->ResetTemporalHistory();m_frame=Capturing()?-60:-300;
@@ -70,6 +70,8 @@ public:
             m_modes.push_back({adaptive?"A-T2X-R":"O-T2X-R",Route::NativeT2XR,adaptive});
             m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha"
                 :"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,adaptive});
+            m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityPingPongCross5"
+                :"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityPingPongCross5",Route::Selected,adaptive,vaSMAAWrapper::PRESET_ULTRA,true});
             m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge"
                 :"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge,adaptive});
         }
@@ -85,7 +87,7 @@ public:
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
             tool.ReportAddRowValues({"presentation_timeline","240","60","120","60","60fps","2.0"});
-            tool.ReportAddText("Selected-temporal minimal harness: native case4, selected route and case19, each with Original and Adaptive SMAA; or SMAA 1X at four presets.\r\n");
+            tool.ReportAddText("Selected-temporal minimal harness: native case4, selected route (alone and + (c') Cross5) and case19, each with Original and Adaptive SMAA; or SMAA 1X at four presets.\r\n"); or SMAA 1X at four presets.\r\n");
             tool.ReportAddText(std::string("Scene: ")+(m_minecraft?"minecraft":"bistro")+"\r\nUltra (SpatialCapture: preset per mode); fixed60; still60/move120/still60 from play time 2.0; native paired pattern On; case17 pattern Off; camera/depth reprojection only.\r\n");
             static const char *phases[]={"Capture: RGB PNG every frame; production shaders only; no diagnostics.\r\n",
                 "Smoke: PNG/query/readback Off; 30s precondition; 300 warmup; 240 frames x 1.\r\n",
@@ -130,7 +132,7 @@ public:
     void OnRender(AutoBenchTool&) override {}
     void OnRenderComparePoint(AutoBenchTool& tool,vaImageCompareTool&,vaRenderDeviceContext& ctx,const shared_ptr<vaTexture>& color,shared_ptr<vaPostProcess>&) override {
         if(m_done)return;m_rendered=true;const auto s=m_parent.GetSMAA();const auto c=Current();
-        bool ok=s->GetAdaptiveSearch()==c.adaptive&&s->GetSettings().Preset==c.preset;
+        bool ok=s->GetAdaptiveSearch()==c.adaptive&&s->GetSettings().Preset==c.preset&&s->GetSelectedCross5()==c.cross5;
         const auto jitter=s->GetLastTemporalProjectionOffset();
         if(Spatial())ok=ok&&m_parent.Settings().CurrentAAOption==CMAA2Sample::AAType::SMAA&&!s->GetTemporalModeEnabled()&&!s->GetTemporalReprojectionEnabled()&&s->GetPresentedOutputOverride()==nullptr;
         else {
