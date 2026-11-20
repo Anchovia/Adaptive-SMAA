@@ -6,7 +6,9 @@
 //   Capture:   RGB PNG for every frame of every mode (no diagnostics).
 //   SpatialCapture: the same for SMAA 1X (no jitter, no history), Original and Adaptive at the
 //              four presets.
-//   Smoke/Benchmark: GPU timing of the temporal modes, PNG/query/readback/pass timers Off.
+//   Smoke/Benchmark: GPU timing of five temporal modes (native case 4, the selected route alone and
+//              with Cross5, Adaptive + selected route alone and with Cross5), PNG/query/readback/pass
+//              timers Off. The capture keeps all temporal modes.
 class BenchItemColorBlendOptimization : public AutoBenchToolWorkItem {
 public:
     enum class Phase {Capture, Smoke, Benchmark, SpatialCapture};
@@ -16,7 +18,7 @@ private:
     std::vector<Mode> m_modes;
     Phase m_phase;
     bool m_minecraft,m_started=false,m_done=false,m_failed=false,m_rendered=false;
-    int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats;
+    int m_slot=0,m_frame=-60,m_run=0,m_measureFrames,m_repeats,m_width=-1,m_height=-1;
     double m_until=0,m_lastProgress=0,m_lastTick=0;
     std::wstring m_output;
     std::map<std::string,std::vector<double>> m_samples;
@@ -66,13 +68,14 @@ public:
                 m_modes.push_back({names[a][preset],Route::NativeT2XR,a==1,preset});
             return;
         }
+        const bool timing=m_phase==Phase::Smoke||m_phase==Phase::Benchmark;
         for(bool adaptive:{false,true}) {
-            m_modes.push_back({adaptive?"A-T2X-R":"O-T2X-R",Route::NativeT2XR,adaptive});
+            if(!timing||!adaptive)m_modes.push_back({adaptive?"A-T2X-R":"O-T2X-R",Route::NativeT2XR,adaptive});
             m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha"
                 :"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha",Route::Selected,adaptive});
             m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityPingPongCross5"
                 :"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+HistoryVelocityPingPongCross5",Route::Selected,adaptive,vaSMAAWrapper::PRESET_ULTRA,true});
-            m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge"
+            if(!timing)m_modes.push_back({adaptive?"A-ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge"
                 :"ABL-ET2X-R-PreviousRawEdge-CatmullRomRGB-Fixed080-EncodedGamma2Blend+OPT-NeighborhoodNoDepth+PresentHistory+NoVelocityAlpha+VelocityInEdge",Route::SelectedVelocityInEdge,adaptive});
         }
     }
@@ -141,8 +144,10 @@ public:
             ok=ok&&((s->GetPresentedOutputOverride()!=nullptr)==(c.route!=Route::NativeT2XR));
             ok=ok&&(c.route!=Route::NativeT2XR?(jitter.x==0&&jitter.y==0):(abs(jitter.x)==.25f&&abs(jitter.y)==.25f));
         }
-        // Fixed output size: a window/display change during a run invalidates captures and timing.
-        if(color->GetSizeX()!=1920||color->GetSizeY()!=1061){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
+        // Fixed output size within a run (the first rendered frame; the runner checks it against the requested
+        // window size): a window/display change during a run invalidates captures and timing.
+        if(m_width<0){m_width=int(color->GetSizeX());m_height=int(color->GetSizeY());}
+        if(int(color->GetSizeX())!=m_width||int(color->GetSizeY())!=m_height){ok=false;tool.ReportAddRowValues({"failed_size",c.name,std::to_string(m_frame),std::to_string(color->GetSizeX()),std::to_string(color->GetSizeY()),"FAIL"});}
         if(!ok)tool.ReportAddRowValues({"failed_state",c.name,std::to_string(m_frame),"FAIL"});
         m_failed=m_failed||!ok;if(!Capturing()||m_frame<0)return;
         tool.ReportAddRowValues({"mode_check",c.name,std::to_string(m_frame),vaStringTools::Format("%.6f",jitter.x),vaStringTools::Format("%.6f",jitter.y),ok?"PASS":"FAIL"});
