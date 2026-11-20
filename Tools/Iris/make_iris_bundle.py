@@ -19,6 +19,7 @@ import zipfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+TEXT_SUFFIXES = {'.fsh', '.vsh', '.glsl', '.properties', '.lang', '.txt', '.mcmeta'}
 
 
 def sha256(data):
@@ -46,6 +47,9 @@ def main():
             for path in entries:
                 rel = path.relative_to(pack).as_posix()
                 data = path.read_bytes()
+                # core.autocrlf checkouts have CRLF text; the pack always ships LF.
+                if path.suffix in TEXT_SUFFIXES:
+                    data = data.replace(b'\r\n', b'\n')
                 info = zipfile.ZipInfo(rel, date_time=(2026, 11, 21, 0, 0, 0))
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.external_attr = 0o644 << 16
