@@ -62,7 +62,9 @@ float3 EncodedToLinear(float3 v) {
 // SMAA_REPROJECTION_WEIGHT_SCALE), where v_prev is the previous-frame velocity that differs most in speed
 // among the texel under the history position and its four neighbours (the previous output mixed its colour
 // there from at most one of them). The previous velocity is the other of two velocity textures swapped
-// every frame (clamped like the history).
+// every frame (clamped like the history). A history position off screen (content entering the screen) gets weight 0:
+// the clamped taps would otherwise repeat the border pixels of the previous frame, and the clamped velocity taps
+// would not reject them.
 Texture2D previousVelocityTex : register(t12);
 
 [earlydepthstencil]
@@ -75,6 +77,8 @@ float4 SelectedResolveVelocityCross5PS(float4 p : SV_POSITION, float2 uv : TEXCO
     [unroll] for (int i = 0; i < 5; ++i)
         delta = max(delta, abs(length(v) - length(previousVelocityTex.Load(int3(clamp(n + offsets[i], int2(0, 0), last), 0)).rg)));
     float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    float2 previousUV = uv - v;
+    if (!(all(previousUV >= 0.0) && all(previousUV < 1.0))) weight = 0.0;
     float3 c = LinearToEncoded(current.rgb), h = LinearToEncoded(SelectedHistoryRGB(uv));
     return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, weight))), current.a);
 }
