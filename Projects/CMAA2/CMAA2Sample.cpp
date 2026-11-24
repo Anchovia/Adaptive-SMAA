@@ -411,6 +411,7 @@ void CMAA2Sample::OnTick(float deltaTime)
     // if everything was OK with the last tick we can continue with the autobench, otherwise skip the frame until everything is loaded / compiled
     if (prevDrawResultFlags == vaDrawResultFlags::None)
         m_autoBench->Tick(deltaTime);
+    ImprovedSmaaScreensTick(prevDrawResultFlags == vaDrawResultFlags::None);
 
     if (m_fixedDeltaTime > 0.0f)
         deltaTime = m_fixedDeltaTime;

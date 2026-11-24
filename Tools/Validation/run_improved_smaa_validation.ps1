@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Capture','Showcase')][string]$Mode='Capture',
+    [ValidateSet('Capture','Showcase','Screens')][string]$Mode='Capture',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
     [string]$OutputRoot='D:\SMAAResearchCaptures\c30',
@@ -8,9 +8,10 @@ param(
     [int]$WaitForIdleMinutes=30
 )
 # One clean CMAA2 process per command for the improved SMAA demo validation harness
-# (Projects/CMAA2/ImprovedSmaaValidation.inl). Capture runs in a hidden window, Showcase in a visible one.
-# Preconditions: no CMAA2 process, idle GPU (P8), no user input for MinIdleSeconds. Postconditions: exit
-# code 0, no CMAA2 process left, a new AutoBench report with Aggregate PASS and no FAIL row.
+# (Projects/CMAA2/ImprovedSmaaValidation.inl). Capture runs in a hidden window, Showcase and Screens in a
+# visible one. Preconditions: no CMAA2 process, idle GPU (P8), no user input for MinIdleSeconds.
+# Postconditions: exit code 0, no CMAA2 process left, and a new AutoBench report with Aggregate PASS and no
+# FAIL row (Capture, Showcase) or the three saved screens (Screens, which runs without AutoBench).
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $exe=Join-Path $root 'Projects\CMAA2\CMAA2.exe'
@@ -70,7 +71,13 @@ elseif($timedOut){$failure="Timeout after $TimeoutSeconds s"}
 elseif($process.ExitCode -ne 0){$failure="Exit code $($process.ExitCode)"}
 $reports=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | Where-Object {$before -notcontains $_.FullName})
 $report=$null;$captureRoot=$null
-if(!$failure){
+if(!$failure -and $Mode -eq 'Screens'){
+    $captureRoot=$output
+    $missing=@(300,330,360 | Where-Object {!(Test-Path -LiteralPath (Join-Path $output ('screen_{0:D3}.png' -f $_)))})
+    if($missing.Count){$failure="Missing screens: $($missing -join ', ')"}
+    if($reports.Count -ne 0){$failure="Unexpected AutoBench report in Screens mode"}
+}
+elseif(!$failure){
     if($reports.Count -ne 1){$failure="Expected one new report, found $($reports.Count)"}
     else{
         $report=$reports[0].FullName

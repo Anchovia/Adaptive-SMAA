@@ -101,3 +101,29 @@ static void QueueImprovedSmaaValidation(CMAA2Sample& parent,AutoBenchTool& tool)
         tool.AddTask(std::make_shared<BenchItemImprovedSmaaValidation>(parent,showcase,scene==L"minecraft",output));return;
     }
 }
+
+// -improvedSmaaScreens "<bistro|minecraft> <output dir>": without AutoBench, so the UI shows the normal AA option
+// list. At startup it selects SMAA Adaptive + Temporal at Ultra (as clicking the list entry does) and turns on
+// Play animation, then saves the displayed back buffer (with the UI) after 300, 330 and 360 completely drawn
+// frames and quits after 400.
+void CMAA2Sample::ImprovedSmaaScreensTick(bool lastFrameComplete) {
+    static int state=-1,completeFrames=0;static std::wstring dir;
+    if(state==-1) {
+        state=-2;
+        for(const auto& p:GetApplication().GetCommandLineParameters()) {
+            if(_wcsicmp(p.first.c_str(),L"improvedSmaaScreens")!=0)continue;
+            std::wistringstream input(p.second);std::wstring scene;input>>scene>>dir;
+            if((scene!=L"bistro"&&scene!=L"minecraft")||dir.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");break;}
+            m_settings.SceneChoice=scene==L"minecraft"?SceneSelectionType::MinecraftLostEmpire:SceneSelectionType::LumberyardBistro;
+            m_settings.CurrentAAOption=AAType::SMAA_AdaptiveTemporal;
+            m_SMAA->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
+            m_flythroughPlay=true;vaUIManager::GetInstance().SetVisible(true);
+            vaFileTools::EnsureDirectoryExists(dir+L"/");state=0;
+        }
+    }
+    if(state<0||!lastFrameComplete)return;
+    ++completeFrames;
+    if(completeFrames==300||completeFrames==330||completeFrames==360)
+        SaveBackbufferAfterUI(dir+L"/"+vaStringTools::SimpleWiden(vaStringTools::Format("screen_%03d.png",completeFrames)));
+    if(completeFrames==400)const_cast<vaApplicationBase&>(GetApplication()).Quit();
+}
