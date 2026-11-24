@@ -132,6 +132,8 @@ namespace VertexAsylum
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
         virtual shared_ptr<vaTexture>   GetPresentedOutputOverride( ) const override { return m_presentedOutput; }
+        // After Draw the textures are swapped, so this frame's velocity is in m_previousVelocity.
+        virtual bool                    SaveVelocityForValidation( vaRenderDeviceContext & ctx, const wstring & path ) override { return m_previousVelocity != nullptr && m_previousVelocity->SaveToDDSFile( ctx, path ); }
         virtual bool                    HasTemporalResources( ) const override { return m_temporalHistory[0] != nullptr || m_temporalHistory[1] != nullptr
             || m_feedbackCurrentSpatial != nullptr || m_temporalVelocity != nullptr || m_previousVelocity != nullptr; }
 

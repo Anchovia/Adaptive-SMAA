@@ -35,7 +35,8 @@ static void TranslationSetPose(CMAA2Sample& sample,const vaVector3& pos,const va
 
 // -translationCapture "<bistro|minecraft> <h|v|y> <dt csv> <output dir> [start play time]": fixed 1920x1061 hidden window.
 // h/v translate; y is a control without translation: yaw at a constant 0.4 rad/s from the same pose. The start pose is
-// the flythrough pose at the given play time (default 2.0). For each dt
+// the flythrough pose at the given play time (default 2.0). A sixth token "velocity" keeps only Off and On and saves the
+// camera velocity of On (velocity_XXXXX.dds) at every saved frame of fixed60 and fixed300. For each dt
 // condition (fixed60: 1/60 s; fixed300: 1/300 s; fixedmean: the mean of the recorded window; recorded: 0.5 s of frame
 // times recorded in the real demo, from row 300 of the csv) and each mode, history reset and 30 still frames at the
 // start pose, then 0.5 s of translation. Saved: frame 0 (last still frame) and the motion frames from 0.4 s on, plus
@@ -48,7 +49,7 @@ class BenchItemTranslationStability : public AutoBenchToolWorkItem {
     std::vector<Mode> m_modes={{"Off",false,false,0},{"On",false,true,0},{"Fixed08",false,true,1},{"Official1Tap",false,true,2},
                                {"WeightDebug",false,true,3},{"SSRef",true,false,0}};
     std::vector<Cond> m_conds;
-    bool m_minecraft,m_vertical,m_yaw,m_started=false,m_poseReady=false,m_done=false,m_failed=false,m_rendered=false;
+    bool m_minecraft,m_vertical,m_yaw,m_velocityDump,m_started=false,m_poseReady=false,m_done=false,m_failed=false,m_rendered=false;
     int m_mode=0,m_cond=0,m_frame=0;
     static const int c_pre=30;
     double m_lastProgress=0;float m_startTime;float m_time=0.0f;
@@ -92,8 +93,10 @@ class BenchItemTranslationStability : public AutoBenchToolWorkItem {
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemTranslationStability(CMAA2Sample& parent,bool minecraft,bool vertical,bool yaw,float startTime,std::wstring dtPath,std::wstring output):
-        AutoBenchToolWorkItem(parent),m_minecraft(minecraft),m_vertical(vertical),m_yaw(yaw),m_startTime(startTime),m_output(output),m_dtPath(dtPath) {}
+    BenchItemTranslationStability(CMAA2Sample& parent,bool minecraft,bool vertical,bool yaw,float startTime,bool velocityDump,std::wstring dtPath,std::wstring output):
+        AutoBenchToolWorkItem(parent),m_minecraft(minecraft),m_vertical(vertical),m_yaw(yaw),m_velocityDump(velocityDump),m_startTime(startTime),m_output(output),m_dtPath(dtPath) {
+        if(velocityDump)m_modes={{"Off",false,false,0},{"On",false,true,0}};
+    }
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
         if(m_done)return;
@@ -158,6 +161,8 @@ public:
         if(m_frame<0||(m_frame>0&&m_frame<m_conds[m_cond].saveFrom-1))return;
         const auto dir=Dir();vaFileTools::EnsureDirectoryExists(dir);
         if(!color->SaveToPNGFile(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d.png",m_frame)))){m_failed=true;tool.ReportAddRowValues({"failed_save",c.name,std::to_string(m_frame),"FAIL"});}
+        if(m_velocityDump&&c.temporal&&(m_conds[m_cond].name=="fixed60"||m_conds[m_cond].name=="fixed300")&&
+            !s->SaveVelocityForValidation(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("velocity_%05d.dds",m_frame)))){m_failed=true;tool.ReportAddRowValues({"failed_velocity",c.name,std::to_string(m_frame),"FAIL"});}
         if(m_frame==Count())tool.ReportAddRowValues({"segment",m_conds[m_cond].name,c.name,std::to_string(Count()),std::to_string(m_conds[m_cond].saveFrom-1),ok?"PASS":"FAIL"});
     }
     bool IsDone(AutoBenchTool&) const override {return m_done;}
@@ -167,9 +172,9 @@ public:
 static bool QueueTranslationStability(CMAA2Sample& parent,AutoBenchTool& tool) {
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
         if(_wcsicmp(p.first.c_str(),L"translationCapture")!=0)continue;
-        std::wistringstream input(p.second);std::wstring scene,direction,dtPath,output;float startTime=2.0f;input>>scene>>direction>>dtPath>>output;if(!(input>>startTime))startTime=2.0f;
+        std::wistringstream input(p.second);std::wstring scene,direction,dtPath,output;float startTime=2.0f;std::wstring flag;input>>scene>>direction>>dtPath>>output;if(!(input>>startTime))startTime=2.0f;input>>flag;
         if((scene!=L"bistro"&&scene!=L"minecraft")||(direction!=L"h"&&direction!=L"v"&&direction!=L"y")||dtPath.empty()||output.empty()){VA_LOG_ERROR("Expected scene, h|v|y, dt csv, output path without spaces and an optional start time");return true;}
-        tool.AddTask(std::make_shared<BenchItemTranslationStability>(parent,scene==L"minecraft",direction==L"v",direction==L"y",startTime,dtPath,output));return true;
+        tool.AddTask(std::make_shared<BenchItemTranslationStability>(parent,scene==L"minecraft",direction==L"v",direction==L"y",startTime,flag==L"velocity",dtPath,output));return true;
     }
     return false;
 }

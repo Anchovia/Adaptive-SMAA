@@ -89,6 +89,8 @@ namespace VertexAsylum
         // Validation harness: resolve variant of the selected route (see SMAA::resolveVariant); restarts the history.
         void                        SetResolveVariant( int variant )    { if( m_resolveVariant != variant ) { m_resolveVariant = variant; ResetTemporalHistory( ); } }
         int                         GetResolveVariant( ) const          { return m_resolveVariant; }
+        // Validation harness: saves this frame's camera velocity (R16G16_FLOAT, currentUV - previousUV) as DDS.
+        virtual bool                SaveVelocityForValidation( vaRenderDeviceContext &, const wstring & ) { return false; }
         // Validation harness: whether any temporal texture (history, spatial copy, velocity) is allocated.
         virtual bool                HasTemporalResources( ) const       { return false; }
 

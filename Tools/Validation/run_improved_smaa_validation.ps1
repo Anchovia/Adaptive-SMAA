@@ -2,6 +2,7 @@ param(
     [ValidateSet('Capture','Showcase','Screens','Keys','Translation','DtRecord')][string]$Mode='Capture',
     [ValidateSet('h','v','y')][string]$Direction='h',
     [double]$StartTime=2.0,
+    [switch]$Velocity,
     [string]$DtCsv='',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
@@ -84,7 +85,7 @@ $before=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_result
 New-Item -ItemType Directory -Path $output | Out-Null
 $started=[DateTime]::UtcNow.ToString('o')
 $style=if($Mode -eq 'Capture' -or $Mode -eq 'Translation'){'Hidden'}else{'Normal'}
-$arguments=switch($Mode){'Translation'{@('-translationCapture',$Scene,$Direction,$DtCsv,$output,$StartTime.ToString([Globalization.CultureInfo]::InvariantCulture))}'DtRecord'{@('-translationDtRecord',$Scene,$output)}default{@("-improvedSmaa$Mode",$Scene,$output)}}
+$arguments=switch($Mode){'Translation'{@('-translationCapture',$Scene,$Direction,$DtCsv,$output,$StartTime.ToString([Globalization.CultureInfo]::InvariantCulture))+$(if($Velocity){@('velocity')}else{@()})}'DtRecord'{@('-translationDtRecord',$Scene,$output)}default{@("-improvedSmaa$Mode",$Scene,$output)}}
 if($Mode -eq 'Translation' -and !(Test-Path -LiteralPath $DtCsv)){throw "Missing dt csv: $DtCsv"}
 $process=Start-Process -FilePath $exe -ArgumentList $arguments -WorkingDirectory (Split-Path $exe) -WindowStyle $style -PassThru
 
