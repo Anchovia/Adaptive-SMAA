@@ -239,6 +239,7 @@ namespace VertexAsylum
         void                                    SetFixedDeltaTime( float deltaTime ) { m_fixedDeltaTime = deltaTime; }
         void                                    SaveBackbufferAfterUI( const wstring & path ) { m_saveBackbufferAfterUI = path; }
         shared_ptr<vaSMAAWrapper> &             GetSMAA( )                          { return m_SMAA; }
+        void                                    ImprovedSmaaScreensTick( bool lastFrameComplete );  // validation harness
 
         const char *                            GetAAName( AAType aaType );
         int                                     GetSSResScale( ) const              { return m_SSResScale; }
