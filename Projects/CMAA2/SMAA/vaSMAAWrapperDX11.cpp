@@ -439,6 +439,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         ID3D11ShaderResourceView * velocitySRV = m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( );
         ID3D11DepthStencilView * dsv = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
 
+        m_smaa->resolveVariant = m_resolveVariant;   // validation only
         const SMAA::SelectedTemporalTargets selected = { nextHistoryRTV, m_temporalHistoryValid };
         m_smaa->go( dx11Context, colorGammaSRV, m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, velocitySRV,
             m_feedbackCurrentSpatial->SafeCast<vaTextureDX11*>( )->GetRTV( ), dsv, inputMode, SMAA::MODE_SMAA_1X, 0, &selected );
