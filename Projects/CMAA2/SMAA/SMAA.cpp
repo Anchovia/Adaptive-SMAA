@@ -244,6 +244,13 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     neighborhoodBlendingTechnique = techniqueManagerInterface->CreateTechnique("NeighborhoodBlending", defines);
     resolveTechnique = techniqueManagerInterface->CreateTechnique("Resolve", defines);
     separateTechnique = techniqueManagerInterface->CreateTechnique("Separate", defines);
+    selectedEdgeTechniques[SMAA::INPUT_LUMA]        = techniqueManagerInterface->CreateTechnique("SelectedLumaEdgePS", defines);
+    selectedEdgeTechniques[SMAA::INPUT_LUMA_RAW]    = techniqueManagerInterface->CreateTechnique("SelectedLumaRawEdgePS", defines);
+    selectedEdgeTechniques[SMAA::INPUT_COLOR]       = techniqueManagerInterface->CreateTechnique("SelectedColorEdgePS", defines);
+    selectedEdgeTechniques[SMAA::INPUT_DEPTH]       = techniqueManagerInterface->CreateTechnique("SelectedDepthEdgePS", defines);
+    selectedNeighborhoodTechnique   = techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodPS", defines);
+    selectedSeedResolveTechnique    = techniqueManagerInterface->CreateTechnique("SelectedSeedResolvePS", defines);
+    selectedCross5ResolveTechnique  = techniqueManagerInterface->CreateTechnique("SelectedResolveVelocityCross5PS", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
     msaaOrderRenderTechnique   = techniqueManagerInterface->CreateTechnique( "detectMSAAOrder_Render", defines );
@@ -255,6 +262,7 @@ SMAA::~SMAA() {
     //SAFE_RELEASE(effect);
     SAFE_DELETE(triangle);
     SAFE_DELETE(edgesRT);
+    SAFE_DELETE(previousRawEdgesRT);
     SAFE_DELETE(blendRT);
     SAFE_RELEASE(areaTex);
     SAFE_RELEASE(areaTexSRV);
@@ -273,7 +281,7 @@ void SMAA::go(ID3D11DeviceContext * context,
               ID3D11DepthStencilView *dsv,
               Input input,
               Mode mode,
-              int pass) {
+              int pass, const SelectedTemporalTargets *selected) {
 //    HRESULT hr;
 
     if( !orderDetected )
@@ -297,6 +305,15 @@ void SMAA::go(ID3D11DeviceContext * context,
 
     // Reset the render target:
     context->OMSetRenderTargets(0, nullptr, nullptr);
+
+    // Selected route: ping-pong the raw RG edges; the temporal selection itself is never fed back.
+    if(selected) {
+        if(!previousRawEdgesRT) {
+            ID3D11RenderTargetView *view=*edgesRT; D3D11_RENDER_TARGET_VIEW_DESC desc;view->GetDesc(&desc);
+            previousRawEdgesRT=new RenderTarget(device,width,height,desc.Format);
+        }
+        std::swap(edgesRT,previousRawEdgesRT);
+    }
 
     // Setup the viewport and the vertex layout:
     edgesRT->setViewport(context);
@@ -343,11 +360,18 @@ void SMAA::go(ID3D11DeviceContext * context,
     texturesInterface->SetResource_velocityTex(context, velocitySRV);
 
     // And here we go!
-    edgesDetectionPass(context, dsv, input);
+    // Selected route: the resolve reads the stencil, so it must describe this frame only.
+    if(selected) {
+        if(dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 1.0f, 0);
+        ID3D11ShaderResourceView *oldRaw=selected->previousValid ? (ID3D11ShaderResourceView*)*previousRawEdgesRT : nullptr;
+        context->PSSetShaderResources(10,1,&oldRaw);
+    }
+    edgesDetectionPass(context, dsv, input, selected);
+    if(selected) {ID3D11ShaderResourceView *none=nullptr;context->PSSetShaderResources(10,1,&none);}
     texturesInterface->SetResource_edgesTex(context, *edgesRT);
     blendingWeightsCalculationPass(context, dsv, mode, subsampleIndex);
     texturesInterface->SetResource_blendTex(context, *blendRT);
-    neighborhoodBlendingPass(context, dstRTV, dsv);
+    neighborhoodBlendingPass(context, dstRTV, dsv, selected);
 
     // Reset external inputs, to avoid warnings:
     // V(colorTexGammaVariable->SetResource(nullptr));
@@ -365,6 +389,31 @@ void SMAA::go(ID3D11DeviceContext * context,
     resolveTechnique->ApplyStates(context);
 }
 
+
+void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+    ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
+    ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
+    ID3D11ShaderResourceView *previousVelocity) {
+    SaveViewportsScope saveViewport(context);
+    SaveRenderTargetsScope saveRenderTargets(context);
+    SaveInputLayoutScope saveInputLayout(context);
+    SaveBlendStateScope saveBlendState(context);
+    SaveDepthStencilScope saveDepthStencil(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    edgesRT->setViewport(context);
+    texturesInterface->SetResource_colorTex(context, current);
+    texturesInterface->SetResource_colorTexPrev(context, previous);
+    texturesInterface->SetResource_velocityTex(context, velocity);
+    if(!seed) context->PSSetShaderResources(12, 1, &previousVelocity);
+    (seed ? selectedSeedResolveTechnique : selectedCross5ResolveTechnique)->ApplyStates(context);
+    context->OMSetRenderTargets(1, &nextHistory, dsv);
+    triangle->draw(context);
+    context->OMSetRenderTargets(0, nullptr, nullptr);
+    texturesInterface->SetResource_colorTex(context, nullptr);
+    texturesInterface->SetResource_colorTexPrev(context, nullptr);
+    texturesInterface->SetResource_velocityTex(context, nullptr);
+    if(!seed) {ID3D11ShaderResourceView *none = nullptr; context->PSSetShaderResources(12, 1, &none);}
+}
 
 void SMAA::reproject(ID3D11DeviceContext * context,
                      ID3D11ShaderResourceView *currentSRV,
@@ -535,14 +584,14 @@ void SMAA::loadSearchTex() {
 }
 
 
-void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input) {
+void SMAA::edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, const SelectedTemporalTargets *selected) {
     //HRESULT hr;
 
     //PerfEventScope perfEvent(L"SMAA: Edge Detection Pass");
 
     // Select the technique accordingly:
     //V(edgeDetectionTechniques[int(input)]->GetPassByIndex(0)->Apply(0));
-    edgeDetectionTechniques[int(input)]->ApplyStates(context);
+    (selected ? selectedEdgeTechniques[int(input)] : edgeDetectionTechniques[int(input)])->ApplyStates(context);
 
     // Do it!
     context->OMSetRenderTargets(1, *edgesRT, dsv);
@@ -634,17 +683,18 @@ void SMAA::blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11D
 }
 
 
-void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv) {
+void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, const SelectedTemporalTargets *selected) {
     //HRESULT hr;
 
     // PerfEventScope perfEvent(L"SMAA: Neighborhood Blending Pass");
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    neighborhoodBlendingTechnique->ApplyStates( context );
-    
-    // Do the final pass!
-    context->OMSetRenderTargets(1, &dstRTV, dsv);
+    (selected ? selectedNeighborhoodTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
+
+    // Do the final pass! (selected route: also to the next history)
+    ID3D11RenderTargetView *targets[2] = {dstRTV, selected ? selected->nextHistory : nullptr};
+    context->OMSetRenderTargets(selected ? 2 : 1, targets, dsv);
     triangle->draw( context );
     context->OMSetRenderTargets(0, nullptr, nullptr);
 }

@@ -29,6 +29,8 @@
 
 namespace VertexAsylum
 {
+    class vaCameraBase;
+
     class vaSMAAWrapper : public VertexAsylum::vaRenderingModule, public vaUIPanel
     {
     public:
@@ -53,6 +55,7 @@ namespace VertexAsylum
                                     m_constantsBuffer;
 
         bool                        m_adaptiveSearch                = false;  // Adaptive SMAA: 1% contrast-tiered search lengths
+        bool                        m_selectedTemporal              = false;  // selected temporal route with (c') Cross5
 
         //bool                        m_debugShowEdges;
 
@@ -66,8 +69,19 @@ namespace VertexAsylum
         void                        SetAdaptiveSearch( bool enabled )   { m_adaptiveSearch = enabled; }
         bool                        GetAdaptiveSearch( ) const          { return m_adaptiveSearch; }
 
+        // Selected temporal route: SMAA 1X, then history (weight 0.8, Catmull-Rom 5-tap) at the current raw
+        // edges and the camera-reprojected previous raw edges, with the (c') Cross5 velocity weight. Camera/depth
+        // reprojection only, no jitter. Draw() then needs the scene depth and camera.
+        void                        SetSelectedTemporal( bool enabled ) { if( m_selectedTemporal != enabled ) { m_selectedTemporal = enabled; ResetTemporalHistory( ); } }
+        bool                        GetSelectedTemporal( ) const        { return m_selectedTemporal; }
+        // The next frame starts again from a seed (camera load, scene or image change; resize recreates everything).
+        virtual void                ResetTemporalHistory( )             { }
+        // Non-null only for a frame drawn on the selected route: its next history, which is the final colour.
+        virtual shared_ptr<vaTexture> GetPresentedOutputOverride( ) const { return nullptr; }
+
         // Applies SMAA to currently selected render target using provided inputs
-        virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr )  = 0;
+        virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr )  = 0;
 
         // if SMAA is no longer used make sure it's not reserving any memory
         virtual void                CleanupTemporaryResources( )                                                            = 0;

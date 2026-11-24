@@ -77,6 +77,7 @@ namespace VertexAsylum
         ID3D11DepthStencilState *   m_DisableDepthStencil           = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthReplaceStencil    = nullptr;
         ID3D11DepthStencilState *   m_DisableDepthUseStencil        = nullptr;
+        ID3D11DepthStencilState *   m_DisableDepthNoStencil         = nullptr;   // selected route neighborhood: depth and stencil Off
         ID3D11BlendState *          m_Blend                         = nullptr;
         ID3D11BlendState *          m_NoBlending                    = nullptr;
 
@@ -100,6 +101,23 @@ namespace VertexAsylum
 
         bool                        m_smaaAdaptiveSearch            = false;    // the setting m_smaa was created with
 
+        // Selected temporal route: history ping-pong, this frame's spatial colour (the resolve writes the
+        // next history at the same pixels), camera velocity and the previous frame's velocity for Cross5.
+        shared_ptr<vaTexture>       m_temporalHistory[2]            = { nullptr, nullptr };
+        shared_ptr<vaTexture>       m_feedbackCurrentSpatial        = nullptr;
+        shared_ptr<vaTexture>       m_temporalVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_previousVelocity              = nullptr;
+        shared_ptr<vaTexture>       m_presentedOutput               = nullptr;  // this frame's next history
+        int                         m_historyIndex                  = 0;
+        bool                        m_temporalHistoryValid          = false;
+        bool                        m_previousViewProjValid         = false;
+        vaMatrix4x4                 m_previousViewProj              = vaMatrix4x4::Identity;
+
+        SMAAReprojectionConstants   m_reprojectionConstants;
+        vaTypedConstantBufferWrapper<SMAAReprojectionConstants>
+                                    m_reprojectionConstantsBuffer;
+        vaAutoRMI<vaPixelShader>    m_generateCameraVelocityPS;
+
         // m_scratchPostProcessColorIgnoreSRGBConvView = vaTexture::CreateView( *m_scratchPostProcessColor, m_scratchPostProcessColor->GetBindSupportFlags(), 
         //     vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetSRVFormat() ), vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetRTVFormat() ), vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetDSVFormat() ), vaResourceFormatHelpers::StripSRGB( m_scratchPostProcessColor->GetUAVFormat() ) );
 
@@ -109,8 +127,11 @@ namespace VertexAsylum
         ~vaSMAAWrapperDX11( );
 
     private:
-        virtual vaDrawResultFlags       Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr ) override;
+        virtual vaDrawResultFlags       Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
+                                                const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override;
         virtual void                    CleanupTemporaryResources( ) override;
+        virtual void                    ResetTemporalHistory( ) override;
+        virtual shared_ptr<vaTexture>   GetPresentedOutputOverride( ) const override { return m_presentedOutput; }
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );
@@ -149,10 +170,11 @@ namespace VertexAsylum
         ~vaSMAAWrapperDX12( ) { }
 
         // Applies SMAA to currently selected render target using provided inputs
-        virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr ) override 
-        { 
+        virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
+                                            const shared_ptr<vaTexture> & optionalDepth = nullptr, const vaCameraBase * optionalCamera = nullptr ) override
+        {
             // NOT IMPLEMENTED IN DX12
-            deviceContext; inputColor, optionalInLuma; 
+            deviceContext; inputColor, optionalInLuma, optionalDepth, optionalCamera;
             deviceContext.GetRenderTarget()->ClearRTV( deviceContext, vaVector4( 1.0f, 0.0f, 1.0f, 0.0f ) );
             return vaDrawResultFlags::None;  
         }
@@ -168,11 +190,13 @@ using namespace VertexAsylum;
 
 static const bool c_useTypedUAVStores = false;
 
-vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params )
+vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) : vaSMAAWrapper( params ),
+    m_reprojectionConstantsBuffer( params ), m_generateCameraVelocityPS( params.RenderDevice )
 {
     params; // unreferenced
 
     ID3D11Device * device = params.RenderDevice.SafeCast<vaRenderDeviceDX11*>( )->GetPlatformDevice();
+    m_generateCameraVelocityPS->CreateShaderFromFile( L"SMAA/SMAAWrapper.hlsl", "ps_5_0", "DX10_SMAAGenerateCameraVelocityPS", {}, true );
     HRESULT hr;
     {
         CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
@@ -193,6 +217,12 @@ vaSMAAWrapperDX11::vaSMAAWrapperDX11( const vaRenderingModuleParams & params ) :
         desc.StencilEnable              = TRUE;
         desc.FrontFace.StencilFunc      = D3D11_COMPARISON_EQUAL;
         V( device->CreateDepthStencilState( &desc, &m_DisableDepthUseStencil ) );
+    }
+    {
+        CD3D11_DEPTH_STENCIL_DESC desc = CD3D11_DEPTH_STENCIL_DESC( CD3D11_DEFAULT( ) );
+        desc.DepthEnable                = FALSE;
+        desc.StencilEnable              = FALSE;
+        V( device->CreateDepthStencilState( &desc, &m_DisableDepthNoStencil ) );
     }
     {
         CD3D11_BLEND_DESC desc = CD3D11_BLEND_DESC( CD3D11_DEFAULT( ) );
@@ -232,6 +262,7 @@ vaSMAAWrapperDX11::~vaSMAAWrapperDX11( )
     SAFE_RELEASE( m_DisableDepthStencil        );
     SAFE_RELEASE( m_DisableDepthReplaceStencil );
     SAFE_RELEASE( m_DisableDepthUseStencil     );
+    SAFE_RELEASE( m_DisableDepthNoStencil      );
     SAFE_RELEASE( m_Blend                      );
     SAFE_RELEASE( m_NoBlending                 );
     SAFE_RELEASE( m_PointSampler    );
@@ -251,6 +282,27 @@ void vaSMAAWrapperDX11::CleanupTemporaryResources( )
     m_viewColor1 = nullptr;
     m_viewColorIgnoreSRGB0 = nullptr;
     m_viewColorIgnoreSRGB1 = nullptr;
+    m_temporalHistory[0] = nullptr;
+    m_temporalHistory[1] = nullptr;
+    m_feedbackCurrentSpatial = nullptr;
+    m_temporalVelocity = nullptr;
+    m_previousVelocity = nullptr;
+    ResetTemporalHistory( );
+}
+
+void vaSMAAWrapperDX11::ResetTemporalHistory( )
+{
+    m_presentedOutput = nullptr;
+    m_temporalHistoryValid = false;
+    m_previousViewProjValid = false;
+    if( !m_selectedTemporal )
+    {
+        m_temporalHistory[0] = nullptr;
+        m_temporalHistory[1] = nullptr;
+        m_feedbackCurrentSpatial = nullptr;
+        m_temporalVelocity = nullptr;
+        m_previousVelocity = nullptr;
+    }
 }
 
 bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor )
@@ -294,11 +346,31 @@ bool vaSMAAWrapperDX11::UpdateResources( vaRenderDeviceContext & deviceContext, 
                 vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaResourceFormat::Automatic, vaTextureFlags::None, 0, 1, 1, 1 );
         }
     }
-    
+
+    if( m_selectedTemporal && m_temporalHistory[0] == nullptr )
+    {
+        assert( m_sampleCount == 1 );
+        const vaResourceBindSupportFlags bindFlags = vaResourceBindSupportFlags::RenderTarget | vaResourceBindSupportFlags::ShaderResource;
+        auto colorTexture = [&]( ) { return vaTexture::Create2D( inputColor->GetRenderDevice(), inputColor->GetResourceFormat(), inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+            bindFlags, vaResourceAccessFlags::Default, inputColor->GetSRVFormat(), inputColor->GetRTVFormat(), vaResourceFormat::Unknown, vaResourceFormat::Unknown,
+            vaTextureFlags::None, inputColor->GetContentsType() ); };
+        auto velocityTexture = [&]( ) { return vaTexture::Create2D( inputColor->GetRenderDevice(), vaResourceFormat::R16G16_FLOAT, inputColor->GetSizeX(), inputColor->GetSizeY(), 1, 1, 1,
+            bindFlags, vaResourceAccessFlags::Default ); };
+        m_temporalHistory[0] = colorTexture( );
+        m_temporalHistory[1] = colorTexture( );
+        m_feedbackCurrentSpatial = colorTexture( );
+        m_temporalVelocity = velocityTexture( );
+        m_previousVelocity = velocityTexture( );
+        m_temporalHistoryValid = false;
+        if( m_temporalHistory[0] == nullptr || m_temporalHistory[1] == nullptr || m_feedbackCurrentSpatial == nullptr || m_temporalVelocity == nullptr || m_previousVelocity == nullptr )
+            return false;
+    }
+
     return true;
 }
 
-vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma )
+vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma,
+    const shared_ptr<vaTexture> & optionalDepth, const vaCameraBase * optionalCamera )
 {
     vaRenderDeviceContext::RenderOutputsState rtState = deviceContext.GetOutputs( );
 
@@ -309,6 +381,7 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
     deviceContext.SetRenderTarget( nullptr, nullptr, false );
 
     ID3D11DeviceContext * dx11Context = vaSaferStaticCast< vaRenderDeviceContextDX11 * >( &deviceContext )->GetDXContext( );
+    m_presentedOutput = nullptr;
 
     if( !UpdateResources( deviceContext, inputColor ) )
     { assert( false ); return vaDrawResultFlags::UnspecifiedError; }
@@ -319,9 +392,67 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
             { /*VA_WARN( "SMAA: Not all shaders compiled, can't run" );*/ return vaDrawResultFlags::ShadersStillCompiling; }
     }
 
+    // Selected route: camera velocity (current UV - previous UV) from the scene depth and the current and
+    // previous view-projection matrices.
+    if( m_selectedTemporal )
+    {
+        if( optionalDepth == nullptr || optionalCamera == nullptr || !m_generateCameraVelocityPS->IsCreated( ) )
+            return vaDrawResultFlags::ShadersStillCompiling;
+
+        const vaMatrix4x4 viewProj = optionalCamera->GetViewMatrix( ) * optionalCamera->GetProjMatrix( );
+        m_reprojectionConstants.CurrentViewProjInv = viewProj.Inverse( );
+        m_reprojectionConstants.CurrentUnjitteredViewProj = viewProj;
+        m_reprojectionConstants.PreviousViewProj = m_previousViewProjValid? m_previousViewProj : viewProj;
+        m_reprojectionConstantsBuffer.Update( deviceContext, m_reprojectionConstants );
+
+        deviceContext.SetRenderTarget( m_temporalVelocity, nullptr, true );
+        vaGraphicsItem velocityRenderItem;
+        deviceContext.FillFullscreenPassRenderItem( velocityRenderItem );
+        velocityRenderItem.ConstantBuffers[1] = m_reprojectionConstantsBuffer;
+        velocityRenderItem.ShaderResourceViews[6] = optionalDepth;
+        velocityRenderItem.PixelShader = m_generateCameraVelocityPS;
+        const vaDrawResultFlags velocityResult = deviceContext.ExecuteSingleItem( velocityRenderItem );
+        deviceContext.SetRenderTarget( nullptr, nullptr, false );
+        if( velocityResult != vaDrawResultFlags::None )
+            return velocityResult;
+
+        m_previousViewProj = viewProj;
+        m_previousViewProjValid = true;
+    }
+
     SetGlobalStates( deviceContext );
 
-    if( inputColor->GetArrayCount() == 1 )
+    if( inputColor->GetArrayCount() == 1 && m_selectedTemporal )
+    {
+        // 1. go(): the edge pass marks the stencil at the current raw edges and the camera-reprojected
+        //    previous raw edges, and neighborhood blending writes the spatial result to the current spatial
+        //    copy and to the next history.
+        // 2. resolveSelected(): the marked pixels of the next history mix in the previous history; the next
+        //    history is this frame's output (GetPresentedOutputOverride).
+        ID3D11ShaderResourceView * colorGammaSRV = (optionalInLuma == nullptr)? m_viewColorIgnoreSRGB0->SafeCast<vaTextureDX11*>( )->GetSRV( ) : optionalInLuma->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        SMAA::Input inputMode = (optionalInLuma == nullptr)? SMAA::INPUT_LUMA : SMAA::INPUT_LUMA_RAW;
+        const shared_ptr<vaTexture> & nextHistory = m_temporalHistory[m_historyIndex];
+        const shared_ptr<vaTexture> & previousHistory = m_temporalHistory[1 - m_historyIndex];
+        ID3D11RenderTargetView * nextHistoryRTV = nextHistory->SafeCast<vaTextureDX11*>( )->GetRTV( );
+        ID3D11ShaderResourceView * velocitySRV = m_temporalVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        ID3D11DepthStencilView * dsv = m_texDepthStencil->SafeCast<vaTextureDX11*>( )->GetDSV( );
+
+        const SMAA::SelectedTemporalTargets selected = { nextHistoryRTV, m_temporalHistoryValid };
+        m_smaa->go( dx11Context, colorGammaSRV, m_viewColor0->SafeCast<vaTextureDX11*>( )->GetSRV( ), nullptr, velocitySRV,
+            m_feedbackCurrentSpatial->SafeCast<vaTextureDX11*>( )->GetRTV( ), dsv, inputMode, SMAA::MODE_SMAA_1X, 0, &selected );
+
+        // Without valid history the previous history is this frame's spatial colour (seed).
+        ID3D11ShaderResourceView * currentSpatialSRV = m_feedbackCurrentSpatial->SafeCast<vaTextureDX11*>( )->GetSRV( );
+        ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentSpatialSRV;
+        m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, dsv, !m_temporalHistoryValid,
+            m_previousVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) );
+
+        std::swap( m_temporalVelocity, m_previousVelocity );
+        m_presentedOutput = nextHistory;
+        m_temporalHistoryValid = true;
+        m_historyIndex = 1 - m_historyIndex;
+    }
+    else if( inputColor->GetArrayCount() == 1 )
     {
         if( optionalInLuma == nullptr )
         {
@@ -451,7 +582,20 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     string vsVersion = "vs_4_0";
     string psVersion = "ps_4_1";
 
-    if( name == "LumaEdgeDetection" )
+    // Selected temporal route: the edge pass marks the stencil, the neighborhood pass ignores it and writes
+    // no depth, and the resolve runs on the marked pixels.
+    if( name.substr( 0, 8 ) == "Selected" )
+    {
+        const bool edge = name.find( "EdgePS" ) != string::npos, neighborhood = name == "SelectedNeighborhoodPS";
+        tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, edge? "DX10_SMAAEdgeDetectionVS" : (neighborhood? "DX10_SMAANeighborhoodBlendingVS" : "DX10_SMAAResolveVS"), inputElements, shaderMacros, true );
+        tech->PS->CreateShaderFromFile( L"SMAA/SelectedTemporal.hlsl", "ps_5_0", name, shaderMacros, true );
+        tech->DSS = edge? m_DisableDepthReplaceStencil : (neighborhood? m_DisableDepthNoStencil : m_DisableDepthUseStencil);
+        tech->BS = m_NoBlending;
+        for( int i = 0; i < 4; i++ ) tech->BlendFactor[i] = 0;
+        tech->SampleMask = 0xFFFFFFFF;
+        tech->StencilRef = neighborhood? 0 : 1;
+    }
+    else if( name == "LumaEdgeDetection" )
     {
         //technique10 LumaEdgeDetection {
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, "DX10_SMAAEdgeDetectionVS", inputElements, shaderMacros, true );

@@ -109,6 +109,12 @@ class SMAA {
              bool adaptiveSearch=false); // Adaptive SMAA: contrast-tiered search lengths (SMAA_ADAPTIVE_SEARCH).
         ~SMAA();
 
+        // Outputs of go() on the selected temporal route of the improved SMAA.
+        struct SelectedTemporalTargets {
+            ID3D11RenderTargetView *nextHistory;    // Second neighborhood output.
+            bool previousValid;                     // Previous raw edges belong to valid history.
+        };
+
         /**
          * Mandatory input textures varies depending on 'input':
          *    INPUT_LUMA:
@@ -142,7 +148,18 @@ class SMAA {
                 ID3D11DepthStencilView *dsv, // Depth-stencil buffer for optimizations.
                 Input input, // Selects the input for edge detection.
                 Mode mode=MODE_SMAA_1X, // Selects the SMAA mode.
-                int pass=0); // Selects the S2x or 4x pass (either 0 or 1).
+                int pass=0, // Selects the S2x or 4x pass (either 0 or 1).
+                const SelectedTemporalTargets *selected=nullptr); // Selected temporal route; null is original SMAA.
+
+        /**
+         * Temporal resolve of the selected route, gated by the stencil written in the
+         * first pass of go(). Writes only the next history. Without a seed it uses the
+         * (c') Cross5 history weight, which reads the previous frame's velocity.
+         */
+        void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
+            ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
+            ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
+            ID3D11ShaderResourceView *previousVelocity);
 
         /**
          * This function perform a temporal resolve of two buffers. They must
@@ -268,9 +285,9 @@ class SMAA {
 
         void loadAreaTex();
         void loadSearchTex();
-        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input);
+        void edgesDetectionPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Input input, const SelectedTemporalTargets *selected=nullptr);
         void blendingWeightsCalculationPass(ID3D11DeviceContext * context, ID3D11DepthStencilView *dsv, Mode mode, int subsampleIndex);
-        void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv);
+        void neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderTargetView *dstRTV, ID3D11DepthStencilView *dsv, const SelectedTemporalTargets *selected=nullptr);
 
         ID3D11Device *device;
         int width, height;
@@ -279,6 +296,7 @@ class SMAA {
         FullscreenTriangle *triangle;
 
         RenderTarget *edgesRT;
+        RenderTarget *previousRawEdgesRT = nullptr;    // selected route: last frame's raw edges (ping-pong with edgesRT)
         RenderTarget *blendRT;
 
         ID3D11Texture2D *areaTex;
@@ -310,6 +328,8 @@ class SMAA {
         SMAATechniqueInterface *        neighborhoodBlendingTechnique;
         SMAATechniqueInterface *        resolveTechnique;
         SMAATechniqueInterface *        separateTechnique;
+        SMAATechniqueInterface *        selectedEdgeTechniques[4];  // [input]
+        SMAATechniqueInterface *        selectedNeighborhoodTechnique, *selectedSeedResolveTechnique, *selectedCross5ResolveTechnique;
 
         SMAATechniqueInterface * msaaOrderRenderTechnique;
         SMAATechniqueInterface * msaaOrderLoadTechnique  ;

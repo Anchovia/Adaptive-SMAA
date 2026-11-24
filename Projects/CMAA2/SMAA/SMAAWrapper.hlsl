@@ -34,6 +34,19 @@ struct SMAAShaderConstants
     float padding2;
 };
 
+struct SMAAReprojectionConstants
+{
+#ifndef INCLUDED_FROM_CPP
+    float4x4 CurrentViewProjInv;
+    float4x4 CurrentUnjitteredViewProj;
+    float4x4 PreviousViewProj;
+#else
+    VertexAsylum::vaMatrix4x4 CurrentViewProjInv;
+    VertexAsylum::vaMatrix4x4 CurrentUnjitteredViewProj;
+    VertexAsylum::vaMatrix4x4 PreviousViewProj;
+#endif
+};
+
 // the rest below is shader only code
 #ifndef INCLUDED_FROM_CPP
 
@@ -46,6 +59,11 @@ struct SMAAShaderConstants
 cbuffer SMAAGlobals : register( b0 )
 {
     SMAAShaderConstants g_SMAA;
+}
+
+cbuffer SMAAReprojectionGlobals : register( b1 )
+{
+    SMAAReprojectionConstants g_SMAAReprojection;
 }
 
 
@@ -194,6 +212,30 @@ float4 DX10_SMAAResolvePS(float4 position : SV_POSITION,
     #else
     return SMAAResolvePS(texcoord, colorTex, colorTexPrev);
     #endif
+}
+
+float2 DX10_SMAAGenerateCameraVelocityPS(float4 position : SV_POSITION,
+                                         float2 texcoord : TEXCOORD0) : SV_TARGET {
+    float depth = depthTex.Load(int3(int2(position.xy), 0)).r;
+    float4 currentClip = float4(texcoord.x * 2.0 - 1.0,
+                               1.0 - texcoord.y * 2.0,
+                               depth,
+                               1.0);
+    float4 worldPosition = mul(g_SMAAReprojection.CurrentViewProjInv, currentClip);
+    worldPosition /= worldPosition.w;
+
+    float4 currentUnjitteredClip = mul(g_SMAAReprojection.CurrentUnjitteredViewProj, worldPosition);
+    float4 previousClip = mul(g_SMAAReprojection.PreviousViewProj, worldPosition);
+    float2 currentUnjitteredNDC = currentUnjitteredClip.xy / currentUnjitteredClip.w;
+    float2 previousNDC = previousClip.xy / previousClip.w;
+    float2 currentUnjitteredUV = float2(currentUnjitteredNDC.x * 0.5 + 0.5,
+                                        0.5 - currentUnjitteredNDC.y * 0.5);
+    float2 previousUV = float2(previousNDC.x * 0.5 + 0.5,
+                               0.5 - previousNDC.y * 0.5);
+
+    // Official SMAA resolve negates this value before adding it to the current
+    // UV, so store currentUV - previousUV (the motion-blur convention).
+    return currentUnjitteredUV - previousUV;
 }
 
 void DX10_SMAASeparatePS(float4 position : SV_POSITION,
