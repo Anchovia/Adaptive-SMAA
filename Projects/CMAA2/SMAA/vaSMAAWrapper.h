@@ -56,6 +56,7 @@ namespace VertexAsylum
 
         bool                        m_adaptiveSearch                = false;  // Adaptive SMAA: 1% contrast-tiered search lengths
         bool                        m_selectedTemporal              = false;  // selected temporal route with (c') Cross5
+        bool                        m_temporalEnabled               = true;   // Temporal checkbox of SMAA Adaptive + Temporal (key Y)
 
         //bool                        m_debugShowEdges;
 
@@ -74,6 +75,10 @@ namespace VertexAsylum
         // reprojection only, no jitter. Draw() then needs the scene depth and camera.
         void                        SetSelectedTemporal( bool enabled ) { if( m_selectedTemporal != enabled ) { m_selectedTemporal = enabled; ResetTemporalHistory( ); } }
         bool                        GetSelectedTemporal( ) const        { return m_selectedTemporal; }
+        // Temporal checkbox of SMAA Adaptive + Temporal (key Y). Off leaves Adaptive SMAA 1X of the same preset. The
+        // sample passes it on through SetSelectedTemporal, so each switch restarts the history from a seed.
+        void                        SetTemporalEnabled( bool enabled )  { m_temporalEnabled = enabled; }
+        bool                        GetTemporalEnabled( ) const         { return m_temporalEnabled; }
         // The next frame starts again from a seed (camera load, scene or image change; resize recreates everything).
         virtual void                ResetTemporalHistory( )             { }
         // Non-null only for a frame drawn on the selected route: its next history, which is the final colour.

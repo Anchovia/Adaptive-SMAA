@@ -932,10 +932,11 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
 
     m_camera->SetViewportSize(mainViewport.Width, mainViewport.Height);
 
-    // SMAA Adaptive + Temporal (not for static images, which have no scene depth or camera motion).
+    // SMAA Adaptive + Temporal (not for static images, which have no scene depth or camera motion). With the
+    // Temporal checkbox (key Y) Off it is Adaptive SMAA 1X of the same preset.
     const bool improvedSMAA = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal && m_settings.SceneChoice != CMAA2Sample::SceneSelectionType::StaticImage;
     m_SMAA->SetAdaptiveSearch(improvedSMAA);
-    m_SMAA->SetSelectedTemporal(improvedSMAA);
+    m_SMAA->SetSelectedTemporal(improvedSMAA && m_SMAA->GetTemporalEnabled());
 
     bool colorScratchContainsFinal = false;
 
@@ -1231,6 +1232,8 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'3'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::CMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'4'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'T'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_AdaptiveTemporal;
+                if (keyboard->IsKeyClicked((vaKeyboardKeys)'Y') && m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal)
+                    m_SMAA->SetTemporalEnabled(!m_SMAA->GetTemporalEnabled());
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'5'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2x;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'6'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2xPlusCMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'7'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_S2x;

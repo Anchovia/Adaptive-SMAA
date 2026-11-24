@@ -43,6 +43,14 @@ void vaSMAAWrapper::UIPanelDraw( )
 
     ImGuiEx_Combo( "Quality preset", (int&)m_settings.Preset, { string("LOW"), string("MEDIUM"), string("HIGH"), string("ULTRA") } );
 
+    // Only SMAA Adaptive + Temporal turns on the adaptive search, so the checkbox shows just for that option.
+    if( m_adaptiveSearch )
+    {
+        ImGui::Checkbox( "Temporal", &m_temporalEnabled );
+        if( ImGui::IsItemHovered( ) )
+            ImGui::SetTooltip( "Key Y. Off: Adaptive SMAA 1X of the same preset. Switching restarts the history." );
+    }
+
     //ImGui::Checkbox( "Show edges", &m_debugShowEdges );
 
     ImGui::PopItemWidth();
