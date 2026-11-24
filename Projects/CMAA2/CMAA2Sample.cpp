@@ -240,6 +240,7 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
 
     case CMAA2Sample::AAType::SMAA:                 return "SMAA";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
+    case CMAA2Sample::AAType::SMAA_AdaptiveTemporal: return "SMAA Adaptive + Temporal";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
         //    case CMAA2Sample::AAType::ExperimentalSlot2:    return "Old CMAA";              // return "ColorPostProcess";
@@ -270,6 +271,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SuperSampleReference: return m_SSMSAASampleCount;
     case CMAA2Sample::AAType::SMAA:                 return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
+    case CMAA2Sample::AAType::SMAA_AdaptiveTemporal: return 1;
     case CMAA2Sample::AAType::FXAA:                 return 1;
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return 4;   // at the moment use to test 4xMSAA + CMAA but applied after
         //    case CMAA2Sample::AAType::ExperimentalSlot2:    return 1;   // used to test various things
@@ -287,6 +289,7 @@ bool CMAA2Sample::LoadCamera(int index)
     {
         m_camera->Load(fileIn);
         m_camera->AttachController(m_cameraFreeFlightController);
+        m_SMAA->ResetTemporalHistory();
         return true;
     }
     return false;
@@ -417,6 +420,7 @@ void CMAA2Sample::OnTick(float deltaTime)
         {
             m_loadedScreenshotFullPath = m_staticImageFullPaths[m_settings.CurrentStaticImageChoice];
             m_loadedStaticImage = vaTexture::CreateFromImageFile(GetRenderDevice(), m_loadedScreenshotFullPath, vaTextureLoadFlags::PresumeDataIsSRGB);
+            m_SMAA->ResetTemporalHistory();
         }
         if (m_loadedStaticImage != nullptr)
         {
@@ -486,7 +490,10 @@ void CMAA2Sample::OnTick(float deltaTime)
     // Scene stuff
     {
         m_settings.SceneChoice = (SceneSelectionType)vaMath::Clamp((int32)m_settings.SceneChoice, 0, (int32)_countof(m_scenes) - 1);
-        m_currentScene = m_scenes[(int32)m_settings.SceneChoice];
+        shared_ptr<vaScene> newScene = m_scenes[(int32)m_settings.SceneChoice];
+        if (m_currentScene != newScene)
+            m_SMAA->ResetTemporalHistory();
+        m_currentScene = newScene;
         assert(m_currentScene != nullptr);
         m_currentScene->Tick(deltaTime);
 
@@ -867,7 +874,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     ppAAApplied = true;
                     mainContext.SetOutputs(backupOutputs);
                 }
-                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x))
+                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x) || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal))
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
                     assert(!colorScratchContainsFinal);
@@ -878,6 +885,8 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                         drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma);
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
                         drawResults |= m_SMAA->Draw(mainContext, m_MSTonemappedColor);
+                    else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal)
+                        drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
                     ppAAApplied = true;
                 }
                 else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::FXAA)
@@ -923,6 +932,11 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     vaViewport mainViewport = mainContext.GetViewport();
 
     m_camera->SetViewportSize(mainViewport.Width, mainViewport.Height);
+
+    // SMAA Adaptive + Temporal (not for static images, which have no scene depth or camera motion).
+    const bool improvedSMAA = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal && m_settings.SceneChoice != CMAA2Sample::SceneSelectionType::StaticImage;
+    m_SMAA->SetAdaptiveSearch(improvedSMAA);
+    m_SMAA->SetSelectedTemporal(improvedSMAA);
 
     bool colorScratchContainsFinal = false;
 
@@ -1151,6 +1165,12 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     {
         finalOutColor = m_scratchPostProcessColor;
         finalOutColorIgnoreSRGBConvView = m_scratchPostProcessColor; //m_scratchPostProcessColorIgnoreSRGBConvView;
+        // SMAA Adaptive + Temporal presents its next history, which is this frame's final colour.
+        if (improvedSMAA && m_SMAA->GetPresentedOutputOverride() != nullptr)
+        {
+            finalOutColor = m_SMAA->GetPresentedOutputOverride();
+            finalOutColorIgnoreSRGBConvView = finalOutColor;
+        }
     }
 
     // various helper tools - at one point these should go and become part of the base app but for now let's just stick them in here
@@ -1211,6 +1231,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'2'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::FXAA;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'3'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::CMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'4'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA;
+                if (keyboard->IsKeyClicked((vaKeyboardKeys)'T'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_AdaptiveTemporal;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'5'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2x;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'6'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2xPlusCMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'7'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_S2x;
@@ -1908,6 +1929,7 @@ void CMAA2Sample::UIPanelDraw()
         aaTypeApplicable[(int)AAType::SuperSampleReference] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA] = true;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_S2x] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_AdaptiveTemporal] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::FXAA] = true;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot1]    = false;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot2]    = false;
@@ -1966,7 +1988,7 @@ void CMAA2Sample::UIPanelDraw()
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::CMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA2xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA4xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA8xPlusCMAA2)
         m_CMAA2->UIPanelDrawCollapsable(false, true, true);
 
-    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
+    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal)
         m_SMAA->UIPanelDrawCollapsable(false, true, true);
 
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::FXAA)
