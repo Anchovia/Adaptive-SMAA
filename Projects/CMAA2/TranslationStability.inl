@@ -33,7 +33,9 @@ static void TranslationSetPose(CMAA2Sample& sample,const vaVector3& pos,const va
     camera->AttachController(sample.GetFreeFlightControllerForValidation());
 }
 
-// -translationCapture "<bistro|minecraft> <h|v> <dt csv> <output dir>": fixed 1920x1061 hidden window. For each dt
+// -translationCapture "<bistro|minecraft> <h|v|y> <dt csv> <output dir> [start play time]": fixed 1920x1061 hidden window.
+// h/v translate; y is a control without translation: yaw at a constant 0.4 rad/s from the same pose. The start pose is
+// the flythrough pose at the given play time (default 2.0). For each dt
 // condition (fixed60: 1/60 s; fixed300: 1/300 s; fixedmean: the mean of the recorded window; recorded: 0.5 s of frame
 // times recorded in the real demo, from row 300 of the csv) and each mode, history reset and 30 still frames at the
 // start pose, then 0.5 s of translation. Saved: frame 0 (last still frame) and the motion frames from 0.4 s on, plus
@@ -46,10 +48,10 @@ class BenchItemTranslationStability : public AutoBenchToolWorkItem {
     std::vector<Mode> m_modes={{"Off",false,false,0},{"On",false,true,0},{"Fixed08",false,true,1},{"Official1Tap",false,true,2},
                                {"WeightDebug",false,true,3},{"SSRef",true,false,0}};
     std::vector<Cond> m_conds;
-    bool m_minecraft,m_vertical,m_started=false,m_poseReady=false,m_done=false,m_failed=false,m_rendered=false;
+    bool m_minecraft,m_vertical,m_yaw,m_started=false,m_poseReady=false,m_done=false,m_failed=false,m_rendered=false;
     int m_mode=0,m_cond=0,m_frame=0;
     static const int c_pre=30;
-    double m_lastProgress=0;
+    double m_lastProgress=0;float m_startTime;float m_time=0.0f;
     std::wstring m_output,m_dtPath;
     std::string m_cameraLog;
     vaVector3 m_startPos,m_pos,m_right,m_up;vaQuaternion m_startOri;
@@ -81,7 +83,7 @@ class BenchItemTranslationStability : public AutoBenchToolWorkItem {
         m_parent.Settings().CurrentAAOption=c.ssref?CMAA2Sample::AAType::SuperSampleReference:CMAA2Sample::AAType::SMAA_AdaptiveTemporal;
         s->SetTemporalEnabled(c.temporal);s->SetResolveVariant(c.variant);s->ResetTemporalHistory();
         TranslationSetPose(m_parent,m_startPos,m_startOri);
-        m_frame=-c_pre;m_rendered=false;m_keyboard=TranslationKeyboard();m_pos=m_startPos;
+        m_frame=-c_pre;m_rendered=false;m_keyboard=TranslationKeyboard();m_pos=m_startPos;m_time=0.0f;
         m_lastProgress=m_parent.GetApplication().GetTimeFromStart();
     }
     void Finish(AutoBenchTool& tool) {
@@ -90,8 +92,8 @@ class BenchItemTranslationStability : public AutoBenchToolWorkItem {
         m_done=true;const_cast<vaApplicationBase&>(m_parent.GetApplication()).Quit();
     }
 public:
-    BenchItemTranslationStability(CMAA2Sample& parent,bool minecraft,bool vertical,std::wstring dtPath,std::wstring output):
-        AutoBenchToolWorkItem(parent),m_minecraft(minecraft),m_vertical(vertical),m_output(output),m_dtPath(dtPath) {}
+    BenchItemTranslationStability(CMAA2Sample& parent,bool minecraft,bool vertical,bool yaw,float startTime,std::wstring dtPath,std::wstring output):
+        AutoBenchToolWorkItem(parent),m_minecraft(minecraft),m_vertical(vertical),m_yaw(yaw),m_startTime(startTime),m_output(output),m_dtPath(dtPath) {}
     void Tick(AutoBenchTool& tool,float) override {
         const double now=m_parent.GetApplication().GetTimeFromStart();
         if(m_done)return;
@@ -104,15 +106,15 @@ public:
             vaUIManager::GetInstance().SetVisible(false);vaUIManager::GetInstance().SetConsoleVisible(false);
             auto& app=const_cast<vaApplicationBase&>(m_parent.GetApplication());app.SetVsync(false);app.SetFramerateLimit(0);
             tool.ReportStart();
-            tool.ReportAddText(std::string("Translation stability capture. Scene: ")+(m_minecraft?"minecraft":"bistro")+", direction: "+(m_vertical?"vertical (Q/E, camera up)":"horizontal (A/D, camera right)")+"\r\n");
+            tool.ReportAddText(std::string("Translation stability capture. Scene: ")+(m_minecraft?"minecraft":"bistro")+", direction: "+(m_yaw?"yaw control 0.4 rad/s":(m_vertical?"vertical (Q/E, camera up)":"horizontal (A/D, camera right)"))+vaStringTools::Format(", start play time %.3f",m_startTime)+"\r\n");
             tool.ReportAddText("Free-flight key emulation (speed 20, acceleration, smoothing), start pose = flythrough play time 2.0, 30 still frames after a history reset, then 0.5 s of motion; frames 0 (still) .. N saved. Auto exposure adapts instantly.\r\n");
             std::wstring report=tool.ReportGetDir();while(!report.empty()&&(report.back()==L'\\'||report.back()==L'/'))report.pop_back();
-            m_output+=std::wstring(L"/translation/")+(m_minecraft?L"minecraft_":L"bistro_")+(m_vertical?L"v/":L"h/")+report.substr(report.find_last_of(L"\\/")+1)+L"/";
+            m_output+=std::wstring(L"/translation/")+(m_minecraft?L"minecraft_":L"bistro_")+(m_yaw?L"y/":(m_vertical?L"v/":L"h/"))+report.substr(report.find_last_of(L"\\/")+1)+L"/";
             vaFileTools::EnsureDirectoryExists(m_output);
             tool.ReportAddRowValues({"capture_root",vaStringTools::SimpleNarrow(m_output)});
             if(!LoadDt(tool)){m_failed=true;Finish(tool);return;}
             m_parent.SetFlythroughCameraEnabled(true);m_parent.GetFlythroughCameraController()->SetPlaySpeed(0.0f);
-            m_parent.GetFlythroughCameraController()->SetPlayTime(2.0f);
+            m_parent.GetFlythroughCameraController()->SetPlayTime(m_startTime);
             m_lastProgress=now;return;
         }
         if(!m_rendered){if(now-m_lastProgress>120){m_failed=true;tool.ReportAddText("Render-readiness timeout.\r\n");Finish(tool);}return;}
@@ -132,8 +134,15 @@ public:
         }
         const Cond& c=m_conds[m_cond];
         const float dt=m_frame<=0?c.mean:c.dt[m_frame-1];
-        if(m_frame>=1)m_pos+=m_keyboard.Step(dt,true,m_vertical?m_up:m_right);
-        m_parent.Camera()->SetPosition(m_pos);
+        if(m_yaw) {
+            if(m_frame>=1)m_time+=dt;
+            const vaMatrix4x4 base=vaMatrix4x4::RotationZ(VA_PIf*0.5f)*vaMatrix4x4::RotationY(VA_PIf*0.5f);
+            vaMatrix4x4 debased=base.Inverse()*vaMatrix4x4::FromQuaternion(m_startOri);float yaw,pitch,roll;debased.DecomposeRotationYawPitchRoll(yaw,pitch,roll);
+            TranslationSetPose(m_parent,m_startPos,vaQuaternion::FromRotationMatrix(base*vaMatrix4x4::FromYawPitchRoll(yaw+0.4f*m_time,pitch,0.0f)));
+        }else {
+            if(m_frame>=1)m_pos+=m_keyboard.Step(dt,true,m_vertical?m_up:m_right);
+            m_parent.Camera()->SetPosition(m_pos);
+        }
         m_parent.SetFixedDeltaTime(dt);
         if(m_mode==0&&m_frame>=1)m_cameraLog+=vaStringTools::Format("%s,%d,%.7f,%.6f,%.6f,%.6f\r\n",c.name.c_str(),m_frame,dt,m_pos.x,m_pos.y,m_pos.z);
     }
@@ -158,9 +167,9 @@ public:
 static bool QueueTranslationStability(CMAA2Sample& parent,AutoBenchTool& tool) {
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
         if(_wcsicmp(p.first.c_str(),L"translationCapture")!=0)continue;
-        std::wistringstream input(p.second);std::wstring scene,direction,dtPath,output;input>>scene>>direction>>dtPath>>output;
-        if((scene!=L"bistro"&&scene!=L"minecraft")||(direction!=L"h"&&direction!=L"v")||dtPath.empty()||output.empty()){VA_LOG_ERROR("Expected scene, h|v, dt csv and output path without spaces");return true;}
-        tool.AddTask(std::make_shared<BenchItemTranslationStability>(parent,scene==L"minecraft",direction==L"v",dtPath,output));return true;
+        std::wistringstream input(p.second);std::wstring scene,direction,dtPath,output;float startTime=2.0f;input>>scene>>direction>>dtPath>>output;if(!(input>>startTime))startTime=2.0f;
+        if((scene!=L"bistro"&&scene!=L"minecraft")||(direction!=L"h"&&direction!=L"v"&&direction!=L"y")||dtPath.empty()||output.empty()){VA_LOG_ERROR("Expected scene, h|v|y, dt csv, output path without spaces and an optional start time");return true;}
+        tool.AddTask(std::make_shared<BenchItemTranslationStability>(parent,scene==L"minecraft",direction==L"v",direction==L"y",startTime,dtPath,output));return true;
     }
     return false;
 }

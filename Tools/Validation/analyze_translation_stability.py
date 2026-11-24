@@ -9,6 +9,8 @@ Per condition and colour mode (against SSRef, the demo's SuperSampleReference at
             that the reference does not have (shimmer, crawl, popping); the scene motion cancels to the extent the
             output follows the reference
   change    mean |out_k - out_k-1| (not motion compensated)
+  tde60     tde between frames 1/60 s apart (k and k - s, s = round((1/60) / frame time)): the change between
+            frames a 60 Hz display shows, where consecutive rendered frames are only ~1 ms apart
 Masks from WeightDebug frame k: selected (G = 255), depth edge (selected and B >= 51, a relative view-depth jump of at
 least 10% to a 4-neighbour), texture edge (selected, smaller jump). Weight statistics: share of selected pixels with
 Cross5 weight below 0.4 (R < 128) and below 0.1 (R < 32), split by mask, and selection churn (share of the selected
@@ -53,7 +55,10 @@ def analyze_condition(run, cond, out):
         assert frames_of(base / m) == idx, (cond, m)
     motion = [k for k in idx if k > 0]
     pairs = [(a, b) for a, b in zip(idx, idx[1:]) if b == a + 1 and a > 0]
-    acc = {m: {k: {'ref_mae': [], 'tde': [], 'change': []} for k in ('all', 'selected', 'depth_edge', 'texture_edge')} for m in COLOUR}
+    acc = {m: {k: {'ref_mae': [], 'tde': [], 'change': [], 'tde60': []} for k in ('all', 'selected', 'depth_edge', 'texture_edge')} for m in COLOUR}
+    dts = [float(l.split(',')[2]) for l in (run / 'camera.csv').read_text().splitlines()[1:] if l.split(',')[0] == cond]
+    lag = max(1, int(round((1.0 / 60.0) / float(np.mean(dts)))))
+    ring = {}
     wstat = {k: {'n': 0, 'lt04': 0, 'lt01': 0, 'wsum': 0.0} for k in ('selected', 'depth_edge', 'texture_edge')}
     churn = []
     tde_map = {m: None for m in COLOUR}
@@ -86,9 +91,18 @@ def analyze_condition(run, cond, out):
                 tl = np.abs((d - dref) @ LUMA)
                 tde_map[m] = tl if tde_map[m] is None else tde_map[m] + tl
                 row[f'tde_{m}'] = float(tde.mean())
+        if k - lag in ring:
+            old = ring[k - lag]
+            dref = cur['SSRef'] - old['SSRef'].astype(np.float32)
+            for m in COLOUR:
+                t60 = np.abs(cur[m] - old[m].astype(np.float32) - dref).mean(axis=2)
+                for key, msk in mk.items():
+                    acc[m][key]['tde60'].append(mmean(t60, msk))
+        ring[k] = {m: cur[m].astype(np.uint8) for m in COLOUR + ('SSRef',)}
+        ring.pop(k - lag - 1, None)
         per_frame.append(row)
         prev = dict(cur, k=k, sel=mk['selected'])
-    res = {'frames': len(motion), 'pairs': len(pairs), 'modes': {}, 'weights': {}, 'churn_mean': float(np.mean(churn)) if churn else None}
+    res = {'frames': len(motion), 'pairs': len(pairs), 'lag_60hz': lag, 'modes': {}, 'weights': {}, 'churn_mean': float(np.mean(churn)) if churn else None}
     for m in COLOUR:
         res['modes'][m] = {key: {s: float(np.nanmean(v)) if v else None for s, v in d.items()} for key, d in acc[m].items()}
     for key, s in wstat.items():
@@ -111,11 +125,12 @@ def main():
         if (run / cond).is_dir():
             summary[cond] = analyze_condition(run, cond, out)
             r = summary[cond]
-            print(f"== {cond}: {r['frames']} motion frames, {r['pairs']} pairs, churn {r['churn_mean']}")
+            print(f"== {cond}: {r['frames']} motion frames, {r['pairs']} pairs, 60 Hz lag {r['lag_60hz']}, churn {r['churn_mean']}")
             for m in COLOUR:
                 d = r['modes'][m]
                 print(f"  {m:13s} ref_mae all {d['all']['ref_mae']:.3f} sel {d['selected']['ref_mae']:.3f} | tde all {d['all']['tde']:.4f} "
-                      f"sel {d['selected']['tde']:.3f} depth {d['depth_edge']['tde']:.3f} tex {d['texture_edge']['tde']:.3f}")
+                      f"sel {d['selected']['tde']:.3f} depth {d['depth_edge']['tde']:.3f} tex {d['texture_edge']['tde']:.3f} | tde60 sel {d['selected']['tde60']:.3f} "
+                      f"depth {d['depth_edge']['tde60']:.3f} tex {d['texture_edge']['tde60']:.3f}")
             for key, w in r['weights'].items():
                 print(f"  weights {key:12s} px {w['pixels']:9d} w<0.4 {w['share_w_lt_0_4']:.3f} w<0.1 {w['share_w_lt_0_1']:.3f} mean {w['mean_weight']:.3f}")
     (out / 'summary.json').write_text(json.dumps(summary, indent=1) + '\n', encoding='utf-8')

@@ -1,6 +1,7 @@
 param(
     [ValidateSet('Capture','Showcase','Screens','Keys','Translation','DtRecord')][string]$Mode='Capture',
-    [ValidateSet('h','v')][string]$Direction='h',
+    [ValidateSet('h','v','y')][string]$Direction='h',
+    [double]$StartTime=2.0,
     [string]$DtCsv='',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
@@ -83,7 +84,7 @@ $before=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_result
 New-Item -ItemType Directory -Path $output | Out-Null
 $started=[DateTime]::UtcNow.ToString('o')
 $style=if($Mode -eq 'Capture' -or $Mode -eq 'Translation'){'Hidden'}else{'Normal'}
-$arguments=switch($Mode){'Translation'{@('-translationCapture',$Scene,$Direction,$DtCsv,$output)}'DtRecord'{@('-translationDtRecord',$Scene,$output)}default{@("-improvedSmaa$Mode",$Scene,$output)}}
+$arguments=switch($Mode){'Translation'{@('-translationCapture',$Scene,$Direction,$DtCsv,$output,$StartTime.ToString([Globalization.CultureInfo]::InvariantCulture))}'DtRecord'{@('-translationDtRecord',$Scene,$output)}default{@("-improvedSmaa$Mode",$Scene,$output)}}
 if($Mode -eq 'Translation' -and !(Test-Path -LiteralPath $DtCsv)){throw "Missing dt csv: $DtCsv"}
 $process=Start-Process -FilePath $exe -ArgumentList $arguments -WorkingDirectory (Split-Path $exe) -WindowStyle $style -PassThru
 
@@ -159,7 +160,7 @@ elseif(!$failure){
         $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
     }
 }
-$record=[pscustomobject]@{mode=$Mode;scene=$Scene;direction=$Direction;dt_csv=$DtCsv;label=$Label;result=if($failure){'FAIL'}else{'PASS'};failure=$failure;git_head=$head;renderer_dirty=$dirty;
+$record=[pscustomobject]@{mode=$Mode;scene=$Scene;direction=$Direction;start_time=$StartTime;dt_csv=$DtCsv;label=$Label;result=if($failure){'FAIL'}else{'PASS'};failure=$failure;git_head=$head;renderer_dirty=$dirty;
     executable_sha256=$exeHash;idle_seconds_at_start=$idle;foreground_lock_timeout_ms=$lockTimeoutMs;gpu_before=$gpu;gpu_processes_before=$gpuProcesses;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');
     exit_code=$process.ExitCode;remaining_cmaa2=$remaining;report=$report;report_sha256=if($report){(Get-FileHash -LiteralPath $report).Hash}else{$null};capture_root=$captureRoot;
     key_steps=$keySteps;key_states=$keyStates}
