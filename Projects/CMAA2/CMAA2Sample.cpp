@@ -412,6 +412,9 @@ void CMAA2Sample::OnTick(float deltaTime)
     if (prevDrawResultFlags == vaDrawResultFlags::None)
         m_autoBench->Tick(deltaTime);
 
+    if (m_fixedDeltaTime > 0.0f)
+        deltaTime = m_fixedDeltaTime;
+
     m_camera->SetYFOV(m_settings.CameraYFov);
 
     if (m_settings.SceneChoice == CMAA2Sample::SceneSelectionType::StaticImage)
@@ -629,6 +632,11 @@ void CMAA2Sample::OnTick(float deltaTime)
         {
             // Actual ImGui draw!
             GetRenderDevice().ImGuiRender(*GetRenderDevice().GetMainContext());
+        }
+        if (!m_saveBackbufferAfterUI.empty())
+        {
+            GetRenderDevice().GetCurrentBackbuffer()->SaveToPNGFile(*GetRenderDevice().GetMainContext(), m_saveBackbufferAfterUI);
+            m_saveBackbufferAfterUI.clear();
         }
 
         GetRenderDevice().EndAndPresentFrame((m_application.GetVsync()) ? (1) : (0));
@@ -1725,8 +1733,12 @@ protected:
     virtual float   GetProgress() const override { return (float)m_currentFrame / (c_totalFrameCount - 1); }
 };
 
+#include "ImprovedSmaaValidation.inl"
+
 void AutoBenchTool::Tick(float deltaTime)
 {
+    static bool commandParsed = false;
+    if (!commandParsed) { commandParsed = true; QueueImprovedSmaaValidation(m_parent, *this); }
     if (m_currentTask == nullptr)
     {
         if (m_tasks.size() > 0)
@@ -1783,6 +1795,7 @@ void AutoBenchTool::Tick(float deltaTime)
             m_parent.GetFlythroughCameraController()->SetPlaySpeed(m_backupFlythroughCameraSpeed);
             m_parent.SetFlythroughCameraEnabled(m_backupFlythroughCameraEnabled);
             m_parent.SetRequireDeterminism(false);
+            m_parent.SetFixedDeltaTime(0.0f);
             m_currentTask = nullptr;
         }
     }
