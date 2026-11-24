@@ -132,6 +132,8 @@ namespace VertexAsylum
         virtual void                    CleanupTemporaryResources( ) override;
         virtual void                    ResetTemporalHistory( ) override;
         virtual shared_ptr<vaTexture>   GetPresentedOutputOverride( ) const override { return m_presentedOutput; }
+        virtual bool                    HasTemporalResources( ) const override { return m_temporalHistory[0] != nullptr || m_temporalHistory[1] != nullptr
+            || m_feedbackCurrentSpatial != nullptr || m_temporalVelocity != nullptr || m_previousVelocity != nullptr; }
 
     private:
         bool                            UpdateResources( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor );

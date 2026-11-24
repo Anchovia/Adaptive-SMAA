@@ -85,6 +85,8 @@ namespace VertexAsylum
         virtual void                ResetTemporalHistory( )             { }
         // Non-null only for a frame drawn on the selected route: its next history, which is the final colour.
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride( ) const { return nullptr; }
+        // Validation harness: whether any temporal texture (history, spatial copy, velocity) is allocated.
+        virtual bool                HasTemporalResources( ) const       { return false; }
 
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr,
