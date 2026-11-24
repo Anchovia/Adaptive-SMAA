@@ -52,6 +52,8 @@ namespace VertexAsylum
         vaTypedConstantBufferWrapper<SMAAShaderConstants>
                                     m_constantsBuffer;
 
+        bool                        m_adaptiveSearch                = false;  // Adaptive SMAA: 1% contrast-tiered search lengths
+
         //bool                        m_debugShowEdges;
 
     protected:
@@ -60,6 +62,10 @@ namespace VertexAsylum
         ~vaSMAAWrapper( );
 
     public:
+        // Adaptive SMAA (SMAA_ADAPTIVE_SEARCH): per-preset search tiers stored with the edges in an RGBA8 target.
+        void                        SetAdaptiveSearch( bool enabled )   { m_adaptiveSearch = enabled; }
+        bool                        GetAdaptiveSearch( ) const          { return m_adaptiveSearch; }
+
         // Applies SMAA to currently selected render target using provided inputs
         virtual vaDrawResultFlags   Draw( vaRenderDeviceContext & deviceContext, const shared_ptr<vaTexture> & inputColor, const shared_ptr<vaTexture> & optionalInLuma = nullptr )  = 0;
 
