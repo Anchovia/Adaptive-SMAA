@@ -34,14 +34,15 @@ static void TranslationSetPose(CMAA2Sample& sample,const vaVector3& pos,const va
 }
 
 // -translationCapture "<bistro|minecraft> <h|v> <dt csv> <output dir>": fixed 1920x1061 hidden window. For each dt
-// condition (fixed60: 1/60 s; fixedmean: the mean of the recorded window; recorded: 0.5 s of frame times recorded in
-// the real demo, from row 300 of the csv) and each mode, history reset and 30 still frames at the start pose, then
-// 0.5 s of translation. Saved: frame 0 (last still frame) and frames 1..N (motion). Modes: Off (Temporal off =
+// condition (fixed60: 1/60 s; fixed300: 1/300 s; fixedmean: the mean of the recorded window; recorded: 0.5 s of frame
+// times recorded in the real demo, from row 300 of the csv) and each mode, history reset and 30 still frames at the
+// start pose, then 0.5 s of translation. Saved: frame 0 (last still frame) and the motion frames from 0.4 s on, plus
+// the frame before them (fixed60: every motion frame). Modes: Off (Temporal off =
 // Adaptive SMAA 1X), On (Cross5, the demo), Fixed08, Official1Tap, WeightDebug (Cross5 weights as colour), SSRef (the
 // demo's SuperSampleReference at the same pose). The app tick uses the same dt as the camera.
 class BenchItemTranslationStability : public AutoBenchToolWorkItem {
     struct Mode {const char *name; bool ssref,temporal; int variant;};
-    struct Cond {std::string name; std::vector<float> dt; float mean;};
+    struct Cond {std::string name; std::vector<float> dt; float mean; int saveFrom;};
     std::vector<Mode> m_modes={{"Off",false,false,0},{"On",false,true,0},{"Fixed08",false,true,1},{"Official1Tap",false,true,2},
                                {"WeightDebug",false,true,3},{"SSRef",true,false,0}};
     std::vector<Cond> m_conds;
@@ -60,15 +61,17 @@ class BenchItemTranslationStability : public AutoBenchToolWorkItem {
         std::vector<float> rows;char line[256];
         while(fgets(line,sizeof(line),f)){int i;float dt;if(sscanf_s(line,"%d,%f",&i,&dt)==2)rows.push_back(dt);}
         fclose(f);
-        Cond rec{"recorded",{},0.0f};double sum=0;
+        Cond rec{"recorded",{},0.0f,1};double sum=0;
         for(size_t i=300;i<rows.size()&&sum<0.5;i++){rec.dt.push_back(rows[i]);sum+=rows[i];}
         if(sum<0.5){tool.ReportAddText("The dt csv is too short.\r\n");return false;}
         rec.mean=float(sum/rec.dt.size());
-        Cond mean{"fixedmean",std::vector<float>(size_t(std::lround(0.5/rec.mean)),rec.mean),rec.mean};
-        Cond f60{"fixed60",std::vector<float>(30,1.0f/60.0f),1.0f/60.0f};
-        m_conds={f60,mean,rec};
+        Cond mean{"fixedmean",std::vector<float>(size_t(std::lround(0.5/rec.mean)),rec.mean),rec.mean,1};
+        Cond f60{"fixed60",std::vector<float>(30,1.0f/60.0f),1.0f/60.0f,1};
+        Cond f300{"fixed300",std::vector<float>(150,1.0f/300.0f),1.0f/300.0f,1};
+        m_conds={f60,f300,mean,rec};
+        for(size_t c=1;c<m_conds.size();c++){double t=0;size_t i=0;for(;i<m_conds[c].dt.size()&&t<0.4-1e-6;i++)t+=m_conds[c].dt[i];m_conds[c].saveFrom=int(i)+1;}
         for(const auto& c:m_conds){double s=0;float lo=1,hi=0;for(float d:c.dt){s+=d;lo=vaMath::Min(lo,d);hi=vaMath::Max(hi,d);}
-            tool.ReportAddRowValues({"dt_condition",c.name,std::to_string(c.dt.size()),vaStringTools::Format("%.6f",s),vaStringTools::Format("%.6f",c.mean),vaStringTools::Format("%.6f",lo),vaStringTools::Format("%.6f",hi)});}
+            tool.ReportAddRowValues({"dt_condition",c.name,std::to_string(c.dt.size()),std::to_string(c.saveFrom),vaStringTools::Format("%.6f",s),vaStringTools::Format("%.6f",c.mean),vaStringTools::Format("%.6f",lo),vaStringTools::Format("%.6f",hi)});}
         return true;
     }
     void Configure() {
@@ -143,13 +146,13 @@ public:
         if(!c.ssref)ok=ok&&s->GetAdaptiveSearch()&&s->GetSelectedTemporal()==c.temporal&&s->GetResolveVariant()==c.variant&&((s->GetPresentedOutputOverride()!=nullptr)==c.temporal);
         if(color->GetSizeX()!=1920||color->GetSizeY()!=1061)ok=false;
         if(!ok){tool.ReportAddRowValues({"failed_state",m_conds[m_cond].name,c.name,std::to_string(m_frame),"FAIL"});m_failed=true;}
-        if(m_frame<0)return;
+        if(m_frame<0||(m_frame>0&&m_frame<m_conds[m_cond].saveFrom-1))return;
         const auto dir=Dir();vaFileTools::EnsureDirectoryExists(dir);
         if(!color->SaveToPNGFile(ctx,dir+vaStringTools::SimpleWiden(vaStringTools::Format("frame_%05d.png",m_frame)))){m_failed=true;tool.ReportAddRowValues({"failed_save",c.name,std::to_string(m_frame),"FAIL"});}
-        if(m_frame==Count())tool.ReportAddRowValues({"segment",m_conds[m_cond].name,c.name,std::to_string(Count()+1),ok?"PASS":"FAIL"});
+        if(m_frame==Count())tool.ReportAddRowValues({"segment",m_conds[m_cond].name,c.name,std::to_string(Count()),std::to_string(m_conds[m_cond].saveFrom-1),ok?"PASS":"FAIL"});
     }
     bool IsDone(AutoBenchTool&) const override {return m_done;}
-    float GetProgress() const override {return float(m_cond*int(m_modes.size())+m_mode)/float(3*m_modes.size());}
+    float GetProgress() const override {return float(m_cond*int(m_modes.size())+m_mode)/float(m_conds.size()*m_modes.size());}
 };
 
 static bool QueueTranslationStability(CMAA2Sample& parent,AutoBenchTool& tool) {
