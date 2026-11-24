@@ -56,7 +56,9 @@ while(($idle=[ImpIdle]::Seconds()) -lt $needIdle){
     if((Get-Date) -gt $deadline){throw "User input $([math]::Round($idle,1)) s ago; not starting"}
     Start-Sleep -Seconds 10
 }
-$gpu=@(& nvidia-smi --query-gpu=name,driver_version,pstate,utilization.gpu,memory.used --format=csv,noheader)
+# The GPU can stay above P8 for a while after the previous run; wait up to 90 s.
+$p8Until=(Get-Date).AddSeconds(90)
+do{$gpu=@(& nvidia-smi --query-gpu=name,driver_version,pstate,utilization.gpu,memory.used --format=csv,noheader); if($gpu[0] -match ', P8,'){break}; Start-Sleep -Seconds 5}while((Get-Date) -lt $p8Until)
 if($LASTEXITCODE -ne 0 -or $gpu[0] -notmatch ', P8,'){throw "GPU is not idle (P8): $gpu"}
 $gpuProcesses=@(& nvidia-smi)
 
