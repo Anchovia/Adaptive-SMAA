@@ -8,7 +8,9 @@ depth edge), nearest x4. GIF: every saved motion frame, the five colour rows sid
 (slow motion; the label gives the frame and its time within the motion).
 
 usage: python translation_sheets.py --run <capture root> --analysis <analysis dir> --cond <condition> --out <dir>
-           [--roi x,y] [--count 8] [--tag name]
+           [--roi x,y] [--count 8] [--stride 1] [--tag name]
+--stride s uses every s-th saved frame (fixed300: 5 = frames 1/60 s apart, what a 60 Hz display shows) for the
+sheet window and the GIF.
 """
 import argparse, json
 from pathlib import Path
@@ -40,6 +42,7 @@ def main():
     ap.add_argument('--roi')
     ap.add_argument('--count', type=int, default=8)
     ap.add_argument('--tag', default='')
+    ap.add_argument('--stride', type=int, default=1)
     a = ap.parse_args()
     run, base, out = Path(a.run), Path(a.run) / a.cond, Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -56,6 +59,8 @@ def main():
                     best = (v, x, y)
         _, x0, y0 = best
     frames = sorted(int(p.stem.split('_')[1]) for p in (base / 'On').glob('frame_*.png') if int(p.stem.split('_')[1]) > 0)
+    st = a.stride
+    frames = [k for k in frames if (frames[-1] - k) % st == 0]
     crop = lambda img: img[y0:y0 + H, x0:x0 + W]
     tiles = {m: {k: crop(load(base / m / f'frame_{k:05d}.png')) for k in frames} for m in ROWS}
     wtiles = {k: weight_tile(crop(load(base / 'WeightDebug' / f'frame_{k:05d}.png'))) for k in frames}
@@ -70,13 +75,13 @@ def main():
     # Window of consecutive frames with the largest On error in the ROI.
     err = []
     for k in frames:
-        if k - 1 in tiles['On']:
-            d = tiles['On'][k].astype(float) - tiles['On'][k - 1] - (tiles['SSRef'][k].astype(float) - tiles['SSRef'][k - 1])
+        if k - st in tiles['On']:
+            d = tiles['On'][k].astype(float) - tiles['On'][k - st] - (tiles['SSRef'][k].astype(float) - tiles['SSRef'][k - st])
             err.append((k, float(np.abs(d).mean())))
     n = a.count
-    starts = [err[i][0] for i in range(len(err) - n + 1) if err[i + n - 1][0] - err[i][0] == n - 1]
-    start = max(starts, key=lambda s: sum(e for k, e in err if s <= k < s + n)) if starts else frames[0]
-    window = [k for k in range(start, start + n) if k in tiles['On']]
+    starts = [err[i][0] for i in range(len(err) - n + 1) if err[i + n - 1][0] - err[i][0] == (n - 1) * st]
+    start = max(starts, key=lambda s: sum(e for k, e in err if s <= k < s + n * st)) if starts else frames[0]
+    window = [k for k in range(start, start + n * st, st) if k in tiles['On']]
     s = 4
     sheet = Image.new('RGB', (130 + len(window) * (W * s + 6), 26 + (len(ROWS) + 1) * (H * s + 22)), (32, 32, 32))
     dr = ImageDraw.Draw(sheet)
@@ -89,7 +94,7 @@ def main():
             left = 130 + c * (W * s + 6)
             sheet.paste(Image.fromarray(img).resize((W * s, H * s), Image.NEAREST), (left, top + 18))
             dr.text((left, top + 2), f'frame {k}' + (f'  t={dt[k]:.4f}s' if k in dt else ''), fill=(230, 230, 230))
-    tag = a.tag or f'{a.cond}_x{x0}_y{y0}'
+    tag = a.tag or f'{a.cond}_s{st}_x{x0}_y{y0}'
     sheet.save(out / f'sheet_{tag}.png')
     g = 3
     gif = []
@@ -103,7 +108,7 @@ def main():
         d2.text((6, 4), f'{a.cond} frame {k}' + (f' t={dt[k]:.4f}s' if k in dt else '') + f'  x={x0} y={y0} x{g} nearest, slow motion', fill=(230, 230, 230))
         gif.append(im)
     gif[0].save(out / f'compare_{tag}.gif', save_all=True, append_images=gif[1:], duration=125, loop=0)
-    info = {'run': str(run), 'cond': a.cond, 'roi': [x0, y0, W, H], 'window': window, 'gif_frames': frames}
+    info = {'run': str(run), 'cond': a.cond, 'stride': st, 'roi': [x0, y0, W, H], 'window': window, 'gif_frames': frames}
     (out / f'sheet_{tag}.json').write_text(json.dumps(info, indent=1) + '\n', encoding='utf-8')
     print(json.dumps(info))
 
