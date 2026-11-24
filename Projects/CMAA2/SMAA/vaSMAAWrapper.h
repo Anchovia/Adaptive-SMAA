@@ -65,6 +65,8 @@ namespace VertexAsylum
         ~vaSMAAWrapper( );
 
     public:
+        // Validation harness access to the preset edited by the UI.
+        Settings &                  GetSettings( )                      { return m_settings; }
         // Adaptive SMAA (SMAA_ADAPTIVE_SEARCH): per-preset search tiers stored with the edges in an RGBA8 target.
         void                        SetAdaptiveSearch( bool enabled )   { m_adaptiveSearch = enabled; }
         bool                        GetAdaptiveSearch( ) const          { return m_adaptiveSearch; }

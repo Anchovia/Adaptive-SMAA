@@ -1,0 +1,87 @@
+param(
+    [ValidateSet('Capture','Showcase')][string]$Mode='Capture',
+    [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
+    [Parameter(Mandatory=$true)][string]$Label,
+    [string]$OutputRoot='D:\SMAAResearchCaptures\c30',
+    [int]$TimeoutSeconds=1800,
+    [int]$MinIdleSeconds=60,
+    [int]$WaitForIdleMinutes=30
+)
+# One clean CMAA2 process per command for the improved SMAA demo validation harness
+# (Projects/CMAA2/ImprovedSmaaValidation.inl). Capture runs in a hidden window, Showcase in a visible one.
+# Preconditions: no CMAA2 process, idle GPU (P8), no user input for MinIdleSeconds. Postconditions: exit
+# code 0, no CMAA2 process left, a new AutoBench report with Aggregate PASS and no FAIL row.
+$ErrorActionPreference='Stop'
+$root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+$exe=Join-Path $root 'Projects\CMAA2\CMAA2.exe'
+$output=Join-Path $OutputRoot $Label
+if(Test-Path -LiteralPath $output){throw "Output already exists: $output"}
+
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ImpIdle {
+    [StructLayout(LayoutKind.Sequential)] struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+    [DllImport("user32.dll")] static extern bool GetLastInputInfo(ref LASTINPUTINFO info);
+    [DllImport("kernel32.dll")] static extern uint GetTickCount();
+    public static double Seconds() { var i = new LASTINPUTINFO(); i.cbSize = (uint)Marshal.SizeOf(i); GetLastInputInfo(ref i); return (GetTickCount() - i.dwTime) / 1000.0; }
+}
+'@
+
+if(@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count){throw 'Existing CMAA2 process; no new run started'}
+$deadline=(Get-Date).AddMinutes($WaitForIdleMinutes)
+while(($idle=[ImpIdle]::Seconds()) -lt $MinIdleSeconds){
+    if((Get-Date) -gt $deadline){throw "User input $([math]::Round($idle,1)) s ago; not starting"}
+    Start-Sleep -Seconds 10
+}
+$gpu=@(& nvidia-smi --query-gpu=name,driver_version,pstate,utilization.gpu,memory.used --format=csv,noheader)
+if($LASTEXITCODE -ne 0 -or $gpu[0] -notmatch ', P8,'){throw "GPU is not idle (P8): $gpu"}
+$gpuProcesses=@(& nvidia-smi)
+
+# Window and start scene: windowed 1920x1061 client area, AA None until the harness selects modes.
+$settings=Join-Path $root 'Projects\CMAA2\ApplicationSettings.xml'
+if(!(Test-Path -LiteralPath $settings)){throw "Missing $settings (start the demo once or copy one in)"}
+$content=[System.IO.File]::ReadAllText($settings)
+$sceneIndex=if($Scene -eq 'bistro'){0}else{2}
+foreach($entry in ([ordered]@{WindowPositionX=-1;WindowPositionY=-1;WindowClientSizeX=1920;WindowClientSizeY=1061;FullscreenState=1;SceneChoice=$sceneIndex;CurrentAAOption=0}).GetEnumerator()){
+    $pattern="<$($entry.Key)>-?\d+</$($entry.Key)>"
+    if(([regex]::Matches($content,$pattern)).Count -ne 1){throw "Unexpected setting: $($entry.Key)"}
+    $content=[regex]::Replace($content,$pattern,"<$($entry.Key)>$($entry.Value)</$($entry.Key)>")
+}
+[System.IO.File]::WriteAllText($settings,$content)
+
+$exeHash=(Get-FileHash -LiteralPath $exe).Hash
+$git=@('-c','gc.auto=0','-c',"safe.directory=$($root.Replace('\','/'))",'-C',$root)
+$head=(& git @git rev-parse HEAD).Trim()
+$dirty=@(& git @git status --porcelain --untracked-files=no -- Projects).Count -ne 0
+$autoBench=Join-Path $root 'Projects\CMAA2\AutoBench'
+$before=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
+New-Item -ItemType Directory -Path $output | Out-Null
+$started=[DateTime]::UtcNow.ToString('o')
+$style=if($Mode -eq 'Capture'){'Hidden'}else{'Normal'}
+$process=Start-Process -FilePath $exe -ArgumentList @("-improvedSmaa$Mode",$Scene,$output) -WorkingDirectory (Split-Path $exe) -WindowStyle $style -PassThru
+$timedOut=-not $process.WaitForExit($TimeoutSeconds*1000)
+if($timedOut){Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue;$process.WaitForExit()}
+Start-Sleep -Milliseconds 500
+$remaining=@(Get-Process CMAA2 -ErrorAction SilentlyContinue).Count
+$failure=''
+if($remaining -ne 0){$failure='CMAA2 process still running'}
+elseif($timedOut){$failure="Timeout after $TimeoutSeconds s"}
+elseif($process.ExitCode -ne 0){$failure="Exit code $($process.ExitCode)"}
+$reports=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | Where-Object {$before -notcontains $_.FullName})
+$report=$null;$captureRoot=$null
+if(!$failure){
+    if($reports.Count -ne 1){$failure="Expected one new report, found $($reports.Count)"}
+    else{
+        $report=$reports[0].FullName
+        $text=[System.IO.File]::ReadAllText($report)
+        if($text -notmatch 'Aggregate: PASS' -or $text -match '(?im),\s*FAIL\s*(?:,|$)'){$failure="Report is not PASS: $report"}
+        $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
+    }
+}
+$record=[pscustomobject]@{mode=$Mode;scene=$Scene;label=$Label;result=if($failure){'FAIL'}else{'PASS'};failure=$failure;git_head=$head;renderer_dirty=$dirty;
+    executable_sha256=$exeHash;idle_seconds_at_start=$idle;gpu_before=$gpu;gpu_processes_before=$gpuProcesses;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');
+    exit_code=$process.ExitCode;remaining_cmaa2=$remaining;report=$report;report_sha256=if($report){(Get-FileHash -LiteralPath $report).Hash}else{$null};capture_root=$captureRoot}
+ConvertTo-Json -InputObject $record -Depth 4 | Set-Content -LiteralPath (Join-Path $output 'run.json') -Encoding utf8
+if($failure){throw "Run failed: $failure"}
+Write-Output "PASS: $captureRoot"

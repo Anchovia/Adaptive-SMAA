@@ -214,6 +214,8 @@ namespace VertexAsylum
         int                                     m_autoBenchPerfRunCount         = 4;
 
         bool                                    m_requireDeterminism            = false;
+        float                                   m_fixedDeltaTime                = 0.0f;     // validation harness: fixed tick
+        wstring                                 m_saveBackbufferAfterUI;                    // validation harness: next back buffer with the UI
 
         //bool                                    m_debugTexturingDisabled        = false;
 
@@ -234,6 +236,9 @@ namespace VertexAsylum
         shared_ptr<vaPostProcessTonemap>  &     PostProcessTonemap( )               { return m_postProcessTonemap; }
 
         void                                    SetRequireDeterminism( bool enable ){ m_requireDeterminism = enable; }
+        void                                    SetFixedDeltaTime( float deltaTime ) { m_fixedDeltaTime = deltaTime; }
+        void                                    SaveBackbufferAfterUI( const wstring & path ) { m_saveBackbufferAfterUI = path; }
+        shared_ptr<vaSMAAWrapper> &             GetSMAA( )                          { return m_SMAA; }
 
         const char *                            GetAAName( AAType aaType );
         int                                     GetSSResScale( ) const              { return m_SSResScale; }
