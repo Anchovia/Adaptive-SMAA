@@ -446,8 +446,22 @@ vaDrawResultFlags vaSMAAWrapperDX11::Draw( vaRenderDeviceContext & deviceContext
         // Without valid history the previous history is this frame's spatial colour (seed).
         ID3D11ShaderResourceView * currentSpatialSRV = m_feedbackCurrentSpatial->SafeCast<vaTextureDX11*>( )->GetSRV( );
         ID3D11ShaderResourceView * previousHistorySRV = m_temporalHistoryValid? previousHistory->SafeCast<vaTextureDX11*>( )->GetSRV( ) : currentSpatialSRV;
+        // Validation only: the weight debug variant also reads the scene depth (t13) and the reprojection constants (b1).
+        const bool weightDebug = m_resolveVariant == 3 && m_temporalHistoryValid;
+        ID3D11ShaderResourceView * debugDepthSRV = weightDebug? optionalDepth->SafeCast<vaTextureDX11*>( )->GetSRV( ) : nullptr;
+        if( weightDebug )
+        {
+            dx11Context->PSSetShaderResources( 13, 1, &debugDepthSRV );
+            m_reprojectionConstantsBuffer.GetBuffer( )->SafeCast<vaConstantBufferDX11*>( )->SetToAPISlot( deviceContext, 1, false );
+        }
         m_smaa->resolveSelected( dx11Context, currentSpatialSRV, previousHistorySRV, velocitySRV, nextHistoryRTV, dsv, !m_temporalHistoryValid,
             m_previousVelocity->SafeCast<vaTextureDX11*>( )->GetSRV( ) );
+        if( weightDebug )
+        {
+            ID3D11ShaderResourceView * none = nullptr;
+            dx11Context->PSSetShaderResources( 13, 1, &none );
+            m_reprojectionConstantsBuffer.GetBuffer( )->SafeCast<vaConstantBufferDX11*>( )->UnsetFromAPISlot( deviceContext, 1, false );
+        }
 
         std::swap( m_temporalVelocity, m_previousVelocity );
         m_presentedOutput = nextHistory;
@@ -588,7 +602,7 @@ SMAATechniqueInterface* vaSMAAWrapperDX11::CreateTechnique( const char * _name, 
     // no depth, and the resolve runs on the marked pixels.
     if( name.substr( 0, 8 ) == "Selected" )
     {
-        const bool edge = name.find( "EdgePS" ) != string::npos, neighborhood = name == "SelectedNeighborhoodPS";
+        const bool edge = name.find( "EdgePS" ) != string::npos, neighborhood = name.find( "Neighborhood" ) != string::npos;
         tech->VS->CreateShaderAndILFromFile( shaderFileName, vsVersion, edge? "DX10_SMAAEdgeDetectionVS" : (neighborhood? "DX10_SMAANeighborhoodBlendingVS" : "DX10_SMAAResolveVS"), inputElements, shaderMacros, true );
         tech->PS->CreateShaderFromFile( L"SMAA/SelectedTemporal.hlsl", "ps_5_0", name, shaderMacros, true );
         tech->DSS = edge? m_DisableDepthReplaceStencil : (neighborhood? m_DisableDepthNoStencil : m_DisableDepthUseStencil);

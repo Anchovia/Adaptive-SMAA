@@ -57,6 +57,7 @@ namespace VertexAsylum
         bool                        m_adaptiveSearch                = false;  // Adaptive SMAA: 1% contrast-tiered search lengths
         bool                        m_selectedTemporal              = false;  // selected temporal route with (c') Cross5
         bool                        m_temporalEnabled               = true;   // Temporal checkbox of SMAA Adaptive + Temporal (key Y)
+        int                         m_resolveVariant                = 0;      // validation only, 0 = the demo's Cross5
 
         //bool                        m_debugShowEdges;
 
@@ -85,6 +86,9 @@ namespace VertexAsylum
         virtual void                ResetTemporalHistory( )             { }
         // Non-null only for a frame drawn on the selected route: its next history, which is the final colour.
         virtual shared_ptr<vaTexture> GetPresentedOutputOverride( ) const { return nullptr; }
+        // Validation harness: resolve variant of the selected route (see SMAA::resolveVariant); restarts the history.
+        void                        SetResolveVariant( int variant )    { if( m_resolveVariant != variant ) { m_resolveVariant = variant; ResetTemporalHistory( ); } }
+        int                         GetResolveVariant( ) const          { return m_resolveVariant; }
         // Validation harness: whether any temporal texture (history, spatial copy, velocity) is allocated.
         virtual bool                HasTemporalResources( ) const       { return false; }
 

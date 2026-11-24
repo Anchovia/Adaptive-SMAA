@@ -1,8 +1,10 @@
 param(
-    [ValidateSet('Capture','Showcase','Screens','Keys')][string]$Mode='Capture',
+    [ValidateSet('Capture','Showcase','Screens','Keys','Translation','DtRecord')][string]$Mode='Capture',
+    [ValidateSet('h','v')][string]$Direction='h',
+    [string]$DtCsv='',
     [ValidateSet('bistro','minecraft')][string]$Scene='bistro',
     [Parameter(Mandatory=$true)][string]$Label,
-    [string]$OutputRoot='D:\SMAAResearchCaptures\c31',
+    [string]$OutputRoot='D:\SMAAResearchCaptures\c32',
     [int]$TimeoutSeconds=2400,
     [int]$MinIdleSeconds=60,
     [int]$WaitForIdleMinutes=30
@@ -13,6 +15,8 @@ param(
 # Postconditions: exit code 0, no CMAA2 process left, and a new AutoBench report with Aggregate PASS and no
 # FAIL row (Capture, Showcase), the three saved screens (Screens) or the key test below (Keys). Screens and Keys
 # run without AutoBench.
+# Translation (hidden window, AutoBench) runs -translationCapture <scene> <h|v> <DtCsv> <output>; DtRecord (visible
+# window, no AutoBench) runs -translationDtRecord and must leave dt.csv with 1800 frame times.
 # Keys presses the real keys T, Y, F1, Y, F1 in the CMAA2 window (keybd_event) and checks the state that keys.log
 # records with each screen. It waits until the foreground lock timeout has passed since the last user input, so the
 # demo window can come to the front, and sends a key only while the foreground window belongs to the started
@@ -76,8 +80,10 @@ $autoBench=Join-Path $root 'Projects\CMAA2\AutoBench'
 $before=@(Get-ChildItem -LiteralPath $autoBench -Recurse -File -Filter '*_results.csv' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
 New-Item -ItemType Directory -Path $output | Out-Null
 $started=[DateTime]::UtcNow.ToString('o')
-$style=if($Mode -eq 'Capture'){'Hidden'}else{'Normal'}
-$process=Start-Process -FilePath $exe -ArgumentList @("-improvedSmaa$Mode",$Scene,$output) -WorkingDirectory (Split-Path $exe) -WindowStyle $style -PassThru
+$style=if($Mode -eq 'Capture' -or $Mode -eq 'Translation'){'Hidden'}else{'Normal'}
+$arguments=switch($Mode){'Translation'{@('-translationCapture',$Scene,$Direction,$DtCsv,$output)}'DtRecord'{@('-translationDtRecord',$Scene,$output)}default{@("-improvedSmaa$Mode",$Scene,$output)}}
+if($Mode -eq 'Translation' -and !(Test-Path -LiteralPath $DtCsv)){throw "Missing dt csv: $DtCsv"}
+$process=Start-Process -FilePath $exe -ArgumentList $arguments -WorkingDirectory (Split-Path $exe) -WindowStyle $style -PassThru
 
 $keyFailure='';$keySteps=@()
 if($Mode -eq 'Keys'){
@@ -119,6 +125,13 @@ if(!$failure -and $Mode -eq 'Screens'){
     if($missing.Count){$failure="Missing screens: $($missing -join ', ')"}
     if($reports.Count -ne 0){$failure="Unexpected AutoBench report in Screens mode"}
 }
+elseif(!$failure -and $Mode -eq 'DtRecord'){
+    $captureRoot=$output
+    $dtFile=Join-Path $output 'dt.csv'
+    if(!(Test-Path -LiteralPath $dtFile)){$failure='No dt.csv'}
+    elseif(@(Get-Content -LiteralPath $dtFile).Count -ne 1801){$failure='dt.csv does not have 1800 rows'}
+    if($reports.Count -ne 0){$failure="Unexpected AutoBench report in DtRecord mode"}
+}
 elseif(!$failure -and $Mode -eq 'Keys'){
     $captureRoot=$output
     # State recorded with each screen: before any key, then after T, Y, F1, Y, F1.
@@ -144,7 +157,7 @@ elseif(!$failure){
         $captureRoot=([regex]::Match($text,'capture_root,\s*([^,\r\n]+)')).Groups[1].Value.Trim()
     }
 }
-$record=[pscustomobject]@{mode=$Mode;scene=$Scene;label=$Label;result=if($failure){'FAIL'}else{'PASS'};failure=$failure;git_head=$head;renderer_dirty=$dirty;
+$record=[pscustomobject]@{mode=$Mode;scene=$Scene;direction=$Direction;dt_csv=$DtCsv;label=$Label;result=if($failure){'FAIL'}else{'PASS'};failure=$failure;git_head=$head;renderer_dirty=$dirty;
     executable_sha256=$exeHash;idle_seconds_at_start=$idle;foreground_lock_timeout_ms=$lockTimeoutMs;gpu_before=$gpu;gpu_processes_before=$gpuProcesses;started_utc=$started;completed_utc=[DateTime]::UtcNow.ToString('o');
     exit_code=$process.ExitCode;remaining_cmaa2=$remaining;report=$report;report_sha256=if($report){(Get-FileHash -LiteralPath $report).Hash}else{$null};capture_root=$captureRoot;
     key_steps=$keySteps;key_states=$keyStates}

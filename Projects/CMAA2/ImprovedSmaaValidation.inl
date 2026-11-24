@@ -109,7 +109,10 @@ public:
     float GetProgress() const override {return float(m_slot)/float(m_modes.size());}
 };
 
+#include "TranslationStability.inl"
+
 static void QueueImprovedSmaaValidation(CMAA2Sample& parent,AutoBenchTool& tool) {
+    if(QueueTranslationStability(parent,tool))return;
     for(const auto& p:parent.GetApplication().GetCommandLineParameters()) {
         const bool capture=_wcsicmp(p.first.c_str(),L"improvedSmaaCapture")==0,showcase=_wcsicmp(p.first.c_str(),L"improvedSmaaShowcase")==0;
         if(!capture&&!showcase)continue;
@@ -131,16 +134,19 @@ static void QueueImprovedSmaaValidation(CMAA2Sample& parent,AutoBenchTool& tool)
 //   It quits 10 frames after screen_5.png, or after 30000 frames.
 void CMAA2Sample::ImprovedSmaaScreensTick(bool lastFrameComplete) {
     static int state=-1,completeFrames=0,lastChange=-1,lastSave=-1,saved=0;static bool keys=false;static std::wstring dir;static std::string lastState;
+    static TranslationDtRecorder* recorder=nullptr;
     if(state==-1) {
         state=-2;
         for(const auto& p:GetApplication().GetCommandLineParameters()) {
             const bool screens=_wcsicmp(p.first.c_str(),L"improvedSmaaScreens")==0;
             keys=_wcsicmp(p.first.c_str(),L"improvedSmaaKeys")==0;
-            if(!screens&&!keys)continue;
+            const bool record=_wcsicmp(p.first.c_str(),L"translationDtRecord")==0;
+            if(!screens&&!keys&&!record)continue;
             std::wistringstream input(p.second);std::wstring scene;input>>scene>>dir;
             if((scene!=L"bistro"&&scene!=L"minecraft")||dir.empty()){VA_LOG_ERROR("Expected scene and output path without spaces");break;}
             m_settings.SceneChoice=scene==L"minecraft"?SceneSelectionType::MinecraftLostEmpire:SceneSelectionType::LumberyardBistro;
-            if(screens)m_settings.CurrentAAOption=AAType::SMAA_AdaptiveTemporal;
+            if(screens||record)m_settings.CurrentAAOption=AAType::SMAA_AdaptiveTemporal;
+            if(record){recorder=new TranslationDtRecorder();recorder->dir=dir;auto& a=const_cast<vaApplicationBase&>(GetApplication());a.SetVsync(false);a.SetFramerateLimit(0);}
             m_SMAA->GetSettings().Preset=vaSMAAWrapper::PRESET_ULTRA;
             m_flythroughPlay=true;vaUIManager::GetInstance().SetVisible(true);
             vaFileTools::EnsureDirectoryExists(dir+L"/");state=0;break;
@@ -149,6 +155,7 @@ void CMAA2Sample::ImprovedSmaaScreensTick(bool lastFrameComplete) {
     if(state<0||!lastFrameComplete)return;
     ++completeFrames;
     auto& app=const_cast<vaApplicationBase&>(GetApplication());
+    if(recorder){if(recorder->Tick(*this,m_lastDeltaTime))app.Quit();return;}
     if(!keys) {
         if(completeFrames==300||completeFrames==330||completeFrames==360)
             SaveBackbufferAfterUI(dir+L"/"+vaStringTools::SimpleWiden(vaStringTools::Format("screen_%03d.png",completeFrames)));

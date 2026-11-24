@@ -85,3 +85,68 @@ float4 SelectedSeedResolvePS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV
     float4 current = SMAASamplePoint(colorTex, uv);
     return float4(lerp(current.rgb, SelectedHistoryRGB(uv), 0.8), current.a);
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Validation only (validation/improved-smaa-demo-translation-stability): resolve variants to separate the causes
+// of instability under camera translation. The demo uses SelectedResolveVelocityCross5PS only.
+
+// Fixed history weight 0.8 (no velocity test).
+[earlydepthstencil]
+float4 SelectedResolveFixed08PS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float3 c = LinearToEncoded(current.rgb), h = LinearToEncoded(SelectedHistoryRGB(uv));
+    return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, 0.8))), current.a);
+}
+
+// The official SMAA comparison: one previous-velocity tap, the texel under the history position.
+[earlydepthstencil]
+float4 SelectedResolveOfficial1TapPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float4 current = SMAASamplePoint(colorTex, uv);
+    float2 v = velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    int2 n = int2(floor((uv - v) * SMAA_RT_METRICS.zw)), last = int2(SMAA_RT_METRICS.zw) - 1;
+    float delta = abs(length(v) - length(previousVelocityTex.Load(int3(clamp(n, int2(0, 0), last), 0)).rg));
+    float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    float3 c = LinearToEncoded(current.rgb), h = LinearToEncoded(SelectedHistoryRGB(uv));
+    return float4(EncodedToLinear(sqrt(lerp(c * c, h * h, weight))), current.a);
+}
+
+// Weight debug: the Cross5 weight of SelectedResolveVelocityCross5PS, written instead of a colour.
+// Output bytes (sRGB target, so the values pass through EncodedToLinear): R = weight / 0.8, G = 255 at every
+// selected pixel, B = the largest relative view-depth jump to a 4-neighbour, x2, capped at 1 (0.1 jump = 51).
+// The neighborhood pass writes zero in this mode, so G = 0 outside the selection. The weights depend on the
+// velocity textures only, so they are the weights of the colour run at the same frame.
+Texture2D<float> debugDepthTex : register(t13);
+
+float DebugViewDepth(int2 pixel) {
+    int2 last = int2(SMAA_RT_METRICS.zw) - 1;
+    pixel = clamp(pixel, int2(0, 0), last);
+    float2 uv = (float2(pixel) + 0.5) * SMAA_RT_METRICS.xy;
+    float4 clip = float4(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, debugDepthTex.Load(int3(pixel, 0)), 1.0);
+    float4 world = mul(g_SMAAReprojection.CurrentViewProjInv, clip);
+    return abs(1.0 / world.w);
+}
+
+[earlydepthstencil]
+float4 SelectedResolveWeightDebugPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0) : SV_TARGET {
+    float2 v = velocityTex.SampleLevel(PointSampler, uv, 0).rg;
+    int2 n = int2(floor((uv - v) * SMAA_RT_METRICS.zw)), last = int2(SMAA_RT_METRICS.zw) - 1;
+    const int2 offsets[5] = { int2(0, 0), int2(-1, 0), int2(1, 0), int2(0, -1), int2(0, 1) };
+    float delta = 0.0;
+    [unroll] for (int i = 0; i < 5; ++i)
+        delta = max(delta, abs(length(v) - length(previousVelocityTex.Load(int3(clamp(n + offsets[i], int2(0, 0), last), 0)).rg)));
+    float weight = 0.8 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+    int2 pixel = int2(p.xy);
+    float d = DebugViewDepth(pixel), jump = 0.0;
+    [unroll] for (int j = 1; j < 5; ++j) {
+        float dn = DebugViewDepth(pixel + offsets[j]);
+        jump = max(jump, abs(dn - d) / max(min(dn, d), 1e-6));
+    }
+    return float4(EncodedToLinear(float3(weight / 0.8, 1.0, saturate(jump * 2.0))), 1.0);
+}
+
+// Weight debug: the neighborhood pass writes zero, so only the selected pixels carry G = 255.
+void SelectedNeighborhoodZeroPS(float4 p : SV_POSITION, float2 uv : TEXCOORD0, float4 offset : TEXCOORD1,
+                                out float4 spatial : SV_TARGET0, out float4 history : SV_TARGET1) {
+    spatial = float4(0.0, 0.0, 0.0, 1.0);
+    history = spatial;
+}

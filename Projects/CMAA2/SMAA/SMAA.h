@@ -156,6 +156,9 @@ class SMAA {
          * first pass of go(). Writes only the next history. Without a seed it uses the
          * (c') Cross5 history weight, which reads the previous frame's velocity.
          */
+        // Validation only: 0 Cross5 (the demo), 1 fixed weight 0.8, 2 official one-tap velocity test,
+        // 3 Cross5 weight debug (the neighborhood pass writes zero and the resolve writes the weight).
+        int resolveVariant = 0;
         void resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceView *current,
             ID3D11ShaderResourceView *previous, ID3D11ShaderResourceView *velocity,
             ID3D11RenderTargetView *nextHistory, ID3D11DepthStencilView *dsv, bool seed,
@@ -330,6 +333,7 @@ class SMAA {
         SMAATechniqueInterface *        separateTechnique;
         SMAATechniqueInterface *        selectedEdgeTechniques[4];  // [input]
         SMAATechniqueInterface *        selectedNeighborhoodTechnique, *selectedSeedResolveTechnique, *selectedCross5ResolveTechnique;
+        SMAATechniqueInterface *        selectedFixed08ResolveTechnique, *selectedOfficial1TapResolveTechnique, *selectedWeightDebugResolveTechnique, *selectedNeighborhoodZeroTechnique;
 
         SMAATechniqueInterface * msaaOrderRenderTechnique;
         SMAATechniqueInterface * msaaOrderLoadTechnique  ;

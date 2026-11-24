@@ -251,6 +251,10 @@ SMAA::SMAA(ID3D11Device *device, SMAAShaderConstantsInterface * shaderConstantsI
     selectedNeighborhoodTechnique   = techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodPS", defines);
     selectedSeedResolveTechnique    = techniqueManagerInterface->CreateTechnique("SelectedSeedResolvePS", defines);
     selectedCross5ResolveTechnique  = techniqueManagerInterface->CreateTechnique("SelectedResolveVelocityCross5PS", defines);
+    selectedFixed08ResolveTechnique       = techniqueManagerInterface->CreateTechnique("SelectedResolveFixed08PS", defines);
+    selectedOfficial1TapResolveTechnique  = techniqueManagerInterface->CreateTechnique("SelectedResolveOfficial1TapPS", defines);
+    selectedWeightDebugResolveTechnique   = techniqueManagerInterface->CreateTechnique("SelectedResolveWeightDebugPS", defines);
+    selectedNeighborhoodZeroTechnique     = techniqueManagerInterface->CreateTechnique("SelectedNeighborhoodZeroPS", defines);
 
     // ACTUAL SHADER CODE IS IN vaSMAAWrapperDX11::CreateTechnique(...)
     msaaOrderRenderTechnique   = techniqueManagerInterface->CreateTechnique( "detectMSAAOrder_Render", defines );
@@ -405,7 +409,8 @@ void SMAA::resolveSelected(ID3D11DeviceContext *context, ID3D11ShaderResourceVie
     texturesInterface->SetResource_colorTexPrev(context, previous);
     texturesInterface->SetResource_velocityTex(context, velocity);
     if(!seed) context->PSSetShaderResources(12, 1, &previousVelocity);
-    (seed ? selectedSeedResolveTechnique : selectedCross5ResolveTechnique)->ApplyStates(context);
+    SMAATechniqueInterface *variants[4] = {selectedCross5ResolveTechnique, selectedFixed08ResolveTechnique, selectedOfficial1TapResolveTechnique, selectedWeightDebugResolveTechnique};
+    (seed ? selectedSeedResolveTechnique : variants[resolveVariant & 3])->ApplyStates(context);
     context->OMSetRenderTargets(1, &nextHistory, dsv);
     triangle->draw(context);
     context->OMSetRenderTargets(0, nullptr, nullptr);
@@ -690,7 +695,7 @@ void SMAA::neighborhoodBlendingPass(ID3D11DeviceContext * context, ID3D11RenderT
 
     // Setup the technique (once again):
     // V(neighborhoodBlendingTechnique->GetPassByIndex(0)->Apply(0));
-    (selected ? selectedNeighborhoodTechnique : neighborhoodBlendingTechnique)->ApplyStates( context );
+    (selected ? (resolveVariant == 3 ? selectedNeighborhoodZeroTechnique : selectedNeighborhoodTechnique) : neighborhoodBlendingTechnique)->ApplyStates( context );
 
     // Do the final pass! (selected route: also to the next history)
     ID3D11RenderTargetView *targets[2] = {dstRTV, selected ? selected->nextHistory : nullptr};
