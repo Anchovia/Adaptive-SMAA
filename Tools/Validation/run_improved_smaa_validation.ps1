@@ -95,10 +95,13 @@ if($Mode -eq 'Keys'){
         if($keyFailure){break}
         $index++
         if([ImpIdle]::ForegroundPid() -ne $process.Id){$keyFailure="Foreground changed before key $index ($($key.name)); no key sent";break}
-        [ImpIdle]::Down([byte]$key.vk);Start-Sleep -Milliseconds 80;[ImpIdle]::Up([byte]$key.vk)
+        # The app polls the key state once per frame; hold the key over several frames.
+        [ImpIdle]::Down([byte]$key.vk);Start-Sleep -Milliseconds 200;[ImpIdle]::Up([byte]$key.vk)
         $screen=Join-Path $output "screen_$index.png"
         if(!(& $waitFor {Test-Path -LiteralPath $screen} 30)){$keyFailure="No screen after key $index ($($key.name))";break}
         $keySteps+=[pscustomobject]@{key=$key.name;index=$index;sent_utc=[DateTime]::UtcNow.ToString('o')}
+        # The screen file appears while the frame that saves it may still be running; let it finish.
+        Start-Sleep -Milliseconds 500
     }
 }
 
