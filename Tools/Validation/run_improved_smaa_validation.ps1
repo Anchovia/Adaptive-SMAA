@@ -13,7 +13,7 @@ param(
 # Postconditions: exit code 0, no CMAA2 process left, and a new AutoBench report with Aggregate PASS and no
 # FAIL row (Capture, Showcase), the three saved screens (Screens) or the key test below (Keys). Screens and Keys
 # run without AutoBench.
-# Keys presses the real keys T, Y, F1, Y, F1 in the CMAA2 window (keybd_event) and checks the state that keys.log
+# Keys presses the real keys R, T, R, F1, T, F1 in the CMAA2 window (keybd_event) and checks the state that keys.log
 # records with each screen. It waits until the foreground lock timeout has passed since the last user input, so the
 # demo window can come to the front, and sends a key only while the foreground window belongs to the started
 # process; otherwise it stops without sending.
@@ -91,7 +91,7 @@ if($Mode -eq 'Keys'){
         if([ImpIdle]::ForegroundPid() -ne $process.Id){$keyFailure="CMAA2 window not in front (foreground pid $([ImpIdle]::ForegroundPid())); no key sent"}
     }
     $index=0
-    foreach($key in @(@{name='T';vk=0x54},@{name='Y';vk=0x59},@{name='F1';vk=0x70},@{name='Y';vk=0x59},@{name='F1';vk=0x70})){
+    foreach($key in @(@{name='R';vk=0x52},@{name='T';vk=0x54},@{name='R';vk=0x52},@{name='F1';vk=0x70},@{name='T';vk=0x54},@{name='F1';vk=0x70})){
         if($keyFailure){break}
         $index++
         if([ImpIdle]::ForegroundPid() -ne $process.Id){$keyFailure="Foreground changed before key $index ($($key.name)); no key sent";break}
@@ -121,14 +121,13 @@ if(!$failure -and $Mode -eq 'Screens'){
 }
 elseif(!$failure -and $Mode -eq 'Keys'){
     $captureRoot=$output
-    # State recorded with each screen: before any key, then after T, Y, F1, Y, F1.
-    $at='aa=SMAA Adaptive + Temporal'
-    $expected=@('aa=None temporal=1 selected=0 resources=0 presented=0 ui=1',
-        "$at temporal=1 selected=1 resources=1 presented=1 ui=1","$at temporal=0 selected=0 resources=0 presented=0 ui=1",
-        "$at temporal=0 selected=0 resources=0 presented=0 ui=0","$at temporal=1 selected=1 resources=1 presented=1 ui=0",
-        "$at temporal=1 selected=1 resources=1 presented=1 ui=1")
+    # State recorded with each screen: before any key, then after R, T, R, F1, T, F1.
+    $at='aa=SMAA Adaptive + Temporal temporal=1 selected=1 t2xr=0 jitter=0 resources=1 presented=1'
+    $tr='aa=SMAA T2x-R temporal=1 selected=0 t2xr=1 jitter=1 resources=1 presented=0'
+    $expected=@('aa=None temporal=1 selected=0 t2xr=0 jitter=0 resources=0 presented=0 ui=1',
+        "$tr ui=1","$at ui=1","$tr ui=1","$tr ui=0","$at ui=0","$at ui=1")
     $lines=@(Get-Content -LiteralPath (Join-Path $output 'keys.log'))
-    $keyStates=@(0..5 | ForEach-Object { $n=$_; $m=$lines | Where-Object {$_ -match "^screen $n frame \d+ (.*)$"} | Select-Object -First 1
+    $keyStates=@(0..6 | ForEach-Object { $n=$_; $m=$lines | Where-Object {$_ -match "^screen $n frame \d+ (.*)$"} | Select-Object -First 1
         [pscustomobject]@{screen=$n;expected=$expected[$n];recorded=if($m){($m -replace '^screen \d+ frame \d+ ','')}else{$null};file_exists=(Test-Path -LiteralPath (Join-Path $output "screen_$n.png"))} })
     $bad=@($keyStates | Where-Object {$_.recorded -ne $_.expected -or !$_.file_exists})
     if($bad.Count){$failure="Key test state mismatch at screen $($bad[0].screen): $($bad[0].recorded)"}
