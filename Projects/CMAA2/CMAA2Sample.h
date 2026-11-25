@@ -88,6 +88,7 @@ namespace VertexAsylum
             SuperSampleReference,   // also used as the max value for automatic comparisons & benchmarking - options below will be ignored by the autobench
 
             SMAA_AdaptiveTemporal,  // improved SMAA: Adaptive 1% search tiers + selected temporal route with (c') Cross5
+            SMAA_T2xR,              // official SMAA T2x with camera/depth reprojection (paired jitter, original search), for comparison
 
 //            ExperimentalSlot1,      // at the moment tonemap+CMAA2
 //            ExperimentalSlot2,
