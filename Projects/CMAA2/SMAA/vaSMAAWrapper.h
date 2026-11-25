@@ -57,6 +57,8 @@ namespace VertexAsylum
         bool                        m_adaptiveSearch                = false;  // Adaptive SMAA: 1% contrast-tiered search lengths
         bool                        m_selectedTemporal              = false;  // selected temporal route with (c') Cross5
         bool                        m_temporalEnabled               = true;   // Temporal checkbox of SMAA Adaptive + Temporal (key Y)
+        bool                        m_nativeT2xR                    = false;  // official SMAA T2x with camera/depth reprojection
+        int                         m_temporalFrameIndex            = 0;      // T2x-R: jitter and subsample pair of this frame (0 or 1)
 
         //bool                        m_debugShowEdges;
 
@@ -79,6 +81,14 @@ namespace VertexAsylum
         // sample passes it on through SetSelectedTemporal, so each switch restarts the history from a seed.
         void                        SetTemporalEnabled( bool enabled )  { m_temporalEnabled = enabled; }
         bool                        GetTemporalEnabled( ) const         { return m_temporalEnabled; }
+        // SMAA T2x-R, the official T2x with camera/depth reprojection on the original spatial search: the scene is drawn
+        // with GetTemporalJitterOffset(), go() uses the matching T2x subsample indices and reproject() mixes in the previous
+        // spatial frame with the velocity weight. Draw() then needs the scene depth and the jittered camera.
+        void                        SetNativeT2xR( bool enabled )       { if( m_nativeT2xR != enabled ) { m_nativeT2xR = enabled; ResetTemporalHistory( ); } }
+        bool                        GetNativeT2xR( ) const              { return m_nativeT2xR; }
+        // Frame 0 uses SMAA's jitter (+0.25, -0.25) and frame 1 (-0.25, +0.25) in clip space; vaCameraBase::SetSubpixelOffset
+        // flips Y. Zero unless T2x-R is on.
+        vaVector2                   GetTemporalJitterOffset( ) const    { return !m_nativeT2xR ? vaVector2( 0.0f, 0.0f ) : (m_temporalFrameIndex == 0 ? vaVector2( 0.25f, 0.25f ) : vaVector2( -0.25f, -0.25f )); }
         // The next frame starts again from a seed (camera load, scene or image change; resize recreates everything).
         virtual void                ResetTemporalHistory( )             { }
         // Non-null only for a frame drawn on the selected route: its next history, which is the final colour.

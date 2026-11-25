@@ -241,6 +241,7 @@ const char* CMAA2Sample::GetAAName(AAType aaType)
     case CMAA2Sample::AAType::SMAA:                 return "SMAA";
     case CMAA2Sample::AAType::SMAA_S2x:             return "SMAA_S2x";
     case CMAA2Sample::AAType::SMAA_AdaptiveTemporal: return "SMAA Adaptive + Temporal";
+    case CMAA2Sample::AAType::SMAA_T2xR:            return "SMAA T2x-R";
     case CMAA2Sample::AAType::FXAA:                 return "FXAA";
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return "Experimental slot 1";   // at the moment tonemap+CMAA2
         //    case CMAA2Sample::AAType::ExperimentalSlot2:    return "Old CMAA";              // return "ColorPostProcess";
@@ -272,6 +273,7 @@ int CMAA2Sample::GetMSAACountForAAType(CMAA2Sample::AAType aaType)
     case CMAA2Sample::AAType::SMAA:                 return 1;
     case CMAA2Sample::AAType::SMAA_S2x:             return 2;
     case CMAA2Sample::AAType::SMAA_AdaptiveTemporal: return 1;
+    case CMAA2Sample::AAType::SMAA_T2xR:            return 1;
     case CMAA2Sample::AAType::FXAA:                 return 1;
         //    case CMAA2Sample::AAType::ExperimentalSlot1:    return 4;   // at the moment use to test 4xMSAA + CMAA but applied after
         //    case CMAA2Sample::AAType::ExperimentalSlot2:    return 1;   // used to test various things
@@ -873,7 +875,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                     ppAAApplied = true;
                     mainContext.SetOutputs(backupOutputs);
                 }
-                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x) || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal))
+                else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x) || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal) || (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2xR))
                 {
                     VA_SCOPE_CPUGPU_TIMER(SMAA, mainContext);
                     assert(!colorScratchContainsFinal);
@@ -884,7 +886,7 @@ vaDrawResultFlags CMAA2Sample::DrawScene(vaCameraBase& camera, vaGBuffer& gbuffe
                         drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma);
                     else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x)
                         drawResults |= m_SMAA->Draw(mainContext, m_MSTonemappedColor);
-                    else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal)
+                    else if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2xR)
                         drawResults |= m_SMAA->Draw(mainContext, mainColorRT, m_exportedLuma, mainDepthRT, &camera);
                     ppAAApplied = true;
                 }
@@ -937,6 +939,20 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     const bool improvedSMAA = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal && m_settings.SceneChoice != CMAA2Sample::SceneSelectionType::StaticImage;
     m_SMAA->SetAdaptiveSearch(improvedSMAA);
     m_SMAA->SetSelectedTemporal(improvedSMAA && m_SMAA->GetTemporalEnabled());
+
+    // SMAA T2x-R (official T2x with camera/depth reprojection, for comparison; not for static images): the scene is
+    // drawn with this frame's projection jitter.
+    const bool t2xR = m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2xR && m_settings.SceneChoice != CMAA2Sample::SceneSelectionType::StaticImage;
+    m_SMAA->SetNativeT2xR(t2xR);
+    std::unique_ptr<vaCameraBase> jitteredCamera;
+    if (t2xR)
+    {
+        jitteredCamera = std::make_unique<vaCameraBase>(*m_camera);
+        vaVector2 jitterOffset = m_SMAA->GetTemporalJitterOffset();
+        jitteredCamera->SetSubpixelOffset(jitterOffset);
+        jitteredCamera->Tick(0.0f, false);
+    }
+    vaCameraBase& sceneCamera = t2xR ? *jitteredCamera : *m_camera;
 
     bool colorScratchContainsFinal = false;
 
@@ -1086,7 +1102,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
     {
         m_SSGBuffer = nullptr;
 
-        drawResults |= DrawScene(*m_camera, *m_GBuffer, m_scratchPostProcessColor, colorScratchContainsFinal, mainViewport, 0.0f);
+        drawResults |= DrawScene(sceneCamera, *m_GBuffer, m_scratchPostProcessColor, colorScratchContainsFinal, mainViewport, 0.0f);
     }
 
     {
@@ -1234,6 +1250,7 @@ vaDrawResultFlags CMAA2Sample::RenderTick()
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'T'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_AdaptiveTemporal;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'Y') && m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal)
                     m_SMAA->SetTemporalEnabled(!m_SMAA->GetTemporalEnabled());
+                if (keyboard->IsKeyClicked((vaKeyboardKeys)'R'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_T2xR;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'5'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2x;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'6'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::MSAA2xPlusCMAA2;
                 if (keyboard->IsKeyClicked((vaKeyboardKeys)'7'))       m_settings.CurrentAAOption = CMAA2Sample::AAType::SMAA_S2x;
@@ -1932,6 +1949,7 @@ void CMAA2Sample::UIPanelDraw()
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA] = true;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_S2x] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_AdaptiveTemporal] = false;
+        aaTypeApplicable[(int)CMAA2Sample::AAType::SMAA_T2xR] = false;
         aaTypeApplicable[(int)CMAA2Sample::AAType::FXAA] = true;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot1]    = false;
         //                        aaTypeApplicable[(int)AAType::ExperimentalSlot2]    = false;
@@ -1990,7 +2008,7 @@ void CMAA2Sample::UIPanelDraw()
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::CMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA2xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA4xPlusCMAA2 || m_settings.CurrentAAOption == CMAA2Sample::AAType::MSAA8xPlusCMAA2)
         m_CMAA2->UIPanelDrawCollapsable(false, true, true);
 
-    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal)
+    if (m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_S2x || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_AdaptiveTemporal || m_settings.CurrentAAOption == CMAA2Sample::AAType::SMAA_T2xR)
         m_SMAA->UIPanelDrawCollapsable(false, true, true);
 
     if (m_settings.CurrentAAOption == CMAA2Sample::AAType::FXAA)
